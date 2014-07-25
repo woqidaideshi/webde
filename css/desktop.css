@@ -1,0 +1,30 @@
+html body {
+	width: 100%;
+	height: 100%;
+	background-image: url(../img/bgp.jpg);
+}
+
+.icon {
+	width: 40px;
+	height: 40px;
+	border-style: 1px solid black;
+	border-radius: 10px;
+	background-color: black;
+}
+
+.icon:hover {
+	width: 50px;
+	height: 50px;
+}
+
+#gedit {
+	position: absolute;
+	left: 20px;
+	top: 20px;
+}
+
+#terminal {
+	position: absolute;
+	left: 20px;
+	top: 80px;
+}
