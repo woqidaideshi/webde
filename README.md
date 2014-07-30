@@ -5,8 +5,9 @@ This is a project about WebDE development based on WebkitGTK+
 
 How to compile:
 
-./compile one-window.c one-window
+make clean
+make
 
 How to run:
 
-./one-window
+./demo-webde
