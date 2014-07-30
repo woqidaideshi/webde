@@ -3,7 +3,11 @@
 #include <webkit/webkit.h>
 #include <JavaScriptCore/JavaScript.h>
 #include <gdk/gdk.h>
+#include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -58,9 +62,9 @@ JSValueRef ccore_Show(JSContextRef ctx
 	JSStringGetUTF8CString(str, utf8, size);
 
 	GtkWidget *wgt = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL
-			, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, utf8);
+			, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "%s", utf8);
 
-	gtk_dialog_run(wgt);
+	gtk_dialog_run(GTK_DIALOG(wgt));
 	gtk_widget_destroy(wgt);
 	
 	free(utf8);
@@ -95,7 +99,7 @@ JSValueRef Ccore_LaunchApp(JSContextRef ctx
 	}
 	*/
 	
-	GAppInfo *app = g_desktop_app_info_new_from_filename(utf8);
+	GAppInfo *app = (GAppInfo *)g_desktop_app_info_new_from_filename(utf8);
 	GdkAppLaunchContext *launchContext = gdk_display_get_app_launch_context(gdk_display_get_default());
 	gdk_app_launch_context_set_screen(launchContext, gdk_screen_get_default());
 	gdk_app_launch_context_set_icon(launchContext, g_app_info_get_icon(app));
@@ -221,11 +225,13 @@ int main(int argc, char *argv[]) {
 	WebKitWebView *webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
 
 	//a scrollable area, and put a browser instance into it
+	/*
 	GtkWidget *scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledWindow)
 			, GTK_POLICY_AUTOMATIC
 			, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(scrolledWindow), GTK_WIDGET(webView));
+	*/
 
 	g_signal_connect(main_window, "destroy", G_CALLBACK(destroyWindowCb), NULL);
 	g_signal_connect(webView, "close-web-view", G_CALLBACK(closeWebViewCb), main_window);
@@ -234,15 +240,33 @@ int main(int argc, char *argv[]) {
 	g_signal_connect(main_window, "delete-event", G_CALLBACK(preventWindowExitCb), NULL);
 
 	//put a scrollable area into the main window
-	gtk_container_add(GTK_CONTAINER(main_window), scrolledWindow);
+	//gtk_container_add(GTK_CONTAINER(main_window), scrolledWindow);
+	gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webView));
 
 	//Load a web page into the browser intance
 	webkit_web_view_load_uri(webView, URL);//"http://www.baidu.com"
 	//webkit_web_view_load_html(webView, URL, NULL);
-
-	gtk_widget_grab_focus(GTK_WIDGET(webView));
+	
+	//set WM_WINDOW_TYPE
+	/*
+	GdkAtom atom = gdk_atom_intern("_NET_WM_WINDOW_TYPE_DESKTOP", FALSE);
+	gdk_property_change(gtk_widget_get_window(main_window)
+			, gdk_atom_intern("_NET_WM_WINDOW_TYPE", FALSE)
+			//, gdk_x11_xatom_to_atom(XA_ATOM)
+			, gdk_atom_intern("ATOM", FALSE)
+			, 32
+			, GDK_PROP_MODE_REPLACE
+			, (guchar *)&atom
+			, 1);
+	*/
+	gtk_window_set_type_hint(GTK_WINDOW(main_window), GDK_WINDOW_TYPE_HINT_DESKTOP);
+	//gtk_widget_grab_focus(GTK_WIDGET(webView));
 
 	gtk_widget_show_all(main_window);
+
+	//set the background's color to black
+	GdkRGBA rgba = {0, 0, 0, 0.0};
+	gdk_window_set_background_rgba(gtk_widget_get_window(main_window), &rgba);
 
 	gtk_main();
 
