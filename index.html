@@ -1,14 +1,27 @@
 <!DOCTYPE HTML>
 <html>
-  <head>
+	<head>
+		<script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
 	  <script type="text/javascript" src="js/jssyntaxtest.js"></script>
 		<script type="text/javascript" src="js/ccoretest.js"></script>
  	  <link rel="stylesheet" type="text/css" href="css/desktop.css"/>
 	</head>
   <body>
-	  <div class="icon" id="gedit" title="gedit" onclick="startApp('/usr/share/applications/gedit.desktop')">
+	  <div class="icon" id="gedit" title="gedit">
 		</div>
-		<div class="icon" id="terminal" title="terminal" onclick="startApp('/usr/share/applications/gnome-terminal.desktop')">
+		<div class="icon" id="terminal" title="terminal">
 		</div>
+
+		<!--context menu on desktop-->
+		<div id="menu">
+			<ul class="menu">
+				<li>Refresh</li>
+				<hr/>
+				<li class="menu-disable">Unknown</li>
+				<li>Unknown</li>
+				<li>Unknown</li>
+			</ul>
+		</div>
+
 	</body>
 </html>

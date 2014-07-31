@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 #include <gio/gio.h>
-#include <webkit/webkit.h>
 #include <JavaScriptCore/JavaScript.h>
+#include <webkit/webkit.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
@@ -167,7 +167,6 @@ JSClassRef Ccore_ClassCreate(JSContextRef ctx) {
 	return ccoreClass = JSClassCreate(&classdef);
 }
 
-
 //Handle the window-object-cleared singal
 void ccore_WindowObjectClearedCB(WebKitWebView *view
 		, WebKitWebFrame *frame
@@ -195,6 +194,14 @@ static gboolean closeWebViewCb(WebKitWebView *webView, GtkWidget *window) {
 }
 
 static gboolean preventWindowExitCb(GtkWidget *w, GdkEvent *e) {
+	return true;
+}
+
+static gboolean webViewCtxMenuCb(WebKitWebView *webView
+		, GtkWidget *context_menu
+		, WebKitHitTestResult *hit_test_result
+		, gboolean triggered_with_keyboard
+		, gpointer user_data) {
 	return true;
 }
 
@@ -238,6 +245,7 @@ int main(int argc, char *argv[]) {
 	g_signal_connect(G_OBJECT(webView), "window-object-cleared"
 			, G_CALLBACK(ccore_WindowObjectClearedCB), webView);
 	g_signal_connect(main_window, "delete-event", G_CALLBACK(preventWindowExitCb), NULL);
+	g_signal_connect(webView, "context-menu", G_CALLBACK(webViewCtxMenuCb), NULL);
 
 	//put a scrollable area into the main window
 	//gtk_container_add(GTK_CONTAINER(main_window), scrolledWindow);
