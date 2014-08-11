@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello World!</title>
+     <link rel="stylesheet" type="text/css" href="css/desktop.css"/>
+  </head>
+  <body>
+<div id="desktop" class="desktop">
+    <div class="icon" id="gedit" title="gedit" ondblclick="opengedit()"> </div>
+    <div class="icon" id="terminal" title="terminal" ondblclick="openterminal()"> </div>
+  
+    <div class="clock" id="clock" title="clock"  >
+            <canvas id="canvas" width="200" height="200"></canvas>
+            <canvas id="p_canvas" width="200" height="200"></canvas>
+    </div>     
+
+</div>
+	<script  type="text/javascript" src="js/clock.js"> </script>
+      <script type="text/javascript" src="js/drag.js"></script>
+      <script  type="text/javascript">
+
+      function opengedit(){
+          console.log("opengedit");
+          var exec = require('child_process').exec;
+          var result = exec("gedit &",function(err, stdout, stderr){
+                console.log('stdout: ' + stdout);
+                console.log('stderr: ' + stderr);
+            });
+      }
+
+      function openterminal(){
+         console.log("openterminal");
+          var exec = require('child_process').exec;
+          var result = exec("x-terminal-emulator &",function(err, stdout, stderr){
+                console.log('stdout: ' + stdout);
+                console.log('stderr: ' + stderr);
+            });
+      }
+      
+      </script>
+  </body>
+</html>
