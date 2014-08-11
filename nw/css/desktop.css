@@ -1,0 +1,58 @@
+html body {
+	width: 100%;
+	height: 100%;
+	background-image: url(../img/bgp.jpg);
+}
+
+.icon {
+	width: 40px;
+	height: 40px;
+	border-style: 1px solid black;
+	border-radius: 10px;
+	background-color: black;
+}
+
+.icon:hover {
+	box-shadow: 0px 0px 2px black;
+}
+
+#gedit {
+	position: absolute;
+	left: 20px;
+	top: 20px;
+}
+
+#terminal {
+	position: absolute;
+	left: 20px;
+	top: 80px;
+}
+
+#menu {
+	display: none;
+	position: absolute;
+}
+
+#menu ul {
+	background-color: #F5F5F5;
+	box-shadow: 0px 0px 1px black;
+	padding: 2px 2px;
+	list-style: none inside none;
+}
+
+#menu li {
+	width: 120px;
+	margin: 4px 0px;
+	text-indent: 30px;
+}
+
+#menu li:hover {
+	cursor: pointer;
+	background-color: #A9A9A9;
+	color: white;
+}
+
+#menu li.menu-disable {
+	cursor: default;
+	color: #A9A9A9;
+}

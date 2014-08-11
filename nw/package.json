@@ -1,0 +1,9 @@
+{
+	"name": "test",
+	"main": "index.html",
+	"nodejs": true,
+	"window": {
+		"title": "test",
+		"frame": true
+	}
+}
