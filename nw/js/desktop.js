@@ -37,6 +37,10 @@ function Desktop() {
 				});
 				$('#col' + i).append(row_);
 
+				var target = document.getElementById('grid' + i + j);
+				target.ondrop = drop;
+				target.ondragover = allowDrop;
+				/*
 				$('grid' + i + j).bind("drop", function(ev)  {
 					drop(ev);
 				});
@@ -44,6 +48,7 @@ function Desktop() {
 				$('grid' + i + j).bind("dragover", function(ev) {
 					allowDrop(ev);
 				});
+				*/
 
 				entries[i][j] = {};
 				entries[i][j].use = false;

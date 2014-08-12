@@ -13,7 +13,7 @@ function DEntry(id_, position_, path_) {
 	var dEntry = $('<div>', {
 			'class': 'icon',
 			'id': id,
-			'draggale': 'true'
+			'draggable': 'true'
 		});
 
 	return {
@@ -28,9 +28,11 @@ function DEntry(id_, position_, path_) {
 			dEntry.html(PATTERN);
 			$('#grid' + position.x + position.y).append(dEntry);
 
-			$('#' + id).bind("dragstart", function(ev) {
+			var target = document.getElementById(id);
+			target.ondragstart = drag;
+			/*$('#' + id).bind("dragstart", function(ev) {
 				drag(ev);
-			});
+			});*/
 		},
 
 		getPosition: function() {return position;},
