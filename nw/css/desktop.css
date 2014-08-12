@@ -21,8 +21,8 @@ html body {
 }
 
 .icon {
-	width: 40px;
-	height: 40px;
+	width: 60px;
+	height: 80px;
 	border-style: 1px solid black;
 	border-radius: 10px;
 }
@@ -31,20 +31,26 @@ html body {
 	box-shadow: 0px 0px 2px black;
 }
 
-#gedit {
-	background-image: url(../img/03.ico);
-	background-size: cover;
+#computer {
 	position: absolute;
 	left: 20px;
 	top: 40px;
 }
 
-#terminal {
-	background-image: url(../img/16.ico);
-	background-size: cover;
+#computer img{
+	width: 60px;
+	height: 60px;
+}
+
+#user-home {
 	position: absolute;
 	left: 20px;
-	top: 100px;
+	top: 130px;
+}
+
+#user-home img{
+	width: 60px;
+	height: 60px;
 }
 
 .clock{
@@ -52,7 +58,7 @@ html body {
 	height: 200px;
 	position: absolute;
 	right:20px;
-	top:20px;
+	top:40px;
 }
 
 #clock-back{
