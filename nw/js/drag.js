@@ -40,7 +40,6 @@ function getElem (id) {
 
 getdesktop().addEventListener("mousemove", // moving image  
         function (event) {  
-        	console.log("")
           if (dragging){  
             dragdiv.style.cursor="pointer";  
             dragdiv.style.top = parseInt(startTop)+(event.clientY - dragPosY) + "px";  
