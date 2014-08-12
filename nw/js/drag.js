@@ -40,7 +40,7 @@ function getElem (id) {
 
 getdesktop().addEventListener("mousemove", // moving image  
         function (event) {  
-          if (dragging){  
+           if (dragging){  
             dragdiv.style.cursor="pointer";  
             dragdiv.style.top = parseInt(startTop)+(event.clientY - dragPosY) + "px";  
             dragdiv.style.left = parseInt(startLeft)+(event.clientX - dragPosX) + "px";  

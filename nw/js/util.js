@@ -1,5 +1,5 @@
 ﻿function util() {
-    this.distance = 175; //鼠标到圆心距离
+    this.distance = 175;//鼠标到圆心距离
     this.imgMaxWidth = 100;
     this.imgMaxHeight = 100;
     this.init();

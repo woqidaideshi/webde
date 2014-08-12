@@ -1,102 +1,52 @@
 html body {
-  width: 100%;
-  height: 100%;
-  background-image: url(../img/bgp.jpg);
-  overflow:hidden;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
 }
-.col1 {
-  width: 100px;
+
+.desktop{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height:100%;
 }
-.col2 {
-  width: 200px;
+
+#cdos{
+	position: absolute;
+	left: 0px;
+	top:0px;
+	width: 100%;
+	height: 100%;
 }
-.col3 {
-  width: 300px;
-}
-.row1 {
-  height: 90px;
-}
-.row2 {
-  height: 180px;
-}
-.row3 {
-  height: 270px;
-}
+
 .icon {
-  width: 80px;
-  height: 80px;
-  margin: 5px 10px;
-  /*
+	width: 40px;
+	height: 40px;
 	border-style: 1px solid black;
 	border-radius: 10px;
-	background-color: black;
-	*/
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-box-pack: center;
-  -webkit-box-align: center;
 }
+
 .icon:hover {
-  box-shadow: 0px 0px 2px black;
+	box-shadow: 0px 0px 2px black;
 }
-.icon img {
-  width: 50px;
-  height: 50px;
-  border-style: 1px solid black;
-}
-.icon p {
-  margin: 2px 0px;
-}
-.icon p:hover {
-  cursor: default;
-}
-.gridcontainer {
-  position: absolute;
-  width: 92%;
-  height: 90%;
-  top: 2%;
-  left: 4%;
-  display: -webkit-box;
-  -webkit-box-orient: horizontal;
-  -webkit-box-pack: start;
-  -webkit-box-align: start;
-}
-.gridcontainer .gridcol {
-  width: 100px;
-  height: 100%;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-box-pack: start;
-  -webkit-box-align: start;
-}
-.gridcontainer .gridcol .grid {
-  width: 100%;
-  height: 90px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-box-pack: center;
-  -webkit-box-align: center;
-}
-/*
+
 #gedit {
->>>>>>> e7dfb1169caafdb368e0a4e72148fb337949feb1
+	background-image: url(../img/03.ico);
+	background-size: cover;
 	position: absolute;
 	left: 20px;
-	top: 20px;
+	top: 40px;
 }
 
 #terminal {
-<<<<<<< HEAD
 	background-image: url(../img/16.ico);
 	background-size: cover;
-=======
->>>>>>> e7dfb1169caafdb368e0a4e72148fb337949feb1
 	position: absolute;
 	left: 20px;
-	top: 80px;
+	top: 100px;
 }
-<<<<<<< HEAD
-*/
+
 .clock{
 	width: 200px;
 	height: 200px;
@@ -105,8 +55,13 @@ html body {
 	top:20px;
 }
 
+#clock-back{
+	width: 200px;
+	height: 200px;
+}
+
 #p_canvas{
-	z-index: 9999;
+
 	width: 200px;
 	height: 200px;
 	position: absolute;
@@ -125,29 +80,4 @@ html body {
 	width: 50px;
 	height: 50px;
 	cursor: pointer;
-}
-
-#menu {
-  display: none;
-  position: absolute;
-}
-#menu ul {
-  background-color: #F5F5F5;
-  box-shadow: 0px 0px 1px black;
-  padding: 2px 2px;
-  list-style: none inside none;
-}
-#menu li {
-  width: 120px;
-  margin: 4px 0px;
-  text-indent: 30px;
-}
-#menu li:hover {
-  cursor: pointer;
-  background-color: #A9A9A9;
-  color: white;
-}
-#menu li.menu-disable {
-  cursor: default;
-  color: #A9A9A9;
 }
