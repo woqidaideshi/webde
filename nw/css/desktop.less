@@ -1,5 +1,7 @@
 @LineHeight: 80px;
 @LineWidth: 80px;
+@col: @LineWidth + 20px;
+@row: @LineHeight + 10px;
 
 html body {
 	width: 100%;
@@ -7,28 +9,55 @@ html body {
 	background-image: url(../img/bgp.jpg);
 }
 
+.col1 {
+	width: @col;
+}
+
+.col2 {
+	width: @col * 2;
+}
+
+.col3 {
+	width: @col * 3;
+}
+
+.row1 {
+	height: @row;
+}
+
+.row2 {
+	height: @row * 2;
+}
+
+.row3 {
+	height: @row * 3;
+}
+
+.box(@orient, @pack, @align) {
+	display: -webkit-box;
+	-webkit-box-orient: @orient;
+	-webkit-box-pack: @pack;
+	-webkit-box-align: @align;
+}
+
 .icon {
 	width: @LineWidth;
 	height: @LineHeight;
-	margin-left: 20px;
-	margin-top: 10px;
+	margin: 5px 10px;
 	/*
 	border-style: 1px solid black;
 	border-radius: 10px;
 	background-color: black;
 	*/
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-box-pack: center;
-	-webkit-box-align: center;
-
+	.box(vertical, center, center);
+	
 	&:hover {
 		box-shadow: 0px 0px 2px black;
 	}
 
 	img {
-		width: 50px;
-		height: 50px;
+		width: @LineWidth * 0.625;
+		height: @LineHeight * 0.625;
 		border-style: 1px solid black;
 	}
 
@@ -37,6 +66,27 @@ html body {
 		
 		&:hover {
 			cursor: default;
+		}
+	}
+}
+
+.gridcontainer {
+	position: absolute;
+	width: 92%;
+	height: 90%;
+	top: 2%;
+	left: 4%;
+	.box(horizontal, start, start);
+
+	.gridcol {
+		width: @col;
+		height: 100%;
+		.box(vertical, start, start);
+
+		.grid {
+			width: 100%;
+			height: @row;
+			.box(vertical, center, center);
 		}
 	}
 }
