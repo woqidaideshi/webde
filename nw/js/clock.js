@@ -6,6 +6,7 @@ var p_canvas = document.getElementById('p_canvas');
 var p_context = p_canvas.getContext('2d');
 
 var height=200,width=200;
+/*
 //画大圆 
 context.beginPath();
 context.strokeStyle="#009999";
@@ -54,7 +55,7 @@ context.closePath();
 context.fillText(num,x+16*Math.cos(temp_angle),y+16*Math.sin(temp_angle));
 angle+=30/180*Math.PI;
 }
-
+*/
 function Pointer(){
 var p_type = [['#000',70,1],['#ccc',60,2],['red',50,3]];
 function drwePointer(type,angle){

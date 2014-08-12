@@ -4,6 +4,9 @@
 "nodejs": true,
 "window": {
 "title": "test",
-"frame": true
+"toolbar": false,
+"show_in_taskbar": false,
+"as_desktop":true,
+"frame":true
 }
 }

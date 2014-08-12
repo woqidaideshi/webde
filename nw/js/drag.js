@@ -1,32 +1,10 @@
 function getElem (id) {  
       return document.getElementById(id);  
-    }  
-
-    function trimPX (_px) {  
-      if(_px==null || _px=="")  
-        return 0;  
-      return parseInt(_px.substr(0, _px.lastIndexOf("px")));  
-    }  
-
-    function hitInRect (hitX, hitY, rcLeft, rcTop, rcWidth, rcHeight) {  
-      return (hitX>=rcLeft && hitX<rcLeft+rcWidth && hitY>=rcTop && hitY<rcTop+rcHeight);  
-    }  
+    }   
 
     function getdesktop () {  
       return getElem("desktop");  
     }  
-
-    function  getPoint(id){  //返回html控件的坐标
-    var htmlObj = document.getElementById(id);
-    var  rd  =  {x:0,y:0};
-    do{  
-        rd.x  +=  htmlObj.offsetLeft;   
-        rd.y  +=  htmlObj.offsetTop;
-        htmlObj  =  htmlObj.offsetParent;
-    }  
-    while(htmlObj)
-    return  rd;
-}
 
     var dragging = false;  
     var startTop = 0; // top is a Key Word in Chrome and Opera  
@@ -40,34 +18,37 @@ function getElem (id) {
     function initPage () {  
       getdesktop().addEventListener("mousedown", // start moving image  
         function (event) {  
-        	if (event.srcElement.id == "p_canvas"  ) {
+        	if (event.srcElement.id == "p_canvas"  || event.srcElement.id=="terminal" || event.srcElement.id=="gedit") {
         		console.log(event.srcElement.id);
-        	dragdiv = getElem("clock");
-        	var rc = getPoint("p_canvas");
-          startTop = rc.y;  
-          startLeft =rc.x;  
-   	console.log(startTop);
-  	console.log(startLeft);
+        		if (event.srcElement.id == "p_canvas") {
+        			dragdiv = getElem("clock");
+        		}
+        		else{
+        			dragdiv=getElem(event.srcElement.id);
+        		}
+        	
+          startLeft = dragdiv.offsetLeft;  
+          startTop =dragdiv.offsetTop;  
             dragging = true;  
             dragPosX = event.clientX;  
             dragPosY = event.clientY;  
             event.preventDefault(); // disable default behavior of browser  
           }  
         },  
-        false  
+        true  
       );  
 
 getdesktop().addEventListener("mousemove", // moving image  
         function (event) {  
+        	console.log("")
           if (dragging){  
             dragdiv.style.cursor="pointer";  
             dragdiv.style.top = parseInt(startTop)+(event.clientY - dragPosY) + "px";  
             dragdiv.style.left = parseInt(startLeft)+(event.clientX - dragPosX) + "px";  
-
           }  
-          event.preventDefault();  
+          //event.preventDefault();  
         },  
-        false  
+        true  
       );  
 
 getdesktop().addEventListener("mouseup", // stop moving image  
@@ -79,6 +60,6 @@ getdesktop().addEventListener("mouseup", // stop moving image
       };
           event.preventDefault();  
         },  
-        false  
+        true  
       );  
     }  
