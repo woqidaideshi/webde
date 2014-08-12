@@ -44,12 +44,13 @@ html body {
 	width: @LineWidth;
 	height: @LineHeight;
 	margin: 5px 10px;
-	/*
-	border-style: 1px solid black;
-	border-radius: 10px;
-	background-color: black;
-	*/
+	
+	//border-style: 1px solid black;
+	//border-radius: 10px;
+	//background-color: black;
+	
 	.box(vertical, center, center);
+	z-index: 99;
 	
 	&:hover {
 		box-shadow: 0px 0px 2px black;
@@ -59,6 +60,7 @@ html body {
 		width: @LineWidth * 0.625;
 		height: @LineHeight * 0.625;
 		border-style: 1px solid black;
+		z-index: 98;
 	}
 
 	p {
@@ -91,20 +93,6 @@ html body {
 	}
 }
 
-/*
-#gedit {
-	position: absolute;
-	left: 20px;
-	top: 20px;
-}
-
-#terminal {
-	position: absolute;
-	left: 20px;
-	top: 80px;
-}
-*/
-
 #menu {
 	display: none;
 	position: absolute;
@@ -134,3 +122,32 @@ html body {
 	}
 }
 
+.clock{
+	width: 200px;
+	height: 200px;
+	position: absolute;
+	right:20px;
+	top:20px;
+}
+
+#p_canvas{
+	z-index: 9999;
+	width: 200px;
+	height: 200px;
+	position: absolute;
+	right:0px;
+	top:0px;
+}
+
+.dock{
+	position: fixed;
+	bottom:0;
+	width: 100%;
+	text-align: center;
+}
+
+.dock img{
+	width: 50px;
+	height: 50px;
+	cursor: pointer;
+}

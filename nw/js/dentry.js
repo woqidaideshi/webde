@@ -9,7 +9,7 @@ function DEntry(id_, position_, path_) {
 	var path = path_;
 	var name = id_;
 
-	var PATTERN = "<img/>" + "<p>" + name + "</p>"; 
+	var PATTERN = "<img draggable='true'/>" + "<p>" + name + "</p>"; 
 	var dEntry = $('<div>', {
 			'class': 'icon',
 			'id': id,
@@ -30,9 +30,6 @@ function DEntry(id_, position_, path_) {
 
 			var target = document.getElementById(id);
 			target.ondragstart = drag;
-			/*$('#' + id).bind("dragstart", function(ev) {
-				drag(ev);
-			});*/
 		},
 
 		getPosition: function() {return position;},

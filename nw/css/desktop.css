@@ -2,7 +2,6 @@ html body {
   width: 100%;
   height: 100%;
   background-image: url(../img/bgp.jpg);
-  overflow:hidden;
 }
 .col1 {
   width: 100px;
@@ -26,15 +25,11 @@ html body {
   width: 80px;
   height: 80px;
   margin: 5px 10px;
-  /*
-	border-style: 1px solid black;
-	border-radius: 10px;
-	background-color: black;
-	*/
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-box-pack: center;
   -webkit-box-align: center;
+  z-index: 99;
 }
 .icon:hover {
   box-shadow: 0px 0px 2px black;
@@ -43,6 +38,7 @@ html body {
   width: 50px;
   height: 50px;
   border-style: 1px solid black;
+  z-index: 98;
 }
 .icon p {
   margin: 2px 0px;
@@ -77,56 +73,6 @@ html body {
   -webkit-box-pack: center;
   -webkit-box-align: center;
 }
-/*
-#gedit {
->>>>>>> e7dfb1169caafdb368e0a4e72148fb337949feb1
-	position: absolute;
-	left: 20px;
-	top: 20px;
-}
-
-#terminal {
-<<<<<<< HEAD
-	background-image: url(../img/16.ico);
-	background-size: cover;
-=======
->>>>>>> e7dfb1169caafdb368e0a4e72148fb337949feb1
-	position: absolute;
-	left: 20px;
-	top: 80px;
-}
-<<<<<<< HEAD
-*/
-.clock{
-	width: 200px;
-	height: 200px;
-	position: absolute;
-	right:20px;
-	top:20px;
-}
-
-#p_canvas{
-	z-index: 9999;
-	width: 200px;
-	height: 200px;
-	position: absolute;
-	right:0px;
-	top:0px;
-}
-
-.dock{
-	position: fixed;
-	bottom:0;
-	width: 100%;
-	text-align: center;
-}
-
-.dock img{
-	width: 50px;
-	height: 50px;
-	cursor: pointer;
-}
-
 #menu {
   display: none;
   position: absolute;
@@ -150,4 +96,30 @@ html body {
 #menu li.menu-disable {
   cursor: default;
   color: #A9A9A9;
+}
+.clock {
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+#p_canvas {
+  z-index: 9999;
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+}
+.dock {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+}
+.dock img {
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
 }
