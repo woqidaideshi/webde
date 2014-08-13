@@ -30,6 +30,7 @@ function DEntry(id_, position_, path_) {
 
 			var target = document.getElementById(id);
 			target.ondragstart = drag;
+			target.onclick = function() {alert(id);}
 		},
 
 		getPosition: function() {return position;},
