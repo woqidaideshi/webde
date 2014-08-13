@@ -13,7 +13,7 @@ function loadDEntries() {
 }
 
 $(document).ready(function() {
-	desktop = new Desktop();
+	desktop =  Desktop.create();
 	desktop.addAnDEntry(AppEntry.create('gedit'));
 	desktop.addAnDEntry(AppEntry.create('terminal'));
 	//loadDEntries();

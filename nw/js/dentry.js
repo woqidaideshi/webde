@@ -78,23 +78,19 @@ var DirEntry = DEntry.extend({
 
 //Desktop Entry for normal files
 //
-function FileEntry(id_, position_, path_) {
-	var super_ = new DEntry(id_, position_, path_);
-	this.constructor.prototype = super_.constructor.prototype;
-	var type = undefined;
+var FileEntry = DEntry.extend({
+	init: function(id_, position_, path_) {
+		this.callSuper(id_, position_, path_);
+		this._type = this.parseType(path_);
+	},
 	
-	function parseType(path__) {
+	parseType: function(path__) {
 		//get file type from path__
-		console.log("type is " + type);
-	}
-
-	//constructor
-	(function () {
-		type = parseType(path_);
-	})();
-
-	//self public interface
-	this.constructor.prototype.open = function() {
+		console.log("type is " + this.type);
+	},
+	
+	open: function() {
 		//open files with specific app
 	}
-}
+});
+
