@@ -51,55 +51,6 @@ var DEntry = Class.extend({
 		this._name = name_;
 	}
 });
-/*
-function DEntry(id_, position_, path_) {
-	var id = id_;
-	var position = position_;
-	var path = path_;
-	var name = id_;
-
-	var PATTERN = "<img draggable='true'/>" + "<p>" + name + "</p>"; 
-	var dEntry = $('<div>', {
-			'class': 'icon',
-			'id': id,
-			'draggable': 'true'
-		});
-
-	//public interfaces
-		
-	this.constructor.prototype.show = function() {
-		if(typeof position === 'undefined') {
-			alert("no position!!");
-			return ;
-		}
-
-		dEntry.html(PATTERN);
-		$('#grid' + position.x + position.y).append(dEntry);
-
-		var target = document.getElementById(id);
-		target.ondragstart = drag;
-		target.onclick = function() {alert(id);}
-	}
-
-	this.constructor.prototype.getPosition = function() {return position;},
-
-	this.constructor.prototype.setPosition = function(position_) {
-		//redraw it with new position
-		//$('#' + id).attr();
-		position = position_;
-	}
-
-	this.constructor.prototype.getID = function() {return id;}
-
-	this.constructor.prototype.setID = function(id_) {id = id_;}//needed?
-
-	this.constructor.prototype.getName = function() {return name;}
-
-	this.constructor.prototype.setName = function(name_) {
-		//redraw dentry's name
-		name = name_;
-	}
-}*/
 
 //Desktop Entry for application files (a.k.a .desktop)
 //
@@ -112,29 +63,18 @@ var AppEntry = DEntry.extend({
 		//launch app
 	}
 });
-/*
-function AppEntry(id_, position_, path_) {
-	this.constructor.prototype = new DEntry(id_, position_, path_);
-	//_extends(this, new DEntry(id_, position_, path_));
-
-	//self public interface
-	this.open = function() {
-		//launch app
-	}
-}
-*/
 
 //Desktop Entry for directories
 //
-function DirEntry(id_, position_, path_) {
-	var super_ = new DEntry(id_, position_, path_);
-	this.constructor.prototype = super_.constructor.prototype;
+var DirEntry = DEntry.extend({
+	init: function(id_, position_, path_) {
+		this.callSuper(id_, position_, path_);
+	},
 
-	//self public interface
-	this.constructor.prototype.open = function() {
+	open: function() {
 		//open dir
 	}
-}
+});
 
 //Desktop Entry for normal files
 //
