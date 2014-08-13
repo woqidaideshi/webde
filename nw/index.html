@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>desktop</title>
-          <script type="text/javascript" src="js/newdrag.js"></script>
+		<title>desktop</title>
+
+		<script type="text/javascript" src="js/newdrag.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
 		<script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
 		<script type="text/javascript" src="js/desktop.js"></script>
 		<script type="text/javascript" src="js/dentry.js"></script>
 		<script type="text/javascript" src="js/unselectable.js"></script>
-     <link rel="stylesheet" type="text/css" href="css/desktop.css"/>
+    <link rel="stylesheet" type="text/css" href="css/desktop.css"/>
   </head>
   <body>
-    <div class="clock" id="clock" title="clock"  draggable="true" ondrapstart="drap(event)">
+    <div class="clock" id="clock" title="clock"  draggable="true" ondragstart="drag(event)">
             <img src="img/clock.png" width="200" height="200"/>
             <canvas id="canvas" width="200" height="200" ></canvas>
             <canvas id="p_canvas" width="200" height="200" ></canvas>
