@@ -5,12 +5,20 @@
 //
 var DEntry = Widget.extend({
 	init: function(id_, tabIndex_, path_, position_) {
+		if(typeof id_ === "undefined"
+			|| typeof tabIndex_ === "undefined"
+			|| typeof path_ === "undefined") {
+			console.log("not enough params!! init failed!!");
+			return ;
+		}
+
 		this.callSuper(id_, position_);
 		this._path = path_;
 		this._tabIndex = tabIndex_;
 		
 		this._name = id_;
 		this._imgPath = undefined;
+		this._exec = require('child_process').exec;
 
 		this.PATTERN = "<img draggable='true'/>" + "<p>" + this._name + "</p>";
 		this._dEntry = $('<div>', {
@@ -29,6 +37,7 @@ var DEntry = Widget.extend({
 
 		this._dEntry.html(this.PATTERN);
 		$('#grid' + this._position.x + this._position.y).append(this._dEntry);
+		$('#' + this._dEntry + ' img').attr('src', this._imgPath);
 
 		//var target = document.getElementById(this._id);
 		//this.bindDrag(target);
@@ -66,6 +75,9 @@ var AppEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
 		this._execCmd = undefined;
+		this._basePath = "/usr/share/icons/Mint-X/apps/48/";
+
+		this.parseDesktopFile();
 	},
 
 	parseDesktopFile: function() {
@@ -73,6 +85,16 @@ var AppEntry = DEntry.extend({
 			this._execCmd = attr_['Exec'].split(' ')[0];
 		};
 		var getImgPath = function(attr_) {
+			/*
+			this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
+				if(err !== null) {
+					console.log(err);
+				} elss {
+					var _pathes = stdout.split(':');
+				}
+			});
+			*/
+			this._imgPath = this._basePath + attr_['Icon'] + ".png";
 		};
 		var getEntryName = function(attr_) {
 			this._name = attr_['Name[zh_CN]'];
@@ -100,6 +122,11 @@ var AppEntry = DEntry.extend({
 	
 	open: function() {
 		//launch app
+		this._exec(this._execCmd, function(err, stdout, stderr) {
+			if(err !== null) {
+				console.log(err);
+			}
+		});
 	}
 });
 
