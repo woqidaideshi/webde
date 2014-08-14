@@ -3,6 +3,7 @@
 var Desktop = Class.extend({
 	init: function() {
 		this._grid = undefined;
+		this._tabIndex = 1;
 		this._widgets = [];
 
 		this.generateGrid();
@@ -26,7 +27,10 @@ var Desktop = Class.extend({
 		this._grid.show();
 	},
 
-	loadWidgets: function() {},
+	loadWidgets: function() {
+		this.addAnDEntry(AppEntry.create('gedit', this._tabIndex++));
+		this.addAnDEntry(AppEntry.create('terminal', this._tabIndex++));
+	},
 
 	addAnDEntry: function(entry_, pos_) {
 		if(!this.registWidget(entry_)) return ;
