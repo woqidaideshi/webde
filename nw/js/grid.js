@@ -40,8 +40,7 @@ var Grid = Widget.extend({
 				$('#col' + i).append(row_);
 
 				var target = document.getElementById('grid' + i + j);
-				target.ondrop = this.drop;
-				target.ondragover = this.dragOver;
+				this.bindDrag(target);
 
 				this._grid[i][j] = {};
 				this._grid[i][j].use = false;
@@ -62,5 +61,10 @@ var Grid = Widget.extend({
 
 	drag: function(ev) {
 		console.log("grid is not allowed to drag");
+	},
+
+	drop: function(ev) {
+		if(ev.target.childNodes.length > 0) return ;
+		this.callSuper(ev);
 	}
 });

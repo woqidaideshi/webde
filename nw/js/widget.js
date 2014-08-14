@@ -18,6 +18,7 @@ var Widget = Class.extend({
 	drag: function(ev) {
 		console.log("drap start");
 		ev.dataTransfer.setData("ID", ev.target.id);
+		ev.stopPropagation();
 	},
 
 	dragOver: function(ev) {
@@ -25,11 +26,18 @@ var Widget = Class.extend({
 		ev.preventDefault();
 	},
 
-	
 	drop: function(ev) {
 		console.log("drap end, drop");
+		//if(ev.srcElement == ev.toElement) return ;
 		ev.preventDefault();
-		var data = ev.dataTransfer.getData("ID");
-		ev.target.appendChild(document.getElementById(data));
+		var _id = ev.dataTransfer.getData("ID");
+		if(ev.target.id == _id) return ;
+		ev.target.appendChild(document.getElementById(_id));
+	},
+
+	bindDrag: function(target) {
+		target.ondragstart = this.drag;
+		target.ondragover = this.dragOver;
+		target.ondrop = this.drop;
 	}
 });
