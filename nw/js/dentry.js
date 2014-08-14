@@ -3,10 +3,9 @@
 //position_({left, top}): The position of this DEntry.
 //path_: file path
 //
-var DEntry = Class.extend({
-	init: function(id_, position_, path_) {
-		this._id = id_;
-		this._position = position_;
+var DEntry = Widget.extend({
+	init: function(id_, path_, position_) {
+		this.callSuper(id_, position_);
 		this._path = path_;
 		this._name = id_;
 
@@ -28,23 +27,11 @@ var DEntry = Class.extend({
 		$('#grid' + this._position.x + this._position.y).append(this._dEntry);
 
 		var target = document.getElementById(this._id);
-		target.ondragstart = drag;
+		target.ondragstart = this.drag;
 		target.onclick = function() {alert(id);}
 	},
 
-	getPosition: function() {return	this._position;},
-
-	setPosition: function(position_) {
-		//redraw it with new position
-		//$('#' + id).attr();
-		this._position = position_;
-	},
-
-	getID: function() {return this._id;},
-
-	setID: function(id_) {this._id = id_;},//needed?
-
-	getName:function() {return this._name;},
+	getName: function() {return this._name;},
 
 	setName: function(name_) {
 		//redraw dentry's name
@@ -55,8 +42,8 @@ var DEntry = Class.extend({
 //Desktop Entry for application files (a.k.a .desktop)
 //
 var AppEntry = DEntry.extend({
-	init: function(id_, position_, path_) {
-		this.callSuper(id_, position_, path_);
+	init: function(id_, path_, position_) {
+		this.callSuper(id_, path_, position_);
 	},
 	
 	open: function() {
@@ -67,8 +54,8 @@ var AppEntry = DEntry.extend({
 //Desktop Entry for directories
 //
 var DirEntry = DEntry.extend({
-	init: function(id_, position_, path_) {
-		this.callSuper(id_, position_, path_);
+	init: function(id_, path_, position_) {
+		this.callSuper(id_, path_, position_);
 	},
 
 	open: function() {
@@ -79,8 +66,8 @@ var DirEntry = DEntry.extend({
 //Desktop Entry for normal files
 //
 var FileEntry = DEntry.extend({
-	init: function(id_, position_, path_) {
-		this.callSuper(id_, position_, path_);
+	init: function(id_, path_, position_) {
+		this.callSuper(id_, path_, position_);
 		this._type = this.parseType(path_);
 	},
 	
