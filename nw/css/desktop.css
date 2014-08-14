@@ -97,21 +97,11 @@ html body {
   cursor: default;
   color: #A9A9A9;
 }
-.clock {
+.plugin-div {
   width: 200px;
   height: 200px;
-  position: absolute;
-  right: 20px;
-  top: 20px;
 }
-#p_canvas {
-  z-index: 9999;
-  width: 200px;
-  height: 200px;
-  position: absolute;
-  right: 0px;
-  top: 0px;
-}
+
 .dock {
   position: fixed;
   bottom: 0;

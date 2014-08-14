@@ -10,15 +10,12 @@
 		<script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
 		<script type="text/javascript" src="js/desktop.js"></script>
 		<script type="text/javascript" src="js/dentry.js"></script>
+          <script type="text/javascript" src="js/plugin.js"></script>
+          <script  type="text/javascript" src="js/clock.js"> </script>
 		<script type="text/javascript" src="js/main.js"></script>
     <link rel="stylesheet" type="text/css" href="css/desktop.css"/>
   </head>
-  <body>
-    <div class="clock" id="clock" title="clock"  draggable="true" ondragstart="drag(event)">
-            <img src="img/clock.png" width="200" height="200"/>
-            <canvas id="canvas" width="200" height="200" ></canvas>
-            <canvas id="p_canvas" width="200" height="200" ></canvas>
-    </div>     
+  <body> 
 
     <div class="dock" id="dock">
         <img id="terminal-dock" src="img/16.ico"  title="terminal"  onclick="openterminal()" />
@@ -28,7 +25,7 @@
         <img id="moive" src="img/09.ico"  title="moive" onclick="openmoive()" />
         <img id="music" src="img/10.ico"   title="music" onclick="openmusic()"/>
     </div>
-	 <script  type="text/javascript" src="js/clock.js"> </script>
+	 
       <script  type="text/javascript">
         var gui = require('nw.gui');
     var win = gui.Window.get();
