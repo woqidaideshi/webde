@@ -7,19 +7,34 @@ var Desktop = Class.extend({
 
 		this.generateGrid();
 	},
+	
+	registWidget: function(widget_) {
+		if(typeof this._widgets[widget_.getID()] !== "undefined") {
+			alert("This widget has been registed!!");
+			return false;
+		}
+		this._widgets[widget_.getID()] = widget_;
+		return true;
+	},
+
+	unRegistWidget: function(id_) {
+		this._widgets[id_] = undefined;
+	},
 
 	generateGrid: function() {
 		this._grid = Grid.create('grids');
 		this._grid.show();
 	},
 
-	loadEntries: function() {},
+	loadWidgets: function() {},
 
 	addAnDEntry: function(entry_, pos_) {
+		if(!this.registWidget(entry_)) return ;
 		if(typeof pos_ === 'undefined') {
 			pos_ = this._grid.findAnIdleGrid();
 			if(pos_ == null) {
 				alert("No room");
+				this.unRegistWidget(entry_.getID());
 				return ;
 			}
 		}
