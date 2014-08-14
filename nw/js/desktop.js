@@ -27,6 +27,21 @@ var Desktop = Class.extend({
 		entry_.setPosition(pos_);
 		entry_.show();
 		this._grid._grid[pos_.x][pos_.y].use = true;
+	},
+
+	addAnDPlugin: function(plugin_, pos_) {
+		if(typeof pos_ === 'undefined') {
+			pos_ = this._grid.findAnIdleGridFromRight();
+			if(pos_ == null) {
+				alert("No room");
+				return ;
+			}
+		}
+
+		plugin_.setPosition(pos_);
+		plugin_.setShowPanel(plugin_.getClock());
+		plugin_.show();
+		this._grid._grid[pos_.x][pos_.y].use = true;
 	}
 });
 

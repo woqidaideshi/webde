@@ -59,6 +59,17 @@ var Grid = Widget.extend({
 		return null;
 	},
 
+	findAnIdleGridFromRight: function() {
+		for(var i = parseInt(this._col_num-1); i >= 0; --i) {
+			for(var j = 0; j < this._row_num; ++j) {
+				if(this._grid[i][j].use == false) {
+					return {x: i, y: j};
+				}
+			}
+		}
+		return null;
+	},
+
 	drag: function(ev) {
 		console.log("grid is not allowed to drag");
 	},

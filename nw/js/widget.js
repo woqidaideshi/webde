@@ -22,7 +22,6 @@ var Widget = Class.extend({
 	},
 
 	dragOver: function(ev) {
-		console.log("drap over");
 		ev.preventDefault();
 	},
 

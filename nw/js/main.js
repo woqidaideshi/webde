@@ -16,5 +16,8 @@ $(document).ready(function() {
 	desktop =  Desktop.create();
 	desktop.addAnDEntry(AppEntry.create('gedit'));
 	desktop.addAnDEntry(AppEntry.create('terminal'));
+	desktop.addAnDPlugin(ClockPlugin.create('clockPlugin'));
+	// draw clock;
+	clockRun("clockContent");
 	//loadDEntries();
 });
