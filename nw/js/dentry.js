@@ -27,7 +27,7 @@ var DEntry = Widget.extend({
 		$('#grid' + this._position.x + this._position.y).append(this._dEntry);
 
 		var target = document.getElementById(this._id);
-		target.ondragstart = this.drag;
+		this.bindDrag(target);
 		target.onclick = function() {alert(id);}
 	},
 
@@ -36,6 +36,12 @@ var DEntry = Widget.extend({
 	setName: function(name_) {
 		//redraw dentry's name
 		this._name = name_;
+	},
+
+	drop: function(ev) {
+		console.log("prevent!!");
+		ev.preventDefault();
+		ev.stopPropagation();
 	}
 });
 
