@@ -37,7 +37,6 @@ var DEntry = Widget.extend({
 
 		this._dEntry.html(this.PATTERN);
 		$('#grid' + this._position.x + this._position.y).append(this._dEntry);
-		$('#' + this._dEntry + ' img').attr('src', this._imgPath);
 
 		//var target = document.getElementById(this._id);
 		//this.bindDrag(target);
@@ -81,8 +80,10 @@ var AppEntry = DEntry.extend({
 	},
 
 	parseDesktopFile: function() {
+		var _entry = this;
+
 		var getExecCmd = function(attr_) {
-			this._execCmd = attr_['Exec'].split(' ')[0];
+			_entry._execCmd = attr_['Exec'].split(' ')[0];
 		};
 		var getImgPath = function(attr_) {
 			/*
@@ -94,10 +95,10 @@ var AppEntry = DEntry.extend({
 				}
 			});
 			*/
-			this._imgPath = this._basePath + attr_['Icon'] + ".png";
+			_entry._imgPath = _entry._basePath + attr_['Icon'] + ".png";
 		};
 		var getEntryName = function(attr_) {
-			this._name = attr_['Name[zh_CN]'];
+			_entry._name = attr_['Name[zh_CN]'];
 		};
 		var fs = require('fs');
 
@@ -113,9 +114,10 @@ var AppEntry = DEntry.extend({
 				}
 				console.log("Get desktop file successfully");
 
-				getExecCmd();
-				getImgPath();
-				getEntryName();
+				getExecCmd(attr);
+				getImgPath(attr);
+				getEntryName(attr);
+				$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
 			}
 		});
 	},

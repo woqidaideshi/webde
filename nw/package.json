@@ -6,7 +6,7 @@
 "title": "test",
 "toolbar": false,
 "show_in_taskbar": false,
-"as_desktop":true,
+"as_desktop": true,
 "frame":true
 }
 }

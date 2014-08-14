@@ -35,12 +35,11 @@ html body {
   box-shadow: 0px 0px 2px black;
 }
 .icon:focus {
-  border: 1px dotted black;
+  border: 1px dashed black;
 }
 .icon img {
   width: 50px;
   height: 50px;
-  border: 1px solid black;
   z-index: 98;
 }
 .icon p {
@@ -104,7 +103,6 @@ html body {
   width: 200px;
   height: 200px;
 }
-
 .dock {
   position: fixed;
   bottom: 0;

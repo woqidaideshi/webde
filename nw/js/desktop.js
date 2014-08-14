@@ -28,8 +28,8 @@ var Desktop = Class.extend({
 	},
 
 	loadWidgets: function() {
-		this.addAnDEntry(AppEntry.create('gedit', this._tabIndex++));
-		this.addAnDEntry(AppEntry.create('terminal', this._tabIndex++));
+		this.addAnDEntry(AppEntry.create('gedit', this._tabIndex++, "/usr/share/applications/gedit.desktop"));
+		//this.addAnDEntry(AppEntry.create('terminal', this._tabIndex++));
 	},
 
 	addAnDEntry: function(entry_, pos_) {
