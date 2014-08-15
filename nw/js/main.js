@@ -13,8 +13,7 @@ function loadDEntries() {
 }
 
 $(document).ready(function() {
-	desktop =  Desktop.create();
-	//desktop.loadWidgets();
+	desktop = Desktop.create();
 	desktop.addAnDPlugin(ClockPlugin.create('clockPlugin'));
 	// draw clock;
 	clockRun("clockContent");
