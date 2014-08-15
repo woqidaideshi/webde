@@ -26,3 +26,9 @@ util.prototype = {
         }
     }
 }
+
+var Util = Class.extend({
+	init: function() {},
+
+	getIconPath: function() {}
+});

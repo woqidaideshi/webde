@@ -14,7 +14,7 @@ function loadDEntries() {
 
 $(document).ready(function() {
 	desktop =  Desktop.create();
-	desktop.loadWidgets();
+	//desktop.loadWidgets();
 	desktop.addAnDPlugin(ClockPlugin.create('clockPlugin'));
 	// draw clock;
 	clockRun("clockContent");

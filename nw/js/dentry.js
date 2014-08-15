@@ -20,7 +20,7 @@ var DEntry = Widget.extend({
 		this._imgPath = undefined;
 		this._exec = require('child_process').exec;
 
-		this.PATTERN = "<img draggable='true'/>" + "<p>" + this._name + "</p>";
+		this.PATTERN = "<img/>" + "<p>" + this._name + "</p>";// draggable='true'
 		this._dEntry = $('<div>', {
 			'class': 'icon',
 			'id': this._id,
@@ -60,7 +60,13 @@ var DEntry = Widget.extend({
 		//redraw dentry's name
 		this._name = name_;
 	},
-
+/*
+	drag: function(ev) {
+		if(ev.target.id != "") {
+			this.callSuper(ev);
+		}
+	},
+*/
 	drop: function(ev) {
 		console.log("prevent!!");
 		ev.preventDefault();
@@ -96,6 +102,7 @@ var AppEntry = DEntry.extend({
 			});
 			*/
 			_entry._imgPath = _entry._basePath + attr_['Icon'] + ".png";
+			$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
 		};
 		var getEntryName = function(attr_) {
 			_entry._name = attr_['Name[zh_CN]'];
@@ -117,7 +124,6 @@ var AppEntry = DEntry.extend({
 				getExecCmd(attr);
 				getImgPath(attr);
 				getEntryName(attr);
-				$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
 			}
 		});
 	},

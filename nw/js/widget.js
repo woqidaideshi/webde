@@ -17,7 +17,7 @@ var Widget = Class.extend({
 
 	drag: function(ev) {
 		console.log("drap start");
-		ev.dataTransfer.setData("ID", ev.target.id);
+		ev.dataTransfer.setData("ID", ev.currentTarget.id);
 		ev.stopPropagation();
 	},
 
