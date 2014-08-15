@@ -80,14 +80,14 @@ var Desktop = Class.extend({
 					.animate({width:"-=40px",height:"-=40px",border:"outset"},'fast')
 			//when don't open the app.
 			if ( jqImg.css("border") == "0px none rgb(0, 0, 0)") {
-				setTimeout(function(){jqImg.css("border","outset");},500);
+				setTimeout(function(){jqImg.css("border","outset");},300);
 				//jqImg.css("border","outset");
 				console.log("run"+command_);
           			var exec = require('child_process').exec;
           			var result = exec(command_,function(err, stdout, stderr){
                 				console.log('stdout: ' + stdout);
                 				console.log('stderr: ' + stderr);
-                				setTimeout(function(){jqImg.css("border","none");},200);
+                				setTimeout(function(){jqImg.css("border","none");},250);
             				});
 				}	
 			}
