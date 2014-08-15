@@ -22,7 +22,7 @@ var p_type = [['#000',70,1],['#ccc',60,2],['red',50,3]];
 function drwePointer(type,angle){
 type = p_type[type];
 angle = angle*Math.PI*2 - 90/180*Math.PI; 
-var length= type[1];
+var length= type[1]/(200/width);
 p_context.beginPath();
 p_context.lineWidth = type[2];
 p_context.strokeStyle = type[0];
@@ -47,7 +47,7 @@ s=s/60;
 drwePointer(0,s);
 drwePointer(1,m);
 drwePointer(2,h); 
-},500);
+},100);
 }
 var p = new Pointer();
 }

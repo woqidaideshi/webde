@@ -54,8 +54,9 @@ var Desktop = Class.extend({
 		}
 
 		plugin_.setPosition(pos_);
-		plugin_.setShowPanel(plugin_.getClock());
 		plugin_.show();
+		//show() must run before getClock();
+		plugin_.setShowPanel(plugin_.getClock());
 		this._grid._grid[pos_.x][pos_.y].use = true;
 	},
 
@@ -83,17 +84,10 @@ var Desktop = Class.extend({
 		}
 
 		var dock = document.getElementById('dock');
-		
 		dock.appendChild(image);
 
 		var imgList = dock.getElementsByTagName('img');
-		console.log(imgList.length);
-		var  jqimgList = $('#dock img');
-		console.log(jqimgList.length);
-
 		var _imgMaxWidth = imgList[0].offsetWidth * 2;
-		console.log(_imgMaxWidth);
-		//console.log(jqimgList[0].width());
             	var _imgMaxHeight = imgList[0].offsetHeight * 2;
             	var _distance = imgList[0].offsetWidth * 3.5;
 

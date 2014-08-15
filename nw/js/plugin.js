@@ -11,8 +11,6 @@ var DPlugin = Widget.extend({
 		this._dPlugin = $('<div>', {
 			'class': 'plugin-div',
 			'id': this._id,
-			'width': '200px',
-			'height': '200px',
 			'draggable': 'true'
 		});
 	},
@@ -40,7 +38,7 @@ var DPlugin = Widget.extend({
 
 	getID: function() {return this._id;},
 
-	setID: function(id_) {this._id = id_;},//needed?
+	setID: function(id_) {his._id = id_;},//needed?
 
 	getName:function() {return this._name;},
 
@@ -52,24 +50,6 @@ var DPlugin = Widget.extend({
 	setShowPanel: function(showPanel_){
 		this._dPlugin.html(showPanel_);
 	},
-
-	getPluginSize: function(){
-		var size = {
-			width:0,
-			height:0}
-		size.height = this._dPlugin.height();
-		size.width = this._dPlugin.width();
-		return size;
-	},
-
-	dragOver: function(ev) {
-		
-	},
-
-	
-	drop: function(ev) {
-		console.log("plugin is not allowed to drag drop");
-	}
 });
 
 var ClockPlugin = DPlugin.extend({
@@ -81,8 +61,10 @@ var ClockPlugin = DPlugin.extend({
 	},
 
 	getClock:function(){
-		var size = this.getPluginSize();
-		return "<canvas id=\"clockContent\" width='"+ size.width+"px' height='"+size.height+"px'/>";
+		//var plugin = document.getElementById(this.getID());
+		var plugin = this._dPlugin;
+		//return "<canvas id=\"clockContent\" width='"+ plugin.offsetWidth+"px' height='"+plugin.offsetHeight+"px'/>";
+		return "<canvas id=\"clockContent\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'/>";
 	},
 
 	open: function() {
