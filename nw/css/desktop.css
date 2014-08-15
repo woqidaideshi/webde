@@ -29,6 +29,10 @@ html body {
   -webkit-box-orient: vertical;
   -webkit-box-pack: center;
   -webkit-box-align: center;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-pack: center;
+  -moz-box-align: center;
   z-index: 99;
 }
 .icon:hover {
@@ -59,6 +63,10 @@ html body {
   -webkit-box-orient: horizontal;
   -webkit-box-pack: start;
   -webkit-box-align: start;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-pack: start;
+  -moz-box-align: start;
 }
 .gridcontainer .gridcol {
   width: 100px;
@@ -67,6 +75,10 @@ html body {
   -webkit-box-orient: vertical;
   -webkit-box-pack: start;
   -webkit-box-align: start;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-pack: start;
+  -moz-box-align: start;
 }
 .gridcontainer .gridcol .grid {
   width: 100%;
@@ -75,6 +87,10 @@ html body {
   -webkit-box-orient: vertical;
   -webkit-box-pack: center;
   -webkit-box-align: center;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-pack: center;
+  -moz-box-align: center;
 }
 #menu {
   display: none;
@@ -104,7 +120,6 @@ html body {
   width: 150px;
   height: 150px;
 }
-
 .dock {
   position: fixed;
   bottom: 0;

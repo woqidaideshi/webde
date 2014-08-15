@@ -34,10 +34,16 @@ html body {
 }
 
 .box(@orient, @pack, @align) {
+	//for Safari, Opera, Chrome
 	display: -webkit-box;
 	-webkit-box-orient: @orient;
 	-webkit-box-pack: @pack;
 	-webkit-box-align: @align;
+	//for firefox
+	display: -moz-box;
+	-moz-box-orient: @orient;
+	-moz-box-pack: @pack;
+	-moz-box-align: @align;
 }
 
 .icon {
@@ -143,8 +149,8 @@ html body {
 //	top:0px;
 //}
 .plugin-div {
-  width: 200px;
-  height: 200px;
+  width: 150px;
+  height: 150px;
 }
 
 .dock{
