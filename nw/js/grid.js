@@ -60,8 +60,11 @@ var Grid = Widget.extend({
 	},
 
 	findAnIdleGridFromRight: function() {
-		for(var i = parseInt(this._col_num-1); i >= 0; --i) {
-			for(var j = 0; j < this._row_num; ++j) {
+		var col_add = parseInt($('.plugin-div').width()/this._col-0.00001)+1;
+		var row_add =  parseInt($('.plugin-div').height()/this._row-0.00001)+1;
+		//console.log(col_add+" "+row_add+" "+ this._col + " "+ $('.plugin-div').height());
+		for(var i = parseInt(this._col_num-1); i >= 0; i=i-col_add) {
+			for(var j = 0; j < this._row_num; j=j+row_add) {
 				if(this._grid[i][j].use == false) {
 					return {x: i, y: j};
 				}

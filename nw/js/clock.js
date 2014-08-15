@@ -3,16 +3,6 @@ var clockRun = function(id_){
 var p_canvas = document.getElementById(id_);
 var p_context = p_canvas.getContext('2d');
 
- p_canvas.ondragover = function(ev){
-	console.log("canvas dragover");
-	ev.stopPropagation();
-}
-
-p_canvas.ondrop = function(ev){
-	console.log("canvas drop ");
-	ev.stopPropagation();
-}
-
 var width=p_canvas.offsetWidth,height=p_canvas.offsetHeight;
 	var img = new Image();
 	img.src="img/clock.png";

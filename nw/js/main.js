@@ -20,9 +20,11 @@ $(document).ready(function() {
 	desktop =  Desktop.create();
 	desktop.addAnDEntry(AppEntry.create('gedit'));
 	desktop.addAnDEntry(AppEntry.create('terminal'));
-	desktop.addAnDPlugin(ClockPlugin.create('clockPlugin'));
-	// draw clock;
-	clockRun("clockContent");
+	desktop.addAnDPlugin(ClockPlugin.create('clock'));
+	desktop.addAnDPlugin(PicPlugin.create('cat'),undefined,'img/cat.jpg');
+	desktop.addAnDPlugin(PicPlugin.create('pictu'),undefined,'img/desktop.jpg');
+	desktop.addAnDPlugin(PicPlugin.create('pcture'),undefined,'img/desktop.jpg');
+	desktop.addAnDPlugin(PicPlugin.create('picture'),undefined,'img/desktop.jpg');
 	//show dock
 	desktop.addDock();
 	desktop.addAnImgToDock("img/terminal.ico", "terminal", "x-terminal-emulator &");

@@ -44,7 +44,7 @@ var Desktop = Class.extend({
 		this._grid._grid[pos_.x][pos_.y].use = true;
 	},
 
-	addAnDPlugin: function(plugin_, pos_) {
+	addAnDPlugin: function(plugin_, pos_, path_) {
 		if(typeof pos_ === 'undefined') {
 			pos_ = this._grid.findAnIdleGridFromRight();
 			if(pos_ == null) {
@@ -55,31 +55,41 @@ var Desktop = Class.extend({
 
 		plugin_.setPosition(pos_);
 		plugin_.show();
-		//show() must run before getClock();
-		plugin_.setShowPanel(plugin_.getClock());
+		//show() must run before setPanel();
+		plugin_.setPanel(path_);
+		plugin_.open();
 		this._grid._grid[pos_.x][pos_.y].use = true;
 	},
 
 	addDock:function(position_ ){
 		dock = Dock.create(position_);
-
 		dock.setPosition();
 		dock.show();
 	},
 
 	addAnImgToDock:function(path_, name_, command_){
 		var image = document.createElement("img");
+		image.id = name_;
 		image.src = path_;
 		image.title = name_;
 		//if command_ isn't "null or undefined", then add event function
 		if (command_) {
-			image.onclick = function(){
-			console.log("run"+command_);
-          		var exec = require('child_process').exec;
-          		var result = exec(command_,function(err, stdout, stderr){
-                			console.log('stdout: ' + stdout);
-                			console.log('stderr: ' + stderr);
-            			});
+			image.onclick = function(ev){
+			var jqImg = $(ev.target);
+			jqImg.animate({width:"+=40px",height:"+=40px"},'fast')
+					.animate({width:"-=40px",height:"-=40px",border:"outset"},'fast')
+			//when don't open the app.
+			if ( jqImg.css("border") == "0px none rgb(0, 0, 0)") {
+				setTimeout(function(){jqImg.css("border","outset");},500);
+				//jqImg.css("border","outset");
+				console.log("run"+command_);
+          			var exec = require('child_process').exec;
+          			var result = exec(command_,function(err, stdout, stderr){
+                				console.log('stdout: ' + stdout);
+                				console.log('stderr: ' + stderr);
+                				setTimeout(function(){jqImg.css("border","none");},200);
+            				});
+				}	
 			}
 		}
 

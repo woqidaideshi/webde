@@ -25,7 +25,7 @@ var DPlugin = Widget.extend({
 
 		var target = document.getElementById(this._id);
 		target.ondragstart = this.drag;
-		target.onclick = function() {alert(id);}
+		//target.onclick = function() {alert(id);}
 	},
 
 	getPosition: function() {return	this._position;},
@@ -45,11 +45,7 @@ var DPlugin = Widget.extend({
 	setName: function(name_) {
 		//redraw dentry's name
 		this._name = name_;
-	},
-
-	setShowPanel: function(showPanel_){
-		this._dPlugin.html(showPanel_);
-	},
+	}
 });
 
 var ClockPlugin = DPlugin.extend({
@@ -60,14 +56,53 @@ var ClockPlugin = DPlugin.extend({
 
 	},
 
-	getClock:function(){
-		//var plugin = document.getElementById(this.getID());
-		var plugin = this._dPlugin;
+	setPanel:function(path_){
 		//return "<canvas id=\"clockContent\" width='"+ plugin.offsetWidth+"px' height='"+plugin.offsetHeight+"px'/>";
-		return "<canvas id=\"clockContent\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'/>";
+		var content = "Content";
+		this._dPlugin.html("<canvas id=\""+this._id+ content + "\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'/>");
+
+		var value = document.getElementById(this._id+content);
+
+		//stop drag
+		 value.ondragover = function(ev){
+		ev.stopPropagation();
+		}
+
+		//stop drop
+		value.ondrop = function(ev){
+		ev.stopPropagation();
+		}
 	},
 
 	open: function() {
 		//launch app
+		clockRun(this._id+"Content");
+	}
+});
+
+var PicPlugin = DPlugin.extend({
+
+	init:function(id_, position_){
+		this.callSuper(id_, position_);
+	},
+	
+	setPanel:function(path_){
+		var content = "Content";
+		this._dPlugin.html("<img id='"+this._id+content+"' width='"+this._dPlugin.width()+"'px' height='"+this._dPlugin.height()+"px' src='"+path_+"' draggable='false'>");
+
+		var value = document.getElementById(this._id+content);
+
+		//stop drag
+		 value.ondragover = function(ev){
+		ev.stopPropagation();
+		}
+		//stop drop
+		value.ondrop = function(ev){
+		ev.stopPropagation();
+		}
+	},
+
+	open:function(){
+
 	}
 });
