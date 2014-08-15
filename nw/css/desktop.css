@@ -33,6 +33,10 @@ html body {
   -moz-box-orient: vertical;
   -moz-box-pack: center;
   -moz-box-align: center;
+  display: -o-box;
+  -o-box-orient: vertical;
+  -o-box-pack: center;
+  -o-box-align: center;
   z-index: 99;
 }
 .icon:hover {
@@ -67,6 +71,10 @@ html body {
   -moz-box-orient: horizontal;
   -moz-box-pack: start;
   -moz-box-align: start;
+  display: -o-box;
+  -o-box-orient: horizontal;
+  -o-box-pack: start;
+  -o-box-align: start;
 }
 .gridcontainer .gridcol {
   width: 100px;
@@ -79,6 +87,10 @@ html body {
   -moz-box-orient: vertical;
   -moz-box-pack: start;
   -moz-box-align: start;
+  display: -o-box;
+  -o-box-orient: vertical;
+  -o-box-pack: start;
+  -o-box-align: start;
 }
 .gridcontainer .gridcol .grid {
   width: 100%;
@@ -91,6 +103,11 @@ html body {
   -moz-box-orient: vertical;
   -moz-box-pack: center;
   -moz-box-align: center;
+  display: -o-box;
+  -o-box-orient: vertical;
+  -o-box-pack: center;
+  -o-box-align: center;
+  box-shadow: 0px 0px 2px black;
 }
 #menu {
   display: none;
@@ -119,6 +136,7 @@ html body {
 .plugin-div {
   width: 200px;
   height: 200px;
+  z-index: 101;
 }
 
 .dock {   

@@ -32,7 +32,8 @@ var Widget = Class.extend({
 		ev.preventDefault();
 		var _id = ev.dataTransfer.getData("ID");
 		if(ev.target.id == _id) return ;
-		ev.target.appendChild(document.getElementById(_id));
+		//ev.target.appendChild(document.getElementById(_id));
+		$(ev.target).append($('#'+_id));
 	},
 
 	bindDrag: function(target) {

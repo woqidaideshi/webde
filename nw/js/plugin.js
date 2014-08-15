@@ -61,15 +61,15 @@ var ClockPlugin = DPlugin.extend({
 		var content = "Content";
 		this._dPlugin.html("<canvas id=\""+this._id+ content + "\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'/>");
 
-		var value = document.getElementById(this._id+content);
-
+		//var value = document.getElementById(this._id+content);
+		var value = $('#'+this._id+content);
 		//stop drag
-		 value.ondragover = function(ev){
+		 value[0].ondragover = function(ev){
 		ev.stopPropagation();
 		}
 
 		//stop drop
-		value.ondrop = function(ev){
+		value[0].ondrop = function(ev){
 		ev.stopPropagation();
 		}
 	},
@@ -90,14 +90,14 @@ var PicPlugin = DPlugin.extend({
 		var content = "Content";
 		this._dPlugin.html("<img id='"+this._id+content+"' width='"+this._dPlugin.width()+"'px' height='"+this._dPlugin.height()+"px' src='"+path_+"' draggable='false'>");
 
-		var value = document.getElementById(this._id+content);
+		var value = $('#'+this._id+content);
 
 		//stop drag
-		 value.ondragover = function(ev){
+		 value[0].ondragover = function(ev){
 		ev.stopPropagation();
 		}
 		//stop drop
-		value.ondrop = function(ev){
+		value[0].ondrop = function(ev){
 		ev.stopPropagation();
 		}
 	},

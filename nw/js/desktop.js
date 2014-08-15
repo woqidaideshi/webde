@@ -68,44 +68,52 @@ var Desktop = Class.extend({
 	},
 
 	addAnImgToDock:function(path_, name_, command_){
-		var image = document.createElement("img");
+		/*var image = document.createElement("img");
 		image.id = name_;
 		image.src = path_;
-		image.title = name_;
+		image.title = name_;*/
+		var image = $('<img>',{
+			'id':name_,
+			'src':path_,
+			'title':name_
+		});
 		//if command_ isn't "null or undefined", then add event function
 		if (command_) {
-			image.onclick = function(ev){
-			var jqImg = $(ev.target);
-			jqImg.animate({width:"+=40px",height:"+=40px"},'fast')
+			//add onclick()
+			image.click (function(ev){
+			var image = $(ev.target);
+			image.animate({width:"+=40px",height:"+=40px"},'fast')
 					.animate({width:"-=40px",height:"-=40px",border:"outset"},'fast')
 			//when don't open the app.
-			if ( jqImg.css("border") == "0px none rgb(0, 0, 0)") {
-				setTimeout(function(){jqImg.css("border","outset");},300);
-				//jqImg.css("border","outset");
+			if ( image.css("border") == "0px none rgb(0, 0, 0)") {
+				setTimeout(function(){image.css("border","outset");},300);
+				//image.css("border","outset");
 				console.log("run"+command_);
           			var exec = require('child_process').exec;
           			var result = exec(command_,function(err, stdout, stderr){
                 				console.log('stdout: ' + stdout);
                 				console.log('stderr: ' + stderr);
-                				setTimeout(function(){jqImg.css("border","none");},250);
+                				setTimeout(function(){image.css("border","none");},250);
             				});
 				}	
-			}
+			});
 		}
 
-		var dock = document.getElementById('dock');
-		dock.appendChild(image);
+		var dock = $('#dock');
+		dock.append(image);
 
-		var imgList = dock.getElementsByTagName('img');
-		var _imgMaxWidth = imgList[0].offsetWidth * 2;
-            	var _imgMaxHeight = imgList[0].offsetHeight * 2;
-            	var _distance = imgList[0].offsetWidth * 3.5;
-
+		var imgList = dock.children('img');
+		var imgArt = parseInt($('.dock img').css('width')); 
+		var _imgMaxWidth = imgArt * 2;
+            	var _imgMaxHeight = imgArt * 2;
+            	var _distance = imgArt * 3.5;
+            	console.log(imgArt+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
 		document.onmousemove = function (ev) {
             	var ev = ev || window.event;
             	for (var i = 0; i <imgList.length; i++) {
-               	 	var a = ev.clientX - (imgList[i].offsetLeft + imgList[i].offsetWidth / 2);
-                		var b = ev.clientY - (imgList[i].offsetTop +  imgList[i].offsetHeight / 2 + dock.offsetTop);
+            		var jqImg = $(imgList[i]);
+               	 	var a = ev.clientX - (jqImg.position().left+ jqImg.width() / 2);
+                		var b = ev.clientY - (jqImg.position().top +  jqImg.height() / 2 + dock.position().top);
                 		var c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
                 		var spex = 1 - c / _distance;
                 		if (spex < 0.5) {
