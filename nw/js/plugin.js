@@ -11,6 +11,7 @@ var DPlugin = Widget.extend({
 		this._dPlugin = $('<div>', {
 			'class': 'plugin-div',
 			'id': this._id,
+			'overflow': 'hidden',
 			'draggable': 'true'
 		});
 	},
@@ -88,7 +89,8 @@ var PicPlugin = DPlugin.extend({
 	
 	setPanel:function(path_){
 		var content = "Content";
-		this._dPlugin.html("<img id='"+this._id+content+"' width='"+this._dPlugin.width()+"'px' height='"+this._dPlugin.height()+"px' src='"+path_+"' draggable='false'>");
+		this._dPlugin.html("<canvas id='"+this._id+content+"' width='"+this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'>");
+		//this._dPlugin.html("<img id='"+this._id+content+"' width='200px' height='"+this._dPlugin.height()+"px' src='"+path_+"' draggable='false'>");
 
 		var value = $('#'+this._id+content);
 
@@ -100,6 +102,15 @@ var PicPlugin = DPlugin.extend({
 		value[0].ondrop = function(ev){
 		ev.stopPropagation();
 		}
+
+		var img = new Image();
+		img.src=path_;
+		var imgContent = value[0].getContext('2d');
+		img.onload = function() {  
+		imgContent.drawImage(img,0,0,value.width(),value.height());
+		}
+
+
 	},
 
 	open:function(){

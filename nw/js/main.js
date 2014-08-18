@@ -27,12 +27,12 @@ $(document).ready(function() {
 	desktop.addAnDPlugin(PicPlugin.create('picture'),undefined,'img/desktop.jpg');
 	//show dock
 	desktop.addDock();
-	desktop.addAnImgToDock("img/terminal.ico", "terminal", "x-terminal-emulator &");
-	desktop.addAnImgToDock("img/gedit.ico", "gedit", "gedit &");
-	desktop.addAnImgToDock("img/picture.ico", "picture", "gthumb &");
-	desktop.addAnImgToDock("img/chromium.ico", "chromium", "chromium-browser &");
-	desktop.addAnImgToDock("img/moive.ico", "moive", "svlc &");
-	desktop.addAnImgToDock("img/music.ico", "music", "banshee &");
+	desktop.addAnImgToDock("img/terminal.png", "terminal", "x-terminal-emulator &");
+	desktop.addAnImgToDock("img/gedit.png", "gedit", "gedit &");
+	desktop.addAnImgToDock("img/picture.png", "picture", "gthumb &");
+	desktop.addAnImgToDock("img/chromium.png", "chromium", "chromium-browser &");
+	desktop.addAnImgToDock("img/moive.png", "moive", "svlc &");
+	desktop.addAnImgToDock("img/music.png", "music", "banshee &");
 	//loadDEntries();
 
 

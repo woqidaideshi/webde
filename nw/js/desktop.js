@@ -6,6 +6,10 @@ var Desktop = Class.extend({
 		this._widgets = [];
 
 		this.generateGrid();
+		if(isFirefox=navigator.userAgent.indexOf("Firefox")>0){  
+        			var gridcol = $('.gridcontainer .gridcol');
+        			gridcol[0].style.float = "left";
+   		}  
 	},
 	
 	registWidget: function(widget_) {
