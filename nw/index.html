@@ -1,27 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>desktop</title>
-     <link rel="stylesheet" type="text/css" href="css/desktop.css"/>
-  </head>
-  <body>
-<div id="desktop" class="desktop">
-    <img src="img/cdos.png" id="cdos" >
-    <div class="icon" id="computer" title="computer" ondblclick="opencomputer()" > 
-        <img id="computer-pic" src="img/computer.svg"/>
-        computer
-    </div>
-    <div class="icon" id="user-home" title="user-home" ondblclick="openuserhome()" >
-        <img id="user-home-pic" src="img/user-home.svg"/>
-        userhome
-     </div>
-  
-    <div class="clock" id="clock" title="clock"  >
-            <img src="img/clock.png" id="clock-back"/>
-            <canvas id="canvas" width="200" height="200" ></canvas>
-            <canvas id="p_canvas" width="200" height="200" ></canvas>
-    </div>     
+		<title>desktop</title>
 
+    <link rel="stylesheet" type="text/css" href="css/desktop.css"/>
+		
+		<script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/widget.js"></script>
+		<script type="text/javascript" src="js/grid.js"></script>
+		<script type="text/javascript" src="js/desktop.js"></script>
+		<script type="text/javascript" src="js/dentry.js"></script>
+    <script type="text/javascript" src="js/plugin.js"></script>
+    <script type="text/javascript" src="js/clock.js"></script>
+		<script type="text/javascript" src="js/main.js"></script>
+  </head>
+  <body> 
     <div class="dock" id="dock">
         <img id="terminal-dock" src="img/16.ico"  title="terminal"  onclick="openterminal()" />
         <img id="picture" src="img/02.ico"   title="picture"  onclick="opengthumb()"/>
@@ -30,10 +24,6 @@
         <img id="moive" src="img/09.ico"  title="moive" onclick="openmoive()" />
         <img id="music" src="img/10.ico"   title="music" onclick="openmusic()"/>
     </div>
-
-</div>
-	<script  type="text/javascript" src="js/clock.js"> </script>
-  <script type="text/javascript" src="js/drag.js"></script>
       <script  type="text/javascript">
         var gui = require('nw.gui');
     var win = gui.Window.get();
@@ -114,6 +104,6 @@
       <script src="js/util.js" type="text/javascript"></script>
     <script type="text/javascript">
         var obj = new util();
-    </script>
+			</script>
   </body>
 </html>

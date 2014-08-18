@@ -26,3 +26,26 @@ util.prototype = {
         }
     }
 }
+
+var Util = Class.extend({
+	init: function() {},
+
+	getIconPath: function(iconName_, size_) {
+		//get theme config file
+		//
+		//get the name of current icon-theme
+		//
+		//1. search $HOME/.icons/icon-theme_name/subdir(get from index.theme)
+		//
+		//2. if not found, search $XDG_DATA_DIRS/icons/icon-theme_name
+		//   /subdir(get from index.theme)
+		//
+		//3. if not found, search /usr/share/pixmaps/subdir(get from index.theme)
+		//
+		//4. if not found, change name to current theme's parents' recursively 
+		//   and repeat from step 1 to 4
+		//
+		//5. if not found, return default icon file path(hicolor)
+		//
+	}
+});
