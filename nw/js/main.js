@@ -2,6 +2,7 @@ var BASE_APP_PATH = "/usr/share/applications/";
 var desktop = undefined;
 var gedit = undefined;
 var terminal = undefined;
+var	utilIns = Util.create();
 
 function loadDEntries() {
 	gedit = new AppEntry('gedit');

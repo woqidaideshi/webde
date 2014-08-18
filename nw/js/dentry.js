@@ -92,16 +92,8 @@ var AppEntry = DEntry.extend({
 			_entry._execCmd = attr_['Exec'].split(' ')[0];
 		};
 		var getImgPath = function(attr_) {
-			/*
-			this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
-				if(err !== null) {
-					console.log(err);
-				} elss {
-					var _pathes = stdout.split(':');
-				}
-			});
-			*/
-			_entry._imgPath = _entry._basePath + attr_['Icon'] + ".png";
+			_entry._imgPath = utilIns.entryUtil.getIconPath(attr_['Icon'], 48);
+			//_entry._imgPath = _entry._basePath + attr_['Icon'] + ".png";
 			$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
 		};
 		var getEntryName = function(attr_) {
