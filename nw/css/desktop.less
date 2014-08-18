@@ -1,0 +1,167 @@
+@LineHeight: 80px;
+@LineWidth: 80px;
+@col: @LineWidth + 20px;
+@row: @LineHeight + 10px;
+
+html body {
+	width: 100%;
+	height: 100%;
+	background-image: url(../img/bgp.jpg);
+}
+
+.col1 {
+	width: @col;
+}
+
+.col2 {
+	width: @col * 2;
+}
+
+.col3 {
+	width: @col * 3;
+}
+
+.row1 {
+	height: @row;
+}
+
+.row2 {
+	height: @row * 2;
+}
+
+.row3 {
+	height: @row * 3;
+}
+
+.box(@orient, @pack, @align) {
+	//for Safari, Opera, Chrome
+	display: -webkit-box;
+	-webkit-box-orient: @orient;
+	-webkit-box-pack: @pack;
+	-webkit-box-align: @align;
+	//for firefox
+	display: -moz-box;
+	-moz-box-orient: @orient;
+	-moz-box-pack: @pack;
+	-moz-box-align: @align;
+}
+
+.icon {
+	width: @LineWidth;
+	height: @LineHeight;
+	margin: 5px 10px;
+	
+	//border-style: 1px solid black;
+	//border-radius: 10px;
+	//background-color: black;
+	
+	.box(vertical, center, center);
+	z-index: 99;
+	
+	&:hover {
+		box-shadow: 0px 0px 2px black;
+	}
+
+	&:focus {
+		border: 1px dotted black;
+	}
+
+	img {
+		width: @LineWidth * 0.625;
+		height: @LineHeight * 0.625;
+		border: 1px solid black;
+		z-index: 98;
+	}
+
+	p {
+		margin: 2px 0px;
+		
+		&:hover {
+			cursor: default;
+		}
+	}
+}
+
+.gridcontainer {
+	position: absolute;
+	width: 92%;
+	height: 90%;
+	top: 2%;
+	left: 4%;
+	.box(horizontal, start, start);
+
+	.gridcol {
+		width: @col;
+		height: 100%;
+		.box(vertical, start, start);
+
+		.grid {
+			width: 100%;
+			height: @row;
+			.box(vertical, center, center);
+		}
+	}
+}
+
+#menu {
+	display: none;
+	position: absolute;
+	
+	ul {
+		background-color: #F5F5F5;
+		box-shadow: 0px 0px 1px black;
+		padding: 2px 2px;
+		list-style: none inside none;
+	}
+
+	li {
+		width: 120px;
+		margin: 4px 0px;
+		text-indent: 30px;
+		
+		&:hover {
+			cursor: pointer;
+			background-color: #A9A9A9;
+			color: white;
+		}
+
+		&.menu-disable {
+			cursor: default;
+			color: #A9A9A9;
+		}
+	}
+}
+
+//.clock{
+//	width: 200px;
+//	height: 200px;
+//	position: absolute;
+//	right:20px;
+//	top:20px;
+//}
+
+//#p_canvas{
+//	z-index: 9999;
+//	width: 200px;
+//	height: 200px;
+//	position: absolute;
+//	right:0px;
+//	top:0px;
+//}
+.plugin-div {
+  width: 150px;
+  height: 150px;
+}
+
+.dock{
+	position: fixed;
+	bottom:0;
+	width: 100%;
+	text-align: center;
+}
+
+.dock img{
+	width: 50px;
+	height: 50px;
+	cursor: pointer;
+}
