@@ -18,15 +18,23 @@ function getElem (id) {
     function initPage () {  
       getdesktop().addEventListener("mousedown", // start moving image  
         function (event) {  
-        	if (event.srcElement.id == "p_canvas"  || event.srcElement.id=="terminal" || event.srcElement.id=="gedit") {
+          console.log(event.srcElement.id);
+        	if (event.srcElement.id == "p_canvas"  || event.srcElement.id=="computer-pic" || event.srcElement.id=="user-home-pic") {
         		console.log(event.srcElement.id);
         		if (event.srcElement.id == "p_canvas") {
         			dragdiv = getElem("clock");
         		}
-        		else{
-        			dragdiv=getElem(event.srcElement.id);
+        		else if(event.srcElement.id == "computer-pic") {
+        			dragdiv=getElem("computer");
+                        console.log(dragdiv.id);
         		}
-        	
+            else if(event.srcElement.id == "user-home-pic") {
+              dragdiv=getElem("user-home");
+            }
+            else {
+              dragdiv=getElem(event.srcElement.id);
+            }
+        	console.log(dragdiv.id);
           startLeft = dragdiv.offsetLeft;  
           startTop =dragdiv.offsetTop;  
             dragging = true;  
@@ -40,12 +48,12 @@ function getElem (id) {
 
 getdesktop().addEventListener("mousemove", // moving image  
         function (event) {  
-          if (dragging){  
+           if (dragging){  
             dragdiv.style.cursor="pointer";  
             dragdiv.style.top = parseInt(startTop)+(event.clientY - dragPosY) + "px";  
             dragdiv.style.left = parseInt(startLeft)+(event.clientX - dragPosX) + "px";  
           }  
-          //event.preventDefault();  
+          event.preventDefault();  
         },  
         true  
       );  

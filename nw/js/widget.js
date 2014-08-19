@@ -16,7 +16,7 @@ var Widget = Class.extend({
 	setID: function(id_) {this._id = id_;},//needed?
 
 	drag: function(ev) {
-		console.log("drap start");
+		console.log("drag start");
 		ev.dataTransfer.setData("ID", ev.currentTarget.id);
 		ev.stopPropagation();
 	},
@@ -26,7 +26,7 @@ var Widget = Class.extend({
 	},
 
 	drop: function(ev) {
-		console.log("drap end, drop");
+		console.log("drag end, drop");
 		//if(ev.srcElement == ev.toElement) return ;
 		ev.preventDefault();
 		var _id = ev.dataTransfer.getData("ID");

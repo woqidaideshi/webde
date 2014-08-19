@@ -7,6 +7,8 @@
 		
 		<script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
 		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/theme.js"></script>
+		<script type="text/javascript" src="js/util.js"></script>
 		<script type="text/javascript" src="js/widget.js"></script>
 		<script type="text/javascript" src="js/grid.js"></script>
 		<script type="text/javascript" src="js/desktop.js"></script>
@@ -24,11 +26,28 @@
         <img id="moive" src="img/09.ico"  title="moive" onclick="openmoive()" />
         <img id="music" src="img/10.ico"   title="music" onclick="openmusic()"/>
     </div>
-	 
       <script  type="text/javascript">
         var gui = require('nw.gui');
     var win = gui.Window.get();
   win.enterFullscreen();
+
+     function opencomputer(){
+          console.log("run computer");
+          var exec = require('child_process').exec;
+          var result = exec("nemo computer:/// &",function(err, stdout, stderr){
+                console.log('stdout: ' + stdout);
+                console.log('stderr: ' + stderr);
+            });
+      }
+
+      function openuserhome(){
+          console.log("run user-home");
+          var exec = require('child_process').exec;
+          var result = exec("nemo &",function(err, stdout, stderr){
+                console.log('stdout: ' + stdout);
+                console.log('stderr: ' + stderr);
+            });
+      }
 
       function opengedit(){
           console.log("run gedit");
@@ -84,7 +103,6 @@
             });
       }
       </script>
-      <script src="js/util.js" type="text/javascript"></script>
     <script type="text/javascript">
         var obj = new util();
 			</script>
