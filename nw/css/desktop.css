@@ -45,6 +45,7 @@ html body {
 }
 .icon p {
   margin: 2px 0px;
+  font-size: small;
 }
 .icon p:hover {
   cursor: default;

@@ -1,17 +1,21 @@
-var BASE_APP_PATH = "/usr/share/applications/";
+var gui = require('nw.gui');
+var win = gui.Window.get();
+win.enterFullscreen();
+
+// var BASE_APP_PATH = "/usr/share/applications/";
 var desktop = undefined;
-var gedit = undefined;
-var terminal = undefined;
+// var gedit = undefined;
+// var terminal = undefined;
 var	utilIns = Util.create();
 
-function loadDEntries() {
-	gedit = new AppEntry('gedit');
-	terminal = new AppEntry('terminal');
-	var file = new FileEntry('file');
+// function loadDEntries() {
+	// gedit = new AppEntry('gedit');
+	// terminal = new AppEntry('terminal');
+	// var file = new FileEntry('file');
 
-	gedit.show();
-	terminal.show();
-}
+	// gedit.show();
+	// terminal.show();
+// }
 
 $(document).ready(function() {
 	desktop = Desktop.create();

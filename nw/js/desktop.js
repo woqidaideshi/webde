@@ -10,6 +10,7 @@ var Desktop = Class.extend({
 		this._xdg_data_home = undefined;
 		
 		this.generateGrid();
+		this.bindingEvents();
 		
 		var _desktop = this;
 		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
@@ -22,7 +23,21 @@ var Desktop = Class.extend({
 		});
 	},
 
-	shutdown: function() {},
+	bindingEvents: function() {
+		var _desktop = this;
+
+		win.on('loading', function() {
+			_desktop.refresh();
+		});
+	},
+
+	shutdown: function() {
+		this.saveWidgets();
+	},
+
+	refresh: function() {
+		this.saveWidgets();
+	},
 	
 	registWidget: function(widget_) {
 		if(typeof this._widgets[widget_.getID()] !== "undefined") {
@@ -54,19 +69,43 @@ var Desktop = Class.extend({
 					if(lines[i].match('[\s,\t]*#+') != null) continue;
 					if(lines[i] == "") continue;
 					var attr = lines[i].split(' ');
-					if(attr.length != 4) continue;
-				/*
+					if(attr.length != 5) continue;
+				/*need add a type judge
 				*/
-					_desktop.addAnDEntry(AppEntry.create(attr[0]
+					var _Entry;
+					if(attr[4] == "app") {
+						_Entry = AppEntry;
+					} else if(attr[4] == "dir") {
+						_Entry = DirEntry;
+					} else {
+						_Entry = FileEntry;
+					}
+					_desktop.addAnDEntry(_Entry.create(attr[0]
 							, _desktop._tabIndex++
 							, attr[1]
 							, {x: attr[2], y: attr[3]}
-							));
+							), {x: attr[2], y: attr[3]});
 				}
 			}
 		});
-		//this.addAnDEntry(AppEntry.create('gedit', this._tabIndex++, "/usr/share/applications/gedit.desktop"));
-		//this.addAnDEntry(AppEntry.create('terminal', this._tabIndex++));
+	},
+
+	saveWidgets: function() {
+		var data = "";
+		for(var key in this._widgets) {
+			data += key + " " + this._widgets[key]._path + " "
+			 	+ this._widgets[key]._position.x + " "
+			 	+ this._widgets[key]._position.y + " "
+				+ this._widgets[key]._type + '\n';
+		}
+		console.log(data);
+
+		this._fs.writeFile(this._xdg_data_home + "dwidgets/dentries"
+				, data, function(err) {
+			if(err) {
+				console.log(err);
+			}
+		});
 	},
 
 	addAnDEntry: function(entry_, pos_) {

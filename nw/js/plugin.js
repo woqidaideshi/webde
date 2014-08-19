@@ -23,7 +23,7 @@ var DPlugin = Widget.extend({
 			return ;
 		}
 
-		$('#grid' + this._position.x + this._position.y).append(this._dPlugin);
+		$('#grid-' + this._position.x + '-' + this._position.y).append(this._dPlugin);
 
 		var target = document.getElementById(this._id);
 		target.ondragstart = this.drag;

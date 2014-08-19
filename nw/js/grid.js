@@ -35,11 +35,11 @@ var Grid = Widget.extend({
 			for(var j = 0; j < this._row_num; ++j) {
 				var row_ = $('<div>', {
 					'class': 'grid',
-					'id': 'grid' + i + j
+					'id': 'grid-' + i + '-' + j
 				});
 				$('#col' + i).append(row_);
 
-				var target = document.getElementById('grid' + i + j);
+				var target = document.getElementById('grid-' + i + '-' + j);
 				this.bindDrag(target);
 
 				this._grid[i][j] = {};

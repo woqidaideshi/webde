@@ -27,6 +27,8 @@ util.prototype = {
     }
 }
 
+//could be seen as a util-box
+//
 var Util = Class.extend({
 	init: function() {
 		this.entryUtil = EntryUtil.create();
@@ -82,33 +84,38 @@ var EntryUtil = Event.extend({
 		this.once(iconName_, callback_);
 
 		var iconTheme = theme.getIconTheme();
-		var iconPath = this.getIconPathWithTheme(iconName_, size_, iconTheme);
-		if(iconPath != null) return iconPath;
+		// var iconPath = 
+			this.getIconPathWithTheme(iconName_, size_, iconTheme);
+		// if(iconPath != null) return iconPath;
 
-		iconPath = this.getIconPathWithTheme(iconName_, size_, "hicolor");
-		if(iconPath != null) return iconPath;
+		// iconPath = 
+			this.getIconPathWithTheme(iconName_, size_, "hicolor");
+		// if(iconPath != null) return iconPath;
 	},
 
 	getIconPathWithTheme: function(iconName_, size_, themeName_) {
 		var iconPath = undefined;
 		var themePath = this.$home + "/.local/share/icons/" + themeName_;
 		if(this._fs.existsSync(themePath)) {
-			iconPath = this.findIcon(iconName_, size_, themePath);
-			if(iconPath != null) return iconPath;
+			// iconPath = 
+				this.findIcon(iconName_, size_, themePath);
+			// if(iconPath != null) return iconPath;
 		}
 				
 		for(var i = 0; i < this.$xdg_data_dirs.length; ++i) {
 			themePath = this.$xdg_data_dirs[i] + "/icons/" + themeName_;
 			if(this._fs.existsSync(themePath)) {
-				iconPath = this.findIcon(iconName_, size_, themePath);
-				if(iconPath != null) return iconPath;
+				// iconPath = 
+					this.findIcon(iconName_, size_, themePath);
+				// if(iconPath != null) return iconPath;
 			}
 		}
 
 		themePath = "/usr/share/pixmaps" + themeName_;
 		if(this._fs.existsSync(themePath)) {
-			iconPath = this.findIcon(iconName_, size_, themePath);
-			if(iconPath != null) return iconPath;
+			// iconPath = 
+				this.findIcon(iconName_, size_, themePath);
+			// if(iconPath != null) return iconPath;
 		}
 
 		return null;
@@ -137,14 +144,14 @@ var EntryUtil = Event.extend({
 
 					for(var i = 0; i < parents.length; ++i) {
 						var iconPath = this.getIconPathWithTheme(iconName_, size_, parents[0]);
-						if(iconPath != null) return iconPath;
+						// if(iconPath != null) return iconPath;
 					}
 
-					return null;
+					// return null;
 				});
 			} else {
 				util.emit(iconName_, stdout.substr(0, stdout.length - 1));
-				return stdout.substr(0, stdout.length - 1);
+				// return stdout.substr(0, stdout.length - 1);
 			}
 		});
 		

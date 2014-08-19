@@ -8,8 +8,9 @@ var DEntry = Widget.extend({
 		if(typeof id_ === "undefined"
 			|| typeof tabIndex_ === "undefined"
 			|| typeof path_ === "undefined") {
-			console.log("not enough params!! init failed!!");
-			return ;
+			//console.log("not enough params!! init failed!!");
+			//return ;
+			throw "Not enough params!! Init failed!!";
 		}
 
 		this.callSuper(id_, position_);
@@ -36,7 +37,7 @@ var DEntry = Widget.extend({
 		}
 
 		this._dEntry.html(this.PATTERN);
-		$('#grid' + this._position.x + this._position.y).append(this._dEntry);
+		$('#grid-' + this._position.x + '-' + this._position.y).append(this._dEntry);
 
 		//var target = document.getElementById(this._id);
 		//this.bindDrag(target);
@@ -80,8 +81,11 @@ var AppEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
 		this._execCmd = undefined;
-		this._basePath = "/usr/share/icons/Mint-X/apps/48/";
+		this._type = 'app';
+	},
 
+	show: function() {
+		this.callSuper();
 		this.parseDesktopFile();
 	},
 
@@ -96,10 +100,15 @@ var AppEntry = DEntry.extend({
 				_entry._imgPath = imgPath_;
 				$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
 			});
-			//_entry._imgPath = _entry._basePath + attr_['Icon'] + ".png";
 		};
 		var getEntryName = function(attr_) {
-			_entry._name = attr_['Name[zh_CN]'];
+			if(typeof attr_['Name[zh_CN]'] !== "undefined") {
+				_entry._name = attr_['Name[zh_CN]'];
+			} else {
+				_entry._name = attr_['Name'];
+			}
+
+			$('#' + _entry._id + ' p').text(_entry._name);
 		};
 		var fs = require('fs');
 
@@ -137,6 +146,8 @@ var AppEntry = DEntry.extend({
 var DirEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
+		
+		this._type = 'dir';
 	},
 
 	open: function() {

@@ -54,8 +54,8 @@ var Theme = Class.extend({
 		return this._theme['IconTheme'];
 	},
 
-	setIconTheme: function(theme_) {
-		this._theme['IconTheme'] = theme_;
+	setIconTheme: function(iconTheme_) {
+		this._theme['IconTheme'] = iconTheme_;
 	}
 });
 
