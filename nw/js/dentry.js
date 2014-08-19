@@ -28,7 +28,6 @@ var DEntry = Widget.extend({
 
 		var target = document.getElementById(this._id);
 		this.bindDrag(target);
-		target.onclick = function() {alert(id);}
 	},
 
 	getName: function() {return this._name;},

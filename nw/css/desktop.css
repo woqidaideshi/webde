@@ -66,20 +66,20 @@ html body {
   width: 92%;
   height: 90%;
   top: 4%;
-  left: 4%;
+  right: 6%;
 }
 .gridcontainer .gridcol {
   width: 100px;
   height: 100%;
-      display: inline;
-      float:left;
+      display: block;
+      float:right;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-box-pack: start;
   -webkit-box-align: start;
 }
 .gridcontainer .gridcol .grid {
-  width: 100px;
+  width: 100%;
   height: 100px;
       display: block;
       vertical-align:middle;

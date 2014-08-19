@@ -10,7 +10,8 @@ var Grid = Widget.extend({
 		this._grid = [];
 		this.PATTERN = $('<div>', {
 			'class': 'gridcontainer', 
-			'id': this._id
+			'id': this._id,
+			'onselectstart': 'return false'
 		});
 	},
 
@@ -27,7 +28,8 @@ var Grid = Widget.extend({
 		for(var i = 0; i < this._col_num; ++i) {
 			var col_ = $('<div>', {
 				'class': 'gridcol',
-				'id': 'col' + i
+				'id': 'col' + i,
+				'onselectstart': 'return false'
 			});
 			$('#grids').append(col_);
 
@@ -35,7 +37,9 @@ var Grid = Widget.extend({
 			for(var j = 0; j < this._row_num; ++j) {
 				var row_ = $('<div>', {
 					'class': 'grid',
-					'id': 'grid' + i + j
+					'id': 'grid' + i + j,
+					'draggable':'false',
+					'onselectstart': 'return false'
 				});
 				$('#col' + i).append(row_);
 
@@ -49,7 +53,7 @@ var Grid = Widget.extend({
 	},
 
 	findAnIdleGrid: function() {
-		for(var i = 0; i < this._col_num; ++i) {
+		for(var i = parseInt(this._col_num-1); i >= 0; --i) {
 			for(var j = 0; j < this._row_num; ++j) {
 				if(this._grid[i][j].use == false) {
 					return {x: i, y: j};
@@ -63,7 +67,7 @@ var Grid = Widget.extend({
 		var col_add = parseInt($('.plugin-div').width()/this._col-0.00001)+1;
 		var row_add =  parseInt($('.plugin-div').height()/this._row-0.00001)+1;
 		//console.log(col_add+" "+row_add+" "+ this._col + " "+ $('.plugin-div').height());
-		for(var i = parseInt(this._col_num-1); i >= 0; i=i-col_add) {
+		for(var i =0; i < this._col_num; i=i+col_add) {
 			for(var j = 0; j < this._row_num; j=j+row_add) {
 				if(this._grid[i][j].use == false) {
 					return {x: i, y: j};
