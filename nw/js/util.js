@@ -33,7 +33,7 @@ var Util = Class.extend({
 	}
 });
 
-var EntryUtil = Class.extend({
+var EntryUtil = Event.extend({
 	init: function() {
 		this._fs = require('fs');
 		this._exec = require('child_process').exec;
@@ -64,7 +64,7 @@ var EntryUtil = Class.extend({
 		});
 	},
 	
-	getIconPath: function(iconName_, size_) {
+	getIconPath: function(iconName_, size_, callback_) {
 		//get theme config file
 		//get the name of current icon-theme
 		//1. search $HOME/.icons/icon-theme_name/subdir(get from index.theme)
@@ -75,6 +75,12 @@ var EntryUtil = Class.extend({
 		//   and repeat from step 1 to 4
 		//5. if not found, return default icon file path(hicolor)
 		//
+		if(typeof callback_ !== "function") {
+			console.log("Bad function of callback!!");
+			return ;
+		}
+		this.once(iconName_, callback_);
+
 		var iconTheme = theme.getIconTheme();
 		var iconPath = this.getIconPathWithTheme(iconName_, size_, iconTheme);
 		if(iconPath != null) return iconPath;
@@ -137,6 +143,7 @@ var EntryUtil = Class.extend({
 					return null;
 				});
 			} else {
+				util.emit(iconName_, stdout.substr(0, stdout.length - 1));
 				return stdout.substr(0, stdout.length - 1);
 			}
 		});
