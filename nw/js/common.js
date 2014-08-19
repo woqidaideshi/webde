@@ -58,3 +58,7 @@ Class.extend = function extend(props) {
 	return SubClass;
 }
 
+//Event base Class
+//Inherited from Node.js' EventEmitter
+//
+var Event = Class.extend(require('events').EventEmitter.prototype);

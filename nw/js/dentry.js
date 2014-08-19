@@ -92,9 +92,11 @@ var AppEntry = DEntry.extend({
 			_entry._execCmd = attr_['Exec'].split(' ')[0];
 		};
 		var getImgPath = function(attr_) {
-			_entry._imgPath = utilIns.entryUtil.getIconPath(attr_['Icon'], 48);
+			utilIns.entryUtil.getIconPath(attr_['Icon'], 48, function(imgPath_) {
+				_entry._imgPath = imgPath_;
+				$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
+			});
 			//_entry._imgPath = _entry._basePath + attr_['Icon'] + ".png";
-			$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
 		};
 		var getEntryName = function(attr_) {
 			_entry._name = attr_['Name[zh_CN]'];
