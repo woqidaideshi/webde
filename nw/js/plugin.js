@@ -11,8 +11,8 @@ var DPlugin = Widget.extend({
 		this._dPlugin = $('<div>', {
 			'class': 'plugin-div',
 			'id': this._id,
-			'overflow': 'hidden',
-			'draggable': 'true'
+			'draggable': 'true',
+			'onselectstart': 'return false'
 		});
 	},
 
@@ -25,7 +25,7 @@ var DPlugin = Widget.extend({
 		$('#grid' + this._position.x + this._position.y).append(this._dPlugin);
 
 		var target = document.getElementById(this._id);
-		target.ondragstart = this.drag;
+		this.bindDrag(target);
 		//target.onclick = function() {alert(id);}
 	},
 
@@ -46,7 +46,16 @@ var DPlugin = Widget.extend({
 	setName: function(name_) {
 		//redraw dentry's name
 		this._name = name_;
+	},
+
+	dragover: function(ev){
+	ev.stopPropagation();
+	},
+
+	drop: function(ev){
+	ev.stopPropagation();
 	}
+
 });
 
 var ClockPlugin = DPlugin.extend({
@@ -60,19 +69,12 @@ var ClockPlugin = DPlugin.extend({
 	setPanel:function(path_){
 		//return "<canvas id=\"clockContent\" width='"+ plugin.offsetWidth+"px' height='"+plugin.offsetHeight+"px'/>";
 		var content = "Content";
-		this._dPlugin.html("<canvas id=\""+this._id+ content + "\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'/>");
+		this._dPlugin.html("<canvas id=\""+this._id+ content + "\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'  onselectstart='return false'/>");
 
 		//var value = document.getElementById(this._id+content);
-		var value = $('#'+this._id+content);
-		//stop drag
-		 value[0].ondragover = function(ev){
-		ev.stopPropagation();
-		}
+		var target = $('#'+this._id+content);
+		this.bindDrag(target[0]);
 
-		//stop drop
-		value[0].ondrop = function(ev){
-		ev.stopPropagation();
-		}
 	},
 
 	open: function() {
@@ -89,19 +91,11 @@ var PicPlugin = DPlugin.extend({
 	
 	setPanel:function(path_){
 		var content = "Content";
-		this._dPlugin.html("<canvas id='"+this._id+content+"' width='"+this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'>");
+		this._dPlugin.html("<canvas id='"+this._id+content+"' width='"+this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px' onselectstart='return false'>");
 		//this._dPlugin.html("<img id='"+this._id+content+"' width='200px' height='"+this._dPlugin.height()+"px' src='"+path_+"' draggable='false'>");
 
 		var value = $('#'+this._id+content);
-
-		//stop drag
-		 value[0].ondragover = function(ev){
-		ev.stopPropagation();
-		}
-		//stop drop
-		value[0].ondrop = function(ev){
-		ev.stopPropagation();
-		}
+		this.bindDrag(value[0]);
 
 		var img = new Image();
 		img.src=path_;
