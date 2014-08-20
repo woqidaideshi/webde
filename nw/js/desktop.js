@@ -26,6 +26,10 @@ var Desktop = Class.extend({
 		this._grid.show();
 	},
 
+	getGrid:function(){
+		return this._grid;
+	},
+
 	loadWidgets: function() {},
 
 	addAnDEntry: function(entry_, pos_) {
@@ -58,7 +62,11 @@ var Desktop = Class.extend({
 		//show() must run before setPanel();
 		plugin_.setPanel(path_);
 		plugin_.open();
-		this._grid._grid[pos_.x][pos_.y].use = true;
+		//this._grid._grid[pos_.x][pos_.y].use = true;
+		//get number of occupy-grid col and row
+		var col_num = parseInt($('.plugin-div').width()/this._grid._col-0.00001)+1;
+		var row_num =  parseInt($('.plugin-div').height()/this._grid._row-0.00001)+1;
+		this._grid.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
 	},
 
 	addDock:function(position_ ){
@@ -75,17 +83,18 @@ var Desktop = Class.extend({
 		var image = $('<img>',{
 			'id':name_,
 			'src':path_,
-			'title':name_
+			'title':name_,
+			'onselectstart': 'return false'
 		});
 		//if command_ isn't "null or undefined", then add event function
 		if (command_) {
 			//add onclick()
 			image.click (function(ev){
 			var image = $(ev.target);
-			image.animate({width:"+=40px",height:"+=40px"},'fast')
-					.animate({width:"-=40px",height:"-=40px",border:"outset"},'fast')
 			//when don't open the app.
 			if ( image.css("border") == "0px none rgb(0, 0, 0)") {
+				image.animate({width:"+=40px",height:"+=40px"},'fast')
+					.animate({width:"-=40px",height:"-=40px",border:"outset"},'fast')
 				image.css("border","outset");
 				//image.css("border","outset");
 				console.log("run"+command_);

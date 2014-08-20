@@ -13,7 +13,8 @@ var DEntry = Widget.extend({
 		this._dEntry = $('<div>', {
 			'class': 'icon',
 			'id': this._id,
-			'draggable': 'true'
+			'draggable': 'true',
+			'onselectstart': 'return false'
 		});
 	},
 
@@ -24,7 +25,7 @@ var DEntry = Widget.extend({
 		}
 
 		this._dEntry.html(this.PATTERN);
-		$('#grid' + this._position.x + this._position.y).append(this._dEntry);
+		$('#grid_' + this._position.x +'_'+ this._position.y).append(this._dEntry);
 
 		var target = document.getElementById(this._id);
 		this.bindDrag(target);
