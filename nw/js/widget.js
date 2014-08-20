@@ -27,7 +27,6 @@ var Widget = Class.extend({
 	},
 
 	drop: function(ev) {
-		console.log("drap end, drop");
 		//if(ev.srcElement == ev.toElement) return ;
 		ev.preventDefault();
 		var _id = ev.dataTransfer.getData("ID");

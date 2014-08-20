@@ -9,7 +9,8 @@
  		this._dock = $('<div>', {
 			'class': this._class,
 			'id': this._id,
-			'title': this._name
+			'title': this._name,
+			'onselectstart': 'return false'
 		});
 	},
  	show: function() {
