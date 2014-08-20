@@ -97,7 +97,7 @@ var AppEntry = DEntry.extend({
 		};
 		var getImgPath = function(attr_) {
 			utilIns.entryUtil.getIconPath(attr_['Icon'], 48, function(imgPath_) {
-				_entry._imgPath = imgPath_;
+				_entry._imgPath = imgPath_[0];
 				$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
 			});
 		};
@@ -170,6 +170,34 @@ var FileEntry = DEntry.extend({
 	
 	open: function() {
 		//open files with specific app
+	}
+});
+
+//Theme Entry
+//
+var ThemeEntry = DEntry.extend({
+	init: function(id_, tabIndex_, path_, position_, iconName_, name_) {
+		this.callSuper(id_, tabIndex_, path_, position_);
+		this._iconName = iconName_;
+		this._name = name_;
+	},
+
+	show: function() {
+		this.callSuper();
+		
+		var self = this;
+		utilIns.entryUtil.getIconPath(iconName_, 48, function(iconPath) {
+			$('#' + self._id + ' img').attr('src', iconPath);
+		});
+		$('#' + self._id + ' p').text(self.name);
+	},
+
+	open: function() {
+		this._exec('xdg-open ' + path_, function(err, stdout, stderr) {
+			if(err) {
+				console.log(err);
+			}
+		});
 	}
 });
 

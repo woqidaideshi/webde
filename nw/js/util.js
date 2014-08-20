@@ -123,35 +123,41 @@ var EntryUtil = Event.extend({
 
 	findIcon: function(iconName_, size_, themePath_) {
 		var util = this;
+		var tmp = 'find ' + themePath_ + ' -regextype \"posix-egrep\" -regex \".*' + size_
+				+ '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
+		console.log(tmp);
 
-		this._exec('find ' + themePath_ + ' -name ' + iconName_ + '* | grep ' + size_
+		this._exec(tmp
 				, function(err, stdout, stderr) {
 			if(err) {
 				console.log(err);
-				util._fs.readFile(themePath_ + '/index.theme', 'utf-8', function(err, data) {
-					if(err) {
-						console.log(err);
-						parents = [];
-					} else {
-						var lines = data.split('\n');
-						for(var i = 0; i < lines.length; ++i) {
-							if(lines[i].substr(0, 7) == "Inherits") {
-								attr = lines[i].split('=');
-								parents = attr[1].split(',');
+			} else {
+				if(stdout == "") {
+					util._fs.readFile(themePath_ + '/index.theme', 'utf-8', function(err, data) {
+						if(err) {
+							console.log(err);
+							parents = [];
+						} else {
+							var lines = data.split('\n');
+							for(var i = 0; i < lines.length; ++i) {
+								if(lines[i].substr(0, 7) == "Inherits") {
+									attr = lines[i].split('=');
+									parents = attr[1].split(',');
+								}
 							}
 						}
-					}
-
-					for(var i = 0; i < parents.length; ++i) {
-						var iconPath = this.getIconPathWithTheme(iconName_, size_, parents[0]);
-						// if(iconPath != null) return iconPath;
-					}
-
-					// return null;
-				});
-			} else {
-				util.emit(iconName_, stdout.substr(0, stdout.length - 1));
-				// return stdout.substr(0, stdout.length - 1);
+	
+						for(var i = 0; i < parents.length; ++i) {
+							var iconPath = this.getIconPathWithTheme(iconName_, size_, parents[0]);
+							// if(iconPath != null) return iconPath;
+						}
+	
+						// return null;
+					});
+				} else {
+					util.emit(iconName_, stdout.split('\n'));//.substr(0, stdout.length - 1)
+					// return stdout.substr(0, stdout.length - 1);
+				}
 			}
 		});
 		

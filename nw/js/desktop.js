@@ -18,6 +18,7 @@ var Desktop = Class.extend({
 				console.log(err);
 			} else {
 				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
+				// _theme.loadThemeEntry(_desktop);
 				_desktop.loadWidgets();
 			}
 		});

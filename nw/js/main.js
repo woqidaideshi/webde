@@ -6,6 +6,9 @@ win.enterFullscreen();
 var desktop = undefined;
 // var gedit = undefined;
 // var terminal = undefined;
+//
+//Should be a singleton!
+var theme = Theme.create();
 var	utilIns = Util.create();
 
 // function loadDEntries() {
