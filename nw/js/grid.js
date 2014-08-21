@@ -44,6 +44,7 @@ var Grid = Widget.extend({
 				$('#col' + i).append(row_);
 
 				var target = document.getElementById('grid_' + i+'_'+ j);
+
 				this.bindDrag(target);
 
 				this._grid[i][j] = {};

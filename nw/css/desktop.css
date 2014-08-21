@@ -3,6 +3,7 @@ html body {
   height: 100%;
   background-image: url(../img/cdos.png);
   background-size: cover;
+
 }
 .col1 {
   width: 100px;
@@ -15,6 +16,12 @@ html body {
 }
 .row1 {
   height: 90px;
+}
+.row2 {
+  height: 180px;
+}
+.row3 {
+  height: 270px;
 }
 
 .desktop{
@@ -43,21 +50,20 @@ html body {
   -webkit-box-align: center;
   z-index: 99;
 }
-
 .icon:hover {
   box-shadow: 0px 0px 2px black;
 }
 .icon:focus {
-  border: 1px dotted black;
+  border: 1px dashed black;
 }
 .icon img {
   width: 50px;
   height: 50px;
-  border: 1px solid black;
   z-index: 98;
 }
 .icon p {
   margin: 2px 0px;
+  font-size: small;
 }
 .icon p:hover {
   cursor: default;

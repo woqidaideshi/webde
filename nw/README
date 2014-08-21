@@ -1,2 +1,5 @@
 For web devironment.
 
+Copy files in config into $HOME/.local/share/
+You can use commad like:
+	cp -r config/* $HOME/.local/share/
