@@ -90,7 +90,7 @@ var Theme = Event.extend({
 			return ;
 		}
 		for(var key in this._theme) {
-			if(key == 'IconTheme') continue;
+			if(key == 'icontheme') continue;
 			if(this._theme[key]['active'] == 'false') continue;
 			desktop_.addAnDEntry(ThemeEntry.create(
 						this._theme[key]['id'],
@@ -103,43 +103,43 @@ var Theme = Event.extend({
 	},
 
 	getIconTheme: function() {
-		return this._theme['IconTheme']['name'];
+		return this._theme['icontheme']['name'];
 	},
 
 	setIconTheme: function(iconTheme_) {
-		this._theme['IconTheme']['name'] = iconTheme_;
+		this._theme['icontheme']['name'] = iconTheme_;
 	},
 
 	activeComputer: function() {
-		this._theme['Computer']['active'] = 'true';
+		this._theme['computer']['active'] = 'true';
 	},
 
 	deactiveComputer: function() {
-		this._theme['Computer']['active'] = 'false';
+		this._theme['computer']['active'] = 'false';
 	},
 	
 	activeTrash: function() {
-		this._theme['Trash']['active'] = 'true';
+		this._theme['trash']['active'] = 'true';
 	},
 
 	deactiveTrash: function() {
-		this._theme['Trash']['active'] = 'false';
+		this._theme['trash']['active'] = 'false';
 	},
 	
 	activeNetwork: function() {
-		this._theme['Network']['active'] = 'true';
+		this._theme['network']['active'] = 'true';
 	},
 
 	deactiveNetwork: function() {
-		this._theme['Network']['active'] = 'false';
+		this._theme['network']['active'] = 'false';
 	},
 	
 	activeDocument: function() {
-		this._theme['Document']['active'] = 'true';
+		this._theme['document']['active'] = 'true';
 	},
 
 	deactiveDocument: function() {
-		this._theme['Document']['active'] = 'false';
+		this._theme['document']['active'] = 'false';
 	}
 });
 
