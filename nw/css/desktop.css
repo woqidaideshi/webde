@@ -3,6 +3,7 @@ html body {
   height: 100%;
   background-image: url(../img/cdos.png);
   background-size: cover;
+
 }
 .col1 {
   width: 100px;
@@ -15,6 +16,12 @@ html body {
 }
 .row1 {
   height: 90px;
+}
+.row2 {
+  height: 180px;
+}
+.row3 {
+  height: 270px;
 }
 
 .desktop{
@@ -43,21 +50,20 @@ html body {
   -webkit-box-align: center;
   z-index: 99;
 }
-
 .icon:hover {
   box-shadow: 0px 0px 2px black;
 }
 .icon:focus {
-  border: 1px dotted black;
+  border: 1px dashed black;
 }
 .icon img {
   width: 50px;
   height: 50px;
-  border: 1px solid black;
   z-index: 98;
 }
 .icon p {
   margin: 2px 0px;
+  font-size: small;
 }
 .icon p:hover {
   cursor: default;
@@ -68,6 +74,8 @@ html body {
   height: 90%;
   top: 4%;
   right: 100px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
 }
 .gridcontainer .gridcol {
   width: 100px;
@@ -78,12 +86,16 @@ html body {
   -webkit-box-orient: vertical;
   -webkit-box-pack: start;
   -webkit-box-align: start;
+   -webkit-user-select: none;
+  -moz-user-select: none;
 }
 .gridcontainer .gridcol .grid {
   width: 100%;
   height: 100px;
       display: block;
       vertical-align:middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
 }
 #menu {
   display: none;
@@ -110,13 +122,22 @@ html body {
   color: #A9A9A9;
 }
 .plugin-div {
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
   z-index: 101;
+}
+
+.unselect{
+  -webkit-user-select: none;
+  -moz-user-select: none;
 }
 
 .dock {   
   position: fixed;
+  -webkit-user-select: none;
+  -moz-user-select: none;
   bottom: 0%;
   width: 100%;
   text-align: center;
@@ -124,6 +145,8 @@ html body {
 .dock img {
   width: 50px;
   height: 50px;
+    -webkit-user-select: none;
+  -moz-user-select: none;
   cursor: pointer;
 }
   

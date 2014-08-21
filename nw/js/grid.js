@@ -44,6 +44,7 @@ var Grid = Widget.extend({
 				$('#col' + i).append(row_);
 
 				var target = document.getElementById('grid_' + i+'_'+ j);
+
 				this.bindDrag(target);
 
 				this._grid[i][j] = {};
@@ -97,8 +98,20 @@ var Grid = Widget.extend({
 
 	drop: function(ev) {
 		//t_* is target  others is source 
+		console.log('drop-grid');
+		ev.preventDefault();
 		var t_id = ev.target.id;
 		var _id = ev.dataTransfer.getData("ID");
+		if (_id==null || _id == '') 
+			{ 
+				ev.stopPropagation();
+				return ;
+			}
+		var className = document.getElementById(_id).className;
+		//if drag-obj isn't plugin or entry
+		if (className !== 'plugin-div' && className !== 'icon') {
+			return ;
+		};
 		var target = $('#'+t_id);
 		//get source occupy number of grids follow x or y 
 		var col_num = parseInt($('#' + _id).width()/target.width()-0.00001)+1;
