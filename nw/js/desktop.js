@@ -27,7 +27,7 @@ var Desktop = Class.extend({
 	bindingEvents: function() {
 		var _desktop = this;
 
-		win.on('loading', function() {
+		win.once('loading', function() {
 			_desktop.refresh();
 		});
 	},
@@ -98,6 +98,7 @@ var Desktop = Class.extend({
 	saveWidgets: function() {
 		var data = "";
 		for(var key in this._widgets) {
+			if(typeof theme._theme[key] !== 'undefined') continue;
 			data += key + " " + this._widgets[key]._path + " "
 			 	+ this._widgets[key]._position.x + " "
 			 	+ this._widgets[key]._position.y + " "
