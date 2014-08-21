@@ -78,6 +78,11 @@ var DEntry = Widget.extend({
 //Desktop Entry for application files (a.k.a .desktop)
 //
 var AppEntry = DEntry.extend({
+	//id_: AppEntry's id
+	//tabIndex_: the teb squence of this AppEntry
+	//path_: the path of corresponding .desktop file
+	//position_(option): the positon to show in destop's grid{x, y}
+	//
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
 		this._execCmd = undefined;
@@ -176,7 +181,14 @@ var FileEntry = DEntry.extend({
 //Theme Entry
 //
 var ThemeEntry = DEntry.extend({
-	init: function(id_, tabIndex_, path_, position_, iconName_, name_) {
+	//id_: ThemeEntry's id
+	//tabIndex_: the teb squence of this AppEntry
+	//path_: the path of corresponding .desktop file
+	//iconName_: the name of the icon image
+	//name_: the name of this entry to show
+	//position_(option): the positon to show in destop's grid{x, y}
+	//
+	init: function(id_, tabIndex_, path_, iconName_, name_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
 		this._iconName = iconName_;
 		this._name = name_;
@@ -186,14 +198,14 @@ var ThemeEntry = DEntry.extend({
 		this.callSuper();
 		
 		var self = this;
-		utilIns.entryUtil.getIconPath(iconName_, 48, function(iconPath) {
-			$('#' + self._id + ' img').attr('src', iconPath);
+		utilIns.entryUtil.getIconPath(this._iconName, 48, function(iconPath) {
+			$('#' + self._id + ' img').attr('src', iconPath[0]);
 		});
-		$('#' + self._id + ' p').text(self.name);
+		$('#' + self._id + ' p').text(self._name);
 	},
 
 	open: function() {
-		this._exec('xdg-open ' + path_, function(err, stdout, stderr) {
+		this._exec('xdg-open ' + this._path, function(err, stdout, stderr) {
 			if(err) {
 				console.log(err);
 			}

@@ -1,5 +1,8 @@
-var Theme = Class.extend({
+var Theme = Event.extend({
 	init: function() {
+		this.inited = false;
+		this.req = undefined;
+
 		this._fs = require('fs');
 		this._exec = require('child_process').exec;
 		this._themePath = "";
@@ -53,9 +56,12 @@ var Theme = Class.extend({
 						'active': attrs[1],
 						'icon': attrs[2],
 						'path': attrs[3],
-						'id': attrs[4]
+						'id': attrs[4],
+						'pos': {x: attrs[5], y: attrs[6]}
 					};
 				}
+				theme.inited = true;
+				theme.emit('inited', theme.req);
 			}
 		});
 	},
@@ -77,7 +83,24 @@ var Theme = Class.extend({
 		});
 	},
 
-	loadThemeEntry: function(desktop_) {},
+	loadThemeEntry: function(desktop_) {
+		if(!this.inited) {
+			this.req = desktop_;
+			this.once('inited', this.loadThemeEntry);
+			return ;
+		}
+		for(var key in this._theme) {
+			if(key == 'IconTheme') continue;
+			if(this._theme[key]['active'] == 'false') continue;
+			desktop_.addAnDEntry(ThemeEntry.create(
+						this._theme[key]['id'],
+						desktop_._tabIndex++,
+						this._theme[key]['path'],
+						this._theme[key]['icon'],
+						this._theme[key]['name']
+						), this._theme[key]['pos']);
+		}
+	},
 
 	getIconTheme: function() {
 		return this._theme['IconTheme']['name'];
