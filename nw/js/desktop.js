@@ -4,7 +4,6 @@ var Desktop = Class.extend({
 	init: function() {
 		this._grid = undefined;
 		this._widgets = [];
-
 		this.generateGrid();
 	},
 	
@@ -84,6 +83,7 @@ var Desktop = Class.extend({
 			'id':name_,
 			'src':path_,
 			'title':name_,
+			'draggable': 'false',
 			'onselectstart': 'return false'
 		});
 		//if command_ isn't "null or undefined", then add event function
@@ -92,19 +92,26 @@ var Desktop = Class.extend({
 			image.click (function(ev){
 			var image = $(ev.target);
 			//when don't open the app.
-			if ( image.css("border") == "0px none rgb(0, 0, 0)") {
+			console.log("click " + image[0].style.borderStyle);
+			if ( image[0].style.borderStyle == "" || image[0].style.borderStyle=='none') {
 				image.animate({width:"+=40px",height:"+=40px"},'fast')
-					.animate({width:"-=40px",height:"-=40px",border:"outset"},'fast')
+					.animate({width:"-=40px",height:"-=40px"},'fast')
 				image.css("border","outset");
 				//image.css("border","outset");
-				console.log("run"+command_);
-          			var exec = require('child_process').exec;
-          			var result = exec(command_,function(err, stdout, stderr){
-                				console.log('stdout: ' + stdout);
-                				console.log('stderr: ' + stderr);
-                				image.css("border","none");
-            				});
-				}	
+				//console.log("run "+command_);
+				if (typeof require === 'function') {
+          				var exec = require('child_process').exec;
+          				var result = exec(command_,function(err, stdout, stderr){
+                					console.log('stdout: ' + stdout);
+                					console.log('stderr: ' + stderr);
+                					image.css("border","none");
+            					});
+					}	
+				else{
+					console.log('run in browser');
+					image.css("border","none");
+					}
+				}
 			});
 		}
 
