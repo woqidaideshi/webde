@@ -97,8 +97,6 @@ var Desktop = Class.extend({
 				image.animate({width:"+=40px",height:"+=40px"},'fast')
 					.animate({width:"-=40px",height:"-=40px"},'fast')
 				image.css("border","outset");
-				//image.css("border","outset");
-				//console.log("run "+command_);
 				if (typeof require === 'function') {
           				var exec = require('child_process').exec;
           				var result = exec(command_,function(err, stdout, stderr){

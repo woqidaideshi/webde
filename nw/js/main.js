@@ -34,6 +34,5 @@ $(document).ready(function() {
 	desktop.addAnImgToDock("img/moive.png", "moive", "svlc &");
 	desktop.addAnImgToDock("img/music.png", "music", "banshee &");
 	//loadDEntries();
-
-
+	sweetTitles.init();
 });
