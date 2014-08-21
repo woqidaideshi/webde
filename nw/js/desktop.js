@@ -10,6 +10,7 @@ var Desktop = Class.extend({
 		this._xdg_data_home = undefined;
 		
 		this.generateGrid();
+		this.bindingEvents();
 		
 		var _desktop = this;
 		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
@@ -17,12 +18,28 @@ var Desktop = Class.extend({
 				console.log(err);
 			} else {
 				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
+				theme.loadThemeEntry(_desktop);
 				_desktop.loadWidgets();
 			}
 		});
 	},
 
-	shutdown: function() {},
+	bindingEvents: function() {
+		var _desktop = this;
+
+		win.once('loading', function() {
+			_desktop.refresh();
+		});
+	},
+
+	shutdown: function() {
+		this.saveWidgets();
+	},
+
+	refresh: function() {
+		theme.saveConfig(this);
+		this.saveWidgets();
+	},
 	
 	registWidget: function(widget_) {
 		if(typeof this._widgets[widget_.getID()] !== "undefined") {
@@ -42,6 +59,10 @@ var Desktop = Class.extend({
 		this._grid.show();
 	},
 
+	getGrid:function(){
+		return this._grid;
+	},
+
 	loadWidgets: function() {
 		var _desktop = this;
 		this._fs.readFile(this._xdg_data_home + "dwidgets/dentries"
@@ -54,19 +75,44 @@ var Desktop = Class.extend({
 					if(lines[i].match('[\s,\t]*#+') != null) continue;
 					if(lines[i] == "") continue;
 					var attr = lines[i].split(' ');
-					if(attr.length != 4) continue;
-				/*
+					if(attr.length != 5) continue;
+				/*need add a type judge
 				*/
-					_desktop.addAnDEntry(AppEntry.create(attr[0]
+					var _Entry;
+					if(attr[4] == "app") {
+						_Entry = AppEntry;
+					} else if(attr[4] == "dir") {
+						_Entry = DirEntry;
+					} else {
+						_Entry = FileEntry;
+					}
+					_desktop.addAnDEntry(_Entry.create(attr[0]
 							, _desktop._tabIndex++
 							, attr[1]
 							, {x: attr[2], y: attr[3]}
-							));
+							), {x: attr[2], y: attr[3]});
 				}
 			}
 		});
-		//this.addAnDEntry(AppEntry.create('gedit', this._tabIndex++, "/usr/share/applications/gedit.desktop"));
-		//this.addAnDEntry(AppEntry.create('terminal', this._tabIndex++));
+	},
+
+	saveWidgets: function() {
+		var data = "";
+		for(var key in this._widgets) {
+			if(typeof theme._theme[key] !== 'undefined') continue;
+			data += key + " " + this._widgets[key]._path + " "
+			 	+ this._widgets[key]._position.x + " "
+			 	+ this._widgets[key]._position.y + " "
+				+ this._widgets[key]._type + '\n';
+		}
+		console.log(data);
+
+		this._fs.writeFile(this._xdg_data_home + "dwidgets/dentries"
+				, data, function(err) {
+			if(err) {
+				console.log(err);
+			}
+		});
 	},
 
 	addAnDEntry: function(entry_, pos_) {
@@ -85,7 +131,7 @@ var Desktop = Class.extend({
 		this._grid._grid[pos_.x][pos_.y].use = true;
 	},
 
-	addAnDPlugin: function(plugin_, pos_) {
+	addAnDPlugin: function(plugin_, pos_, path_) {
 		if(typeof pos_ === 'undefined') {
 			pos_ = this._grid.findAnIdleGridFromRight();
 			if(pos_ == null) {
@@ -95,9 +141,88 @@ var Desktop = Class.extend({
 		}
 
 		plugin_.setPosition(pos_);
-		plugin_.setShowPanel(plugin_.getClock());
 		plugin_.show();
-		this._grid._grid[pos_.x][pos_.y].use = true;
+		//show() must run before setPanel();
+		plugin_.setPanel(path_);
+		plugin_.open();
+		//this._grid._grid[pos_.x][pos_.y].use = true;
+		//get number of occupy-grid col and row
+		var col_num = parseInt($('.plugin-div').width()/this._grid._col-0.00001)+1;
+		var row_num =  parseInt($('.plugin-div').height()/this._grid._row-0.00001)+1;
+		this._grid.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
+	},
+
+	addDock:function(position_ ){
+		dock = Dock.create(position_);
+		dock.setPosition();
+		dock.show();
+	},
+
+	addAnImgToDock:function(path_, name_, command_){
+		/*var image = document.createElement("img");
+		image.id = name_;
+		image.src = path_;
+		image.title = name_;*/
+		var image = $('<img>',{
+			'id':name_,
+			'src':path_,
+			'title':name_,
+			'draggable': 'false',
+			'onselectstart': 'return false'
+		});
+		//if command_ isn't "null or undefined", then add event function
+		if (command_) {
+			//add onclick()
+			image.click (function(ev){
+				var image = $(ev.target);
+				//when don't open the app.
+				console.log("click " + image[0].style.borderStyle);
+				if ( image[0].style.borderStyle == "" || image[0].style.borderStyle=='none') {
+					image.animate({width:"+=40px",height:"+=40px"},'fast')
+						.animate({width:"-=40px",height:"-=40px"},'fast')
+					image.css("border","outset");
+					//image.css("border","outset");
+					//console.log("run "+command_);
+					if (typeof require === 'function') {
+	        	var exec = require('child_process').exec;
+	         	var result = exec(command_,function(err, stdout, stderr){
+	         	console.log('stdout: ' + stdout);
+	         	console.log('stderr: ' + stderr);
+	         	image.css("border","none");
+	       		});
+					} else {
+						console.log('run in browser');
+						image.css("border","none");
+					}
+				}
+			});
+		}
+
+		var dock = $('#dock');
+		dock.append(image);
+
+		var imgList = dock.children('img');
+		var imgArt = parseInt($('.dock img').css('width')); 
+		var _imgMaxWidth = imgArt * 2;
+   	var _imgMaxHeight = imgArt * 2;
+   	var _distance = imgArt * 3.5;
+   	console.log(imgArt+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
+		document.onmousemove = function (ev) {
+     	var ev = ev || window.event;
+     	for (var i = 0; i <imgList.length; i++) {
+     		var jqImg = $(imgList[i]);
+     	 	var a = ev.clientX - (jqImg.position().left+ jqImg.width() / 2);
+     		var b = ev.clientY - (jqImg.position().top +  jqImg.height() / 2 + dock.position().top);
+     		var c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+     		var spex = 1 - c / _distance;
+     		if (spex < 0.5) {
+       		spex = 0.5;
+     		}
+     		imgList[i].style.width = spex * (_imgMaxWidth) + 'px';
+     		imgList[i].style.height = spex * (_imgMaxHeight) + 'px';
+   		}
+   	}
 	}
+	
 });
 
