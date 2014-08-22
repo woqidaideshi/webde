@@ -276,6 +276,7 @@ var DesktopWatcher = Event.extend({
 								_this._oldName = filename;
 								return ;
 							}
+							if(_this.oldName == filename) return ;
 							_this.emit('rename', _this._oldName, filename);
 							_this._oldName = null;
 						}
