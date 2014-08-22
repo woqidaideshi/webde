@@ -1,2 +1,7 @@
-gedit /usr/share/applications/gedit.desktop 15 2 app
-terminal /usr/share/applications/gnome-terminal.desktop 14 3 app
+clock img/clock.png 4 1 ClockPlugin
+cat img/cat.jpg 1 1 ImagePlugin
+book img/book.jpg 8 1 ImagePlugin
+boat img/boat.jpg 13 4 ImagePlugin
+book1 img/book.jpg 2 6 ImagePlugin
+gedit /usr/share/applications/gedit.desktop 12 0 app
+terminal /usr/share/applications/gnome-terminal.desktop 12 1 app

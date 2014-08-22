@@ -72,25 +72,43 @@ var Desktop = Class.extend({
 			} else {
 				var lines = data.split('\n');
 				for(var i = 0; i < lines.length; ++i) {
-					if(lines[i].match('[\s,\t]*#+') != null) continue;
+					if(lines[i].match('[\s,\t]*#+') != null) continue;  //??????????????????????
 					if(lines[i] == "") continue;
 					var attr = lines[i].split(' ');
 					if(attr.length != 5) continue;
 				/*need add a type judge
 				*/
-					var _Entry;
-					if(attr[4] == "app") {
-						_Entry = AppEntry;
-					} else if(attr[4] == "dir") {
-						_Entry = DirEntry;
-					} else {
-						_Entry = FileEntry;
+				var _Entry = null;
+				var _Plugin = null;
+					switch(attr[4]) {
+						case "ClockPlugin":
+							_Plugin = ClockPlugin;
+							break;
+						case "ImagePlugin":
+							_Plugin = PicPlugin;
+							break;
+						case "app": 
+							_Entry = AppEntry;
+							break;
+						case "dir":
+							_Entry = DirEntry;
+							break;
+						default:
+							_Entry = FileEntry;
 					}
-					_desktop.addAnDEntry(_Entry.create(attr[0]
+
+					if (_Entry != null ) {
+						_desktop.addAnDEntry(_Entry.create(attr[0]
 							, _desktop._tabIndex++
 							, attr[1]
 							, {x: attr[2], y: attr[3]}
 							), {x: attr[2], y: attr[3]});
+					} else if (_Plugin != null) {
+						_desktop.addAnDPlugin(_Plugin.create(attr[0]
+								,{x: attr[2], y: attr[3]}
+								,attr[1]
+								), {x: attr[2], y: attr[3]});
+					};
 				}
 			}
 		});
@@ -131,11 +149,13 @@ var Desktop = Class.extend({
 		this._grid._grid[pos_.x][pos_.y].use = true;
 	},
 
-	addAnDPlugin: function(plugin_, pos_, path_) {
+	addAnDPlugin: function(plugin_, pos_,  path_) {
+		if(!this.registWidget(plugin_)) return ;
 		if(typeof pos_ === 'undefined') {
 			pos_ = this._grid.findAnIdleGridFromRight();
 			if(pos_ == null) {
 				alert("No room");
+				this.unRegistWidget(plugin_.getID());
 				return ;
 			}
 		}
@@ -159,10 +179,7 @@ var Desktop = Class.extend({
 	},
 
 	addAnImgToDock:function(path_, name_, command_){
-		/*var image = document.createElement("img");
-		image.id = name_;
-		image.src = path_;
-		image.title = name_;*/
+
 		var image = $('<img>',{
 			'id':name_,
 			'src':path_,

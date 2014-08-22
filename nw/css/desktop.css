@@ -138,7 +138,7 @@ html body {
   position: fixed;
   -webkit-user-select: none;
   -moz-user-select: none;
-  bottom: 0%;
+  bottom: 20px;
   width: 100%;
   text-align: center;
 }

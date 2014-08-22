@@ -1,3 +1,8 @@
 #id path position.x position.y
-gedit /usr/share/applications/gedit.desktop 9 0 app
-terminal /usr/share/applications/gnome-terminal.desktop 9 1 app
+clock img/clock.png 4 1 ClockPlugin
+cat img/cat.jpg 3 3 ImagePlugin
+book img/book.jpg 3 5 ImagePlugin
+boat img/boat.jpg 0 6 ImagePlugin
+book1 img/book.jpg 0 4 ImagePlugin
+gedit /usr/share/applications/gedit.desktop 12 0 app
+terminal /usr/share/applications/gnome-terminal.desktop 12 1 app

@@ -6,7 +6,7 @@ var DPlugin = Widget.extend({
 	init: function(id_, position_) {
 		this.callSuper(id_, position_);
 		this._name = id_;
-
+		this._type = 'plugin'
 		this._dPlugin = $('<div>', {
 			'class': 'plugin-div',
 			'id': this._id,
@@ -56,8 +56,10 @@ var DPlugin = Widget.extend({
 });
 
 var ClockPlugin = DPlugin.extend({
-	init: function(id_, position_) {
+	init: function(id_, position_, path_) {
 		this.callSuper(id_, position_);
+		this._type = 'ClockPlugin';
+		this._path = path_;
 		this.content = 'Content';
 	},
 
@@ -66,8 +68,18 @@ var ClockPlugin = DPlugin.extend({
 		this._dPlugin.html("<canvas class='unselect' id=\""+this._id+ this.content + "\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+
 							"px' />");
 		//var value = document.getElementById(this._id+content);
+		
 		var target = $('#'+this._id+this.content);
 		this.bindDrag(target[0]);
+
+		var img = new Image();
+		if (typeof path_  !== 'undefined') {
+			img.src=path_;
+		}else img.src = this._path;
+		var imgContent = target[0].getContext('2d');
+		img.onload = function() {  
+		imgContent.drawImage(img,0,0,target.width(),target.height());
+		}
 	},
 
 	open: function() {
@@ -77,8 +89,10 @@ var ClockPlugin = DPlugin.extend({
 });
 
 var PicPlugin = DPlugin.extend({
-	init:function(id_, position_){
+	init:function(id_, position_, path_){
 		this.callSuper(id_, position_);
+		this._type = 'ImagePlugin';
+		this._path = path_;
 		this.content = 'Content';
 	},
 	
@@ -90,7 +104,9 @@ var PicPlugin = DPlugin.extend({
 		this.bindDrag(target[0]);
 
 		var img = new Image();
-		img.src=path_;
+		if (typeof path_  !== 'undefined') {
+			img.src=path_;
+		}else img.src = this._path;
 		var imgContent = target[0].getContext('2d');
 		img.onload = function() {  
 		imgContent.drawImage(img,0,0,target.width(),target.height());
