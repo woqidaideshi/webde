@@ -22,6 +22,17 @@ var Desktop = Class.extend({
 				_desktop.loadWidgets();
 			}
 		});
+
+		this._desktopWatch = DesktopWatcher.create();
+		this._desktopWatch.on('add', function(filename) {
+			console.log('add:', filename);
+		});
+		this._desktopWatch.on('delete', function(filename) {
+			console.log('delete:', filename);
+		});
+		this._desktopWatch.on('rename', function(oldName, newName) {
+			console.log('rename:', oldName, '->', newName);
+		});
 	},
 
 	bindingEvents: function() {
@@ -226,3 +237,53 @@ var Desktop = Class.extend({
 	
 });
 
+var DesktopWatcher = Event.extend({
+	init: function(ignoreInitial_) {
+		this._prev = 0;
+		this._baseDir = undefined;
+		this._oldName = null;
+
+		this._ignoreInitial = ignoreInitial_ || true;
+
+		this._fs = require('fs');
+		this._exec = require('child_process').exec;
+
+		var _this = this;
+		this._exec('echo $HOME', function(err, stdout, stderr) {
+			if(err) throw err;
+			_this._baseDir = stdout.substr(0, stdout.length - 1);
+			_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
+				for(var i = 0; i < files.length; ++i) {
+					if(!_this._ignoreInitial) //do sth
+						;
+					_this._prev++;
+				}
+
+				_this._fs.watch(_this._baseDir + '/桌面', function(event, filename) {
+					if(event == 'change') return ;
+					_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
+						var cur = 0;
+						for(var i = 0; i < files.length; ++i) {
+							cur++;
+						}
+
+						if(_this._prev < cur) {
+							_this.emit('add', filename);
+						} else if(_this._prev > cur) {
+							_this.emit('delete', filename);
+						} else {
+							if(_this._oldName == null) {
+								_this._oldName = filename;
+								return ;
+							}
+							_this.emit('rename', _this._oldName, filename);
+							_this._oldName = null;
+						}
+						_this._prev = cur;
+					});
+				});
+			});
+		});
+	}
+
+});
