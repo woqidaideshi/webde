@@ -134,21 +134,21 @@ var EntryUtil = Event.extend({
 			} else {
 				if(stdout == "") {
 					util._fs.readFile(themePath_ + '/index.theme', 'utf-8', function(err, data) {
+						var _parents = [];
 						if(err) {
 							console.log(err);
-							parents = [];
 						} else {
 							var lines = data.split('\n');
 							for(var i = 0; i < lines.length; ++i) {
 								if(lines[i].substr(0, 7) == "Inherits") {
 									attr = lines[i].split('=');
-									parents = attr[1].split(',');
+									_parents = attr[1].split(',');
 								}
 							}
 						}
 	
-						for(var i = 0; i < parents.length; ++i) {
-							var iconPath = this.getIconPathWithTheme(iconName_, size_, parents[0]);
+						for(var i = 0; i < _parents.length; ++i) {
+							var iconPath = this.getIconPathWithTheme(iconName_, size_, _parents[0]);
 							// if(iconPath != null) return iconPath;
 						}
 	

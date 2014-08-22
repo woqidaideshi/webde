@@ -9,7 +9,6 @@
  		this._dock = $('<div>', {
 			'class': this._class,
 			'id': this._id,
-			'title': this._name,
 			'onselectstart': 'return false'
 		});
 	},
@@ -35,6 +34,6 @@
 	setName: function(name_) {
 		//redraw dentry's name
 		this._name = name_;
-	},
+	}
 });
 

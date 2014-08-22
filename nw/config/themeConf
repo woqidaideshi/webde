@@ -1,5 +1,5 @@
-IconTheme:Mint-X true
-Computer:Computer true computer $HOME computer 16 0
-Trash:Trash false
-Network:Network false
-Document:Document false
+icontheme:Mint-X false undefined undefined undefined undefined undefined
+computer:Computer true computer $HOME computer 16 0
+trash:Trash false undefined undefined undefined undefined undefined
+network:Network false undefined undefined undefined undefined undefined
+document:Document false undefined undefined undefined undefined undefined

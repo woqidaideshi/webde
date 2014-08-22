@@ -66,10 +66,20 @@ var Theme = Event.extend({
 		});
 	},
 
-	saveConfig: function() {
+	saveConfig: function(desktop_) {
 		var data = "";
 		for(var key in this._theme) {
-			data += key + ":" + this._theme[key] + '\n';
+			data += key + ":" 
+				+ ((this._theme[key]['active'] == 'true') ?
+					desktop_._widgets[key]._name : this._theme[key]['name']) + ' '
+				+ this._theme[key]['active'] + ' '
+				+ this._theme[key]['icon'] + ' '
+				+ this._theme[key]['path'] + ' '
+				+ this._theme[key]['id'] + ' '
+				+ ((this._theme[key]['active'] == 'true') ?
+					desktop_._widgets[key]._position.x : this._theme[key]['pos'].x) + ' '
+				+ ((this._theme[key]['active'] == 'true') ?
+					desktop_._widgets[key]._position.y : this._theme[key]['pos'].y) + '\n';
 		}
 		// for(var i = 0; i < this._keys.length; ++i) {
 			// data += this._keys[i] + this._theme[this._keys[i]] + '\n';
@@ -77,9 +87,7 @@ var Theme = Event.extend({
 		this._fs.writeFile(this._themePath, data, 'utf-8', function(err) {
 			if(err) {
 				console.log(err);
-			} else {
-				console.log('File saved!!');
-			}
+			} 
 		});
 	},
 

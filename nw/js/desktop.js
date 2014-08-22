@@ -37,6 +37,7 @@ var Desktop = Class.extend({
 	},
 
 	refresh: function() {
+		theme.saveConfig(this);
 		this.saveWidgets();
 	},
 	
@@ -173,25 +174,24 @@ var Desktop = Class.extend({
 		if (command_) {
 			//add onclick()
 			image.click (function(ev){
-				var image = $(ev.target);
-				//when don't open the app.
-				console.log("click " + image[0].style.borderStyle);
-				if ( image[0].style.borderStyle == "" || image[0].style.borderStyle=='none') {
-					image.animate({width:"+=40px",height:"+=40px"},'fast')
-						.animate({width:"-=40px",height:"-=40px"},'fast')
-					image.css("border","outset");
-					//image.css("border","outset");
-					//console.log("run "+command_);
-					if (typeof require === 'function') {
-	        	var exec = require('child_process').exec;
-	         	var result = exec(command_,function(err, stdout, stderr){
-	         	console.log('stdout: ' + stdout);
-	         	console.log('stderr: ' + stderr);
-	         	image.css("border","none");
-	       		});
-					} else {
-						console.log('run in browser');
-						image.css("border","none");
+			var image = $(ev.target);
+			//when don't open the app.
+			console.log("click " + image[0].style.borderStyle);
+			if ( image[0].style.borderStyle == "" || image[0].style.borderStyle=='none') {
+				image.animate({width:"+=40px",height:"+=40px"},'fast')
+					.animate({width:"-=40px",height:"-=40px"},'fast')
+				image.css("border","outset");
+				if (typeof require === 'function') {
+          				var exec = require('child_process').exec;
+          				var result = exec(command_,function(err, stdout, stderr){
+                					console.log('stdout: ' + stdout);
+                					console.log('stderr: ' + stderr);
+                					image.css("border","none");
+            					});
+					}	
+				else{
+					console.log('run in browser');
+					image.css("border","none");
 					}
 				}
 			});
