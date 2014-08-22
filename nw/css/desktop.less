@@ -7,6 +7,7 @@ html body {
 	width: 100%;
 	height: 100%;
 	background-image: url(../img/bgp.jpg);
+	overflow: hidden;
 }
 
 .col1 {
@@ -63,18 +64,19 @@ html body {
 	}
 
 	&:focus {
-		border: 1px dotted black;
+		border: 1px dashed black;
 	}
 
 	img {
 		width: @LineWidth * 0.625;
 		height: @LineHeight * 0.625;
-		border: 1px solid black;
+		//border: 1px solid black;
 		z-index: 98;
 	}
 
 	p {
 		margin: 2px 0px;
+		font-size: small;
 		
 		&:hover {
 			cursor: default;
@@ -149,8 +151,8 @@ html body {
 //	top:0px;
 //}
 .plugin-div {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 200px;
 }
 
 .dock{

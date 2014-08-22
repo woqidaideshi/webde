@@ -1,0 +1,2 @@
+gedit /usr/share/applications/gedit.desktop 2 4 app
+terminal /usr/share/applications/gnome-terminal.desktop 3 5 app
