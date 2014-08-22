@@ -37,6 +37,7 @@ var Desktop = Class.extend({
 	},
 
 	refresh: function() {
+		theme.saveConfig(this);
 		this.saveWidgets();
 	},
 	
