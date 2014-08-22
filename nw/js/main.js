@@ -22,11 +22,12 @@ var	utilIns = Util.create();
 
 $(document).ready(function() {
 	desktop =  Desktop.create();
-	desktop.addAnDPlugin(ClockPlugin.create('clock'));
+	/*desktop.addAnDPlugin(ClockPlugin.create('clock'));
 	desktop.addAnDPlugin(PicPlugin.create('cat'),undefined,'img/cat.jpg');
 	desktop.addAnDPlugin(PicPlugin.create('book'),undefined,'img/book.jpg');
 	desktop.addAnDPlugin(PicPlugin.create('boat'),undefined,'img/boat.jpg');
 	desktop.addAnDPlugin(PicPlugin.create('book1'),undefined,'img/book.jpg');
+	*/
 	//show dock
 	desktop.addDock();
 	desktop.addAnImgToDock("img/terminal.png", "terminal", "x-terminal-emulator &");

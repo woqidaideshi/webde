@@ -1,7 +1,5 @@
 //this is function that define title attr show 
 var sweetTitles = { 
-	x : 10, 
-	y : 20, 
 	tipElements : "img ", 
 	noTitle : false, 
 	init : function() { 
