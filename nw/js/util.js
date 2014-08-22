@@ -1,33 +1,4 @@
-﻿function util() {
-    this.distance = 175;//鼠标到圆心距离
-    this.imgMaxWidth = 100;
-    this.imgMaxHeight = 100;
-    this.init();
-}
-util.prototype = {
-    init: function () {
-        var boxObj = document.getElementById('dock');
-        var imgList = boxObj.getElementsByTagName('img');
-        var _this = this;
-        
-        document.onmousemove = function (ev) {
-            var ev = ev || window.event;
-            for (var i = 0; i < imgList.length; i++) {
-                var a = ev.clientX - (imgList[i].offsetLeft + imgList[i].offsetWidth / 2);
-                var b = ev.clientY - (imgList[i].offsetTop + imgList[i].offsetHeight / 2 + boxObj.offsetTop);
-                var c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
-                var spex = 1 - c / _this.distance;
-                if (spex < 0.5) {
-                    spex = 0.5;
-                }
-                imgList[i].style.width = spex * (_this.imgMaxWidth) + 'px';
-                imgList[i].style.height = spex * (_this.imgMaxHeight) + 'px';
-            }
-        }
-    }
-}
-
-//could be seen as a util-box
+﻿//could be seen as a util-box
 //
 var Util = Class.extend({
 	init: function() {
@@ -134,21 +105,21 @@ var EntryUtil = Event.extend({
 			} else {
 				if(stdout == "") {
 					util._fs.readFile(themePath_ + '/index.theme', 'utf-8', function(err, data) {
+						var _parents = [];
 						if(err) {
 							console.log(err);
-							parents = [];
 						} else {
 							var lines = data.split('\n');
 							for(var i = 0; i < lines.length; ++i) {
 								if(lines[i].substr(0, 7) == "Inherits") {
 									attr = lines[i].split('=');
-									parents = attr[1].split(',');
+									_parents = attr[1].split(',');
 								}
 							}
 						}
 	
-						for(var i = 0; i < parents.length; ++i) {
-							var iconPath = this.getIconPathWithTheme(iconName_, size_, parents[0]);
+						for(var i = 0; i < _parents.length; ++i) {
+							var iconPath = this.getIconPathWithTheme(iconName_, size_, _parents[0]);
 							// if(iconPath != null) return iconPath;
 						}
 	
