@@ -60,7 +60,7 @@ var EntryUtil = Event.extend({
 		// if(iconPath != null) return iconPath;
 
 		// iconPath = 
-			this.getIconPathWithTheme(iconName_, size_, "hicolor");
+			//this.getIconPathWithTheme(iconName_, size_, "hicolor");
 		// if(iconPath != null) return iconPath;
 	},
 
@@ -96,7 +96,7 @@ var EntryUtil = Event.extend({
 		var util = this;
 		var tmp = 'find ' + themePath_ + ' -regextype \"posix-egrep\" -regex \".*' + size_
 				+ '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
-		console.log(tmp);
+		//console.log(tmp);
 
 		this._exec(tmp
 				, function(err, stdout, stderr) {

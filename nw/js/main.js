@@ -29,13 +29,12 @@ $(document).ready(function() {
 	desktop.addAnDPlugin(PicPlugin.create('book1'),undefined,'img/book.jpg');
 	*/
 	//show dock
-	desktop.addDock();
+	/*desktop.addDock();
 	desktop.addAnImgToDock("img/terminal.png", "terminal", "x-terminal-emulator &");
 	desktop.addAnImgToDock("img/gedit.png", "gedit", "gedit &");
 	desktop.addAnImgToDock("img/picture.png", "picture", "gthumb &");
 	desktop.addAnImgToDock("img/chromium.png", "chromium", "chromium-browser &");
 	desktop.addAnImgToDock("img/moive.png", "moive", "svlc &");
-	desktop.addAnImgToDock("img/music.png", "music", "banshee &");
+	desktop.addAnImgToDock("img/music.png", "music", "banshee &");*/
 	//loadDEntries();
-	sweetTitles.init();
 });
