@@ -24,11 +24,39 @@ var Desktop = Class.extend({
 		});
 
 		this._desktopWatch = DesktopWatcher.create();
-		this._desktopWatch.on('add', function(filename) {
-			console.log('add:', filename);
+		this._desktopWatch.on('add', function(filename, stats) {
+			//console.log('add:', filename, stats);
+			var _filenames = filename.split('.');
+			var _Entry;
+			
+			if(_filenames[0] == '') {
+				return ;//ignore hidden files
+			}
+			if(stats.isDirectory()) {
+				_Entry = DirEntry;
+			} else {
+				if(_filenames[_filenames.length - 1] == 'desktop') {
+					_Entry = AppEntry;
+				} else {
+					_Entry = FileEntry;
+				}
+			}
+
+			_desktop.addAnDEntry(_Entry.create('id-' + stats.ino.toString()
+					, _desktop._tabIndex++
+					, _desktop._desktopWatch.getBaseDir() + '/' + filename
+					));
 		});
 		this._desktopWatch.on('delete', function(filename) {
-			console.log('delete:', filename);
+			//console.log('delete:', filename);
+			//find entry object by path
+			var _path = _desktop._desktopWatch.getBaseDir() + '/' + filename;
+			var _entry = _desktop.getAWidgetByAttr('_path', _path);
+			if(_entry == null) {
+				console.log('Can not find this widget');
+				return ;
+			}
+			_desktop.deleteADEntry(_entry);
 		});
 		this._desktopWatch.on('rename', function(oldName, newName) {
 			console.log('rename:', oldName, '->', newName);
@@ -63,6 +91,7 @@ var Desktop = Class.extend({
 
 	unRegistWidget: function(id_) {
 		this._widgets[id_] = undefined;
+		delete this._widgets[id_];
 	},
 
 	generateGrid: function() {
@@ -72,6 +101,20 @@ var Desktop = Class.extend({
 
 	getGrid:function(){
 		return this._grid;
+	},
+
+	getAWidgetById: function(id_) {
+		return this._widgets[id_];
+	},
+
+	getAWidgetByAttr: function(attr_, value_) {
+		for(var key1 in this._widgets) {
+			for(var key2 in this._widgets[key1]) {
+				if(key2 == attr_ && this._widgets[key1][key2] == value_)
+					return this._widgets[key1];
+			}
+		}
+		return null;
 	},
 
 	loadWidgets: function() {
@@ -85,7 +128,7 @@ var Desktop = Class.extend({
 				for(var i = 0; i < lines.length; ++i) {
 					if(lines[i].match('[\s,\t]*#+') != null) continue;
 					if(lines[i] == "") continue;
-					var attr = lines[i].split(' ');
+					var attr = lines[i].split('$');
 					if(attr.length != 5) continue;
 				/*need add a type judge
 				*/
@@ -111,9 +154,9 @@ var Desktop = Class.extend({
 		var data = "";
 		for(var key in this._widgets) {
 			if(typeof theme._theme[key] !== 'undefined') continue;
-			data += key + " " + this._widgets[key]._path + " "
-			 	+ this._widgets[key]._position.x + " "
-			 	+ this._widgets[key]._position.y + " "
+			data += key + "$" + this._widgets[key]._path + "$"
+			 	+ this._widgets[key]._position.x + "$"
+			 	+ this._widgets[key]._position.y + "$"
 				+ this._widgets[key]._type + '\n';
 		}
 		console.log(data);
@@ -140,6 +183,15 @@ var Desktop = Class.extend({
 		entry_.setPosition(pos_);
 		entry_.show();
 		this._grid._grid[pos_.x][pos_.y].use = true;
+	},
+
+	deleteADEntry: function(entry_) {
+		this.unRegistWidget(entry_.getID());
+		var _pos = entry_.getPosition();
+		this._grid._grid[_pos.x][_pos.y].use = false;
+		this._tabIndex--;
+		entry_.hide();
+		entry_ = null;
 	},
 
 	addAnDPlugin: function(plugin_, pos_, path_) {
@@ -268,7 +320,9 @@ var DesktopWatcher = Event.extend({
 						}
 
 						if(_this._prev < cur) {
-							_this.emit('add', filename);
+							_this._fs.stat(_this._baseDir + '/桌面/' + filename, function(err, stats) {
+								_this.emit('add', filename, stats);
+							});
 						} else if(_this._prev > cur) {
 							_this.emit('delete', filename);
 						} else {
@@ -276,7 +330,10 @@ var DesktopWatcher = Event.extend({
 								_this._oldName = filename;
 								return ;
 							}
-							if(_this.oldName == filename) return ;
+							if(_this.oldName == filename) {
+								_this._oldName = null;
+								return ;
+							}
 							_this.emit('rename', _this._oldName, filename);
 							_this._oldName = null;
 						}
@@ -285,6 +342,10 @@ var DesktopWatcher = Event.extend({
 				});
 			});
 		});
+	},
+
+	getBaseDir: function() {
+		return this._baseDir + '/桌面';
 	}
 
 });

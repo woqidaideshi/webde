@@ -44,6 +44,10 @@ var DEntry = Widget.extend({
 		this.bindEvents();
 	},
 
+	hide: function() {
+		$('#grid_' + this._position.x + '_' + this._position.y).empty();
+	},
+
 	bindEvents: function() {
 		var _entry = this;
 		var target_ = $('#' + this._id)
@@ -98,7 +102,8 @@ var AppEntry = DEntry.extend({
 		var _entry = this;
 
 		var getExecCmd = function(attr_) {
-			_entry._execCmd = attr_['Exec'].split(' ')[0];
+			_entry._execCmd = attr_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+				.replace(/\\\\/g, '\\');
 		};
 		var getImgPath = function(attr_) {
 			utilIns.entryUtil.getIconPath(attr_['Icon'], 48, function(imgPath_) {
@@ -121,11 +126,15 @@ var AppEntry = DEntry.extend({
 			if(err) {
 				console.log(err);
 			} else {
-				var lines = data.split('\n');
+				data = data.replace(/[\[]{1}[a-z, ,A-Z]*\]{1}\n/g, '$').split('$');
+				console.log('new data:', data);
+				var lines = data[1].split('\n');
 				var attr = [];
-				for(var i = 1; i < lines.length - 1; ++i) {
+				for(var i = 0; i < lines.length - 1; ++i) {
 					var tmp = lines[i].split('=');
 					attr[tmp[0]] = tmp[1];
+					for(var j = 2; j < tmp.length; j++)
+						attr[tmp[0]] += '=' + tmp[j];
 				}
 				console.log("Get desktop file successfully");
 
