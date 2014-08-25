@@ -8,7 +8,7 @@ var Desktop = Class.extend({
 		this._exec = require('child_process').exec;
 		this._fs = require('fs');
 		this._xdg_data_home = undefined;
-		
+		this._dock = undefined;
 		this.generateGrid();
 		this.bindingEvents();
 		
@@ -22,6 +22,9 @@ var Desktop = Class.extend({
 				_desktop.loadWidgets();
 			}
 		});
+
+		//add dock div to desktop
+		this.addDock();
 	},
 
 	bindingEvents: function() {
@@ -80,12 +83,16 @@ var Desktop = Class.extend({
 				*/
 				var _Entry = null;
 				var _Plugin = null;
+				var _dockApp = null;
 					switch(attr[4]) {
 						case "ClockPlugin":
 							_Plugin = ClockPlugin;
 							break;
 						case "ImagePlugin":
 							_Plugin = PicPlugin;
+							break;
+						case "dockApp":
+							_dockApp = DockAPP;
 							break;
 						case "app": 
 							_Entry = AppEntry;
@@ -108,7 +115,11 @@ var Desktop = Class.extend({
 								,{x: attr[2], y: attr[3]}
 								,attr[1]
 								), {x: attr[2], y: attr[3]});
-					};
+					}else if(_dockApp != null){
+						_desktop.addAnAppToDock(_dockApp.create(attr[0]
+							,_desktop._tabIndex++
+							,attr[1]));
+					}
 				}
 			}
 		});
@@ -173,71 +184,14 @@ var Desktop = Class.extend({
 	},
 
 	addDock:function(position_ ){
-		dock = Dock.create(position_);
-		dock.setPosition();
-		dock.show();
+		this._dock = Dock.create(position_);
+		this._dock.setPosition();
+		this._dock.show();
 	},
 
-	addAnImgToDock:function(path_, name_, command_){
-
-		var image = $('<img>',{
-			'id':name_,
-			'src':path_,
-			'title':name_,
-			'draggable': 'false',
-			'onselectstart': 'return false'
-		});
-		//if command_ isn't "null or undefined", then add event function
-		if (command_) {
-			//add onclick()
-			image.click (function(ev){
-			var image = $(ev.target);
-			//when don't open the app.
-			console.log("click " + image[0].style.borderStyle);
-			if ( image[0].style.borderStyle == "" || image[0].style.borderStyle=='none') {
-				image.animate({width:"+=40px",height:"+=40px"},'fast')
-					.animate({width:"-=40px",height:"-=40px"},'fast')
-				image.css("border","outset");
-				if (typeof require === 'function') {
-          				var exec = require('child_process').exec;
-          				var result = exec(command_,function(err, stdout, stderr){
-                					console.log('stdout: ' + stdout);
-                					console.log('stderr: ' + stderr);
-                					image.css("border","none");
-            					});
-					}	
-				else{
-					console.log('run in browser');
-					image.css("border","none");
-					}
-				}
-			});
-		}
-
-		var dock = $('#dock');
-		dock.append(image);
-
-		var imgList = dock.children('img');
-		var imgArt = parseInt($('.dock img').css('width')); 
-		var _imgMaxWidth = imgArt * 2;
-   	var _imgMaxHeight = imgArt * 2;
-   	var _distance = imgArt * 3.5;
-   	console.log(imgArt+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
-		document.onmousemove = function (ev) {
-     	var ev = ev || window.event;
-     	for (var i = 0; i <imgList.length; i++) {
-     		var jqImg = $(imgList[i]);
-     	 	var a = ev.clientX - (jqImg.position().left+ jqImg.width() / 2);
-     		var b = ev.clientY - (jqImg.position().top +  jqImg.height() / 2 + dock.position().top);
-     		var c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
-     		var spex = 1 - c / _distance;
-     		if (spex < 0.5) {
-       		spex = 0.5;
-     		}
-     		imgList[i].style.width = spex * (_imgMaxWidth) + 'px';
-     		imgList[i].style.height = spex * (_imgMaxHeight) + 'px';
-   		}
-   	}
+	addAnAppToDock:function(dockApp_){
+		if(!this.registWidget(dockApp_)) return ;
+		dockApp_.show();
 	}
 	
 });

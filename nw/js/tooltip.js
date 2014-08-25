@@ -1,11 +1,9 @@
 //this is function that define title attr show 
 var sweetTitles = { 
-	tipElements : "img ", 
 	noTitle : false, 
-	init : function() { 
+	init : function(tipElement_) { 
 		var noTitle = this.noTitle; 
-		$(this.tipElements).each(function(){ 
-			$(this).mouseover(function(e){ 
+			tipElement_.mouseover(function(e){ 
 				if(noTitle){ isTitle = true;
 					 }
 				else{ 
@@ -14,9 +12,9 @@ var sweetTitles = {
 				if(isTitle){ 
 					this.myTitle = this.title; 
 					this.title = ""; 
-					var tooltip = "<div class='tooltip'><div id='title-inner' class='tipsy-inner'>"+this.myTitle+"</div><div class='tipsy-arrow'><img src='img/tip.png'></div></div>"; 
+					var tooltip = "<div class='tooltip'><div id='title-inner' class='tipsy-inner'>"+this.myTitle+"</div></div>"; 
 					$('body').append(tooltip); 
-					$('.tooltip').css({"top" :( $(e.target).offset().top-33)+"px", "left" :( $(e.target).offset().left)+"px" }).show('fast');
+					$('.tooltip').css({"top" :( $(e.target).offset().top-25)+"px", "left" :( $(e.target).offset().left)+"px" }).show('fast');
  					}
  			})
 			.mouseout(function(){ 
@@ -26,17 +24,20 @@ var sweetTitles = {
 				}
  			})
  			.mousemove(function(e){ 
- 				var word_w = this.myTitle.length;
+ 				//var word_w = this.myTitle.length;
  				var t_width = $(e.target).width();
  				var _width = $('#title-inner').width();
- 				var left =  $(e.target).offset().left + (t_width - _width) / 2 - word_w;
- 				$('.tooltip').css({ "top" :( $(e.target).offset().top-43)+"px", "left" :left+"px" });
+ 				var left =  $(e.target).offset().left + (t_width - _width) / 2 - 5;
+ 				$('.tooltip').css({ "top" :( $(e.target).offset().top-25)+"px", "left" :left+"px" });
  			})
  			.click(function(e){
  				$('.tooltip').animate({top:"-=40px"},'fast')
- 								.animate({top:"+=40px"},'fast')	
+ 								.animate({top:"+=40px"},'fast')
+ 								.animate({top:"-=40px"},'fast')
+ 								.animate({top:"+=40px"},'fast')
+ 								.animate({top:"-=40px"},'fast')
+ 								.animate({top:"+=40px"},'fast')
  			})
- 		});
  	}
 }; 
 
