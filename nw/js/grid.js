@@ -78,6 +78,22 @@ var Grid = Widget.extend({
 		return null;
 	},
 
+	//check grid is occupy return true
+	// if grid is Idle or null  return false
+	isIdleGrid: function(col,row, col_l, row_l){
+		if(col >= 0 && col < this._col_num && row >= 0 && row < this._row_num)
+		{
+			for (var i = col; i >= 0; i--) {
+				if (col - i >=  col_l) {break};
+				for(var j = row; j< this._row_num ;j++){
+						if(j-row >= row_l) break;
+						if(this._grid[i][j].use == true) return false;
+				}
+			}
+			return true;
+		}
+		else return false;
+	},
 	// col_l , row_l <= 2
 	// power of 2*2 grid as follow :
 	//  ------------------
@@ -98,16 +114,57 @@ var Grid = Widget.extend({
 				}
 			}
 		}
-		if (sum == 0) return {x:col,y:row};										//don't move
-		else if( sum == 3 && row < this._row_num-1)  return {x: col,y:row +1};  //move to down 
-		else if (sum == 5 && col > 0) return {x:col-1,y:row};								// move to reight
-		else if ( (sum == 1 || sum == 7) && col >0 &&  row < this._row_num-1) return {x:col-1, y: row+1};		// move to right down
-		else if ( sum == 10 && col < this._col_num -1 ) return {x:col+1, y: row};		// move to left
-		else if ((sum == 2 || sum == 11) && col < this._col_num -1 &&  row < this._row_num-1) return {x:col+1, y: row+1};		// move to left down
-		else if ( sum == 12 && row > 0 ) return {x:col, y:row-1};                               //move to top 		
-		else if ((sum ==4  || sum == 13) && col >0 &&  row>0 ) return {x:col-1, y: row-1};		// move to right top
-		else if ((sum == 8 || sum == 14) && col < this._col_num -1 &&  row > 0 ) return {x:col+1, y: row-1};		// move to left top
-		else return null;											// can't find grid is Idel
+		switch(sum){
+			case 0:
+			return {x:col,y:row};					
+			case 8: 
+				if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};                 //left
+				else if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};		// top
+				else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				break;
+			case 4 :
+				if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};				//right
+				else if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};		//top
+				else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};		//right-top
+				break;
+			case 2:
+				if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};				//left 
+				else if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};		//down
+				else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};	//left-down
+				break;
+			case 1:
+				if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};				//right
+				else if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};		//down
+				else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
+			case 3:
+				if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};				//down
+				break;
+			case 12:
+				if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};				//top
+				break;
+			case 10:
+				if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};				//left
+			case 5:
+				if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};				//right
+			case 6:
+			case 14:
+				if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				break;
+			case 9:
+			case 13:
+				if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};			//right-top
+				break;
+			case 7:
+				if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
+			case 11:
+				if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};		//left-down
+				break;
+			default:
+				return null;									//no Idle grid;
+		}
+		return null;											// can't find grid is Idel
 	},
 
 	//flag grid_x_y is occupied or not 
@@ -166,25 +223,13 @@ var Grid = Widget.extend({
 		desktopGrid.flagGridOccupy(col, row, col_num, row_num, false);
 
 		//check grid have been occupied
-		var loopN = 3;
-		while(loopN--)
-		{
 		var pos_ = desktopGrid.findIdleGrid(t_col,t_row,col_num,row_num);
-			if (pos_ != null) {
-				if (pos_.x == t_col && pos_.y == t_row) {
-					//this.callSuper(ev);
-					$('#grid_'+pos_.x+'_'+pos_.y).append($('#'+_id));
-					console.log(_id + " ---> " + pos_.x + '  '  + pos_.y);
-					desktop._widgets[_id].setPosition({x: pos_.x, y: pos_.y});
-					desktopGrid.flagGridOccupy(t_col, t_row, col_num, row_num, true);
-					return ;
-				}else {
-					t_col = pos_.x;
-					t_row = pos_.y;
-				}
-			}else{
-				break;
-			}
+		if (pos_ != null) {
+			$('#grid_'+pos_.x+'_'+pos_.y).append($('#'+_id));
+			console.log(_id + " ---> " + pos_.x + '  '  + pos_.y);
+			desktop._widgets[_id].setPosition({x: pos_.x, y: pos_.y});
+			desktopGrid.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
+			return ;
 		}
 		desktopGrid.flagGridOccupy(col, row, col_num, row_num, true);
 		console.log(t_id + " is occupied");
