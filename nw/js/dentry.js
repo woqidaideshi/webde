@@ -102,9 +102,13 @@ var AppEntry = DEntry.extend({
 			_this._execCmd = file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
 				.replace(/\\\\/g, '\\');
 			//get icon
-			utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(imgPath_) {
-				_this._imgPath = imgPath_[0];
-				$('#' + _this._id + ' img').attr('src', _this._imgPath);
+			utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
+				if(err_) {
+					console.log(err_);
+				} else {
+					_this._imgPath = imgPath_[0];
+					$('#' + _this._id + ' img').attr('src', _this._imgPath);
+				}
 			});
 			//get name
 			if(typeof file_['Name[zh_CN]'] !== "undefined") {
@@ -126,35 +130,48 @@ var AppEntry = DEntry.extend({
 	}
 });
 
-//Desktop Entry for directories
+//Desktop Entry for normal files
 //
-var DirEntry = DEntry.extend({
+var FileEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
-	
-		var match = /^.*[\/]([^\/]*)$/.exec(path_);
+		
+		var match = /^.*[\/]([^\/]*)[\.]([^\.]*)$/.exec(path_);
+		if(match == null) {
+			match = /^.*[\/]([^\/]*)$/.exec(path_);
+			this._type = '';
+		} else {
+			this._type = match[2];
+		}
 		this._name = match[1];
-		this._type = 'dir';
 	},
-
+	
 	show: function() {
 		var _this = this;
 		_this.callSuper();
-		utilIns.entryUtil.getDefaultApp(_this._path, function(err_, appFile_) {
-			if(err_) console.log(err_);
-			utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+		utilIns.entryUtil.getMimeType(_this._path, function(err_, mimeType_) {
+			utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) {
 				if(err_) console.log(err_);
-				utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(imgPath_) {
-					_this._imgPath = imgPath_[0];
-					$('#' + _this._id + ' img').attr('src', _this._imgPath);
+				utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+					if(err_) console.log(err_);
+					utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
+						if(err_) {
+							console.log(err_);
+						} else {
+							_this._imgPath = imgPath_[0];
+							$('#' + _this._id + ' img').attr('src', _this._imgPath);
+						}
+					});
 				});
-				$('#' + _this._id + ' p').text(_this._name);
 			});
 		});
+		var _name = (this._type == '' || this._type == 'dir') 
+									? this._name : (this._name + '.' + this._type);
+		$('#' + _this._id + ' p').text(_name);
 	},
 
 	open: function() {
-		//open dir
+		//open files with specific app
 		this._exec('xdg-open ' + this._path.replace(' ', '\\ ')
 				, function(err, stdout, stderr) {
 					if(err) console.log(err);
@@ -162,24 +179,13 @@ var DirEntry = DEntry.extend({
 	}
 });
 
-//Desktop Entry for normal files
+//Desktop Entry for directories
 //
-var FileEntry = DEntry.extend({
+var DirEntry = FileEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
-		
-		var match = /^.*[\/]([^\/]*)$/.exec(path_);
-		this._name = match[1];
-		this._type = this.parseType(path_);
-	},
 	
-	parseType: function(path__) {
-		//get file type from path__
-		console.log("type is " + this.type);
-	},
-	
-	open: function() {
-		//open files with specific app
+		this._type = 'dir';
 	}
 });
 
@@ -203,8 +209,12 @@ var ThemeEntry = DEntry.extend({
 		this.callSuper();
 		
 		var self = this;
-		utilIns.entryUtil.getIconPath(this._iconName, 48, function(iconPath) {
-			$('#' + self._id + ' img').attr('src', iconPath[0]);
+		utilIns.entryUtil.getIconPath(this._iconName, 48, function(err_, iconPath_) {
+			if(err_) {
+				console.log(err_);
+			} else {
+				$('#' + self._id + ' img').attr('src', iconPath_[0]);
+			}
 		});
 		$('#' + self._id + ' p').text(self._name);
 	},

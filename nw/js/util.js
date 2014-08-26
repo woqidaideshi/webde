@@ -11,31 +11,33 @@ var EntryUtil = Event.extend({
 		this._fs = require('fs');
 		this._exec = require('child_process').exec;
 
-		var $home = undefined;
-		var $xdg_data_dirs = undefined;
+		this.$home = undefined;
+		this.$xdg_data_dirs = undefined;
+		this._iconSearchPath = null;
 
-		var entryUtil = this;
+		var _this = this;
 		this._exec('echo $HOME', function(err, stdout, stderr) {
 			if(err) {
 				console.log(err);
 			} else {
-				entryUtil.$home = stdout.substr(0, stdout.length - 1);
-			}
-		});
-		this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
-			if(err) {
-				console.log(err);
-			} else {
-				entryUtil.$xdg_data_dirs = stdout.substr(0, stdout.length - 1).split(':');
-				for(var i = 0; i < entryUtil.$xdg_data_dirs.length; ++i) {
-					// var l = entryUtil.$xdg_data_dirs[i].length;
-					/* if(entryUtil.$xdg_data_dirs[i].charAt(l - 1) == '/') { */
-						// entryUtil.$xdg_data_dirs[i] = entryUtil.$xdg_data_dirs[i].substr(0, l - 1);
-					/* } */
-					//rewrite by regex
-					entryUtil.$xdg_data_dirs[i] 
-						= entryUtil.$xdg_data_dirs[i].replace(/[\/]$/, '');
-				}
+				_this.$home = stdout.substr(0, stdout.length - 1);
+				_this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
+					if(err) {
+						console.log(err);
+					} else {
+						_this._iconSearchPath = [];
+						_this._iconSearchPath.push(_this.$home + "/.local/share/icons/");
+		
+						_this.$xdg_data_dirs = stdout.substr(0, stdout.length - 1).split(':');
+						for(var i = 0; i < _this.$xdg_data_dirs.length; ++i) {
+							_this.$xdg_data_dirs[i] 
+								= _this.$xdg_data_dirs[i].replace(/[\/]$/, '');
+							_this._iconSearchPath.push(_this.$xdg_data_dirs[i] + "/icons/");
+						}
+
+						_this._iconSearchPath.push("/usr/share/pixmaps/");
+					}
+				});
 			}
 		});
 	},
@@ -51,89 +53,84 @@ var EntryUtil = Event.extend({
 		//   and repeat from step 1 to 4
 		//5. if not found, return default icon file path(hicolor)
 		//
-		if(typeof callback_ !== "function") {
-			console.log("Bad function of callback!!");
-			return ;
-		}
-		this.once(iconName_, callback_);
-
+		if(typeof callback_ !== "function")
+			throw "Bad function of callback!!";
+		
+		var _this = this;
 		var iconTheme = theme.getIconTheme();
-		// var iconPath = 
-			this.getIconPathWithTheme(iconName_, size_, iconTheme);
-		// if(iconPath != null) return iconPath;
-
-		// iconPath = 
-			this.getIconPathWithTheme(iconName_, size_, "hicolor");
-		// if(iconPath != null) return iconPath;
-	},
-
-	getIconPathWithTheme: function(iconName_, size_, themeName_) {
-		var iconPath = undefined;
-		var themePath = this.$home + "/.local/share/icons/" + themeName_;
-		if(this._fs.existsSync(themePath)) {
-			// iconPath = 
-				this.findIcon(iconName_, size_, themePath);
-			// if(iconPath != null) return iconPath;
-		}
-				
-		for(var i = 0; i < this.$xdg_data_dirs.length; ++i) {
-			themePath = this.$xdg_data_dirs[i] + "/icons/" + themeName_;
-			if(this._fs.existsSync(themePath)) {
-				// iconPath = 
-					this.findIcon(iconName_, size_, themePath);
-				// if(iconPath != null) return iconPath;
-			}
-		}
-
-		themePath = "/usr/share/pixmaps" + themeName_;
-		if(this._fs.existsSync(themePath)) {
-			// iconPath = 
-				this.findIcon(iconName_, size_, themePath);
-			// if(iconPath != null) return iconPath;
-		}
-
-		return null;
-	},
-
-	findIcon: function(iconName_, size_, themePath_) {
-		var util = this;
-		var tmp = 'find ' + themePath_ + ' -regextype \"posix-egrep\" -regex \".*' + size_
-				+ '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
-		console.log(tmp);
-
-		this._exec(tmp
-				, function(err, stdout, stderr) {
-			if(err) {
-				console.log(err);
-			} else {
-				if(stdout == "") {
-					util._fs.readFile(themePath_ + '/index.theme', 'utf-8', function(err, data) {
-						var _parents = [];
-						if(err) {
-							console.log(err);
+		_this.getIconPathWithTheme(iconName_, size_, iconTheme, function(err_, iconPath_) {
+			if(err_) {
+				_this.getIconPathWithTheme(iconName_, size_, "hicolor"
+					, function(err_, iconPath_) {
+						if(err_) {
+							callback_.call(this, 'Not found');
 						} else {
-							var lines = data.split('\n');
-							for(var i = 0; i < lines.length; ++i) {
-								if(lines[i].substr(0, 7) == "Inherits") {
-									attr = lines[i].split('=');
-									_parents = attr[1].split(',');
-								}
-							}
+							callback_.call(this, null, iconPath_);
 						}
-	
-						for(var i = 0; i < _parents.length; ++i) {
-							var iconPath = this.getIconPathWithTheme(iconName_, size_, _parents[0]);
-							// if(iconPath != null) return iconPath;
-						}
-	
-						// return null;
 					});
-				} else {
-					util.emit(iconName_, stdout.split('\n'));//.substr(0, stdout.length - 1)
-					// return stdout.substr(0, stdout.length - 1);
-				}
+			} else {
+				callback_.call(this, null, iconPath_);
 			}
 		});
+	},
+
+	getIconPathWithTheme: function(iconName_, size_, themeName_, callback_) {
+		if(typeof callback_ != 'function')
+			throw 'Bad type of function';
+		
+		var _this = this;
+		var findIcon = function(index_) {
+			if(index_ == _this._iconSearchPath.length) {
+				callback_.call(this, 'Not found');
+				return ;
+			}
+			_this._fs.exists(_this._iconSearchPath[index_] + themeName_, function(exists_) {
+				if(exists_) {
+					var tmp = 'find ' + _this._iconSearchPath[index_] + themeName_ 
+						+ ' -regextype \"posix-egrep\" -regex \".*'
+					 	+ size_ + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
+					_this._exec(tmp, function(err, stdout, stderr) {
+						if(stdout == '') {
+							_this._fs.readFile(_this._iconSearchPath[index_] + themeName_
+								, 'utf-8', function(err, data) {
+									var _parents = [];
+									if(err) {
+										console.log(err);
+									} else {
+										var lines = data.split('\n');
+										for(var i = 0; i < lines.length; ++i) {
+											if(lines[i].substr(0, 7) == "Inherits") {
+												attr = lines[i].split('=');
+												_parents = attr[1].split(',');
+											}
+										}
+									}
+									//recursive try to find from parents
+									var findFromParent = function(index__) {
+										if(index__ == _parents.length) return ;
+										_this.getIconPathWithTheme(iconName_, size_, _parents[index__]
+											, function(err_, iconPath_) {
+												if(err_) {
+													findFromParent(index__ + 1);
+												} else {
+													callback_.call(this, null, iconPath_);
+												}
+											});
+									};
+									findFromParent(0);
+									//if not fonud
+									findIcon(index_ + 1);
+								});
+						} else {
+							callback_.call(this, null, stdout.split('\n'));
+						}
+					});
+				} else {
+					findIcon(index_ + 1);
+				} 
+			});
+		};
+		findIcon(0);
 	},
 
 	parseDesktopFile: function(path_, callback_) {
@@ -161,27 +158,34 @@ var EntryUtil = Event.extend({
 		});
 	},
 
-	getDefaultApp: function(path_, callback_) {
-		var _this = this;
+	getMimeType: function(path_, callback_) {
 		if(typeof callback_ !== 'function')
-			throw 'Bad type for callback!!';
-		_this.once('getDefault', callback_);
+			throw 'Bad type of callback!!';
+		var _this = this;
 		_this._exec('xdg-mime query filetype ' + path_, function(err, stdout, stderr) {
 			if(err) {
 				console.log(err);
+				callback_.call(this, 'Unknown mime-type!');
 			} else {
-				_this._exec('xdg-mime query default ' + stdout.replace('\n', '')
-					, function(err, stdout, stderr) {
-					if(err) {
-						console.log(err);
-					} else {
-						if(stdout != '') {
-							//default to major type
-						}
-						_this.findDesktopFile(stdout.replace('\n', ''), function(err, filePath_) {
-							_this.emit('getDefault', err, filePath_);
-						});
-					}
+				callback_.call(this, null, stdout.replace('\n', ''));
+			}
+		});
+	},
+
+	getDefaultApp: function(mimeType_, callback_) {
+		if(typeof callback_ !== 'function')
+			throw 'Bad type for callback!!';
+		var _this = this;
+		_this._exec('xdg-mime query default ' + mimeType_
+			, function(err, stdout, stderr) {
+			if(err) {
+				console.log(err);
+			} else {
+				if(stdout == '') {
+					//default to major type
+				}
+				_this.findDesktopFile(stdout.replace('\n', ''), function(err, filePath_) {
+					callback_.call(this, err, filePath_);
 				});
 			}
 		});
@@ -192,11 +196,10 @@ var EntryUtil = Event.extend({
 		
 		if(typeof callback_ !== 'function')
 			throw 'Bad type for callback';
-		_this.once('findDFile', callback_);
 	
 		var tryInThisPath = function(index_) {
 			if(index_ == _this.$xdg_data_dirs.length) {
-				_this.emit('findDFile', 'Not found');
+				callback_.call(this, 'Not found');
 				return ;
 			}
 			_this._exec('find ' + _this.$xdg_data_dirs[index_] + ' -name ' + fileName_
@@ -205,6 +208,7 @@ var EntryUtil = Event.extend({
 							tryInThisPath(index_ + 1);
 						} else {
 							_this.emit('findDFile', null, stdout.replace('\n', ''));
+							callback_.call(this, null, stdout.replace('\n', ''));
 						}
 					});
 		};
