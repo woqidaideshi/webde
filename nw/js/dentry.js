@@ -94,54 +94,25 @@ var AppEntry = DEntry.extend({
 	},
 
 	show: function() {
-		this.callSuper();
-		this.parseDesktopFile();
-	},
-
-	parseDesktopFile: function() {
-		var _entry = this;
-
-		var getExecCmd = function(attr_) {
-			_entry._execCmd = attr_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+		var _this = this;
+		_this.callSuper();
+		utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
+			if(err_) console.log(err_);
+			//get launch commad
+			_this._execCmd = file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
 				.replace(/\\\\/g, '\\');
-		};
-		var getImgPath = function(attr_) {
-			utilIns.entryUtil.getIconPath(attr_['Icon'], 48, function(imgPath_) {
-				_entry._imgPath = imgPath_[0];
-				$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
+			//get icon
+			utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(imgPath_) {
+				_this._imgPath = imgPath_[0];
+				$('#' + _this._id + ' img').attr('src', _this._imgPath);
 			});
-		};
-		var getEntryName = function(attr_) {
-			if(typeof attr_['Name[zh_CN]'] !== "undefined") {
-				_entry._name = attr_['Name[zh_CN]'];
+			//get name
+			if(typeof file_['Name[zh_CN]'] !== "undefined") {
+				_this._name = file_['Name[zh_CN]'];
 			} else {
-				_entry._name = attr_['Name'];
+				_this._name = file_['Name'];
 			}
-
-			$('#' + _entry._id + ' p').text(_entry._name);
-		};
-		var fs = require('fs');
-
-		fs.readFile(this._path, 'utf-8', function(err, data) {
-			if(err) {
-				console.log(err);
-			} else {
-				data = data.replace(/[\[]{1}[a-z, ,A-Z]*\]{1}\n/g, '$').split('$');
-				console.log('new data:', data);
-				var lines = data[1].split('\n');
-				var attr = [];
-				for(var i = 0; i < lines.length - 1; ++i) {
-					var tmp = lines[i].split('=');
-					attr[tmp[0]] = tmp[1];
-					for(var j = 2; j < tmp.length; j++)
-						attr[tmp[0]] += '=' + tmp[j];
-				}
-				console.log("Get desktop file successfully");
-
-				getExecCmd(attr);
-				getImgPath(attr);
-				getEntryName(attr);
-			}
+			$('#' + _this._id + ' p').text(_this._name);
 		});
 	},
 	
@@ -160,12 +131,34 @@ var AppEntry = DEntry.extend({
 var DirEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
-		
+	
+		var match = /^.*[\/]([^\/]*)$/.exec(path_);
+		this._name = match[1];
 		this._type = 'dir';
+	},
+
+	show: function() {
+		var _this = this;
+		_this.callSuper();
+		utilIns.entryUtil.getDefaultApp(_this._path, function(err_, appFile_) {
+			if(err_) console.log(err_);
+			utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+				if(err_) console.log(err_);
+				utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(imgPath_) {
+					_this._imgPath = imgPath_[0];
+					$('#' + _this._id + ' img').attr('src', _this._imgPath);
+				});
+				$('#' + _this._id + ' p').text(_this._name);
+			});
+		});
 	},
 
 	open: function() {
 		//open dir
+		this._exec('xdg-open ' + this._path.replace(' ', '\\ ')
+				, function(err, stdout, stderr) {
+					if(err) console.log(err);
+				});
 	}
 });
 
@@ -174,6 +167,9 @@ var DirEntry = DEntry.extend({
 var FileEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
+		
+		var match = /^.*[\/]([^\/]*)$/.exec(path_);
+		this._name = match[1];
 		this._type = this.parseType(path_);
 	},
 	
