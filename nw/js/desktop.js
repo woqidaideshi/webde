@@ -55,6 +55,7 @@ var Desktop = Class.extend({
 
 	unRegistWidget: function(id_) {
 		this._widgets[id_] = undefined;
+		console.log(typeof this._widgets[id_]);
 	},
 
 	generateGrid: function() {
@@ -92,7 +93,7 @@ var Desktop = Class.extend({
 							_Plugin = PicPlugin;
 							break;
 						case "dockApp":
-							_dockApp = DockAPP;
+							_dockApp = DockApp;
 							break;
 						case "app": 
 							_Entry = AppEntry;
@@ -129,6 +130,7 @@ var Desktop = Class.extend({
 		var data = "";
 		for(var key in this._widgets) {
 			if(typeof theme._theme[key] !== 'undefined') continue;
+			if (typeof this._widgets[key] == 'undefined') continue;
 			data += key + " " + this._widgets[key]._path + " "
 			 	+ this._widgets[key]._position.x + " "
 			 	+ this._widgets[key]._position.y + " "
@@ -173,7 +175,6 @@ var Desktop = Class.extend({
 
 		plugin_.setPosition(pos_);
 		plugin_.show();
-		//show() must run before setPanel();
 		plugin_.setPanel(path_);
 		plugin_.open();
 		//this._grid._grid[pos_.x][pos_.y].use = true;

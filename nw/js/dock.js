@@ -15,6 +15,7 @@
  	show: function() {
 		//add dock to body
 		$('body').append(this._dock);
+		this.bindDrag(this._dock[0]);
 	},
 
 	getPosition: function() {return	this._position;},
@@ -34,11 +35,45 @@
 	setName: function(name_) {
 		//redraw dentry's name
 		this._name = name_;
+	},
+
+	bindDrag:function(target){
+		target.ondragover = this.dragOver;
+		target.ondrop = this.drop;
+	},
+
+	dragOver: function(ev) {
+		ev.preventDefault();
+	},
+
+	drop: function(ev) {
+		//if(ev.srcElement == ev.toElement) return ;
+		ev.preventDefault();
+		var _id = ev.dataTransfer.getData("ID");
+		var _target = $(ev.target); 
+		var _source = $('#'+_id);
+		if(desktop._widgets[_id]._type == 'app'){
+			if (typeof $('#'+_id+'-dock')[0] !== 'undefined') {
+				alert("The App has been registed in dock");
+				return ;
+			}
+			var dentry = desktop._widgets[_id];
+			var path = dentry._path;
+			var tabIndex = dentry._tabIndex;
+			var pos = dentry.getPosition();
+			desktop._grid._grid[pos.x][pos.y].use = false;
+			desktop.unRegistWidget(_id);
+			_source.remove();
+			desktop.addAnAppToDock(DockApp.create(_id+'-dock'
+				,tabIndex
+				,path));
+		}
 	}
+
 });
 
 //dock.js  for dock 
- var DockAPP = Class.extend({
+var DockApp = Class.extend({
 	init: function(id_, tabIndex_, path_){
 		if(typeof id_ === "undefined"
 			|| typeof tabIndex_ === "undefined"
@@ -53,6 +88,8 @@
  		this._tabIndex = tabIndex_;
  		this._type = "dockApp";
  		this._position = {x:0,y:0};
+ 		this.noTitle = false;
+ 		this.myTitle = false;
 
  		this._execCmd = undefined;
  		this._imgPath = undefined;
@@ -60,7 +97,7 @@
 
  		this. _image = $('<img>',{
 			'id':this._id,
-			'draggable': 'false',
+			'draggable': 'true',
 			'onselectstart': 'return false'
 		});
 	},
@@ -81,6 +118,12 @@
 		if ( image[0].style.borderStyle == "" || image[0].style.borderStyle=='none') {
 			image.animate({width:"+=40px",height:"+=40px"},'fast')
 					.animate({width:"-=40px",height:"-=40px"},'fast')
+			$('.tooltip').animate({top:"-=40px"},'fast')
+ 								.animate({top:"+=40px"},'fast')
+ 								.animate({top:"-=40px"},'fast')
+ 								.animate({top:"+=40px"},'fast')
+ 								.animate({top:"-=40px"},'fast')
+ 								.animate({top:"+=40px"},'fast')
 			image.css("border","outset");
 			if (typeof require === 'function') {
           		console.log("run " + this._execCmd);
@@ -105,6 +148,7 @@
 			target_.openApp();
 		});
 
+
 		var dock = $('#dock');
 		var imgList = dock.children('img');
 		var imgArt = parseInt($('.dock img').css('width')); 
@@ -128,7 +172,66 @@
    			}
    		}
 
-   		sweetTitles.init(img);
+   		this.bingTitle(img);
+   		this.bindDrag(img[0]);
+	},
+
+	bindDrag:function(target){
+		target.ondragstart = this.drag;
+	},
+
+	bingTitle:function(target){
+		var target_ = this;
+		target.mouseover(function(ev){
+   			target_.mouseOver(ev);
+   		}); 
+   		target.mouseout(function(){
+   			target_.mouseOut();
+   		}); 
+   		target.mousemove(function(ev){
+   			target_.mouseMove(ev);
+   		}); 
+	},
+
+	drag: function(ev) {
+		ev.target.title = this.myTitle; 
+		$('.tooltip').remove();
+		console.log("drag start");
+		ev.dataTransfer.setData("ID", ev.currentTarget.id);
+		console.log(ev.dataTransfer.getData("ID"));
+		ev.stopPropagation();
+	},
+
+	mouseOver:function(ev){
+		console.log('mouse over!');
+		var isTitle = false;
+		if(this.noTitle){ isTitle = true;
+		}
+		else{ 
+			isTitle = $.trim(this._image[0].title) != '';
+		} 
+		if(isTitle){ 
+			this.myTitle = this._image[0].title; 
+			this._image[0].title = ""; 
+			var tooltip = "<div class='tooltip'><div id='title-inner' class='tipsy-inner'>"+this.myTitle+"</div></div>"; 
+			$('body').append(tooltip); 
+			$('.tooltip').css({"top" :( $(ev.target).offset().top-25)+"px", "left" :( $(ev.target).offset().left)+"px" }).show('fast');
+ 		}
+	},
+
+	mouseOut:function(){
+		console.log('mouse out!');
+		if(this.myTitle != null){ 
+			this._image[0].title = this.myTitle; 
+			$('.tooltip').remove();
+		}
+	},
+
+	mouseMove:function(ev){
+		var t_width = $(ev.target).width();
+ 		var _width = $('#title-inner').width();
+ 		var left =  $(ev.target).offset().left + (t_width - _width) / 2 - 5;
+ 		$('.tooltip').css({ "top" :( $(ev.target).offset().top-25)+"px", "left" :left+"px" });
 	},
 
 	getID: function() {return this._id;},

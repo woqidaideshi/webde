@@ -21,7 +21,7 @@ var DEntry = Widget.extend({
 		this._imgPath = undefined;
 		this._exec = require('child_process').exec;
 
-		this.PATTERN = "<img/>" + "<p>" + this._name + "</p>";// draggable='true'
+		this.PATTERN = "<img draggable='false'/>" + "<p>" + this._name + "</p>";// draggable='true'
 		this._dEntry = $('<div>', {
 			'class': 'icon',
 			'id': this._id,

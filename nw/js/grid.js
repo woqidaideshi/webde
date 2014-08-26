@@ -139,19 +139,35 @@ var Grid = Widget.extend({
 				break;
 			case 3:
 				if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};				//down
+				else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};	//left-down
+				else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
 				break;
 			case 12:
 				if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};				//top
+				else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};		//right-top
 				break;
 			case 10:
 				if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};				//left
+				else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};	//left-down
+				break;
 			case 5:
 				if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};				//right
+				else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};		//right-top
+				else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
 			case 6:
+				if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
 			case 14:
 				if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
 				break;
 			case 9:
+				if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};			//right-top
+				else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};	//left-down
+				break;
 			case 13:
 				if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};			//right-top
 				break;
@@ -191,24 +207,34 @@ var Grid = Widget.extend({
 		ev.preventDefault();
 		var t_id = ev.target.id;
 		var _id = ev.dataTransfer.getData("ID");
-		if (_id==null || _id == '') 
-			{ 
-				ev.stopPropagation();
-				return ;
-			}
-		var className = document.getElementById(_id).className;
-		//if drag-obj isn't plugin or entry
-		if (className !== 'plugin-div' && className !== 'icon') {
-			return ;
-		};
 		var target = $('#'+t_id);
-		//get source occupy number of grids follow x or y 
-		var col_num = parseInt($('#' + _id).width()/target.width()-0.00001)+1;
-		var row_num =  parseInt($('#' + _id).height()/target.height()-0.00001)+1;
+
 		//get target position
 		var t_arr = t_id.split('_');
 		var t_col = parseInt(t_arr[1]);
 		var t_row = parseInt(t_arr[2]);
+
+		if(desktop._widgets[_id]._type == 'dockApp'){
+			var id = _id.split('-')[0];
+			if (typeof $('#'+id)[0] !== 'undefined') {
+				alert("The app has been registed in desktop");
+				return ;
+			};
+			var tabIndex = desktop._widgets[_id]._tabIndex;
+			var path = desktop._widgets[_id]._path;
+			desktop.unRegistWidget(_id);
+			$('#'+_id).remove();
+			desktop.addAnDEntry(AppEntry.create(id
+				,tabIndex
+				,path
+				,{x:t_col,y:t_row}
+				),{x:t_col,y:t_row});
+			return ;
+		}
+
+		//get source occupy number of grids follow x or y 
+		var col_num = parseInt($('#' + _id).width()/target.width()-0.00001)+1;
+		var row_num =  parseInt($('#' + _id).height()/target.height()-0.00001)+1;
 
 		//get Grid obj
 		var desktopGrid = desktop.getGrid();
@@ -222,7 +248,7 @@ var Grid = Widget.extend({
 		//flag grid  isn't occupied
 		desktopGrid.flagGridOccupy(col, row, col_num, row_num, false);
 
-		//check grid have been occupied
+		//find Idle grids arround from the target grid
 		var pos_ = desktopGrid.findIdleGrid(t_col,t_row,col_num,row_num);
 		if (pos_ != null) {
 			$('#grid_'+pos_.x+'_'+pos_.y).append($('#'+_id));
@@ -231,6 +257,7 @@ var Grid = Widget.extend({
 			desktopGrid.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
 			return ;
 		}
+
 		desktopGrid.flagGridOccupy(col, row, col_num, row_num, true);
 		console.log(t_id + " is occupied");
 	}
