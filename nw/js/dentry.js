@@ -150,20 +150,30 @@ var FileEntry = DEntry.extend({
 		var _this = this;
 		_this.callSuper();
 		utilIns.entryUtil.getMimeType(_this._path, function(err_, mimeType_) {
-			utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) {
-				if(err_) console.log(err_);
-				utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
-					if(err_) console.log(err_);
-					utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
-						if(err_) {
-							console.log(err_);
-						} else {
-							_this._imgPath = imgPath_[0];
-							$('#' + _this._id + ' img').attr('src', _this._imgPath);
-						}
-					});
+			utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48
+				, function(err_, imgPath_) {
+					if(err_) {
+						utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) {
+							if(err_) console.log(err_);
+							utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+								if(err_) console.log(err_);
+								utilIns.entryUtil.getIconPath(file_['Icon'], 48
+									, function(err_, imgPath_) {
+										if(err_) {
+											console.log(err_);
+										} else {
+											_this._imgPath = imgPath_[0];
+											$('#' + _this._id + ' img').attr('src', _this._imgPath);
+										}
+								});
+							});
+						});
+					} else {
+						_this._imgPath = imgPath_[0];
+						$('#' + _this._id + ' img').attr('src', _this._imgPath);
+					}
 				});
-			});
+			
 		});
 		var _name = (this._type == '' || this._type == 'dir') 
 									? this._name : (this._name + '.' + this._type);
