@@ -70,25 +70,43 @@ var Event = Class.extend(require('events').EventEmitter.prototype);
 var OrderedQueue = Class.extend({
 	init: function(before_) {
 		if(typeof before_ != 'function') throw 'Bad type of before(should be a function)';
-		this.items = [];
-		this.keys = [];
+		this._items = [];
 		this._before = before_;
 	},
 	
 	push: function(item_) {
+		//check last key to find the idle item
+		//no need to aquire memory
+		var _idx = this._items.length - 1;
+		if(_idx < 0 || this._items[_idx] != null) {
+			this._items.push(item_);
+			return ;
+		}
+		this._items[_idx] = item_;
+		this.order();
 	},
 
 	pop: function() {
+		var _item = this.get(0);
+		this.remove(0);
+		return _item;
 	},
 	
-	get: function(idx_) {},
+	get: function(idx_) {
+		return this._items[idx_];
+	},
 
-	remove: function(idx_) {},
+	remove: function(idx_) {
+		this._items[idx_] = null;
+		this.order();
+	},
 	
 	before: function(item1_, item2_) {
 		if(item1_ == null) return false;
 		if(item2_ == null) return true;
 		return this._before(item1_, item2_);
-	}
+	},
+
+	order: function() {}
 
 });
