@@ -171,7 +171,7 @@ var Desktop = Class.extend({
 								), {x: attr[2], y: attr[3]});
 					}else if(_dockApp != null){
 						_desktop.addAnAppToDock(_dockApp.create(attr[0]
-							,_desktop._tabIndex++
+							,attr[2]
 							,attr[1]));
 					}
 				}

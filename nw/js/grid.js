@@ -220,7 +220,7 @@ var Grid = Widget.extend({
 				alert("The app has been registed in desktop");
 				return ;
 			};
-			var tabIndex = desktop._widgets[_id]._tabIndex;
+			var tabIndex = desktop._tabIndex++;
 			var path = desktop._widgets[_id]._path;
 			desktop.unRegistWidget(_id);
 			$('#'+_id).remove();
