@@ -44,6 +44,10 @@ var DEntry = Widget.extend({
 		this.bindEvents();
 	},
 
+	hide: function() {
+		$('#grid_' + this._position.x + '_' + this._position.y).empty();
+	},
+
 	bindEvents: function() {
 		var _entry = this;
 		var target_ = $('#' + this._id)
@@ -90,49 +94,29 @@ var AppEntry = DEntry.extend({
 	},
 
 	show: function() {
-		this.callSuper();
-		this.parseDesktopFile();
-	},
-
-	parseDesktopFile: function() {
-		var _entry = this;
-
-		var getExecCmd = function(attr_) {
-			_entry._execCmd = attr_['Exec'].split(' ')[0];
-		};
-		var getImgPath = function(attr_) {
-			utilIns.entryUtil.getIconPath(attr_['Icon'], 48, function(imgPath_) {
-				_entry._imgPath = imgPath_[0];
-				$('#' + _entry._id + ' img').attr('src', _entry._imgPath);
-			});
-		};
-		var getEntryName = function(attr_) {
-			if(typeof attr_['Name[zh_CN]'] !== "undefined") {
-				_entry._name = attr_['Name[zh_CN]'];
-			} else {
-				_entry._name = attr_['Name'];
-			}
-
-			$('#' + _entry._id + ' p').text(_entry._name);
-		};
-		var fs = require('fs');
-
-		fs.readFile(this._path, 'utf-8', function(err, data) {
-			if(err) {
-				console.log(err);
-			} else {
-				var lines = data.split('\n');
-				var attr = [];
-				for(var i = 1; i < lines.length - 1; ++i) {
-					var tmp = lines[i].split('=');
-					attr[tmp[0]] = tmp[1];
+		var _this = this;
+		_this.callSuper();
+		utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
+			if(err_) console.log(err_);
+			//get launch commad
+			_this._execCmd = file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+				.replace(/\\\\/g, '\\');
+			//get icon
+			utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
+				if(err_) {
+					console.log(err_);
+				} else {
+					_this._imgPath = imgPath_[0];
+					$('#' + _this._id + ' img').attr('src', _this._imgPath);
 				}
-				console.log("Get desktop file successfully");
-
-				getExecCmd(attr);
-				getImgPath(attr);
-				getEntryName(attr);
+			});
+			//get name
+			if(typeof file_['Name[zh_CN]'] !== "undefined") {
+				_this._name = file_['Name[zh_CN]'];
+			} else {
+				_this._name = file_['Name'];
 			}
+			$('#' + _this._id + ' p').text(_this._name);
 		});
 	},
 	
@@ -146,35 +130,72 @@ var AppEntry = DEntry.extend({
 	}
 });
 
-//Desktop Entry for directories
-//
-var DirEntry = DEntry.extend({
-	init: function(id_, tabIndex_, path_, position_) {
-		this.callSuper(id_, tabIndex_, path_, position_);
-		
-		this._type = 'dir';
-	},
-
-	open: function() {
-		//open dir
-	}
-});
-
 //Desktop Entry for normal files
 //
 var FileEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
-		this._type = this.parseType(path_);
+		
+		var match = /^.*[\/]([^\/]*)[\.]([^\.]*)$/.exec(path_);
+		if(match == null) {
+			match = /^.*[\/]([^\/]*)$/.exec(path_);
+			this._type = '';
+		} else {
+			this._type = match[2];
+		}
+		this._name = match[1];
 	},
 	
-	parseType: function(path__) {
-		//get file type from path__
-		console.log("type is " + this.type);
+	show: function() {
+		var _this = this;
+		_this.callSuper();
+		utilIns.entryUtil.getMimeType(_this._path, function(err_, mimeType_) {
+			utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48
+				, function(err_, imgPath_) {
+					if(err_) {
+						utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) {
+							if(err_) console.log(err_);
+							utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+								if(err_) console.log(err_);
+								utilIns.entryUtil.getIconPath(file_['Icon'], 48
+									, function(err_, imgPath_) {
+										if(err_) {
+											console.log(err_);
+										} else {
+											_this._imgPath = imgPath_[0];
+											$('#' + _this._id + ' img').attr('src', _this._imgPath);
+										}
+								});
+							});
+						});
+					} else {
+						_this._imgPath = imgPath_[0];
+						$('#' + _this._id + ' img').attr('src', _this._imgPath);
+					}
+				});
+			
+		});
+		var _name = (this._type == '' || this._type == 'dir') 
+									? this._name : (this._name + '.' + this._type);
+		$('#' + _this._id + ' p').text(_name);
 	},
-	
+
 	open: function() {
 		//open files with specific app
+		this._exec('xdg-open ' + this._path.replace(' ', '\\ ')
+				, function(err, stdout, stderr) {
+					if(err) console.log(err);
+				});
+	}
+});
+
+//Desktop Entry for directories
+//
+var DirEntry = FileEntry.extend({
+	init: function(id_, tabIndex_, path_, position_) {
+		this.callSuper(id_, tabIndex_, path_, position_);
+	
+		this._type = 'dir';
 	}
 });
 
@@ -198,8 +219,12 @@ var ThemeEntry = DEntry.extend({
 		this.callSuper();
 		
 		var self = this;
-		utilIns.entryUtil.getIconPath(this._iconName, 48, function(iconPath) {
-			$('#' + self._id + ' img').attr('src', iconPath[0]);
+		utilIns.entryUtil.getIconPath(this._iconName, 48, function(err_, iconPath_) {
+			if(err_) {
+				console.log(err_);
+			} else {
+				$('#' + self._id + ' img').attr('src', iconPath_[0]);
+			}
 		});
 		$('#' + self._id + ' p').text(self._name);
 	},
