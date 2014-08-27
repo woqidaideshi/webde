@@ -319,7 +319,7 @@ var DockApp = Class.extend({
 			_dockApp._execCmd = attr_['Exec'].split(' ')[0];
 		};
 		var getImgPath = function(attr_) {
-			utilIns.entryUtil.getIconPath(attr_['Icon'], 48, function(imgPath_) {
+			utilIns.entryUtil.getIconPath(attr_['Icon'], 48, function(err_, imgPath_) {
 				_dockApp._imgPath = imgPath_[0];
 				console.log(_dockApp._imgPath);
 				$('#' + _dockApp._id).attr('src', _dockApp._imgPath);
