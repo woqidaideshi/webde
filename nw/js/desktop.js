@@ -55,7 +55,6 @@ var Desktop = Class.extend({
 
 	unRegistWidget: function(id_) {
 		this._widgets[id_] = undefined;
-		console.log(typeof this._widgets[id_]);
 	},
 
 	generateGrid: function() {

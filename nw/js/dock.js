@@ -5,7 +5,6 @@
  		this._position = position_;
  		this._class = "dock";
  		this._name = "dock";
-
  		this._dock = $('<div>', {
 			'class': this._class,
 			'id': this._id,
@@ -40,20 +39,58 @@
 	bindDrag:function(target){
 		target.ondragover = this.dragOver;
 		target.ondrop = this.drop;
+		target.ondragleave = this.dragleave;
 	},
 
 	dragOver: function(ev) {
 		ev.preventDefault();
+		var _id = ev.dataTransfer.getData("ID");
+		//show insert position picture
+		var _source = null;
+		if (desktop._widgets[_id]._type == 'app') {
+			if (typeof $('#insert')[0] == 'undefined') {
+				_source = $('<img>',{
+					'id': 'insert',
+					'src': 'img/insert.gif'
+				});
+			}else _source = $('#insert');
+		}else if (desktop._widgets[_id]._type == 'dockApp') _source=$('#'+_id);
+
+		//
+		var new_img = null;
+		var imgList = $('#dock img');
+		for (var i = 0; i < imgList.length+1; i++) {
+			if (i == imgList.length) {
+				new_img = null;
+				break;
+			}
+			if (imgList[i].id == _source[0].id) continue;
+			var img = $(imgList[i]);
+			if (ev.clientX < img.position().left + img.width()/2) {
+				new_img = img;
+				break;
+			};
+		};
+		if (new_img == null ) $('#dock').append(_source);
+		else if (null != new_img) new_img.before(_source);
+	},
+
+	dragleave:function(ev){
+		if (ev.clientY < $('#dock').position().top) 
+			{
+				if (typeof $('#insert')[0] != 'undefined') 
+					$('#insert').remove();
+			}
 	},
 
 	drop: function(ev) {
 		//if(ev.srcElement == ev.toElement) return ;
 		ev.preventDefault();
 		var _id = ev.dataTransfer.getData("ID");
-		var _target = $(ev.target); 
 		var _source = $('#'+_id);
 		if(desktop._widgets[_id]._type == 'app'){
 			if (typeof $('#'+_id+'-dock')[0] !== 'undefined') {
+				$('#insert').remove();
 				alert("The App has been registed in dock");
 				return ;
 			}
@@ -61,13 +98,31 @@
 			var path = dentry._path;
 			var tabIndex = dentry._tabIndex;
 			var pos = dentry.getPosition();
+
 			desktop._grid._grid[pos.x][pos.y].use = false;
 			desktop.unRegistWidget(_id);
 			_source.remove();
+
+			var imgList = $('#dock img');
+			for (var i = 0; i < imgList.length-1; i++) {
+				if (imgList[i].id == 'insert') {
+					var img = $(imgList[i+1]);
+					$(imgList[i]).remove();
+
+					var dockApp = DockApp.create(_id+'-dock' ,tabIndex ,path);
+					if(!desktop.registWidget(dockApp)) {
+						$('#insert').remove();
+						return ;
+					}
+					dockApp.show(img);
+					return ;
+				};
+			}
+			$(imgList[imgList.length-1]).remove();
 			desktop.addAnAppToDock(DockApp.create(_id+'-dock'
 				,tabIndex
 				,path));
-		}
+			}
 	}
 
 });
@@ -102,9 +157,12 @@ var DockApp = Class.extend({
 		});
 	},
 
- 	show: function() {
+ 	show: function(img_) {
 		//add dock to body
-		$('#dock').append(this._image);
+		if (typeof img_ == 'undefined') {
+			$('#dock').append(this._image);
+		}else 
+		img_.before(this._image);
 		this.parseDockApp();
 
 		this.bindEvents();
@@ -194,7 +252,7 @@ var DockApp = Class.extend({
 	},
 
 	drag: function(ev) {
-		ev.target.title = this.myTitle; 
+		ev.target.title = this._name; 
 		$('.tooltip').remove();
 		console.log("drag start");
 		ev.dataTransfer.setData("ID", ev.currentTarget.id);
@@ -202,8 +260,11 @@ var DockApp = Class.extend({
 		ev.stopPropagation();
 	},
 
+	dragOver: function(ev) {
+		ev.preventDefault();
+	},
+
 	mouseOver:function(ev){
-		console.log('mouse over!');
 		var isTitle = false;
 		if(this.noTitle){ isTitle = true;
 		}
@@ -220,9 +281,8 @@ var DockApp = Class.extend({
 	},
 
 	mouseOut:function(){
-		console.log('mouse out!');
 		if(this.myTitle != null){ 
-			this._image[0].title = this.myTitle; 
+			this._image[0].title = this._name; 
 			$('.tooltip').remove();
 		}
 	},
@@ -271,7 +331,6 @@ var DockApp = Class.extend({
 			} else {
 				_dockApp._name = attr_['Name'];
 			}
-
 			$('#' + _dockApp._id).attr('title', _dockApp._name);
 		};
 		var fs = require('fs');
