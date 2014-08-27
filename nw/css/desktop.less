@@ -6,8 +6,8 @@
 html body {
 	width: 100%;
 	height: 100%;
-	background-image: url(../img/bgp.jpg);
-	overflow: hidden;
+	background-image: url(../img/cdos.png);
+	background-size: cover;
 }
 
 .col1 {
@@ -34,6 +34,22 @@ html body {
 	height: @row * 3;
 }
 
+.desktop{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height:100%;
+}
+
+#cdos{
+	position: absolute;
+	left: 0px;
+	top:0px;
+	width: 100%;
+	height: 100%;
+}
+
 .box(@orient, @pack, @align) {
 	//for Safari, Opera, Chrome
 	display: -webkit-box;
@@ -41,10 +57,22 @@ html body {
 	-webkit-box-pack: @pack;
 	-webkit-box-align: @align;
 	//for firefox
-	display: -moz-box;
-	-moz-box-orient: @orient;
-	-moz-box-pack: @pack;
-	-moz-box-align: @align;
+	//display: -moz-box;
+	//-moz-box-orient: @orient;
+	//-moz-box-pack: @pack;
+	//-moz-box-align: @align;
+}
+
+.select(@sel) {
+	-webkit-user-select: @sel;
+	-moz-user-select: @sel;
+}
+
+.box-shadow-mine(@h, @v, @blur, @spread, @c, @in) {
+	-webkit-box-shadow: @h @v @blur @spread @c @in;
+	-moz-box-shadow: @h @v @blur @spread @c @in;
+	-o-box-shadow: @h @v @blur @spread @c @in;
+	box-shadow: @h @v @blur @spread @c @in;
 }
 
 .icon {
@@ -88,19 +116,30 @@ html body {
 	position: absolute;
 	width: 92%;
 	height: 90%;
-	top: 2%;
-	left: 4%;
-	.box(horizontal, start, start);
+	top: 4%;
+	right: 100px;
+	//.box(horizontal, start, start);
+	.select(none);
 
 	.gridcol {
 		width: @col;
 		height: 100%;
+		display: block;
+		float: right;
 		.box(vertical, start, start);
+		.select(none);
 
 		.grid {
 			width: 100%;
 			height: @row;
-			.box(vertical, center, center);
+			display: block;
+			vertical-align: middle;
+			//.box(vertical, center, center);
+			.select(none);
+
+			&.hovering {
+				.box-shadow-mine(0px, 0px, 10px, 0px, black, inset);
+			}
 		}
 	}
 }
@@ -151,19 +190,54 @@ html body {
 //	top:0px;
 //}
 .plugin-div {
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  z-index: 101;
 }
 
-.dock{
-	position: fixed;
-	bottom:0;
-	width: 100%;
-	text-align: center;
+.unselect{
+  -webkit-user-select: none;
+  -moz-user-select: none;
 }
 
-.dock img{
-	width: 50px;
-	height: 50px;
-	cursor: pointer;
+.dock {   
+  position: fixed;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+}
+.dock img {
+  width: 50px;
+  height: 50px;
+    -webkit-user-select: none;
+  -moz-user-select: none;
+  cursor: pointer;
+}
+  
+.tooltip {
+  position: absolute;
+  display: inline;
+  text-align: center;
+  color: #222;
+  margin-left: 0px;
+  text-shadow: 0 1px 0 rgba(255,255,255,.4); 
+}
+
+.tipsy-inner{
+  text-align: center;
+  display: block;
+  padding: 4px;
+  border: 2px solid #ccc;
+  background-color: #ddd;                     
+  background-image: linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,0));  
+  border-radius: 4px;  
+  box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.5) inset;  
+}
+
+.tipsy-arrow{
+   display: inline;
 }

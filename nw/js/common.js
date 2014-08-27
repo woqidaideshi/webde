@@ -62,3 +62,33 @@ Class.extend = function extend(props) {
 //Inherited from Node.js' EventEmitter
 //
 var Event = Class.extend(require('events').EventEmitter.prototype);
+
+//Ordered Queue Class
+//constructor:
+//before -> type: function(item1, item2), ret: {true(if item1 is before item2)|false}
+//
+var OrderedQueue = Class.extend({
+	init: function(before_) {
+		if(typeof before_ != 'function') throw 'Bad type of before(should be a function)';
+		this.items = [];
+		this.keys = [];
+		this._before = before_;
+	},
+	
+	push: function(item_) {
+	},
+
+	pop: function() {
+	},
+	
+	get: function(idx_) {},
+
+	remove: function(idx_) {},
+	
+	before: function(item1_, item2_) {
+		if(item1_ == null) return false;
+		if(item2_ == null) return true;
+		return this._before(item1_, item2_);
+	}
+
+});

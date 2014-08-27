@@ -182,7 +182,7 @@ var FileEntry = DEntry.extend({
 
 	open: function() {
 		//open files with specific app
-		this._exec('xdg-open ' + this._path.replace(' ', '\\ ')
+		this._exec('xdg-open ' + this._path.replace(/ /g, '\\ ')
 				, function(err, stdout, stderr) {
 					if(err) console.log(err);
 				});

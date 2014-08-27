@@ -53,6 +53,10 @@ var Grid = Widget.extend({
 		}
 	},
 
+	setDesktop: function(desktop_) {
+		this._desktop = desktop_;
+	},
+
 	findAnIdleGrid: function() {
 		for(var i = parseInt(this._col_num-1); i >= 0; --i) {
 			for(var j = 0; j < this._row_num; ++j) {
@@ -201,10 +205,32 @@ var Grid = Widget.extend({
 		console.log("grid is not allowed to drag");
 	},
 
+	dragOver: function(ev) {
+		ev.stopPropagation();
+		ev.preventDefault();
+		ev.dataTransfer.dropEffect = 'copy';
+	},
+
 	drop: function(ev) {
 		//t_* is target  others is source 
 		console.log('drop-grid');
+		ev.stopPropagation();
 		ev.preventDefault();
+		$(this).removeClass('hovering');
+
+		//handle file transfer
+		var _files = ev.dataTransfer.files;
+		if(_files.length != 0) {
+			var _fs = require('fs');
+			var _this = this;
+			for(var i = 0; i < _files.length; ++i) {
+				_fs.rename(_files[i].path
+						, desktop._desktopWatch.getBaseDir() + '/' + _files[i].name
+						, function() {});
+			}
+			return ;
+		}
+
 		var t_id = ev.target.id;
 		var _id = ev.dataTransfer.getData("ID");
 		var target = $('#'+t_id);
@@ -260,5 +286,17 @@ var Grid = Widget.extend({
 
 		desktopGrid.flagGridOccupy(col, row, col_num, row_num, true);
 		console.log(t_id + " is occupied");
+	},
+
+	dragEnter: function(ev) {
+		ev.stopPropagation();
+		ev.preventDefault();
+		$(this).addClass('hovering');
+	},
+
+	dragLeave: function(ev) {
+		ev.stopPropagation();
+		ev.preventDefault();
+		$(this).removeClass('hovering');
 	}
 });
