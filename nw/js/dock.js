@@ -54,8 +54,9 @@
 					'src': 'img/insert.gif'
 				});
 			}else _source = $('#insert');
-		}else if (desktop._widgets[_id]._type == 'dockApp') _source=$('#'+_id);
-
+		}
+		else if (desktop._widgets[_id]._type == 'dockApp') _source=$('#'+_id);
+		else  return ;
 		//
 		var new_img = null;
 		var imgList = $('#dock img');
@@ -96,7 +97,6 @@
 			}
 			var dentry = desktop._widgets[_id];
 			var path = dentry._path;
-			var tabIndex = dentry._tabIndex;
 			var pos = dentry.getPosition();
 
 			desktop._grid._grid[pos.x][pos.y].use = false;
@@ -106,32 +106,33 @@
 			var imgList = $('#dock img');
 			for (var i = 0; i < imgList.length-1; i++) {
 				if (imgList[i].id == 'insert') {
-					var img = $(imgList[i+1]);
 					$(imgList[i]).remove();
 
-					var dockApp = DockApp.create(_id+'-dock' ,tabIndex ,path);
+					var dockApp = DockApp.create(_id+'-dock' ,i ,path);
 					if(!desktop.registWidget(dockApp)) {
 						$('#insert').remove();
 						return ;
 					}
-					dockApp.show(img);
+					dockApp.show();
 					return ;
-				};
+				} 
 			}
-			$(imgList[imgList.length-1]).remove();
-			desktop.addAnAppToDock(DockApp.create(_id+'-dock'
-				,tabIndex
-				,path));
-			}
+		}
+		else if (desktop._widgets[_id]._type == 'dockApp') {
+			var imgList = $('#dock img');
+			for (var i = 0; i < imgList.length; i++) {
+				desktop._widgets[imgList[i].id]._position.x = i;
+			};
+		};
 	}
 
 });
 
 //dock.js  for dock 
 var DockApp = Class.extend({
-	init: function(id_, tabIndex_, path_){
+	init: function(id_, x_, path_){
 		if(typeof id_ === "undefined"
-			|| typeof tabIndex_ === "undefined"
+			|| typeof x_ === "undefined"
 			|| typeof path_ === "undefined") {
 			//console.log("not enough params!! init failed!!");
 			//return ;
@@ -140,9 +141,8 @@ var DockApp = Class.extend({
 		this._id = id_;
  		this._name = id_;
  		this._path = path_;
- 		this._tabIndex = tabIndex_;
  		this._type = "dockApp";
- 		this._position = {x:0,y:0};
+ 		this._position = {x:x_, y:0};
  		this.noTitle = false;
  		this.myTitle = false;
 
@@ -157,13 +157,44 @@ var DockApp = Class.extend({
 		});
 	},
 
- 	show: function(img_) {
-		//add dock to body
-		if (typeof img_ == 'undefined') {
-			$('#dock').append(this._image);
-		}else 
-		img_.before(this._image);
-		this.parseDockApp();
+ 	show: function() {
+		var _this = this;
+		var imgList = $('#dock img');
+		if (imgList.length < 1) $('#dock').append(_this._image);
+		
+		var insert = false;
+		for (var i = 0; i < imgList.length; i++) {
+			if (_this._position.x <=  desktop._widgets[imgList[i].id]._position.x && insert == false) {
+				$(imgList[i]).before(_this._image);
+				insert = true;
+			}
+			if (desktop._widgets[imgList[i].id]._position.x < i) desktop._widgets[imgList[i].id]._position.x = i;
+		}
+		if (insert == false)  $('#dock').append(_this._image);
+		
+		
+ 		utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
+			if(err_) console.log(err_);
+			//get launch commad
+			_this._execCmd = file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+				.replace(/\\\\/g, '\\');
+			//get icon
+			utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
+				if(err_) {
+					console.log(err_);
+				} else {
+					_this._imgPath = imgPath_[0];
+					$('#' + _this._id).attr('src', _this._imgPath);
+				}
+			});
+			//get name
+			if(typeof file_['Name[zh_CN]'] !== "undefined") {
+				_this._name = file_['Name[zh_CN]'];
+			} else {
+				_this._name = file_['Name'];
+			}
+			$('#' + _this._id).attr('title', _this._name);
+		});
 
 		this.bindEvents();
 	},
