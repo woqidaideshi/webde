@@ -11,15 +11,6 @@ var desktop = undefined;
 var theme = Theme.create();
 var	utilIns = Util.create();
 
-/* function loadDEntries() { */
-	// gedit = new AppEntry('gedit');
-	// terminal = new AppEntry('terminal');
-	// var file = new FileEntry('file');
-
-	// gedit.show();
-	// terminal.show();
-// }
-
 $(document).ready(function() {
 	desktop =  Desktop.create();
 	/*desktop.addAnDPlugin(ClockPlugin.create('clock'));
@@ -37,4 +28,11 @@ $(document).ready(function() {
 	desktop.addAnImgToDock("img/moive.png", "moive", "svlc &");
 	desktop.addAnImgToDock("img/music.png", "music", "banshee &");*/
 	//loadDEntries();
+	/* var oq = OrderedQueue.create(function(t1_, t2_) {return t1_ < t2_;}); */
+	// oq.push(19);
+	// oq.push(3);
+	// oq.push(49);
+	// oq.push(494);
+	// oq.remove(3);
+	/* oq.push(66); */
 });

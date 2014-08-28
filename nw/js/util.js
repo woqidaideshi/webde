@@ -162,14 +162,15 @@ var EntryUtil = Event.extend({
 		if(typeof callback_ !== 'function')
 			throw 'Bad type of callback!!';
 		var _this = this;
-		_this._exec('xdg-mime query filetype ' + path_, function(err, stdout, stderr) {
-			if(err) {
-				console.log(err);
-				callback_.call(this, 'Unknown mime-type!');
-			} else {
-				callback_.call(this, null, stdout.replace('\n', ''));
-			}
-		});
+		_this._exec('xdg-mime query filetype ' + path_.replace(/ /g, '\\ ')
+				, function(err, stdout, stderr) {
+					if(err) {
+						console.log(err);
+						callback_.call(this, 'Unknown mime-type!');
+					} else {
+						callback_.call(this, null, stdout.replace('\n', ''));
+					}
+				});
 	},
 
 	getDefaultApp: function(mimeType_, callback_) {
