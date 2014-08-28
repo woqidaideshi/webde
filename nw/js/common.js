@@ -73,6 +73,10 @@ var OrderedQueue = Class.extend({
 		this._items = [];
 		this._before = before_;
 	},
+
+	length: function() {
+		return this._items.length;
+	},
 	
 	push: function(item_) {
 		//check last key to find the idle item
@@ -80,9 +84,9 @@ var OrderedQueue = Class.extend({
 		var _idx = this._items.length - 1;
 		if(_idx < 0 || this._items[_idx] != null) {
 			this._items.push(item_);
-			return ;
+		} else {
+			this._items[_idx] = item_;
 		}
-		this._items[_idx] = item_;
 		this.order();
 	},
 
@@ -97,6 +101,7 @@ var OrderedQueue = Class.extend({
 	},
 
 	remove: function(idx_) {
+		if(idx_ >= this._items.length) return ;
 		this._items[idx_] = null;
 		this.order();
 	},
@@ -107,6 +112,36 @@ var OrderedQueue = Class.extend({
 		return this._before(item1_, item2_);
 	},
 
-	order: function() {}
+	order: function() {
+		var _this = this;
+		var start = function(l_) {return (Math.floor(l_ / 2) - 1);};
+		var lParent = function(idx_) {return (idx_ * 2 + 1);};
+		var rParent = function(idx_) {return (idx_ * 2 + 2);};
+		var swap = function(idx1_, idx2_) {
+			var tmp = _this._items[idx1_];
+			_this._items[idx1_] = _this._items[idx2_];
+			_this._items[idx2_] = tmp;
+		};
+		var heap = function(s_, l_) {
+			var lp, rp;
+			for(var i = start(l_); i >= s_; --i) {
+				lp = lParent(i);
+				rp = rParent(i);
+				if(rp < l_ && _this.before(_this._items[rp], _this._items[lp]))
+					swap(lp, rp);
+				rp = i;
+				while(lp < l_ && _this.before(_this._items[lp], _this._items[rp])) {
+					swap(lp, rp);
+					rp = lp;
+					lp = lParent(lp);
+				}
+			}
+		};
+
+		for(var x = _this._items.length; x > 0; --x) {
+			heap(0, x);
+			swap(0, x - 1);
+		}
+	}
 
 });

@@ -224,9 +224,9 @@ var Grid = Widget.extend({
 			var _fs = require('fs');
 			var _this = this;
 			for(var i = 0; i < _files.length; ++i) {
-				_fs.rename(_files[i].path
-						, desktop._desktopWatch.getBaseDir() + '/' + _files[i].name
-						, function() {});
+				var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
+				if(_files[i].path == dst) continue;
+				_fs.rename(_files[i].path, dst, function() {});
 			}
 			return ;
 		}

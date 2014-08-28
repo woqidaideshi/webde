@@ -324,6 +324,6 @@ var DesktopWatcher = Event.extend({
 	},
 
 	close: function() {
-		_this._watcher.close();
+		this._watcher.close();
 	}
 });
