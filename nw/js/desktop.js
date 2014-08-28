@@ -24,6 +24,8 @@ var Desktop = Class.extend({
 		this._fs = require('fs');
 		this._xdg_data_home = undefined;
 		this._dock = undefined;
+		this._rightMenu = undefined;
+		this._rightObjId = undefined;
 		this.generateGrid();
 		this.bindingEvents();
 		
@@ -193,6 +195,7 @@ var Desktop = Class.extend({
 							,attr[1]));
 					}
 				}
+				_desktop._rightMenu = RightMenu();
 			}
 		});
 	},
@@ -270,7 +273,6 @@ var Desktop = Class.extend({
 		plugin_.setPosition(pos_);
 		plugin_.show();
 		plugin_.setPanel(path_);
-		plugin_.open();
 		//this._grid._grid[pos_.x][pos_.y].use = true;
 		//get number of occupy-grid col and row
 		var col_num = parseInt($('.plugin-div').width()/this._grid._col-0.00001)+1;

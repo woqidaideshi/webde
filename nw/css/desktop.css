@@ -52,9 +52,13 @@ html body {
 .icon img {
   width: 50px;
   height: 50px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
   z-index: 98;
 }
 .icon p {
+  -webkit-user-select: none;
+  -moz-user-select: none;
   margin: 2px 0px;
   font-size: small;
 }
@@ -127,6 +131,7 @@ html body {
   -moz-user-select: none;
   z-index: 101;
 }
+
 .unselect {
   -webkit-user-select: none;
   -moz-user-select: none;

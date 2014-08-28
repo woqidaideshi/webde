@@ -10,8 +10,7 @@ var DPlugin = Widget.extend({
 		this._dPlugin = $('<div>', {
 			'class': 'plugin-div',
 			'id': this._id,
-			'draggable': 'true',
-			'onselectstart': 'return false'
+			'draggable': 'true'
 		});
 	},
 
@@ -52,6 +51,13 @@ var DPlugin = Widget.extend({
 	drop: function(ev){
 	ev.preventDefault();
 	ev.stopPropagation();
+	},
+
+	resize: function(width_, height_){
+		this._dPlugin.children('#'+this._id+this.content).remove();
+		this._dPlugin.width(width_);
+		this._dPlugin.height(height_);
+		this.setPanel();
 	}
 });
 
@@ -65,7 +71,7 @@ var ClockPlugin = DPlugin.extend({
 
 	setPanel:function(path_){
 		//return "<canvas id=\"clockContent\" width='"+ plugin.offsetWidth+"px' height='"+plugin.offsetHeight+"px'/>";
-		this._dPlugin.html("<canvas class='unselect' id=\""+this._id+ this.content + "\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+
+		this._dPlugin.html("<canvas id=\""+this._id+ this.content + "\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+
 							"px' />");
 		//var value = document.getElementById(this._id+content);
 		
@@ -80,6 +86,11 @@ var ClockPlugin = DPlugin.extend({
 		img.onload = function() {  
 		imgContent.drawImage(img,0,0,target.width(),target.height());
 		}
+		$('#'+this._id).click(function(ev){
+			ev.target.focus();
+			alert(ev.target.id + '\n' + document.activeElement.id);
+		});
+		this.open();
 	},
 
 	open: function() {
@@ -97,7 +108,7 @@ var PicPlugin = DPlugin.extend({
 	},
 	
 	setPanel:function(path_){
-		this._dPlugin.html("<canvas id='"+this._id+this.content+"' width='"+this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px' onselectstart='return false'>");
+		this._dPlugin.html("<canvas id='"+this._id+this.content+"' width='"+this._dPlugin.width()+"px' height='"+this._dPlugin.height()+"px'>");
 		//this._dPlugin.html("<img id='"+this._id+content+"' width='200px' height='"+this._dPlugin.height()+"px' src='"+path_+"' draggable='false'>");
 
 		var target = $('#'+this._id+this.content);
@@ -111,6 +122,7 @@ var PicPlugin = DPlugin.extend({
 		img.onload = function() {  
 		imgContent.drawImage(img,0,0,target.width(),target.height());
 		}
+
 	},
 
 	open:function(){
