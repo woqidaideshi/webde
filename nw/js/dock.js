@@ -104,7 +104,7 @@
 			_source.remove();
 
 			var imgList = $('#dock img');
-			for (var i = 0; i < imgList.length-1; i++) {
+			for (var i = 0; i < imgList.length; i++) {
 				if (imgList[i].id == 'insert') {
 					$(imgList[i]).remove();
 
@@ -341,50 +341,7 @@ var DockApp = Class.extend({
 	setPath: function(path_) {
 		//redraw dentry's name
 		this._path = path_;
-	},
-
-	parseDockApp: function() {
-		var _dockApp = this;
-
-		var getExecCmd = function(attr_) {
-			_dockApp._execCmd = attr_['Exec'].split(' ')[0];
-		};
-		var getImgPath = function(attr_) {
-			utilIns.entryUtil.getIconPath(attr_['Icon'], 48, function(err_, imgPath_) {
-				_dockApp._imgPath = imgPath_[0];
-				console.log(_dockApp._imgPath);
-				$('#' + _dockApp._id).attr('src', _dockApp._imgPath);
-			});
-		};
-		var getEntryName = function(attr_) {
-			if(typeof attr_['Name[zh_CN]'] !== "undefined") {
-				_dockApp._name = attr_['Name[zh_CN]'];
-			} else {
-				_dockApp._name = attr_['Name'];
-			}
-			$('#' + _dockApp._id).attr('title', _dockApp._name);
-		};
-		var fs = require('fs');
-
-		fs.readFile(this._path, 'utf-8', function(err, data) {
-			if(err) {
-				console.log(err);
-			} else {
-				var lines = data.split('\n');
-				var attr = [];
-				for(var i = 1; i < lines.length - 1; ++i) {
-					var tmp = lines[i].split('=');
-					if (typeof attr[tmp[0]] == "undefined") {
-					attr[tmp[0]] = tmp[1];
-					}	
-				}
-				//console.log("Get dockApp file successfully");
-
-				getExecCmd(attr);
-				getImgPath(attr);
-				getEntryName(attr);
-			}
-		});
 	}
+
 });
 

@@ -222,6 +222,11 @@ var Grid = Widget.extend({
 			};
 			var tabIndex = desktop._tabIndex++;
 			var path = desktop._widgets[_id]._path;
+			var imgList = $('#dock img');
+			for (var i = 0,n = 0; i < imgList.length; i++) {
+				if(imgList[i].id == _id) continue;
+				desktop._widgets[imgList[i].id]._position.x = n++;
+			}
 			desktop.unRegistWidget(_id);
 			$('#'+_id).remove();
 			desktop.addAnDEntry(AppEntry.create(id
