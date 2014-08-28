@@ -28,16 +28,7 @@ var Desktop = Class.extend({
 		this.bindingEvents();
 		
 		var _desktop = this;
-		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
-			if(err) {
-				console.log(err);
-			} else {
-				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
-				theme.loadThemeEntry(_desktop);
-				_desktop.loadWidgets();
-			}
-		});
-
+		
 		//add dock div to desktop
 		this.addDock();
 		
@@ -78,6 +69,16 @@ var Desktop = Class.extend({
 		});
 		this._desktopWatch.on('rename', function(oldName, newName) {
 			console.log('rename:', oldName, '->', newName);
+		});
+		
+		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
+			if(err) {
+				console.log(err);
+			} else {
+				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
+				theme.loadThemeEntry(_desktop);
+				_desktop.loadWidgets();
+			}
 		});
 	},
 
@@ -140,6 +141,7 @@ var Desktop = Class.extend({
 
 	loadWidgets: function() {
 		var _desktop = this;
+		var _lastSave = [];
 		this._fs.readFile(this._xdg_data_home + "dwidgets/dentries"
 				, 'utf-8', function(err, data) {
 			if(err) {
@@ -147,13 +149,12 @@ var Desktop = Class.extend({
 			} else {
 				var lines = data.split('\n');
 				for(var i = 0; i < lines.length; ++i) {
-					if(lines[i].match('[\s,\t]*#+') != null) continue;  //??????????????????????
+					if(lines[i].match('[\s,\t]*#+') != null) continue;
 					if(lines[i] == "") continue;
 					var attr = lines[i].split('$');
 					if(attr.length != 5) continue;
 				/*need add a type judge
 				*/
-				var _Entry = null;
 				var _Plugin = null;
 				var _dockApp = null;
 					switch(attr[4]) {
@@ -166,23 +167,17 @@ var Desktop = Class.extend({
 						case "dockApp":
 							_dockApp = DockApp;
 							break;
-						case "app": 
-							_Entry = AppEntry;
-							break;
-						case "dir":
-							_Entry = DirEntry;
-							break;
 						default:
-							_Entry = FileEntry;
+							_lastSave[attr[0]] = {
+								path: attr[1],
+								x: attr[2],
+								y: attr[3],
+								type: attr[4]
+							};
+						
 					}
 
-					if (_Entry != null ) {
-						_desktop.addAnDEntry(_Entry.create(attr[0]
-							, _desktop._tabIndex++
-							, attr[1]
-							, {x: attr[2], y: attr[3]}
-							), {x: attr[2], y: attr[3]});
-					} else if (_Plugin != null) {
+					if (_Plugin != null) {
 						_desktop.addAnDPlugin(_Plugin.create(attr[0]
 								,{x: attr[2], y: attr[3]}
 								,attr[1]
@@ -193,6 +188,52 @@ var Desktop = Class.extend({
 							,attr[1]));
 					}
 				}
+				//handle destop entries
+				var _newEntry = [];
+				_desktop._fs.readdir(_desktop._desktopWatch.getBaseDir()
+						, function(err, files) {
+							var traverse = function(idx_) {
+								if(idx_ == files.length) {
+									for(var key in _newEntry) {
+										_desktop._desktopWatch.emit('add'
+											, _newEntry[key].filename
+											, _newEntry[key].stats);
+									}
+									return ;
+								}
+								_desktop._fs.stat(
+									_desktop._desktopWatch.getBaseDir() + '/' + files[idx_]
+									, function(err, stats) {
+										var _id = 'id-' + stats.ino.toString();
+										if(typeof _lastSave[_id] != 'undefined') {
+											var _Entry = null;
+											switch(_lastSave[_id].type) {
+												case "app":
+													_Entry = AppEntry;
+													break;
+												case "dir":
+													_Entry = DirEntry;
+													break;
+												default:
+													_Entry = FileEntry;
+											}
+
+										_desktop.addAnDEntry(_Entry.create(_id
+											, _desktop._tabIndex++
+											, _lastSave[_id].path
+											, {x: _lastSave[_id].x, y: _lastSave[_id].y}
+											), {x: _lastSave[_id].x, y: _lastSave[_id].y});
+										} else {
+											_newEntry[_id] = {
+												'filename': files[idx_],
+												'stats': stats
+											};
+										}
+										traverse(idx_ + 1);
+									});
+							}
+							traverse(0);
+						});
 			}
 		});
 	},

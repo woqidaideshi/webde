@@ -57,9 +57,7 @@ var Theme = Event.extend({
 						'icon': attrs[2],
 						'path': attrs[3],
 						'id': attrs[4],
-						'pos': ((typeof attrs[5] === 'undefined' 
-									|| typeof attrs[6] === 'undefined')
-									? undefined : {x: attrs[5], y: attrs[6]})
+						'pos': {x: attrs[5], y: attrs[6]}
 					};
 				}
 				theme.inited = true;
@@ -108,7 +106,9 @@ var Theme = Event.extend({
 						this._theme[key]['path'],
 						this._theme[key]['icon'],
 						this._theme[key]['name']
-						), this._theme[key]['pos']);
+						), ((typeof this._theme[key]['pos'].x === 'undefined' 
+									|| typeof this._theme[key]['pos'].y === 'undefined')
+									? undefined : this._theme[key]['pos']));
 		}
 	},
 
