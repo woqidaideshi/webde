@@ -43,9 +43,15 @@ var Widget = Class.extend({
 			}
 	},
 
+	dragEnter: function(ev) {},
+
+	dragLeave: function(ev) {},
+
 	bindDrag: function(target) {
 		target.ondragstart = this.drag;
 		target.ondragover = this.dragOver;
 		target.ondrop = this.drop;
+		target.ondragenter = this.dragEnter;
+		target.ondragleave = this.dragLeave;
 	}
 });

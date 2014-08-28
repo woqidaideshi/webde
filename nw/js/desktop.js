@@ -3,8 +3,23 @@
 var Desktop = Class.extend({
 	init: function() {
 		this._grid = undefined;
-		this._tabIndex = 1;
+		this._tabIndex = 100;
 		this._widgets = [];
+		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
+			var pos1 = entry1_.getPosition();
+			var pos2 = entry2_.getPosition();
+			if(pos1.x > pos2.x) {
+				return true;
+			} else if(pos1.x == pos2.x){
+				if(pos1.y < pos2.y) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		});
 		this._exec = require('child_process').exec;
 		this._fs = require('fs');
 		this._xdg_data_home = undefined;
@@ -77,10 +92,12 @@ var Desktop = Class.extend({
 	},
 
 	shutdown: function() {
+		this._desktopWatch.close();
 		this.saveWidgets();
 	},
 
 	refresh: function() {
+		this._desktopWatch.close();
 		theme.saveConfig(this);
 		this.saveWidgets();
 	},
@@ -101,6 +118,7 @@ var Desktop = Class.extend({
 
 	generateGrid: function() {
 		this._grid = Grid.create('grids');
+		this._grid.setDesktop(this);
 		this._grid.show();
 	},
 
@@ -214,6 +232,8 @@ var Desktop = Class.extend({
 
 		entry_.setPosition(pos_);
 		entry_.show();
+		this._dEntrys.push(entry_);
+		this.resetDEntryTabIdx();
 		this._grid._grid[pos_.x][pos_.y].use = true;
 	},
 
@@ -222,8 +242,21 @@ var Desktop = Class.extend({
 		var _pos = entry_.getPosition();
 		this._grid._grid[_pos.x][_pos.y].use = false;
 		this._tabIndex--;
+		this._dEntrys.remove(entry_.getTabIdx() - 1);
+		this.resetDEntryTabIdx();
 		entry_.hide();
 		entry_ = null;
+	},
+
+	resetDEntryTabIdx: function() {
+		for(var i = 0; i < this._dEntrys.length(); ++i) {
+			if(this._dEntrys.get(i) != null)
+				this._dEntrys.get(i).setTabIdx(i + 1);
+		}
+	},
+
+	reOrderDEntry: function() {
+		this._dEntrys.order();
 	},
 
 	addAnDPlugin: function(plugin_, pos_,  path_) {
@@ -265,6 +298,7 @@ var DesktopWatcher = Event.extend({
 		this._prev = 0;
 		this._baseDir = undefined;
 		this._oldName = null;
+		this._watcher = null;
 
 		this._ignoreInitial = ignoreInitial_ || true;
 
@@ -282,41 +316,46 @@ var DesktopWatcher = Event.extend({
 					_this._prev++;
 				}
 
-				_this._fs.watch(_this._baseDir + '/桌面', function(event, filename) {
-					if(event == 'change') return ;
-					_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
-						var cur = 0;
-						for(var i = 0; i < files.length; ++i) {
-							cur++;
-						}
+				_this._watcher = _this._fs.watch(_this._baseDir + '/桌面'
+					, function(event, filename) {
+						if(event == 'change') return ;
+						_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
+							var cur = 0;
+							for(var i = 0; i < files.length; ++i) {
+								cur++;
+							}
 
-						if(_this._prev < cur) {
-							_this._fs.stat(_this._baseDir + '/桌面/' + filename, function(err, stats) {
-								_this.emit('add', filename, stats);
-							});
-						} else if(_this._prev > cur) {
-							_this.emit('delete', filename);
-						} else {
-							if(_this._oldName == null) {
-								_this._oldName = filename;
-								return ;
-							}
-							if(_this.oldName == filename) {
+							if(_this._prev < cur) {
+								_this._fs.stat(_this._baseDir + '/桌面/' + filename
+									, function(err, stats) {
+										_this.emit('add', filename, stats);
+									});
+							} else if(_this._prev > cur) {
+								_this.emit('delete', filename);
+							} else {
+								if(_this._oldName == null) {
+									_this._oldName = filename;
+									return ;
+								}
+								if(_this.oldName == filename) {
+									_this._oldName = null;
+									return ;
+								}
+								_this.emit('rename', _this._oldName, filename);
 								_this._oldName = null;
-								return ;
 							}
-							_this.emit('rename', _this._oldName, filename);
-							_this._oldName = null;
-						}
-						_this._prev = cur;
+							_this._prev = cur;
+						});
 					});
-				});
 			});
 		});
 	},
 
 	getBaseDir: function() {
 		return this._baseDir + '/桌面';
-	}
+	},
 
+	close: function() {
+		this._watcher.close();
+	}
 });

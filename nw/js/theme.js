@@ -57,7 +57,9 @@ var Theme = Event.extend({
 						'icon': attrs[2],
 						'path': attrs[3],
 						'id': attrs[4],
-						'pos': {x: attrs[5], y: attrs[6]}
+						'pos': ((typeof attrs[5] === 'undefined' 
+									|| typeof attrs[6] === 'undefined')
+									? undefined : {x: attrs[5], y: attrs[6]})
 					};
 				}
 				theme.inited = true;
@@ -77,9 +79,9 @@ var Theme = Event.extend({
 				+ this._theme[key]['path'] + ' '
 				+ this._theme[key]['id'] + ' '
 				+ ((this._theme[key]['active'] == 'true') ?
-					desktop_._widgets[key]._position.x : this._theme[key]['pos'].x) + ' '
+					desktop_._widgets[key]._position.x : this._theme[key]['pos']) + ' '
 				+ ((this._theme[key]['active'] == 'true') ?
-					desktop_._widgets[key]._position.y : this._theme[key]['pos'].y) + '\n';
+					desktop_._widgets[key]._position.y : this._theme[key]['pos']) + '\n';
 		}
 		// for(var i = 0; i < this._keys.length; ++i) {
 			// data += this._keys[i] + this._theme[this._keys[i]] + '\n';
