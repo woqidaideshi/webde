@@ -57,7 +57,9 @@ var Theme = Event.extend({
 						'icon': attrs[2],
 						'path': attrs[3],
 						'id': attrs[4],
-						'pos': {x: attrs[5], y: attrs[6]}
+						'pos': ((typeof attrs[5] === 'undefined' 
+									|| typeof attrs[6] === 'undefined')
+									? undefined : {x: attrs[5], y: attrs[6]})
 					};
 				}
 				theme.inited = true;

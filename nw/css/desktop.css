@@ -3,7 +3,6 @@ html body {
   height: 100%;
   background-image: url(../img/cdos.png);
   background-size: cover;
-
 }
 .col1 {
   width: 100px;
@@ -23,23 +22,20 @@ html body {
 .row3 {
   height: 270px;
 }
-
-.desktop{
-	position: absolute;
-	left: 0px;
-	top: 0px;
-	width: 100%;
-	height:100%;
+.desktop {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
 }
-
-#cdos{
-	position: absolute;
-	left: 0px;
-	top:0px;
-	width: 100%;
-	height: 100%;
+#cdos {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
 }
-
 .icon {
   width: 80px;
   height: 80px;
@@ -52,9 +48,6 @@ html body {
 }
 .icon:hover {
   box-shadow: 0px 0px 2px black;
-}
-.icon:focus {
-  border: 1px dashed black;
 }
 .icon img {
   width: 50px;
@@ -80,22 +73,28 @@ html body {
 .gridcontainer .gridcol {
   width: 100px;
   height: 100%;
-      display: block;
-      float:right;
+  display: block;
+  float: right;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-box-pack: start;
   -webkit-box-align: start;
-   -webkit-user-select: none;
+  -webkit-user-select: none;
   -moz-user-select: none;
 }
 .gridcontainer .gridcol .grid {
   width: 100%;
-  height: 100px;
-      display: block;
-      vertical-align:middle;
+  height: 90px;
+  display: block;
+  vertical-align: middle;
   -webkit-user-select: none;
   -moz-user-select: none;
+}
+.gridcontainer .gridcol .grid.hovering {
+  -webkit-box-shadow: 0px 0px 10px 0px #000000 inset;
+  -moz-box-shadow: 0px 0px 10px 0px #000000 inset;
+  -o-box-shadow: 0px 0px 10px 0px #000000 inset;
+  box-shadow: 0px 0px 10px 0px #000000 inset;
 }
 #menu {
   display: none;
@@ -128,13 +127,11 @@ html body {
   -moz-user-select: none;
   z-index: 101;
 }
-
-.unselect{
+.unselect {
   -webkit-user-select: none;
   -moz-user-select: none;
 }
-
-.dock {   
+.dock {
   position: fixed;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -145,31 +142,28 @@ html body {
 .dock img {
   width: 50px;
   height: 50px;
-    -webkit-user-select: none;
+  -webkit-user-select: none;
   -moz-user-select: none;
   cursor: pointer;
 }
-  
 .tooltip {
   position: absolute;
   display: inline;
   text-align: center;
   color: #222;
   margin-left: 0px;
-  text-shadow: 0 1px 0 rgba(255,255,255,.4); 
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
-
-.tipsy-inner{
+.tipsy-inner {
   text-align: center;
   display: block;
   padding: 4px;
   border: 2px solid #ccc;
-  background-color: #ddd;                     
-  background-image: linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,0));  
-  border-radius: 4px;  
-  box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.5) inset;  
+  background-color: #ddd;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
-
-.tipsy-arrow{
-   display: inline;
+.tipsy-arrow {
+  display: inline;
 }
