@@ -281,6 +281,10 @@ var Grid = Widget.extend({
 			console.log(_id + " ---> " + pos_.x + '  '  + pos_.y);
 			desktop._widgets[_id].setPosition({x: pos_.x, y: pos_.y});
 			desktopGrid.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
+			if(desktop._widgets[_id]._type.match(/\w*Plugin/) == null) {
+				desktop.reOrderDEntry();
+				desktop.resetDEntryTabIdx();
+			}
 			return ;
 		}
 

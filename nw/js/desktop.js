@@ -3,8 +3,23 @@
 var Desktop = Class.extend({
 	init: function() {
 		this._grid = undefined;
-		this._tabIndex = 1;
+		this._tabIndex = 100;
 		this._widgets = [];
+		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
+			var pos1 = entry1_.getPosition();
+			var pos2 = entry2_.getPosition();
+			if(pos1.x > pos2.x) {
+				return true;
+			} else if(pos1.x == pos2.x){
+				if(pos1.y < pos2.y) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		});
 		this._exec = require('child_process').exec;
 		this._fs = require('fs');
 		this._xdg_data_home = undefined;
@@ -214,6 +229,8 @@ var Desktop = Class.extend({
 
 		entry_.setPosition(pos_);
 		entry_.show();
+		this._dEntrys.push(entry_);
+		this.resetDEntryTabIdx();
 		this._grid._grid[pos_.x][pos_.y].use = true;
 	},
 
@@ -222,8 +239,21 @@ var Desktop = Class.extend({
 		var _pos = entry_.getPosition();
 		this._grid._grid[_pos.x][_pos.y].use = false;
 		this._tabIndex--;
+		this._dEntrys.remove(entry_.getTabIdx() - 1);
+		this.resetDEntryTabIdx();
 		entry_.hide();
 		entry_ = null;
+	},
+
+	resetDEntryTabIdx: function() {
+		for(var i = 0; i < this._dEntrys.length(); ++i) {
+			if(this._dEntrys.get(i) != null)
+				this._dEntrys.get(i).setTabIdx(i + 1);
+		}
+	},
+
+	reOrderDEntry: function() {
+		this._dEntrys.order();
 	},
 
 	addAnDPlugin: function(plugin_, pos_,  path_) {

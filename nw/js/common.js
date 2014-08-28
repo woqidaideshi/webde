@@ -127,10 +127,10 @@ var OrderedQueue = Class.extend({
 			for(var i = start(l_); i >= s_; --i) {
 				lp = lParent(i);
 				rp = rParent(i);
-				if(rp < l_ && _this.before(_this._items[rp], _this._items[lp]))
+				if(rp < l_ && !_this.before(_this._items[rp], _this._items[lp]))
 					swap(lp, rp);
 				rp = i;
-				while(lp < l_ && _this.before(_this._items[lp], _this._items[rp])) {
+				while(lp < l_ && !_this.before(_this._items[lp], _this._items[rp])) {
 					swap(lp, rp);
 					rp = lp;
 					lp = lParent(lp);

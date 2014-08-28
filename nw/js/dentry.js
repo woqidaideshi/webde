@@ -74,8 +74,18 @@ var DEntry = Widget.extend({
 */
 	drop: function(ev) {
 		console.log("prevent!!");
+		$(this).parent('.grid').removeClass('hovering');
 		ev.preventDefault();
 		ev.stopPropagation();
+	},
+
+	setTabIdx: function(tabIdx_) {
+		this._tabIndex = tabIdx_;
+		$('#' + this._id).attr('tabindex', this._tabIndex);
+	},
+
+	getTabIdx: function() {
+		return this._tabIndex;
 	}
 });
 
@@ -196,6 +206,20 @@ var DirEntry = FileEntry.extend({
 		this.callSuper(id_, tabIndex_, path_, position_);
 	
 		this._type = 'dir';
+	},
+
+	drop: function(ev) {
+		ev.stopPropagation();
+		ev.preventDefault();
+		$(this).parent('.grid').removeClass('hovering');
+
+		var _id = ev.dataTransfer.getData('ID');
+		if(_id == this.id) return ;
+		var _fs = require('fs');
+		var _name = /^.*[\/]([^\/]*)$/.exec(desktop._widgets[_id]._path);
+		_fs.rename(desktop._widgets[_id]._path
+			, desktop._widgets[this.id]._path + '/' + _name[1]
+			, function() {});
 	}
 });
 
@@ -213,6 +237,7 @@ var ThemeEntry = DEntry.extend({
 		this.callSuper(id_, tabIndex_, path_, position_);
 		this._iconName = iconName_;
 		this._name = name_;
+		this._type = 'theme';
 	},
 
 	show: function() {

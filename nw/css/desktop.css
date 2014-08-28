@@ -49,9 +49,6 @@ html body {
 .icon:hover {
   box-shadow: 0px 0px 2px black;
 }
-.icon:focus {
-  border: 1px dashed black;
-}
 .icon img {
   width: 50px;
   height: 50px;
