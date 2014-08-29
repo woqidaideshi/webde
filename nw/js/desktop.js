@@ -338,6 +338,8 @@ var DesktopWatcher = Event.extend({
 		this._baseDir = undefined;
 		this._oldName = null;
 		this._watcher = null;
+		this._evQueue = [];
+		this._timer = null;
 
 		this._ignoreInitial = ignoreInitial_ || true;
 
@@ -350,41 +352,55 @@ var DesktopWatcher = Event.extend({
 			_this._baseDir = stdout.substr(0, stdout.length - 1);
 			_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
 				for(var i = 0; i < files.length; ++i) {
-					if(!_this._ignoreInitial) //do sth
+					if(!_this._ignoreInitial) //do sth; do not count ignored files
 						;
 					_this._prev++;
 				}
+				var evHandler = function() {
+					var filename = _this._evQueue.pop();
+					_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
+						var cur = 0;
+						for(var i = 0; i < files.length; ++i) {
+							if(!_this._ignoreInitial) //do sth; do not count ignored files
+								;
+							cur++;
+						}
+
+						if(_this._prev < cur) {
+							_this._fs.stat(_this._baseDir + '/桌面/' + filename
+								, function(err, stats) {
+									_this.emit('add', filename, stats);
+								});
+							_this._prev++;
+						} else if(_this._prev > cur) {
+							_this.emit('delete', filename);
+							_this._prev--;
+						} else {
+							if(_this._oldName == null) {
+								_this._oldName = filename;
+								return ;
+							}
+							if(_this.oldName == filename) {
+								_this._oldName = null;
+								return ;
+							}
+							_this.emit('rename', _this._oldName, filename);
+							_this._oldName = null;
+						}
+						if(_this._evQueue.length != 0) evHandler();
+					});
+				};
+				_this._timer = setInterval(function() {
+					if(_this._evQueue.length != 0) {
+						_this._evQueue.reverse();
+						evHandler();
+					}
+				}, 200);
 
 				_this._watcher = _this._fs.watch(_this._baseDir + '/桌面'
 					, function(event, filename) {
 						if(event == 'change') return ;
-						_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
-							var cur = 0;
-							for(var i = 0; i < files.length; ++i) {
-								cur++;
-							}
-
-							if(_this._prev < cur) {
-								_this._fs.stat(_this._baseDir + '/桌面/' + filename
-									, function(err, stats) {
-										_this.emit('add', filename, stats);
-									});
-							} else if(_this._prev > cur) {
-								_this.emit('delete', filename);
-							} else {
-								if(_this._oldName == null) {
-									_this._oldName = filename;
-									return ;
-								}
-								if(_this.oldName == filename) {
-									_this._oldName = null;
-									return ;
-								}
-								_this.emit('rename', _this._oldName, filename);
-								_this._oldName = null;
-							}
-							_this._prev = cur;
-						});
+						_this._evQueue.push(filename);
 					});
 			});
 		});
@@ -396,5 +412,6 @@ var DesktopWatcher = Event.extend({
 
 	close: function() {
 		this._watcher.close();
+		clearInterval(this._timer);
 	}
 });
