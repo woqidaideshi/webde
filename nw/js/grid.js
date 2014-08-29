@@ -217,20 +217,7 @@ var Grid = Widget.extend({
 		ev.stopPropagation();
 		ev.preventDefault();
 		$(this).removeClass('hovering');
-
-		//handle file transfer
-		var _files = ev.dataTransfer.files;
-		if(_files.length != 0) {
-			var _fs = require('fs');
-			var _this = this;
-			for(var i = 0; i < _files.length; ++i) {
-				var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
-				if(_files[i].path == dst) continue;
-				_fs.rename(_files[i].path, dst, function() {});
-			}
-			return ;
-		}
-
+		
 		var t_id = ev.target.id;
 		var _id = ev.dataTransfer.getData("ID");
 		var target = $('#'+t_id);
@@ -240,7 +227,8 @@ var Grid = Widget.extend({
 		var t_col = parseInt(t_arr[1]);
 		var t_row = parseInt(t_arr[2]);
 
-		if(desktop._widgets[_id]._type == 'dockApp'){
+		if(typeof desktop._widgets[_id] !== 'undefined' &&
+				desktop._widgets[_id]._type == 'dockApp'){
 			var id = _id.split('-')[0];
 			if (typeof $('#'+id)[0] !== 'undefined') {
 				alert("The app has been registed in desktop");
@@ -260,6 +248,19 @@ var Grid = Widget.extend({
 				,path
 				,{x:t_col,y:t_row}
 				),{x:t_col,y:t_row});
+			return ;
+		}
+
+		//handle file transfer
+		var _files = ev.dataTransfer.files;
+		if(_files.length != 0) {
+			var _fs = require('fs');
+			var _this = this;
+			for(var i = 0; i < _files.length; ++i) {
+				var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
+				if(_files[i].path == dst) continue;
+				_fs.rename(_files[i].path, dst, function() {});
+			}
 			return ;
 		}
 
