@@ -24,6 +24,9 @@ var DPlugin = Widget.extend({
 
 		var target = document.getElementById(this._id);
 		this.bindDrag(target);
+
+		desktop._ctxMenu.attachToMenu('#' + this._id
+			, desktop._ctxMenu.getMenuByHeader('plugin'));
 	},
 
 	getPosition: function() {return	this._position;},

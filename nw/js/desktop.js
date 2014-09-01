@@ -3,6 +3,7 @@
 var Desktop = Class.extend({
 	init: function() {
 		this._grid = undefined;
+		this._ctxMenu = null;
 		this._tabIndex = 100;
 		this._widgets = [];
 		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
@@ -27,12 +28,10 @@ var Desktop = Class.extend({
 		this._rightMenu = undefined;
 		this._rightObjId = undefined;
 		this.generateGrid();
+		this.initCtxMenu();
 		this.bindingEvents();
 		
 		var _desktop = this;
-		
-		//add dock div to desktop
-		this.addDock();
 		
 		this._desktopWatch = DesktopWatcher.create();
 		this._desktopWatch.on('add', function(filename, stats) {
@@ -78,6 +77,8 @@ var Desktop = Class.extend({
 				console.log(err);
 			} else {
 				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
+				//add dock div to desktop
+				_desktop.addDock();
 				theme.loadThemeEntry(_desktop);
 				_desktop.loadWidgets();
 			}
@@ -90,6 +91,8 @@ var Desktop = Class.extend({
 		win.once('loading', function() {
 			_desktop.refresh();
 		});
+		_desktop._ctxMenu.attachToMenu('html'
+				, _desktop._ctxMenu.getMenuByHeader('desktop'));
 	},
 
 	shutdown: function() {
@@ -101,6 +104,116 @@ var Desktop = Class.extend({
 		this._desktopWatch.close();
 		theme.saveConfig(this);
 		this.saveWidgets();
+	},
+
+	initCtxMenu: function() {
+		this._ctxMenu = ContextMenu.create();
+		$(document).on('mouseover', '.me-codesta', function(){
+			$('.finale h1:first').css({opacity:0});
+			$('.finale h1:last').css({opacity:1});
+		});
+		$(document).on('mouseout', '.me-codesta', function(){
+			$('.finale h1:last').css({opacity:0});
+			$('.finale h1:first').css({opacity:1});
+		});
+		
+		this._ctxMenu.addCtxMenu([
+			{header: 'desktop'},
+			{text: 'terminal', action: function(e) {
+				e.preventDefault();
+				var exec = require('child_process').exec;
+				exec("gnome-terminal", function(err, stdout, stderr) {
+	      	console.log('stdout: ' + stdout);
+	       	console.log('stderr: ' + stderr);
+	      });
+			}},
+			{text:'gedit',action:function(e){
+				e.preventDefault();
+				var exec = require('child_process').exec;
+				exec("gedit",function(err, stdout, stderr){
+	   			console.log('stdout: ' + stdout);
+	   			console.log('stderr: ' + stderr);
+	      });
+			}},
+			{divider: true},
+			{text: 'refresh', action: function(e) {
+				location.reload();
+			}},
+			{text: 'refresh (F5)', action:function(e){
+				location.reload(true);
+			}},
+			{divider: true},
+			{text: 'app plugin', subMenu: [
+				{header: 'plugin'},
+				{text: 'clock', action: function(e) {
+					if (typeof $('#clock')[0] == 'undefined') 
+						desktop.addAnDPlugin(ClockPlugin.create('clock',undefined,'img/clock.png'));
+				}}
+			]}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'plugin'},
+			{text: 'zoom in', action: function(e) {
+				e.preventDefault();
+				var w = $('#'+desktop._rightObjId).width();
+				if(w >= 180) {
+					alert('the plugin has been max size!!');
+				} else {
+					desktop._widgets[desktop._rightObjId].resize(w+20,w+20);
+					var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
+					var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
+					var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
+					var arr = parent_id.split('_');
+					var col = parseInt(arr[1]);
+					var row = parseInt(arr[2]);
+					desktop._grid.flagGridOccupy(col, row, col_num, row_num, true);
+				}
+			}},
+			{text:'zoom out', action:function(e) {
+				e.preventDefault();
+				var w = $('#'+desktop._rightObjId).width();
+				if (w<=60) {
+					alert('the plugin has been min size!!');
+				} else {
+					desktop._widgets[desktop._rightObjId].resize(w-20,w-20);
+					var col_num_old = parseInt(w/desktop._grid._col-0.00001)+1;
+					var row_num_old =  parseInt(w/desktop._grid._row-0.00001)+1;
+					var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
+					var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
+					var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
+					var arr = parent_id.split('_');
+					var col = parseInt(arr[1]);
+					var row = parseInt(arr[2]);
+					desktop._grid.flagGridOccupy(col, row, col_num_old, row_num_old, false);
+					desktop._grid.flagGridOccupy(col, row, col_num, row_num, true);
+				}
+			}},
+			{text:'remove', action:function(e) {
+				desktop.unRegistWidget(desktop._rightObjId);
+				var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
+				var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
+				var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
+				var arr = parent_id.split('_');
+				var col = parseInt(arr[1]);
+				var row = parseInt(arr[2]);
+				desktop._grid.flagGridOccupy(col, row, col_num, row_num, false);
+				$('#'+desktop._rightObjId).remove();
+				e.preventDefault();
+			}}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'dock'},
+			{text: 'set'}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'app-entry'}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'file-entry'}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'theme-entry'}
+		]);
 	},
 	
 	registWidget: function(widget_) {
@@ -190,7 +303,7 @@ var Desktop = Class.extend({
 							,attr[1]));
 					}
 				}
-				_desktop._rightMenu = RightMenu();
+				// _desktop._rightMenu = RightMenu();
 				//handle destop entries
 				var _newEntry = [];
 				_desktop._fs.readdir(_desktop._desktopWatch.getBaseDir()
