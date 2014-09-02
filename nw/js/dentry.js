@@ -88,6 +88,24 @@ var DEntry = Widget.extend({
 
 	getTabIdx: function() {
 		return this._tabIndex;
+	},
+
+	rename: function(callback_) {
+		if(typeof callback_ !== 'function') {
+			throw 'bad type of function!';
+		}
+		desktop._ctxMenu.hide();
+		var $p = $('#' + this._id + ' p');
+		desktop._inputer.show({
+			'left': $p.offset().left,
+			'top': $p.offset().top,
+			'height': $p.height(),
+			'width': $p.width(),
+			'oldtext': $p.text(),
+			'callback': function(newtext) {
+				callback_.call(desktop.getAWidgetById(desktop._rightObjId), newtext);
+			}
+		});
 	}
 });
 
@@ -144,6 +162,18 @@ var AppEntry = DEntry.extend({
 	attachCtxMenu: function() {
 		desktop._ctxMenu.attachToMenu('#' + this._id
 				, desktop._ctxMenu.getMenuByHeader('app-entry'));
+	},
+
+	rename: function(newName_) {
+		//TODO: check name with all app entries
+		if(typeof newName_ === 'undefined') {
+			this.callSuper(this.rename);
+		} else {
+			this._name = newName_;
+			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
+			this._path = _match[1] + this._name;
+			$('#' + this._id + ' p').text(this._name);
+		}
 	}
 });
 
@@ -208,6 +238,23 @@ var FileEntry = DEntry.extend({
 	attachCtxMenu: function() {
 		desktop._ctxMenu.attachToMenu('#' + this._id
 				, desktop._ctxMenu.getMenuByHeader('file-entry'));
+	},
+
+	rename: function(newName_) {
+		if(typeof newName_ === 'undefined') {
+			this.callSuper(this.rename);
+		} else {
+			//TODO: check name with all file entries
+			var _match = /(.*)[\.]([^\.].*)$/.exec(newName_);
+			if(_match(2) != this._type) {
+				//TODO: show warnning!!
+				//TODO: if confirm, reparse the file type
+			}
+			this._name = _match[1];
+			_match = /(.*[\/])([^\/].*)$/.exec(this._path);
+			this._path = _match[1] + newName_;
+			$('#' + this._id + ' p').text(newName_);
+		}
 	}
 });
 
@@ -232,6 +279,18 @@ var DirEntry = FileEntry.extend({
 		_fs.rename(desktop._widgets[_id]._path
 			, desktop._widgets[this.id]._path + '/' + _name[1]
 			, function() {});
+	},
+
+	rename: function(newName_) {
+		if(typeof newName_ === 'undefined') {
+			this.callSuper(this.rename);
+		} else {
+			//TODO: check name with all dir entries
+			this._name = newName_;
+			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
+			this._path = _match[1] + this._name;
+			$('#' + this._id + ' p').text(this._name);
+		}
 	}
 });
 
@@ -277,6 +336,16 @@ var ThemeEntry = DEntry.extend({
 	attachCtxMenu: function() {
 		desktop._ctxMenu.attachToMenu('#' + this._id
 				, desktop._ctxMenu.getMenuByHeader('theme-entry'));
+	},
+
+	rename: function(newName_) {
+		if(typeof newName_ === 'undefined') {
+			this.callSuper(this.rename);
+		} else {
+			//TODO: check name with all theme entries
+			this._name = newName_;
+			$('#' + this._id + ' p').text(this._name);
+		}
 	}
 });
 

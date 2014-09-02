@@ -165,9 +165,7 @@ var ContextMenu = Class.extend({
 
 		var _this = this;
 		$(document).on('click', 'html', function () {
-			$('.dropdown-context').fadeOut(_this._options.fadeSpeed, function() {
-				$('.dropdown-context').css({display:''}).find('.drop-left').removeClass('drop-left');
-			});
+			_this.hide();
 		});
 		if(this._options.preventDoubleContext) {
 			$(document).on('contextmenu', '.dropdown-context', function (e) {
@@ -247,6 +245,25 @@ var ContextMenu = Class.extend({
 		return $menu;
 	},
 
+	removeMenu: function($menu_) {
+		$menu_.remove();
+	},
+
+	show: function($menu_, left_, top_) {
+		$('.dropdown-context:not(.dropdown-context-sub)').hide();
+		
+		$menu_.css({
+			top: top_,
+			left: left_
+		}).fadeIn(this._options.fadeSpeed);
+	},
+
+	hide: function() {
+		$('.dropdown-context').fadeOut(this._options.fadeSpeed, function() {
+			$('.dropdown-context').css({display:''}).find('.drop-left').removeClass('drop-left');
+		});
+	},
+
 	attachToMenu: function(selector_, $menu_) {
 		var _this = this;
 		$(document).on('contextmenu', selector_, function (e) {
@@ -259,22 +276,99 @@ var ContextMenu = Class.extend({
 				}
 				else desktop._rightObjId = e.target.id;
 			}
-			$('.dropdown-context:not(.dropdown-context-sub)').hide();
-			
 			var w = $menu_.width();
 			var h = $menu_.height();
 			left_ = (document.body.clientWidth < e.clientX + w) 
 							? (e.clientX - w) : e.clientX;
 			top_ = ($(document).height()< e.clientY + h + 25) 
 							? (e.clientY-h-10)  : e.clientY;
-			$menu_.css({
-						top: top_,
-						left: left_
-					}).fadeIn(_this._options.fadeSpeed);
+			_this.show($menu_, left_, top_);
 		});
+	},
+
+	detachFromMenu: function(selector_, $menu_) {
+		$(document).off('contextmenu', selector_);
 	},
 
 	activeItem: function() {},
 
 	disableItem: function() {}
+});
+
+var DesktopInputer = Class.extend({
+	init: function(name_) {
+		if(typeof name_ === 'undefined') throw 'Desktop Inputer need a name!!';
+		this._options = {
+			'left': '0',
+			'top': '0',
+			'width': '80',
+			'height': '32'
+		};
+		this.$input = $('<input>', {
+			'type': 'text',
+			'name': name_
+		}).css({
+			'z-index': '9999',
+			'display': 'none',
+			'position': 'absolute'
+		});
+		$('body').append(this.$input);
+
+		$(document).on('click', 'html', function(e) {
+			desktop._inputer.hide();
+		});
+
+		$(document).on('contextmenu', 'html', function(e) {
+			desktop._inputer.hide();
+		});
+
+		$(document).on('click', '[name=' + name_ + ']', function(e) {
+			e.stopPropagation();
+		});
+
+		var _this = this;
+		this.$input.keyup(function(e) {
+			if(e.which == 13) {//enter
+				desktop._inputer.hide();
+			}
+			if(e.which == 27) {//enter
+				_this.$input.text(_this._options.oldtext);
+				desktop._inputer.hide();
+			}
+		});
+	},
+
+	//options: {
+	//  left: left offset to document
+	//  top: top offset to document
+	//  width: width of inputer
+	//  height: height of height
+	//  oldtext: old text to show
+	//  callback: function(input_content)
+	//}
+	show: function(options_) {
+		if(typeof options_.callback !== 'function') {
+			throw 'bad type of callback';
+		}
+		
+		for(var key in options_) {
+			this._options[key] = options_[key];
+		}
+		this.$input.css({
+			'left': this._options.left,
+			'top': this._options.top,
+			'width': this._options.width,
+			'height': this._options.height 
+		});
+		this.$input.val(this._options.oldtext).show();
+		this.$input[0].focus();
+		this.$input[0].select();
+	},
+
+	hide: function() {
+		if(this._options.callback)
+			this._options.callback.call(this, this.$input.val());
+		this._options.callback = null;
+		this.$input.hide();
+	}
 });

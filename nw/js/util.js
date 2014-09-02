@@ -54,7 +54,7 @@ var EntryUtil = Event.extend({
 		//5. if not found, return default icon file path(hicolor)
 		//
 		if(typeof callback_ !== "function")
-			throw "Bad function of callback!!";
+			throw "Bad type of callback!!";
 		
 		var _this = this;
 		var iconTheme = theme.getIconTheme();

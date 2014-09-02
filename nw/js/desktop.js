@@ -4,6 +4,7 @@ var Desktop = Class.extend({
 	init: function() {
 		this._grid = undefined;
 		this._ctxMenu = null;
+		this._inputer = DesktopInputer.create('d-inputer');
 		this._tabIndex = 100;
 		this._widgets = [];
 		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
@@ -169,7 +170,7 @@ var Desktop = Class.extend({
 					desktop._grid.flagGridOccupy(col, row, col_num, row_num, true);
 				}
 			}},
-			{text:'zoom out', action:function(e) {
+			{text: 'zoom out', action: function(e) {
 				e.preventDefault();
 				var w = $('#'+desktop._rightObjId).width();
 				if (w<=60) {
@@ -188,7 +189,7 @@ var Desktop = Class.extend({
 					desktop._grid.flagGridOccupy(col, row, col_num, row_num, true);
 				}
 			}},
-			{text:'remove', action:function(e) {
+			{text: 'remove', action: function(e) {
 				desktop.unRegistWidget(desktop._rightObjId);
 				var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
 				var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
@@ -206,13 +207,34 @@ var Desktop = Class.extend({
 			{text: 'set'}
 		]);
 		this._ctxMenu.addCtxMenu([
-			{header: 'app-entry'}
+			{header: 'app-entry'},
+			{text: 'Open', action: function(e) {
+				desktop.getAWidgetById(desktop._rightObjId).open();
+			}},
+			{text: 'Rename', action: function(e) {
+				e.stopPropagation();
+				desktop.getAWidgetById(desktop._rightObjId).rename();
+			}}
 		]);
 		this._ctxMenu.addCtxMenu([
-			{header: 'file-entry'}
+			{header: 'file-entry'},
+			{text: 'Open', action: function(e) {
+				desktop.getAWidgetById(desktop._rightObjId).open();
+			}},
+			{text: 'Rename', action: function(e) {
+				e.stopPropagation();
+				desktop.getAWidgetById(desktop._rightObjId).rename();
+			}}
 		]);
 		this._ctxMenu.addCtxMenu([
-			{header: 'theme-entry'}
+			{header: 'theme-entry'},
+			{text: 'Open', action: function(e) {
+				desktop.getAWidgetById(desktop._rightObjId).open();
+			}},
+			{text: 'Rename', action: function(e) {
+				e.stopPropagation();
+				desktop.getAWidgetById(desktop._rightObjId).rename();
+			}}
 		]);
 	},
 	
