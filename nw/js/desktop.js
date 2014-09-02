@@ -203,7 +203,11 @@ var Desktop = Class.extend({
 		]);
 		this._ctxMenu.addCtxMenu([
 			{header: 'dock'},
-			{text: 'set'}
+			{text: 'property', action:function(){
+				var property_ = Property.create(desktop._rightObjId);
+				property_.showAppProperty();
+				property_.show();
+			}}
 		]);
 		this._ctxMenu.addCtxMenu([
 			{header: 'app-entry'}

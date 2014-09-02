@@ -155,7 +155,6 @@ var EntryUtil = Event.extend({
 						attr[tmp[0]] += '=' + tmp[j];
 				}
 				console.log("Get desktop file successfully");
-				
 				callback_.call(this, null, attr);
 			}
 		});
@@ -217,6 +216,43 @@ var EntryUtil = Event.extend({
 					});
 		};
 		tryInThisPath(0);
-	}
+	},
 
+	//get property information of filename_
+	//filename_: full file path;
+	//callback_: callback function;
+	getProperty:function(filename_,callback_){
+		var _this = this;
+		if(typeof callback_ !== 'function')
+			throw 'Bad type for callback';
+		_this._exec('stat '+ filename_,function(err,stdout,stderr){
+				if(stdout == '') {//err 
+					throw 'Bad filename_';
+				} else {
+					var attrs = stdout.split('\n');
+					var attr_  = attrs[1].replace(/(\s+$)|(^\s+)/g,"");
+					var size_ = attr_.split(' ')[1];
+					attr_  = attrs[3].replace(/(\s+$)|(^\s+)/g,"");
+					attr_ = attr_.replace(/\s+/g," ");
+					var access_ = attr_.split(' ')[1].substr(6,10);
+					var attr_s = attr_.split(' ');
+					var uid_ = attr_s[5].substr(0,attr_s[5].length -1);
+					var gid_ = attr_s[9].substr(0,attr_s[9].length -1);
+					attr_ = attrs[4].split(' ');
+					var access_time = attr_[1]+' ' + attr_[2].substr(0,8);
+					attr_ = attrs[5].split(' ');
+					var modify_time = attr_[1]+' ' + attr_[2].substr(0,8);
+					var attr = [];
+
+					attr['size'] = size_;
+					attr['access'] = access_;
+					attr['access_time'] = access_time;
+					attr['modify_time'] = modify_time;
+					attr['uid'] = uid_;
+					attr['gid'] = gid_;
+
+					callback_.call(this, null ,attr);
+				}
+		});
+	}
 });

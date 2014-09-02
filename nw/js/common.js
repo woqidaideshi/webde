@@ -255,7 +255,10 @@ var ContextMenu = Class.extend({
 			if (e.target.tagName !== 'HTML') {
 				if (e.target.tagName !== 'DIV') {
 					console.log(e.target.tagName);
-					desktop._rightObjId = $(e.target).parent('div')[0].id;
+					if ( $(e.target).parent('div')[0].id == 'dock') {
+						desktop._rightObjId = e.target.id
+					} 
+					else desktop._rightObjId = $(e.target).parent('div')[0].id;
 				}
 				else desktop._rightObjId = e.target.id;
 			}
