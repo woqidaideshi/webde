@@ -57,6 +57,8 @@ var DEntry = Widget.extend({
 		target_.dblclick(function() {
 			_entry.open();
 		});
+
+		_entry.attachCtxMenu();
 	},
 
 	getName: function() {return this._name;},
@@ -137,6 +139,11 @@ var AppEntry = DEntry.extend({
 				console.log(err);
 			}
 		});
+	},
+
+	attachCtxMenu: function() {
+		desktop._ctxMenu.attachToMenu('#' + this._id
+				, desktop._ctxMenu.getMenuByHeader('app-entry'));
 	}
 });
 
@@ -196,6 +203,11 @@ var FileEntry = DEntry.extend({
 				, function(err, stdout, stderr) {
 					if(err) console.log(err);
 				});
+	},
+
+	attachCtxMenu: function() {
+		desktop._ctxMenu.attachToMenu('#' + this._id
+				, desktop._ctxMenu.getMenuByHeader('file-entry'));
 	}
 });
 
@@ -260,6 +272,11 @@ var ThemeEntry = DEntry.extend({
 				console.log(err);
 			}
 		});
+	},
+
+	attachCtxMenu: function() {
+		desktop._ctxMenu.attachToMenu('#' + this._id
+				, desktop._ctxMenu.getMenuByHeader('theme-entry'));
 	}
 });
 
