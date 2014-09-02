@@ -15,6 +15,9 @@
 		//add dock to body
 		$('body').append(this._dock);
 		this.bindDrag(this._dock[0]);
+
+		desktop._ctxMenu.attachToMenu('#' + this._id
+			, desktop._ctxMenu.getMenuByHeader('dock'));
 	},
 
 	getPosition: function() {return	this._position;},

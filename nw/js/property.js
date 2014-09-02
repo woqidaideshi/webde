@@ -1,37 +1,56 @@
+/* this file is used to show Property windows 
+// and drag property window.
+// author:wangtan
+*/
+
+// Property @extend Class
 var Property = Class.extend({
+	// init Property : include title, button ,and tags;
+	// id_: id of object used to get property information of app file or dir
 	init: function(id_){
 		this._id = id_;
-		this._isMouseDown = false;
-		this._offsetX = 0;
-		this._offsetY = 0;
+		this._isMouseDown = false;  	//flag mouse is down or not  
+		this._offsetX = 0;						//record mouse-x relate property-div left 	
+		this._offsetY = 0;						//record mouse-y relate property-div top
+		//main div
 		var _property = $('<div>', {
 			'class': 'property',
 			'id': id_+'-property'
 		});
+		
+		//title 
 		var _property_title = $('<h2>',{
 			'id': id_+ '-title',
-			'text': desktop._widgets[id_]._name + ' ' + 'property'
+			'text': desktop._widgets[id_]._name + ' ' + '属性'
 		});
-
 		_property.append(_property_title);
+
+		//show information of property
 		var _property_show = $('<div>', {
 			'class': 'property-show'
 		});
-
 		_property.append(_property_show);
-		var _property_tabs  = "<div id='" +this._id+"-tabs' class='property-tabs'><a href='#"+ this._id +"-basic'>basic</a><a href='#"+this._id+"-power'>power</a></div>";
+
+		//tabs of different type of information
+		var _property_tabs  = "<div id='" +this._id
+				+"-tabs' class='property-tabs'><a href='#"
+				+this._id +"-basic'>基本</a><a href='#"
+				+this._id+"-power'>权限</a></div>";
 		_property_show.html(_property_tabs);
 
-		var _property_tab1 =  $('<div>', {
+		//2 tab of basic information
+		var _property_basic =  $('<div>', {
 			'class': 'tabcontent',
 			'id': this._id+'-basic'
 		});
-		_property_show.append(_property_tab1);
-		var _property_tab2 =  $('<div>', {
+		_property_show.append(_property_basic);
+		var _property_power =  $('<div>', {
 			'class': 'tabcontent',
 			'id': this._id+'-power'
 		});
-		_property_show.append(_property_tab2);
+		_property_show.append(_property_power);
+		
+		//button 
 		var _property_close = $('<button>',{
 			'class': 'property-close',
 			'id': this._id+'-close',
@@ -40,16 +59,15 @@ var Property = Class.extend({
 		_property.append(_property_close);
 
 		$('body').append(_property);
-		this.showAppProperty();
-
+		//binding events to the div 
 		this.bindEvents();
 	},
 
+	//bind events to div: include drag, tabs and close
 	bindEvents:function(){
 		var _this = this;
 		// tabs 
 		$(function() {  
-        	//var tabhosts = $(".property-tabs a");  
         	var tabhosts = $($('#'+_this._id+'-tabs').children('a')); 
           	tabhosts.each(function() {
             	$($(this).attr("href")).hide();
@@ -60,7 +78,6 @@ var Property = Class.extend({
                 	event.preventDefault();    
                 	if (!$(this).hasClass("selected")) {  
                     	tabhosts.each(function() {  
-                    		console.log(this.text);
                         	$(this).removeClass("selected");  
                         	$($(this).attr("href")).hide();  
                     	});  
@@ -96,7 +113,7 @@ var Property = Class.extend({
 			$('#'+_this._id+'-property').fadeTo(20, 1);
 		});
 
-		$('#'+_this._id + '-title').mousemove(function(ev){
+		$(document).mousemove(function(ev){
 		if(!_this._isMouseDown) return ;
 		var x = ev.clientX - _this._offsetX; 
 		console.log('ev.x: '+ev.clientX + '   this:x '+_this._offsetX + '  x: ' + x);
@@ -108,6 +125,7 @@ var Property = Class.extend({
 		});
 	},
 
+	//show property inform into tab-basic and tab-power
 	showAppProperty:function(){
 		var path_ = desktop._widgets[this._id]._path;
 		var _this = this;
@@ -188,6 +206,27 @@ var Property = Class.extend({
 			$('#'+_this._id+'-power').append("<p>    <span>▪</span> 其他:  </p>");
 			$('#'+_this._id+'-power').append("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>");
 		});
-	}
+	},
 
+	//show main div of property
+	show:function(){
+		if (typeof $('#' +desktop._rightObjId+ '-property')[0] == 'undefined') {
+				Property.create(desktop._rightObjId);
+			};
+			var showDiv = $('#' +desktop._rightObjId+ '-property');
+			showDiv.width(0);
+			showDiv.height(0);
+			showDiv.css('position','absolute');
+			var left_ = $('#'+desktop._rightObjId).position().left + $('#'+desktop._rightObjId).width()/2;
+			var top_ = $('#dock').position().top;
+			showDiv.css('left',left_+'px');
+			showDiv.css('top',top_+'px');
+			showDiv.show();
+			var box_width =$(window).width()/4;
+			var box_height = $(window).height()/2;
+			var th= $(window).height()/2-box_height/2;
+			var h =document.body.clientHeight;
+			var lw =$(window).width()/2-box_width/2;
+			$('#' +desktop._rightObjId+ '-property').animate({top:th,opacity:'show',width:box_width,height:box_height,left:lw},500);
+		}
 });

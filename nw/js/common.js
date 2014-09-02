@@ -145,3 +145,139 @@ var OrderedQueue = Class.extend({
 	}
 
 });
+
+var ContextMenu = Class.extend({
+	init: function(options_) {
+		this._options = {
+			fadeSpeed: 100,
+			filter: function ($obj) {
+				// Modify $obj, Do not return
+			},
+			above: 'auto',
+			preventDoubleContext: true,
+			compress: false
+		};
+		this._menus = [];
+
+		for(var key in options_) {
+			this._options[key] = options_[key];
+		}
+
+		var _this = this;
+		$(document).on('click', 'html', function () {
+			$('.dropdown-context').fadeOut(_this._options.fadeSpeed, function() {
+				$('.dropdown-context').css({display:''}).find('.drop-left').removeClass('drop-left');
+			});
+		});
+		if(this._options.preventDoubleContext) {
+			$(document).on('contextmenu', '.dropdown-context', function (e) {
+				e.preventDefault();
+			});
+		}
+		$(document).on('mouseenter', '.dropdown-submenu', function(){
+			var $sub = $(this).find('.dropdown-context-sub:first'),
+				subWidth = $sub.width(),
+				subLeft = $sub.offset().left,
+				collision = (subWidth + subLeft) > window.innerWidth;
+			if(collision){
+				$sub.addClass('drop-left');
+			}
+		});
+	},
+
+	getMenuByHeader: function(header_) {
+		return this._menus['dropdown-' + header_];
+	},
+	
+	addItem: function($menu_, item_) {
+		var linkTarget = '';
+		if (typeof item_.divider !== 'undefined') {
+			$menu_.append('<li class="divider"></li>');
+		} else if (typeof item_.header !== 'undefined') {//should be added just once!!
+			$menu_.append('<li class="nav-header">' + item_.header + '</li>');
+		} else {
+			if (typeof item_.href == 'undefined') {
+				item_.href = '#';
+			}
+			if (typeof item_.target !== 'undefined') {
+				linkTarget = ' target="' + item_.target + '"';
+			}
+			if (typeof item_.subMenu !== 'undefined') {
+				$sub = ('<li class="dropdown-submenu"><a tabindex="-1" href="' + item_.href + '">' + item_.text + '</a></li>');
+			} else {
+				$sub = $('<li><a tabindex="-1" href="' + item_.href + '"' + linkTarget + '>' + item_.text + '</a></li>');
+			}
+			if (typeof item_.action !== 'undefined') {
+				var actiond = new Date(),
+					actionID = 'event-' + actiond.getTime() * Math.floor(Math.random()*100000),
+					eventAction = item_.action;
+				$sub.find('a').attr('id', actionID);
+				$('#' + actionID).addClass('context-event');
+				$(document).on('click', '#' + actionID, eventAction);
+			}
+			$menu_.append($sub);
+			if (typeof item_.subMenu != 'undefined') {
+				var subMenuData = this.addCtxMenu(item_.subMenu, true);
+				$menu_.find('li:last').append(subMenuData);
+			}
+		}
+		if (typeof this._options.filter == 'function') {
+			this._options.filter($menu_.find('li:last'));
+		}
+	},
+
+	addCtxMenu: function(data, subMenu) {
+		var subClass = '';
+		var compressed = this._options.compress ? ' compressed-context' : '';
+		if(subMenu) {
+			subClass = ' dropdown-context-sub';
+		} else {
+			$('.dropdown-context').fadeOut(this._options.fadeSpeed, function(){
+				$('.dropdown-context').css({display:''}).find('.drop-left').removeClass('drop-left');
+			});
+		}
+		var _id = 'dropdown-' + data[0].header;
+		var $menu = $('<ul class="dropdown-menu dropdown-context' 
+				+ subClass + compressed + '" id="' + _id + '"></ul>');
+		for(var i = 0; i < data.length; ++i) {
+			this.addItem($menu, data[i]);
+		}
+		$('body').append($menu);
+		this._menus[_id] = $menu;
+		return $menu;
+	},
+
+	attachToMenu: function(selector_, $menu_) {
+		var _this = this;
+		$(document).on('contextmenu', selector_, function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (e.target.tagName !== 'HTML') {
+				if (e.target.tagName !== 'DIV') {
+					console.log(e.target.tagName);
+					if ( $(e.target).parent('div')[0].id == 'dock') {
+						desktop._rightObjId = e.target.id
+					} 
+					else desktop._rightObjId = $(e.target).parent('div')[0].id;
+				}
+				else desktop._rightObjId = e.target.id;
+			}
+			$('.dropdown-context:not(.dropdown-context-sub)').hide();
+			
+			var w = $menu_.width();
+			var h = $menu_.height();
+			left_ = (document.body.clientWidth < e.clientX + w) 
+							? (e.clientX - w) : e.clientX;
+			top_ = ($(document).height()< e.clientY + h + 25) 
+							? (e.clientY-h-10)  : e.clientY;
+			$menu_.css({
+						top: top_,
+						left: left_
+					}).fadeIn(_this._options.fadeSpeed);
+		});
+	},
+
+	activeItem: function() {},
+
+	disableItem: function() {}
+});

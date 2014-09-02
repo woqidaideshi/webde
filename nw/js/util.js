@@ -35,7 +35,7 @@ var EntryUtil = Event.extend({
 							_this._iconSearchPath.push(_this.$xdg_data_dirs[i] + "/icons/");
 						}
 
-						_this._iconSearchPath.push("/usr/share/pixmaps/");
+						_this._iconSearchPath.push("/usr/share/pixmaps");
 					}
 				});
 			}
@@ -84,14 +84,17 @@ var EntryUtil = Event.extend({
 				callback_.call(this, 'Not found');
 				return ;
 			}
-			_this._fs.exists(_this._iconSearchPath[index_] + themeName_, function(exists_) {
+			var _path = _this._iconSearchPath[index_];
+			if(index_ < _this._iconSearchPath.length - 1) _path += themeName_;
+			_this._fs.exists(_path, function(exists_) {
 				if(exists_) {
-					var tmp = 'find ' + _this._iconSearchPath[index_] + themeName_ 
+					var tmp = 'find ' + _path
 						+ ' -regextype \"posix-egrep\" -regex \".*'
-					 	+ size_ + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
+					 	+ ((index_ < _this._iconSearchPath.length - 1)
+						? size_ : '') + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
 					_this._exec(tmp, function(err, stdout, stderr) {
 						if(stdout == '') {
-							_this._fs.readFile(_this._iconSearchPath[index_] + themeName_
+							_this._fs.readFile(_path + '/index.theme'
 								, 'utf-8', function(err, data) {
 									var _parents = [];
 									if(err) {
@@ -215,6 +218,9 @@ var EntryUtil = Event.extend({
 		tryInThisPath(0);
 	},
 
+	//get property information of filename_
+	//filename_: full file path;
+	//callback_: callback function;
 	getProperty:function(filename_,callback_){
 		var _this = this;
 		if(typeof callback_ !== 'function')
@@ -245,7 +251,6 @@ var EntryUtil = Event.extend({
 					attr['uid'] = uid_;
 					attr['gid'] = gid_;
 
-					//attr['size'] = attrs[1].split(':')[2];
 					callback_.call(this, null ,attr);
 				}
 		});

@@ -3,6 +3,7 @@
 var Desktop = Class.extend({
 	init: function() {
 		this._grid = undefined;
+		this._ctxMenu = null;
 		this._tabIndex = 100;
 		this._widgets = [];
 		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
@@ -27,21 +28,10 @@ var Desktop = Class.extend({
 		this._rightMenu = undefined;
 		this._rightObjId = undefined;
 		this.generateGrid();
+		this.initCtxMenu();
 		this.bindingEvents();
 		
 		var _desktop = this;
-		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
-			if(err) {
-				console.log(err);
-			} else {
-				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
-				theme.loadThemeEntry(_desktop);
-				_desktop.loadWidgets();
-			}
-		});
-
-		//add dock div to desktop
-		this.addDock();
 		
 		this._desktopWatch = DesktopWatcher.create();
 		this._desktopWatch.on('add', function(filename, stats) {
@@ -81,6 +71,18 @@ var Desktop = Class.extend({
 		this._desktopWatch.on('rename', function(oldName, newName) {
 			console.log('rename:', oldName, '->', newName);
 		});
+		
+		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
+			if(err) {
+				console.log(err);
+			} else {
+				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
+				//add dock div to desktop
+				_desktop.addDock();
+				theme.loadThemeEntry(_desktop);
+				_desktop.loadWidgets();
+			}
+		});
 	},
 
 	bindingEvents: function() {
@@ -89,6 +91,8 @@ var Desktop = Class.extend({
 		win.once('loading', function() {
 			_desktop.refresh();
 		});
+		_desktop._ctxMenu.attachToMenu('html'
+				, _desktop._ctxMenu.getMenuByHeader('desktop'));
 	},
 
 	shutdown: function() {
@@ -100,6 +104,120 @@ var Desktop = Class.extend({
 		this._desktopWatch.close();
 		theme.saveConfig(this);
 		this.saveWidgets();
+	},
+
+	initCtxMenu: function() {
+		this._ctxMenu = ContextMenu.create();
+		$(document).on('mouseover', '.me-codesta', function(){
+			$('.finale h1:first').css({opacity:0});
+			$('.finale h1:last').css({opacity:1});
+		});
+		$(document).on('mouseout', '.me-codesta', function(){
+			$('.finale h1:last').css({opacity:0});
+			$('.finale h1:first').css({opacity:1});
+		});
+		
+		this._ctxMenu.addCtxMenu([
+			{header: 'desktop'},
+			{text: 'terminal', action: function(e) {
+				e.preventDefault();
+				var exec = require('child_process').exec;
+				exec("gnome-terminal", function(err, stdout, stderr) {
+	      	console.log('stdout: ' + stdout);
+	       	console.log('stderr: ' + stderr);
+	      });
+			}},
+			{text:'gedit',action:function(e){
+				e.preventDefault();
+				var exec = require('child_process').exec;
+				exec("gedit",function(err, stdout, stderr){
+	   			console.log('stdout: ' + stdout);
+	   			console.log('stderr: ' + stderr);
+	      });
+			}},
+			{divider: true},
+			{text: 'refresh', action: function(e) {
+				location.reload();
+			}},
+			{text: 'refresh (F5)', action:function(e){
+				location.reload(true);
+			}},
+			{divider: true},
+			{text: 'app plugin', subMenu: [
+				{header: 'plugin'},
+				{text: 'clock', action: function(e) {
+					if (typeof $('#clock')[0] == 'undefined') 
+						desktop.addAnDPlugin(ClockPlugin.create('clock',undefined,'img/clock.png'));
+				}}
+			]}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'plugin'},
+			{text: 'zoom in', action: function(e) {
+				e.preventDefault();
+				var w = $('#'+desktop._rightObjId).width();
+				if(w >= 180) {
+					alert('the plugin has been max size!!');
+				} else {
+					desktop._widgets[desktop._rightObjId].resize(w+20,w+20);
+					var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
+					var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
+					var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
+					var arr = parent_id.split('_');
+					var col = parseInt(arr[1]);
+					var row = parseInt(arr[2]);
+					desktop._grid.flagGridOccupy(col, row, col_num, row_num, true);
+				}
+			}},
+			{text:'zoom out', action:function(e) {
+				e.preventDefault();
+				var w = $('#'+desktop._rightObjId).width();
+				if (w<=60) {
+					alert('the plugin has been min size!!');
+				} else {
+					desktop._widgets[desktop._rightObjId].resize(w-20,w-20);
+					var col_num_old = parseInt(w/desktop._grid._col-0.00001)+1;
+					var row_num_old =  parseInt(w/desktop._grid._row-0.00001)+1;
+					var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
+					var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
+					var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
+					var arr = parent_id.split('_');
+					var col = parseInt(arr[1]);
+					var row = parseInt(arr[2]);
+					desktop._grid.flagGridOccupy(col, row, col_num_old, row_num_old, false);
+					desktop._grid.flagGridOccupy(col, row, col_num, row_num, true);
+				}
+			}},
+			{text:'remove', action:function(e) {
+				desktop.unRegistWidget(desktop._rightObjId);
+				var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
+				var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
+				var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
+				var arr = parent_id.split('_');
+				var col = parseInt(arr[1]);
+				var row = parseInt(arr[2]);
+				desktop._grid.flagGridOccupy(col, row, col_num, row_num, false);
+				$('#'+desktop._rightObjId).remove();
+				e.preventDefault();
+			}}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'dock'},
+			{text: 'property', action:function(){
+				var property_ = Property.create(desktop._rightObjId);
+				property_.showAppProperty();
+				property_.show();
+			}}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'app-entry'}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'file-entry'}
+		]);
+		this._ctxMenu.addCtxMenu([
+			{header: 'theme-entry'}
+		]);
 	},
 	
 	registWidget: function(widget_) {
@@ -142,6 +260,7 @@ var Desktop = Class.extend({
 
 	loadWidgets: function() {
 		var _desktop = this;
+		var _lastSave = [];
 		this._fs.readFile(this._xdg_data_home + "dwidgets/dentries"
 				, 'utf-8', function(err, data) {
 			if(err) {
@@ -149,13 +268,12 @@ var Desktop = Class.extend({
 			} else {
 				var lines = data.split('\n');
 				for(var i = 0; i < lines.length; ++i) {
-					if(lines[i].match('[\s,\t]*#+') != null) continue;  //??????????????????????
+					if(lines[i].match('[\s,\t]*#+') != null) continue;
 					if(lines[i] == "") continue;
 					var attr = lines[i].split('$');
 					if(attr.length != 5) continue;
 				/*need add a type judge
 				*/
-				var _Entry = null;
 				var _Plugin = null;
 				var _dockApp = null;
 					switch(attr[4]) {
@@ -168,23 +286,17 @@ var Desktop = Class.extend({
 						case "dockApp":
 							_dockApp = DockApp;
 							break;
-						case "app": 
-							_Entry = AppEntry;
-							break;
-						case "dir":
-							_Entry = DirEntry;
-							break;
 						default:
-							_Entry = FileEntry;
+							_lastSave[attr[0]] = {
+								path: attr[1],
+								x: attr[2],
+								y: attr[3],
+								type: attr[4]
+							};
+						
 					}
 
-					if (_Entry != null ) {
-						_desktop.addAnDEntry(_Entry.create(attr[0]
-							, _desktop._tabIndex++
-							, attr[1]
-							, {x: attr[2], y: attr[3]}
-							), {x: attr[2], y: attr[3]});
-					} else if (_Plugin != null) {
+					if (_Plugin != null) {
 						_desktop.addAnDPlugin(_Plugin.create(attr[0]
 								,{x: attr[2], y: attr[3]}
 								,attr[1]
@@ -195,7 +307,53 @@ var Desktop = Class.extend({
 							,attr[1]));
 					}
 				}
-				_desktop._rightMenu = RightMenu();
+				// _desktop._rightMenu = RightMenu();
+				//handle destop entries
+				var _newEntry = [];
+				_desktop._fs.readdir(_desktop._desktopWatch.getBaseDir()
+						, function(err, files) {
+							var traverse = function(idx_) {
+								if(idx_ == files.length) {
+									for(var key in _newEntry) {
+										_desktop._desktopWatch.emit('add'
+											, _newEntry[key].filename
+											, _newEntry[key].stats);
+									}
+									return ;
+								}
+								_desktop._fs.stat(
+									_desktop._desktopWatch.getBaseDir() + '/' + files[idx_]
+									, function(err, stats) {
+										var _id = 'id-' + stats.ino.toString();
+										if(typeof _lastSave[_id] != 'undefined') {
+											var _Entry = null;
+											switch(_lastSave[_id].type) {
+												case "app":
+													_Entry = AppEntry;
+													break;
+												case "dir":
+													_Entry = DirEntry;
+													break;
+												default:
+													_Entry = FileEntry;
+											}
+
+										_desktop.addAnDEntry(_Entry.create(_id
+											, _desktop._tabIndex++
+											, _lastSave[_id].path
+											, {x: _lastSave[_id].x, y: _lastSave[_id].y}
+											), {x: _lastSave[_id].x, y: _lastSave[_id].y});
+										} else {
+											_newEntry[_id] = {
+												'filename': files[idx_],
+												'stats': stats
+											};
+										}
+										traverse(idx_ + 1);
+									});
+							}
+							traverse(0);
+						});
 			}
 		});
 	},
@@ -299,6 +457,8 @@ var DesktopWatcher = Event.extend({
 		this._baseDir = undefined;
 		this._oldName = null;
 		this._watcher = null;
+		this._evQueue = [];
+		this._timer = null;
 
 		this._ignoreInitial = ignoreInitial_ || true;
 
@@ -311,41 +471,55 @@ var DesktopWatcher = Event.extend({
 			_this._baseDir = stdout.substr(0, stdout.length - 1);
 			_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
 				for(var i = 0; i < files.length; ++i) {
-					if(!_this._ignoreInitial) //do sth
+					if(!_this._ignoreInitial) //do sth; do not count ignored files
 						;
 					_this._prev++;
 				}
+				var evHandler = function() {
+					var filename = _this._evQueue.pop();
+					_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
+						var cur = 0;
+						for(var i = 0; i < files.length; ++i) {
+							if(!_this._ignoreInitial) //do sth; do not count ignored files
+								;
+							cur++;
+						}
+
+						if(_this._prev < cur) {
+							_this._fs.stat(_this._baseDir + '/桌面/' + filename
+								, function(err, stats) {
+									_this.emit('add', filename, stats);
+								});
+							_this._prev++;
+						} else if(_this._prev > cur) {
+							_this.emit('delete', filename);
+							_this._prev--;
+						} else {
+							if(_this._oldName == null) {
+								_this._oldName = filename;
+								return ;
+							}
+							if(_this.oldName == filename) {
+								_this._oldName = null;
+								return ;
+							}
+							_this.emit('rename', _this._oldName, filename);
+							_this._oldName = null;
+						}
+						if(_this._evQueue.length != 0) evHandler();
+					});
+				};
+				_this._timer = setInterval(function() {
+					if(_this._evQueue.length != 0) {
+						_this._evQueue.reverse();
+						evHandler();
+					}
+				}, 200);
 
 				_this._watcher = _this._fs.watch(_this._baseDir + '/桌面'
 					, function(event, filename) {
 						if(event == 'change') return ;
-						_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
-							var cur = 0;
-							for(var i = 0; i < files.length; ++i) {
-								cur++;
-							}
-
-							if(_this._prev < cur) {
-								_this._fs.stat(_this._baseDir + '/桌面/' + filename
-									, function(err, stats) {
-										_this.emit('add', filename, stats);
-									});
-							} else if(_this._prev > cur) {
-								_this.emit('delete', filename);
-							} else {
-								if(_this._oldName == null) {
-									_this._oldName = filename;
-									return ;
-								}
-								if(_this.oldName == filename) {
-									_this._oldName = null;
-									return ;
-								}
-								_this.emit('rename', _this._oldName, filename);
-								_this._oldName = null;
-							}
-							_this._prev = cur;
-						});
+						_this._evQueue.push(filename);
 					});
 			});
 		});
@@ -357,5 +531,6 @@ var DesktopWatcher = Event.extend({
 
 	close: function() {
 		this._watcher.close();
+		clearInterval(this._timer);
 	}
 });
