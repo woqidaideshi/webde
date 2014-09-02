@@ -102,7 +102,24 @@ var RightMenu = function(){
 
 	var dockMenu = [
 		{header:'dock'},
-		{text:'set'}
+		{text:'property',action:function(e){
+			if (typeof $('#' +desktop._rightObjId+ '-property')[0] == 'undefined') {
+				Property.create(desktop._rightObjId);
+			};
+			var showDiv = $('#' +desktop._rightObjId+ '-property');
+			showDiv.css('position','absolute');
+			var left_ = $('#'+desktop._rightObjId).position().left + $('#'+desktop._rightObjId).width()/2;
+			var top_ = $('#dock').position().top;
+			showDiv.css('left',left_+'px');
+			showDiv.css('top',top_+'px');
+			showDiv.show();
+			var box_width =$(window).width()/4;
+			var box_height = $(window).height()/2;
+			var th= $(window).height()/2-box_height/2;
+			var h =document.body.clientHeight;
+			var lw =$(window).width()/2-box_width/2;
+			$('#' +desktop._rightObjId+ '-property').animate({top:th,opacity:'show',width:box_width,height:box_height,left:lw},500);
+		}}
 	]
 
 	context.attach('html',htmlMenu);
@@ -110,14 +127,4 @@ var RightMenu = function(){
 	context.attach('.plugin-div',pluginMenu);
 	context.attach('#dock img',dockMenu) 
 	
-
-		$(document).on('mouseover', '.me-codesta', function(){
-		$('.finale h1:first').css({opacity:0});
-		$('.finale h1:last').css({opacity:1});
-	});
-	
-	$(document).on('mouseout', '.me-codesta', function(){
-		$('.finale h1:last').css({opacity:0});
-		$('.finale h1:first').css({opacity:1});
-	});
 }

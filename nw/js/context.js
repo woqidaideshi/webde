@@ -104,7 +104,7 @@ var context = context || (function () {
 			e.preventDefault();
 			e.stopPropagation();
 			if (e.target.tagName !== 'HTML') {
-				if (e.target.tagName !== 'DIV') {
+				if (typeof desktop._widgets[e.target.id] == 'undefined') {
 					console.log(e.target.tagName);
 					desktop._rightObjId = $(e.target).parent('div')[0].id;
 				}

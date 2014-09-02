@@ -162,6 +162,7 @@ var DockApp = Class.extend({
 		var imgList = $('#dock img');
 		if (imgList.length < 1) $('#dock').append(_this._image);
 		
+		//arreng dock app 
 		var insert = false;
 		for (var i = 0; i < imgList.length; i++) {
 			if (_this._position.x <=  desktop._widgets[imgList[i].id]._position.x && insert == false) {
