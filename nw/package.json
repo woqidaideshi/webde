@@ -1,5 +1,5 @@
 {
-	"name": "test",
+	"name": "demo-webde",
 	"main": "index.html",
 	"nodejs": true,
 	"window": {
