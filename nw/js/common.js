@@ -301,16 +301,22 @@ var DesktopInputer = Class.extend({
 		this._options = {
 			'left': '0',
 			'top': '0',
-			'width': '80',
+			'width': '100',
 			'height': '32'
 		};
-		this.$input = $('<input>', {
-			'type': 'text',
-			'name': name_
+		this.$input = $('<textarea>', {
+			// 'type': 'text',
+			'name': name_,
 		}).css({
 			'z-index': '9999',
 			'display': 'none',
-			'position': 'absolute'
+			'position': 'absolute',
+			'font-size': 'small',
+			'white-space': 'pre',
+			'-webkit-user-select': 'none',
+			'-moz-user-select': 'none',
+			'resize': 'none',
+			'overflow-y': 'hidden'
 		});
 		$('body').append(this.$input);
 
@@ -332,7 +338,7 @@ var DesktopInputer = Class.extend({
 				desktop._inputer.hide();
 			}
 			if(e.which == 27) {//enter
-				_this.$input.text(_this._options.oldtext);
+				_this.$input.val(_this._options.oldtext);
 				desktop._inputer.hide();
 			}
 		});
@@ -367,7 +373,7 @@ var DesktopInputer = Class.extend({
 
 	hide: function() {
 		if(this._options.callback)
-			this._options.callback.call(this, this.$input.val());
+			this._options.callback.call(this, this.$input.val().replace(/\n$/, ''));
 		this._options.callback = null;
 		this.$input.hide();
 	}

@@ -71,6 +71,13 @@ var Desktop = Class.extend({
 		});
 		this._desktopWatch.on('rename', function(oldName, newName) {
 			console.log('rename:', oldName, '->', newName);
+			var _path = _desktop._desktopWatch.getBaseDir() + '/' + oldName;
+			var _entry = _desktop.getAWidgetByAttr('_path', _path);
+			if(_entry == null) {
+				console.log('Can not find this widget');
+				return ;
+			}
+			_entry.rename(newName);
 		});
 		
 		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
@@ -209,9 +216,11 @@ var Desktop = Class.extend({
 		this._ctxMenu.addCtxMenu([
 			{header: 'app-entry'},
 			{text: 'Open', action: function(e) {
+				e.preventDefault();
 				desktop.getAWidgetById(desktop._rightObjId).open();
 			}},
 			{text: 'Rename', action: function(e) {
+				e.preventDefault();
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}}
@@ -219,9 +228,11 @@ var Desktop = Class.extend({
 		this._ctxMenu.addCtxMenu([
 			{header: 'file-entry'},
 			{text: 'Open', action: function(e) {
+				e.preventDefault();
 				desktop.getAWidgetById(desktop._rightObjId).open();
 			}},
 			{text: 'Rename', action: function(e) {
+				e.preventDefault();
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}}
@@ -229,9 +240,11 @@ var Desktop = Class.extend({
 		this._ctxMenu.addCtxMenu([
 			{header: 'theme-entry'},
 			{text: 'Open', action: function(e) {
+				e.preventDefault();
 				desktop.getAWidgetById(desktop._rightObjId).open();
 			}},
 			{text: 'Rename', action: function(e) {
+				e.preventDefault();
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}}

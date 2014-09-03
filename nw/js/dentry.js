@@ -59,6 +59,12 @@ var DEntry = Widget.extend({
 		});
 
 		_entry.attachCtxMenu();
+
+		target_.mouseenter(function() {
+			$(this).parent().addClass('norhover');
+		}).mouseleave(function() {
+			$(this).parent().removeClass('norhover');
+		});
 	},
 
 	getName: function() {return this._name;},
@@ -77,6 +83,7 @@ var DEntry = Widget.extend({
 	drop: function(ev) {
 		console.log("prevent!!");
 		$(this).parent('.grid').removeClass('hovering');
+		$(this).parent('.grid').removeClass('norhover');
 		ev.preventDefault();
 		ev.stopPropagation();
 	},
@@ -90,20 +97,34 @@ var DEntry = Widget.extend({
 		return this._tabIndex;
 	},
 
-	rename: function(callback_) {
-		if(typeof callback_ !== 'function') {
-			throw 'bad type of function!';
-		}
+	rename: function() {
 		desktop._ctxMenu.hide();
 		var $p = $('#' + this._id + ' p');
 		desktop._inputer.show({
-			'left': $p.offset().left,
+			'left': $p.parent().parent().offset().left,
 			'top': $p.offset().top,
 			'height': $p.height(),
-			'width': $p.width(),
+			'width': $p.parent().parent().width(),
 			'oldtext': $p.text(),
 			'callback': function(newtext) {
-				callback_.call(desktop.getAWidgetById(desktop._rightObjId), newtext);
+				// entry's name is not changed
+				var _entry = desktop.getAWidgetById(desktop._rightObjId);
+				if(_entry._name == newtext) return ;
+				// entry's name has already existed
+				var _entries = desktop._dEntrys._items;
+				for(var i = 0; i < _entries.length; ++i) {
+					if(_entries[i]._name == newtext) {
+						alert(newtext + ' has already existed');
+						return ;
+					}
+				}
+
+				var fs = require('fs'); 
+				fs.rename(_entry._path
+					, desktop._desktopWatch.getBaseDir() + '/' + newtext
+					, function(err) {
+						if(err) console.log(err);
+					}); 
 			}
 		});
 	}
@@ -167,7 +188,7 @@ var AppEntry = DEntry.extend({
 	rename: function(newName_) {
 		//TODO: check name with all app entries
 		if(typeof newName_ === 'undefined') {
-			this.callSuper(this.rename);
+			this.callSuper();
 		} else {
 			this._name = newName_;
 			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
@@ -183,14 +204,17 @@ var FileEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
 		
-		var match = /^.*[\/]([^\/]*)[\.]([^\.]*)$/.exec(path_);
-		if(match == null) {
-			match = /^.*[\/]([^\/]*)$/.exec(path_);
-			this._type = '';
-		} else {
-			this._type = match[2];
-		}
+	 /*  var match = /^.*[\/]([^\/]*)[\.]([^\.]*)$/.exec(path_); */
+		/* if(match == null) { */
+		var	match = /^.*[\/]([^\/]*)$/.exec(path_);
+	 /*    this._type = ''; */
+		// } else {
+			// this._type = match[2];
+	/*   } */
 		this._name = match[1];
+		this._type = 'file';
+		match = this._name.match(/[\.][^\.]*$/);
+		if(match != null) this._type = match[0].substr(1);
 	},
 	
 	show: function() {
@@ -222,9 +246,9 @@ var FileEntry = DEntry.extend({
 				});
 			
 		});
-		var _name = (this._type == '' || this._type == 'dir') 
-									? this._name : (this._name + '.' + this._type);
-		$('#' + _this._id + ' p').text(_name);
+		/* var _name = (this._type == '' || this._type == 'dir')  */
+									/* ? this._name : (this._name + '.' + this._type); */
+		$('#' + _this._id + ' p').text(_this._name);
 	},
 
 	open: function() {
@@ -242,15 +266,15 @@ var FileEntry = DEntry.extend({
 
 	rename: function(newName_) {
 		if(typeof newName_ === 'undefined') {
-			this.callSuper(this.rename);
+			this.callSuper();
 		} else {
 			//TODO: check name with all file entries
 			var _match = /(.*)[\.]([^\.].*)$/.exec(newName_);
-			if(_match(2) != this._type) {
-				//TODO: show warnning!!
-				//TODO: if confirm, reparse the file type
+			if(_match != null && _match[2] != this._type) {
+				//TODO: reparse the file type
+				this._type = _match[2];
 			}
-			this._name = _match[1];
+			this._name = newName_;
 			_match = /(.*[\/])([^\/].*)$/.exec(this._path);
 			this._path = _match[1] + newName_;
 			$('#' + this._id + ' p').text(newName_);
@@ -283,7 +307,7 @@ var DirEntry = FileEntry.extend({
 
 	rename: function(newName_) {
 		if(typeof newName_ === 'undefined') {
-			this.callSuper(this.rename);
+			this.callSuper();
 		} else {
 			//TODO: check name with all dir entries
 			this._name = newName_;
@@ -340,7 +364,7 @@ var ThemeEntry = DEntry.extend({
 
 	rename: function(newName_) {
 		if(typeof newName_ === 'undefined') {
-			this.callSuper(this.rename);
+			this.callSuper();
 		} else {
 			//TODO: check name with all theme entries
 			this._name = newName_;

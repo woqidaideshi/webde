@@ -36,18 +36,27 @@ html body {
   width: 100%;
   height: 100%;
 }
+.box-sizing {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+}
 .icon {
   width: 80px;
   height: 80px;
   margin: 5px 10px;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-box-pack: center;
   -webkit-box-align: center;
   z-index: 99;
-}
-.icon:hover {
-  box-shadow: 0px 0px 2px black;
 }
 .icon img {
   width: 50px;
@@ -96,6 +105,12 @@ html body {
   -moz-box-shadow: 0px 0px 10px 0px #000000 inset;
   -o-box-shadow: 0px 0px 10px 0px #000000 inset;
   box-shadow: 0px 0px 10px 0px #000000 inset;
+}
+.gridcontainer .gridcol .grid.norhover {
+  -webkit-box-shadow: 0px 0px 3px black;
+  -moz-box-shadow: 0px 0px 3px black;
+  -o-box-shadow: 0px 0px 3px black;
+  box-shadow: 0px 0px 3px black;
 }
 #menu {
   display: none;
