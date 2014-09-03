@@ -15,13 +15,13 @@ html body {
   width: 300px;
 }
 .row1 {
-  height: 90px;
+  height: 100px;
 }
 .row2 {
-  height: 180px;
+  height: 200px;
 }
 .row3 {
-  height: 270px;
+  height: 300px;
 }
 .desktop {
   position: absolute;
@@ -89,7 +89,7 @@ html body {
 }
 .gridcontainer .gridcol .grid {
   width: 100%;
-  height: 90px;
+  height: 100px;
   display: block;
   vertical-align: middle;
   -webkit-user-select: none;
