@@ -108,15 +108,7 @@ var Desktop = Class.extend({
 
 	initCtxMenu: function() {
 		this._ctxMenu = ContextMenu.create();
-		$(document).on('mouseover', '.me-codesta', function(){
-			$('.finale h1:first').css({opacity:0});
-			$('.finale h1:last').css({opacity:1});
-		});
-		$(document).on('mouseout', '.me-codesta', function(){
-			$('.finale h1:last').css({opacity:0});
-			$('.finale h1:first').css({opacity:1});
-		});
-		
+
 		this._ctxMenu.addCtxMenu([
 			{header: 'desktop'},
 			{text: 'terminal', action: function(e) {
@@ -155,49 +147,14 @@ var Desktop = Class.extend({
 			{header: 'plugin'},
 			{text: 'zoom in', action: function(e) {
 				e.preventDefault();
-				var w = $('#'+desktop._rightObjId).width();
-				if(w >= 180) {
-					alert('the plugin has been max size!!');
-				} else {
-					desktop._widgets[desktop._rightObjId].resize(w+20,w+20);
-					var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
-					var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
-					var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
-					var arr = parent_id.split('_');
-					var col = parseInt(arr[1]);
-					var row = parseInt(arr[2]);
-					desktop._grid.flagGridOccupy(col, row, col_num, row_num, true);
-				}
+				desktop._widgets[desktop._rightObjId].zoomIn();
 			}},
 			{text:'zoom out', action:function(e) {
 				e.preventDefault();
-				var w = $('#'+desktop._rightObjId).width();
-				if (w<=60) {
-					alert('the plugin has been min size!!');
-				} else {
-					desktop._widgets[desktop._rightObjId].resize(w-20,w-20);
-					var col_num_old = parseInt(w/desktop._grid._col-0.00001)+1;
-					var row_num_old =  parseInt(w/desktop._grid._row-0.00001)+1;
-					var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
-					var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
-					var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
-					var arr = parent_id.split('_');
-					var col = parseInt(arr[1]);
-					var row = parseInt(arr[2]);
-					desktop._grid.flagGridOccupy(col, row, col_num_old, row_num_old, false);
-					desktop._grid.flagGridOccupy(col, row, col_num, row_num, true);
-				}
+				desktop._widgets[desktop._rightObjId].zoomOut();
 			}},
 			{text:'remove', action:function(e) {
-				desktop.unRegistWidget(desktop._rightObjId);
-				var col_num = parseInt($('#'+desktop._rightObjId).width()/desktop._grid._col-0.00001)+1;
-				var row_num =  parseInt($('#'+desktop._rightObjId).height()/desktop._grid._row-0.00001)+1;
-				var parent_id = $('#'+ desktop._rightObjId).parent('.grid')[0].id;
-				var arr = parent_id.split('_');
-				var col = parseInt(arr[1]);
-				var row = parseInt(arr[2]);
-				desktop._grid.flagGridOccupy(col, row, col_num, row_num, false);
-				$('#'+desktop._rightObjId).remove();
+				desktop._widgets[desktop._rightObjId].remove();
 				e.preventDefault();
 			}}
 		]);
@@ -274,14 +231,14 @@ var Desktop = Class.extend({
 					if(attr.length != 5) continue;
 				/*need add a type judge
 				*/
-				var _Plugin = null;
+				var _plugin = null;
 				var _dockApp = null;
 					switch(attr[4]) {
 						case "ClockPlugin":
-							_Plugin = ClockPlugin;
+							_plugin = ClockPlugin;
 							break;
 						case "ImagePlugin":
-							_Plugin = PicPlugin;
+							_plugin = PicPlugin;
 							break;
 						case "dockApp":
 							_dockApp = DockApp;
@@ -296,8 +253,8 @@ var Desktop = Class.extend({
 						
 					}
 
-					if (_Plugin != null) {
-						_desktop.addAnDPlugin(_Plugin.create(attr[0]
+					if (_plugin != null) {
+						_desktop.addAnDPlugin(_plugin.create(attr[0]
 								,{x: attr[2], y: attr[3]}
 								,attr[1]
 								), {x: attr[2], y: attr[3]});

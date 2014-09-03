@@ -129,8 +129,8 @@ var Property = Class.extend({
 	showAppProperty:function(){
 		var path_ = desktop._widgets[this._id]._path;
 		var _this = this;
-		//create a div for show the msg
-		
+		if ($('#'+_this._id + '-basic').children('p').length != 0) return ;
+		//get some basic inform and write to tabbasic 
 		utilIns.entryUtil.parseDesktopFile(path_, function(err_, file_) {
 			if(err_) { 
 				console.log(err_);
@@ -151,7 +151,7 @@ var Property = Class.extend({
 			$(tabhosts[0]).addClass("selected");  
             $($(tabhosts[0]).attr("href")).show(); 
 		});
-
+		//get some basic inform and access inform
 		utilIns.entryUtil.getProperty(path_, function(err_,attr_) {
 			if (typeof attr_ == 'undefined') {
 				console.log('get Property err');
@@ -195,14 +195,14 @@ var Property = Class.extend({
 				else if (power_[2] == 's') {power += '超级执行'};
 				if (power != '') {power += '权限'};
 			}
-			var access_ = attr_['access'];
-			checkPower(access_.substr(1,3));
+			var _access = attr_['access'];
+			checkPower(_access.substr(1,3));
 			$('#'+_this._id+'-power').append("<p>    <span>▪</span>所有者:  " + attr_['uid'] + "</p>");
 			$('#'+_this._id+'-power').append("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>");
-			checkPower(access_.substr(4,3));
+			checkPower(_access.substr(4,3));
 			$('#'+_this._id+'-power').append("<p>    <span>▪</span>用户组:  " + attr_['gid'] + "</p>");
 			$('#'+_this._id+'-power').append("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>");
-			checkPower(access_.substr(7,3));
+			checkPower(_access.substr(7,3));
 			$('#'+_this._id+'-power').append("<p>    <span>▪</span> 其他:  </p>");
 			$('#'+_this._id+'-power').append("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>");
 		});
@@ -210,9 +210,7 @@ var Property = Class.extend({
 
 	//show main div of property
 	show:function(){
-		if (typeof $('#' +desktop._rightObjId+ '-property')[0] == 'undefined') {
-				Property.create(desktop._rightObjId);
-			};
+		if ($('#' +desktop._rightObjId+ '-property').is(":visible") == false) {
 			var showDiv = $('#' +desktop._rightObjId+ '-property');
 			showDiv.width(0);
 			showDiv.height(0);
@@ -224,9 +222,9 @@ var Property = Class.extend({
 			showDiv.show();
 			var box_width =$(window).width()/4;
 			var box_height = $(window).height()/2;
-			var th= $(window).height()/2-box_height/2;
-			var h =document.body.clientHeight;
-			var lw =$(window).width()/2-box_width/2;
-			$('#' +desktop._rightObjId+ '-property').animate({top:th,opacity:'show',width:box_width,height:box_height,left:lw},500);
+			var top_property= $(window).height()/2-box_height/2;
+			var left_property =$(window).width()/2-box_width/2;
+			$('#' +desktop._rightObjId+ '-property').animate({top:top_property,opacity:'show',width:box_width,height:box_height,left:left_property},500);
 		}
+	}
 });

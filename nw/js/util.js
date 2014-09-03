@@ -254,5 +254,18 @@ var EntryUtil = Event.extend({
 					callback_.call(this, null ,attr);
 				}
 		});
+	},
+	// copy file ;
+	// from : fromPath_,
+	// to : outPath_.
+	copyFile:function(fromPath_, outPath_){
+		var _fs = require('fs');
+		_fs.readFile(fromPath_, function(err, data){
+			_fs.writeFile(outPath_, data, function(err){
+				if (err) {
+					console.log(err);
+				}
+			});
+		});
 	}
 });

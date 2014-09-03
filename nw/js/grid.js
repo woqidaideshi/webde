@@ -218,14 +218,14 @@ var Grid = Widget.extend({
 		ev.preventDefault();
 		$(this).removeClass('hovering');
 		
-		var t_id = ev.target.id;
+		var _target_id = ev.target.id;
 		var _id = ev.dataTransfer.getData("ID");
-		var target = $('#'+t_id);
+		var _target = $('#'+_target_id);
 
 		//get target position
-		var t_arr = t_id.split('_');
-		var t_col = parseInt(t_arr[1]);
-		var t_row = parseInt(t_arr[2]);
+		var _target_arr = _target_id.split('_');
+		var _target_col = parseInt(_target_arr[1]);
+		var _target_row = parseInt(_target_arr[2]);
 
 		if(typeof desktop._widgets[_id] !== 'undefined' &&
 				desktop._widgets[_id]._type == 'dockApp'){
@@ -234,20 +234,19 @@ var Grid = Widget.extend({
 				alert("The app has been registed in desktop");
 				return ;
 			};
-			var tabIndex = desktop._tabIndex++;
-			var path = desktop._widgets[_id]._path;
-			var imgList = $('#dock img');
-			for (var i = 0,n = 0; i < imgList.length; i++) {
-				if(imgList[i].id == _id) continue;
-				desktop._widgets[imgList[i].id]._position.x = n++;
+			var _tabIndex = desktop._tabIndex++;
+			var _path = desktop._widgets[_id]._path;
+			var _tmp = _path.split('/');
+			var _name = _tmp[_tmp.length -1];
+			var _imgList = $('#dock img');
+			for (var i = 0,n = 0; i < _imgList.length; i++) {
+				if(_imgList[i].id == _id) continue;
+				desktop._widgets[_imgList[i].id]._position.x = n++;
 			}
 			desktop.unRegistWidget(_id);
 			$('#'+_id).remove();
-			desktop.addAnDEntry(AppEntry.create(id
-				,tabIndex
-				,path
-				,{x:t_col,y:t_row}
-				),{x:t_col,y:t_row});
+			var _dst = desktop._desktopWatch.getBaseDir()+'/' + _name;
+			utilIns.entryUtil.copyFile(_path, _dst, function(){ });
 			return ;
 		}
 
@@ -264,10 +263,33 @@ var Grid = Widget.extend({
 			return ;
 		}
 
-		//get source occupy number of grids follow x or y 
-		var col_num = parseInt($('#' + _id).width()/target.width()-0.00001)+1;
-		var row_num =  parseInt($('#' + _id).height()/target.height()-0.00001)+1;
+		//handle item transfer (not support chinese) 
+		var _items = ev.dataTransfer.items;
+		if (_items.length != 0 && typeof desktop._widgets[_id] == 'undefined') {
+			var _fs = require('fs');
+			_items[0].getAsString(function(data){
+				console.log(data);
+				for (var i = 0; ; i++) {
+					if(_fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
+						continue;
+					} else {
+						_fs.writeFile(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt', data.toString(), function(err) {
+							if (err) throw err;
+							console.log('It\'s saved!');
+						});
+					}
+				};
+			});
+		};
 
+		if (typeof desktop._widgets[_id] == 'undefined') return ;
+		//get source occupy number of grids follow x or y 
+		var col_num = 1;
+		var row_num =  1;	
+		if (desktop._widgets[_id]._type.match(/\w*Plugin/) != null) {
+			col_num = desktop._widgets[_id].getColNum();
+			row_num =  desktop._widgets[_id].getRowNum();
+		};
 		//get Grid obj
 		var desktopGrid = desktop.getGrid();
 
@@ -281,7 +303,7 @@ var Grid = Widget.extend({
 		desktopGrid.flagGridOccupy(col, row, col_num, row_num, false);
 
 		//find Idle grids arround from the target grid
-		var pos_ = desktopGrid.findIdleGrid(t_col,t_row,col_num,row_num);
+		var pos_ = desktopGrid.findIdleGrid(_target_col,_target_row,col_num,row_num);
 		if (pos_ != null) {
 			$('#grid_'+pos_.x+'_'+pos_.y).append($('#'+_id));
 			console.log(_id + " ---> " + pos_.x + '  '  + pos_.y);
@@ -295,7 +317,7 @@ var Grid = Widget.extend({
 		}
 
 		desktopGrid.flagGridOccupy(col, row, col_num, row_num, true);
-		console.log(t_id + " is occupied");
+		console.log(_target_id + " is occupied");
 	},
 
 	dragEnter: function(ev) {
