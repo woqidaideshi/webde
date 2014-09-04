@@ -17,7 +17,7 @@
 		this._dockWatch.on('add', function(filename, stats) {
 			//console.log('add:', filename, stats);
 			var _filenames = filename.split('.');
-			var _Dock = 'undefined';
+			var _Dock = undefined;
 			
 			if(_filenames[0] == '') {
 				return ;//ignore hidden files
@@ -86,32 +86,32 @@
 				desktop._widgets[_id]._type == 'app') || 
 				ev.dataTransfer.files.length != 0) {
 			if (typeof $('#insert')[0] == 'undefined') {
-				_source = $('<img>',{
+				_source = $('<div>',{
 					'id': 'insert',
-					'src': 'img/insert.gif'
 				});
+				_source.html("<img src='img/insert.gif'/>" );
 			}else _source = $('#insert');
 		}
 		else return;
 		// 
-		var new_img = null;
-		var imgList = $('#dock img');
-		for (var i = 0; i < imgList.length+1; i++) {
-			if (i == imgList.length) {
-				new_img = null;
+		var _new_div = null;
+		var _divList = $('#dock div');
+		for (var i = 0; i < _divList.length+1; i++) {
+			if (i == _divList.length) {
+				_new_div = null;
 				break;
 			}
-			if (imgList[i].id == _source[0].id) continue;
-			var img = $(imgList[i]);
-			if (ev.clientX < img.position().left + img.width()/2) {
-				new_img = img;
+			if (_divList[i].id == _source[0].id) continue;
+			var _div = $(_divList[i]);
+			if (ev.clientX < _div.position().left + _div.width()/2) {
+				_new_div = _div;
 				break;
 			};
 		};
-		if (new_img == null ) 
+		if (_new_div == null ) 
 			$('#dock').append(_source);
-		else if (null != new_img) 
-			new_img.before(_source);
+		else if (null != _new_div) 
+			_new_div.before(_source);
 	},
 
 	dragleave:function(ev){
@@ -129,16 +129,16 @@
 		var _source = $('#'+_id);
 		if (typeof desktop._widgets[_id] != 'undefined' &&
 				desktop._widgets[_id]._type == 'dockApp') {
-			var imgList = $('#dock img');
-			for (var i = 0; i < imgList.length; i++) {
-				desktop._widgets[imgList[i].id]._position.x = i;
+			var _divList = $('#dock div');
+			for (var i = 0; i < _divList.length; i++) {
+				desktop._widgets[_divList[i].id]._position.x = i;
 			};
 		} 
 		else {
-			var imgList = $('#dock img');
-			for (var i = 0; i < imgList.length; i++) {
-				if (imgList[i].id == 'insert') {
-					$(imgList[i]).remove();
+			var _divList = $('#dock div');
+			for (var i = 0; i < _divList.length; i++) {
+				if (_divList[i].id == 'insert') {
+					$(_divList[i]).remove();
 					desktop._dock._index = i;
 					break ;
 				} 
@@ -183,8 +183,8 @@ var DockApp = Class.extend({
 			//return ;
 			throw "Dock-APP: Not enough params!! Init failed!!";
 		}
-		this._id = id_;
- 		this._name = id_;
+		this._id = id_+'-dock';
+ 		this._name = id_ + '-dock';
  		this._path = path_;
  		this._type = "dockApp";
  		this._position = {x:x_, y:0};
@@ -196,27 +196,34 @@ var DockApp = Class.extend({
  		this._exec = require('child_process').exec;
 
  		this. _image = $('<img>',{
+			'id':this._id+'-img',
+			'draggable': 'false',
+			'onselectstart': 'return false'
+		});
+
+		this._dockdiv = $('<div>',{
 			'id':this._id,
 			'draggable': 'true',
 			'onselectstart': 'return false'
 		});
+		this._dockdiv.append(this._image);
 	},
 
  	show: function() {
 		var _this = this;
-		var imgList = $('#dock img');
-		if (imgList.length < 1) $('#dock').append(_this._image);
+		var divList = $('#dock div');
+		if (divList.length < 1) $('#dock').append(_this._dockdiv);
 		
-		//arreng dock app 
+		//arrange dock app 
 		var insert = false;
-		for (var i = 0; i < imgList.length; i++) {
-			if (_this._position.x <=  desktop._widgets[imgList[i].id]._position.x && insert == false) {
-				$(imgList[i]).before(_this._image);
+		for (var i = 0; i < divList.length; i++) {
+			if (_this._position.x <=  desktop._widgets[divList[i].id]._position.x && insert == false) {
+				$(divList[i]).before(_this._dockdiv);
 				insert = true;
 			}
-			if (desktop._widgets[imgList[i].id]._position.x < i) desktop._widgets[imgList[i].id]._position.x = i;
+			if (desktop._widgets[divList[i].id]._position.x < i) desktop._widgets[divList[i].id]._position.x = i;
 		}
-		if (insert == false)  $('#dock').append(_this._image);
+		if (insert == false)  $('#dock').append(_this._dockdiv);
 		
 		
  		utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
@@ -230,7 +237,7 @@ var DockApp = Class.extend({
 					console.log(err_);
 				} else {
 					_this._imgPath = imgPath_[0];
-					$('#' + _this._id).attr('src', _this._imgPath);
+					$('#' + _this._id+'-img').attr('src', _this._imgPath);
 				}
 			});
 			//get name
@@ -239,14 +246,15 @@ var DockApp = Class.extend({
 			} else {
 				_this._name = file_['Name'];
 			}
-			$('#' + _this._id).attr('title', _this._name);
+			$('#' + _this._id+'-img').attr('title', _this._name);
 		});
 
 		this.bindEvents();
+		this._index = 0;
 	},
 
 	openApp: function(){
-		var image = $('#'+this._id);
+		var image = $('#'+this._id+'-img');
 
 			//when don't open the app.
 		console.log("click " + image[0].style.borderStyle);
@@ -276,7 +284,7 @@ var DockApp = Class.extend({
 	},
 
 	bindEvents: function() {
-		var img = $('#'+this._id);
+		var img = $('#'+this._id+'-img');
 		var target_ = this;
 		  	//add onclick()
 		img.click (function(ev){
@@ -285,12 +293,12 @@ var DockApp = Class.extend({
 
 
 		var dock = $('#dock');
-		var imgList = dock.children('img');
-		var imgArt = parseInt($('.dock img').css('width')); 
-		var _imgMaxWidth = imgArt * 2;
-   		var _imgMaxHeight = imgArt * 2;
-   		var _distance = imgArt * 3.5;
-   		console.log(imgArt+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
+		var imgList = $('#dock div img');
+		var IMGART = 50; 
+		var _imgMaxWidth = IMGART * 2;
+   		var _imgMaxHeight = IMGART * 2;
+   		var _distance = IMGART * 3.5;
+   		console.log(IMGART+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
 		document.onmousemove = function (ev) {
      		var ev = ev || window.event;
      		for (var i = 0; i <imgList.length; i++) {
@@ -308,11 +316,13 @@ var DockApp = Class.extend({
    		}
 
    		this.bingTitle(img);
-   		this.bindDrag(img[0]);
+   		this.bindDrag($('#'+this._id)[0]);
 	},
 
 	bindDrag:function(target){
 		target.ondragstart = this.drag;
+		target.ondragover = this.dragOver;
+		target.ondrop = this.drop;
 	},
 
 	bingTitle:function(target){
@@ -329,7 +339,7 @@ var DockApp = Class.extend({
 	},
 
 	drag: function(ev) {
-		ev.target.title = this._name; 
+		$(ev.target).children('img')[0].title = this._name; 
 		$('.tooltip').remove();
 		console.log("drag start");
 		ev.dataTransfer.setData("ID", ev.currentTarget.id);
@@ -338,6 +348,10 @@ var DockApp = Class.extend({
 	},
 
 	dragOver: function(ev) {
+		ev.preventDefault();
+	},
+
+	drop:function(ev){
 		ev.preventDefault();
 	},
 
@@ -373,7 +387,7 @@ var DockApp = Class.extend({
 
 	getID: function() {return this._id;},
 
-	setID: function(id_) {this._id = id_;},//needed?
+	setID: function(id_) {this._id = id_ + '-dock';},//needed?
 
 	getName: function() {return this._name;},
 

@@ -254,11 +254,9 @@ var ContextMenu = Class.extend({
 			e.stopPropagation();
 			if (e.target.tagName !== 'HTML') {
 				if (e.target.tagName !== 'DIV') {
-					console.log(e.target.tagName);
-					if ( $(e.target).parent('div')[0].id == 'dock') {
-						desktop._rightObjId = e.target.id
-					} 
-					else desktop._rightObjId = $(e.target).parent('div')[0].id;
+					if (typeof $(e.target).parent('div')[0] != 'undefined') {
+						desktop._rightObjId = $(e.target).parent('div')[0].id;
+					}
 				}
 				else desktop._rightObjId = e.target.id;
 			}
