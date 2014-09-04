@@ -1,5 +1,15 @@
 For web devironment.
 
 Copy files in config into $HOME/.local/share/
+then mkdir dock @$HOME/.local/share/
+then copy some apps from /usr/share/applications/ to $HOME/.local/share/dock
+
 You can use commad like:
 	cp -r config/* $HOME/.local/share/
+	mkdir $HOME/.local/share/dock
+	cp /usr/share/applications/firefox.desktop $HOME/.local/share/dock/
+	cp /usr/share/applications/gedit.desktop $HOME/.local/share/dock/
+	cp /usr/share/applications/gnome-terminal.desktop $HOME/.local/share/dock/
+	cp /usr/share/applications/totem.desktop $HOME/.local/share/dock/
+	cp /usr/share/applications/cinnamon-settings.desktop $HOME/.local/share/dock/
+	chmod +x $HOME/.local/share/dock/*

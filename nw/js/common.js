@@ -281,3 +281,96 @@ var ContextMenu = Class.extend({
 
 	disableItem: function() {}
 });
+
+//watch  dir :Default is desktop
+//dir_: dir is watched 
+// ignoreInitial_:
+var Watcher = Event.extend({
+	init: function(dir_, ignoreInitial_) {
+		if (typeof dir_ == 'undefined') {
+			dir_ = '/桌面';
+		};
+		this._prev = 0;
+		this._baseDir = undefined;
+		this._watchDir = dir_;
+		this._oldName = null;
+		this._watcher = null;
+		this._evQueue = [];
+		this._timer = null;
+
+		this._ignoreInitial = ignoreInitial_ || true;
+
+		this._fs = require('fs');
+		this._exec = require('child_process').exec;
+
+		var _this = this;
+		this._exec('echo $HOME', function(err, stdout, stderr) {
+			if(err) throw err;
+			_this._baseDir = stdout.substr(0, stdout.length - 1);
+			_this._fs.readdir(_this._baseDir+_this._watchDir, function(err, files) {
+				for(var i = 0; i < files.length; ++i) {
+					if(!_this._ignoreInitial) //do sth; do not count ignored files
+						;
+					_this._prev++;
+				}
+				var evHandler = function() {
+					var filename = _this._evQueue.pop();
+					_this._fs.readdir(_this._baseDir +_this._watchDir, function(err, files) {
+						var cur = 0;
+						for(var i = 0; i < files.length; ++i) {
+							if(!_this._ignoreInitial) //do sth; do not count ignored files
+								;
+							cur++;
+						}
+
+						if(_this._prev < cur) {
+							_this._fs.stat(_this._baseDir +_this._watchDir+'/' + filename
+								, function(err, stats) {
+									_this.emit('add', filename, stats);
+								});
+							_this._prev++;
+						} else if(_this._prev > cur) {
+							_this.emit('delete', filename);
+							_this._prev--;
+						} else {
+							if(_this._oldName == null) {
+								_this._oldName = filename;
+								return ;
+							}
+							if(_this.oldName == filename) {
+								_this._oldName = null;
+								return ;
+							}
+							_this.emit('rename', _this._oldName, filename);
+							_this._oldName = null;
+						}
+						if(_this._evQueue.length != 0) evHandler();
+					});
+				};
+				_this._timer = setInterval(function() {
+					if(_this._evQueue.length != 0) {
+						_this._evQueue.reverse();
+						evHandler();
+					}
+				}, 200);
+
+				_this._watcher = _this._fs.watch(_this._baseDir+_this._watchDir
+					, function(event, filename) {
+						if(event == 'change') return ;
+						_this._evQueue.push(filename);
+					});
+			});
+		});
+	},
+
+	//get dir 
+	getBaseDir: function() {
+		return this._baseDir + this._watchDir;
+	},
+
+	//close watch()
+	close: function() {
+		this._watcher.close();
+		clearInterval(this._timer);
+	}
+});

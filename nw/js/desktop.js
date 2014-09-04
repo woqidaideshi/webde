@@ -24,16 +24,17 @@ var Desktop = Class.extend({
 		this._exec = require('child_process').exec;
 		this._fs = require('fs');
 		this._xdg_data_home = undefined;
-		this._dock = undefined;
 		this._rightMenu = undefined;
 		this._rightObjId = undefined;
 		this.generateGrid();
 		this.initCtxMenu();
 		this.bindingEvents();
+		this._dock = Dock.create();
 		
 		var _desktop = this;
 		
-		this._desktopWatch = DesktopWatcher.create();
+		this._DESKTOP_DIR = '/桌面';
+		this._desktopWatch = Watcher.create(this._DESKTOP_DIR);
 		this._desktopWatch.on('add', function(filename, stats) {
 			//console.log('add:', filename, stats);
 			var _filenames = filename.split('.');
@@ -78,7 +79,7 @@ var Desktop = Class.extend({
 			} else {
 				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
 				//add dock div to desktop
-				_desktop.addDock();
+				_desktop._dock.bingEvent();
 				theme.loadThemeEntry(_desktop);
 				_desktop.loadWidgets();
 			}
@@ -231,8 +232,7 @@ var Desktop = Class.extend({
 					if(attr.length != 5) continue;
 				/*need add a type judge
 				*/
-				var _plugin = null;
-				var _dockApp = null;
+					var _plugin = null;
 					switch(attr[4]) {
 						case "ClockPlugin":
 							_plugin = ClockPlugin;
@@ -240,78 +240,89 @@ var Desktop = Class.extend({
 						case "ImagePlugin":
 							_plugin = PicPlugin;
 							break;
-						case "dockApp":
-							_dockApp = DockApp;
-							break;
 						default:
 							_lastSave[attr[0]] = {
 								path: attr[1],
 								x: attr[2],
 								y: attr[3],
 								type: attr[4]
-							};
-						
+							};	
 					}
-
 					if (_plugin != null) {
 						_desktop.addAnDPlugin(_plugin.create(attr[0]
-								,{x: attr[2], y: attr[3]}
-								,attr[1]
-								), {x: attr[2], y: attr[3]});
-					}else if(_dockApp != null){
-						_desktop.addAnAppToDock(_dockApp.create(attr[0]
-							,attr[2]
-							,attr[1]));
+							,{x: attr[2], y: attr[3]}
+							,attr[1]
+							), {x: attr[2], y: attr[3]});
 					}
 				}
-				// _desktop._rightMenu = RightMenu();
 				//handle destop entries
-				var _newEntry = [];
-				_desktop._fs.readdir(_desktop._desktopWatch.getBaseDir()
-						, function(err, files) {
-							var traverse = function(idx_) {
-								if(idx_ == files.length) {
-									for(var key in _newEntry) {
-										_desktop._desktopWatch.emit('add'
-											, _newEntry[key].filename
-											, _newEntry[key].stats);
-									}
-									return ;
-								}
-								_desktop._fs.stat(
-									_desktop._desktopWatch.getBaseDir() + '/' + files[idx_]
-									, function(err, stats) {
-										var _id = 'id-' + stats.ino.toString();
-										if(typeof _lastSave[_id] != 'undefined') {
-											var _Entry = null;
-											switch(_lastSave[_id].type) {
-												case "app":
-													_Entry = AppEntry;
-													break;
-												case "dir":
-													_Entry = DirEntry;
-													break;
-												default:
-													_Entry = FileEntry;
-											}
-
-										_desktop.addAnDEntry(_Entry.create(_id
-											, _desktop._tabIndex++
-											, _lastSave[_id].path
-											, {x: _lastSave[_id].x, y: _lastSave[_id].y}
-											), {x: _lastSave[_id].x, y: _lastSave[_id].y});
-										} else {
-											_newEntry[_id] = {
-												'filename': files[idx_],
-												'stats': stats
-											};
-										}
-										traverse(idx_ + 1);
-									});
-							}
-							traverse(0);
-						});
+				_desktop.addWidgets(_lastSave, _desktop._desktopWatch.getBaseDir()
+						,_desktop._desktopWatch);
+				//handle dock entries
+				_desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir()
+						,_desktop._dock._dockWatch);
 			}
+		});
+	},
+	//add entries by argv
+	//lastSave_: saved config argv, from <dentries> file
+	// dir_: full dir for watch ,such as: /home/user/桌面
+	// watch_: watch_ is _desktopWatch or _dockWatch
+	addWidgets:function(lastSave_, dir_, watch_){
+		var _desktop = this;
+		var _newEntry = [];
+		_desktop._fs.readdir(dir_
+				, function(err, files) {
+			var traverse = function(index_) {
+				if(index_ == files.length) {
+					for(var key in _newEntry) {
+						watch_.emit('add'
+							, _newEntry[key].filename
+							, _newEntry[key].stats);
+					}
+					return ;
+				}
+				_desktop._fs.stat(
+						dir_ + '/' + files[index_]
+						, function(err, stats) {
+					var _id = 'id-' + stats.ino.toString();
+					if(typeof lastSave_[_id] != 'undefined') {
+						var _Entry = null;
+						var _DockApp = null
+						switch(lastSave_[_id].type) {
+							case "dockApp":
+								_DockApp = DockApp;
+							case "app":
+								_Entry = AppEntry;
+								break;
+							case "dir":
+								_Entry = DirEntry;
+								break;
+							default:
+								_Entry = FileEntry;
+						}
+						if (_DockApp != null) {
+							_desktop.addAnAppToDock(_DockApp.create(_id
+								,lastSave_[_id].x
+								,lastSave_[_id].path));
+						}else if (_Entry != null) {
+							_desktop.addAnDEntry(_Entry.create(_id
+								, _desktop._tabIndex++
+								, lastSave_[_id].path
+								, {x: lastSave_[_id].x, y: lastSave_[_id].y}
+								), {x: lastSave_[_id].x, y: lastSave_[_id].y});
+						}
+					} else {
+						_newEntry[_id] = {
+							'filename': files[index_],
+							'stats': stats
+						};
+					}
+					traverse(index_ + 1);
+				});
+			}
+			traverse(0);
+
 		});
 	},
 
@@ -388,106 +399,24 @@ var Desktop = Class.extend({
 		plugin_.setPosition(pos_);
 		plugin_.show();
 		plugin_.setPanel(path_);
-		//this._grid._grid[pos_.x][pos_.y].use = true;
 		//get number of occupy-grid col and row
-		var col_num = parseInt($('.plugin-div').width()/this._grid._col-0.00001)+1;
-		var row_num =  parseInt($('.plugin-div').height()/this._grid._row-0.00001)+1;
-		this._grid.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
+		this._grid.flagGridOccupy(pos_.x, pos_.y, plugin_._col_num, plugin_._row_num, true);
 	},
 
-	addDock:function(position_ ){
-		this._dock = Dock.create(position_);
-		this._dock.setPosition();
-		this._dock.show();
+	addDock:function(){
+		this._dock = Dock.create();
 	},
 
 	addAnAppToDock:function(dockApp_){
 		if(!this.registWidget(dockApp_)) return ;
 		dockApp_.show();
+	},
+
+	deleteAnAppFromDock:function(dockApp_)
+	{
+		this.unRegistWidget(dockApp_.getID());
+		$('#'+dockApp_.getID()).remove();
+		dockApp_ = undefined;
 	}
 	
-});
-
-var DesktopWatcher = Event.extend({
-	init: function(ignoreInitial_) {
-		this._prev = 0;
-		this._baseDir = undefined;
-		this._oldName = null;
-		this._watcher = null;
-		this._evQueue = [];
-		this._timer = null;
-
-		this._ignoreInitial = ignoreInitial_ || true;
-
-		this._fs = require('fs');
-		this._exec = require('child_process').exec;
-
-		var _this = this;
-		this._exec('echo $HOME', function(err, stdout, stderr) {
-			if(err) throw err;
-			_this._baseDir = stdout.substr(0, stdout.length - 1);
-			_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
-				for(var i = 0; i < files.length; ++i) {
-					if(!_this._ignoreInitial) //do sth; do not count ignored files
-						;
-					_this._prev++;
-				}
-				var evHandler = function() {
-					var filename = _this._evQueue.pop();
-					_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
-						var cur = 0;
-						for(var i = 0; i < files.length; ++i) {
-							if(!_this._ignoreInitial) //do sth; do not count ignored files
-								;
-							cur++;
-						}
-
-						if(_this._prev < cur) {
-							_this._fs.stat(_this._baseDir + '/桌面/' + filename
-								, function(err, stats) {
-									_this.emit('add', filename, stats);
-								});
-							_this._prev++;
-						} else if(_this._prev > cur) {
-							_this.emit('delete', filename);
-							_this._prev--;
-						} else {
-							if(_this._oldName == null) {
-								_this._oldName = filename;
-								return ;
-							}
-							if(_this.oldName == filename) {
-								_this._oldName = null;
-								return ;
-							}
-							_this.emit('rename', _this._oldName, filename);
-							_this._oldName = null;
-						}
-						if(_this._evQueue.length != 0) evHandler();
-					});
-				};
-				_this._timer = setInterval(function() {
-					if(_this._evQueue.length != 0) {
-						_this._evQueue.reverse();
-						evHandler();
-					}
-				}, 200);
-
-				_this._watcher = _this._fs.watch(_this._baseDir + '/桌面'
-					, function(event, filename) {
-						if(event == 'change') return ;
-						_this._evQueue.push(filename);
-					});
-			});
-		});
-	},
-
-	getBaseDir: function() {
-		return this._baseDir + '/桌面';
-	},
-
-	close: function() {
-		this._watcher.close();
-		clearInterval(this._timer);
-	}
 });

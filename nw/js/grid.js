@@ -246,7 +246,8 @@ var Grid = Widget.extend({
 			desktop.unRegistWidget(_id);
 			$('#'+_id).remove();
 			var _dst = desktop._desktopWatch.getBaseDir()+'/' + _name;
-			utilIns.entryUtil.copyFile(_path, _dst, function(){ });
+			var _fs = require('fs');
+			_fs.rename(_path, _dst, function() {});
 			return ;
 		}
 
@@ -254,7 +255,6 @@ var Grid = Widget.extend({
 		var _files = ev.dataTransfer.files;
 		if(_files.length != 0) {
 			var _fs = require('fs');
-			var _this = this;
 			for(var i = 0; i < _files.length; ++i) {
 				var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
 				if(_files[i].path == dst) continue;
@@ -273,7 +273,7 @@ var Grid = Widget.extend({
 					if(_fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
 						continue;
 					} else {
-						_fs.writeFile(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt', data.toString(), function(err) {
+						_fs.writeFile(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt', data,'utf8', function(err) {
 							if (err) throw err;
 							console.log('It\'s saved!');
 						});
