@@ -5,6 +5,7 @@ var Desktop = Class.extend({
 		this._grid = undefined;
 		this._ctxMenu = null;
 		this._tabIndex = 100;
+		this._position = {x:0,y:0};
 		this._widgets = [];
 		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
 			var pos1 = entry1_.getPosition();
@@ -56,7 +57,8 @@ var Desktop = Class.extend({
 			_desktop.addAnDEntry(_Entry.create('id-' + stats.ino.toString()
 					, _desktop._tabIndex++
 					, _desktop._desktopWatch.getBaseDir() + '/' + filename
-					));
+					,_desktop._position
+					),_desktop._position);
 		});
 		this._desktopWatch.on('delete', function(filename) {
 			//console.log('delete:', filename);
@@ -301,17 +303,26 @@ var Desktop = Class.extend({
 							default:
 								_Entry = FileEntry;
 						}
-						if (_DockApp != null) {
-							_desktop.addAnAppToDock(_DockApp.create(_id
-								,lastSave_[_id].x
-								,lastSave_[_id].path));
-						}else if (_Entry != null) {
-							_desktop.addAnDEntry(_Entry.create(_id
-								, _desktop._tabIndex++
-								, lastSave_[_id].path
-								, {x: lastSave_[_id].x, y: lastSave_[_id].y}
-								), {x: lastSave_[_id].x, y: lastSave_[_id].y});
-						}
+						_desktop._fs.exists(lastSave_[_id].path,function(exists_){
+							if (exists_) {
+								if (_DockApp != null) {
+									_desktop.addAnAppToDock(_DockApp.create(_id
+									,lastSave_[_id].x
+									,lastSave_[_id].path));
+								} else if (_Entry != null) {
+								_desktop.addAnDEntry(_Entry.create(_id
+									, _desktop._tabIndex++
+									, lastSave_[_id].path
+									, {x: lastSave_[_id].x, y: lastSave_[_id].y}
+									), {x: lastSave_[_id].x, y: lastSave_[_id].y});
+								}
+							} else {
+								_newEntry[_id] = {
+									'filename': files[index_],
+									'stats': stats
+								};
+							}
+						});
 					} else {
 						_newEntry[_id] = {
 							'filename': files[index_],
@@ -347,7 +358,8 @@ var Desktop = Class.extend({
 
 	addAnDEntry: function(entry_, pos_) {
 		if(!this.registWidget(entry_)) return ;
-		if(typeof pos_ === 'undefined') {
+		if(typeof pos_ === 'undefined' || 
+				typeof $('#grid_' + pos_.x + '_' + pos_.y).children('div')[0] != 'undefined') {
 			pos_ = this._grid.findAnIdleGrid();
 			if(pos_ == null) {
 				alert("No room");

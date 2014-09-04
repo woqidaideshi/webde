@@ -145,7 +145,10 @@ html body {
   width: 100%;
   text-align: center;
 }
-.dock img {
+.dock div{
+  display:inline-block;
+}
+.dock div img {
   width: 50px;
   height: 50px;
   -webkit-user-select: none;

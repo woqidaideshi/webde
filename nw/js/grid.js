@@ -226,6 +226,7 @@ var Grid = Widget.extend({
 		var _target_arr = _target_id.split('_');
 		var _target_col = parseInt(_target_arr[1]);
 		var _target_row = parseInt(_target_arr[2]);
+		desktop._position={x:_target_col,y:_target_row};
 
 		if(typeof desktop._widgets[_id] !== 'undefined' &&
 				desktop._widgets[_id]._type == 'dockApp'){
@@ -238,10 +239,10 @@ var Grid = Widget.extend({
 			var _path = desktop._widgets[_id]._path;
 			var _tmp = _path.split('/');
 			var _name = _tmp[_tmp.length -1];
-			var _imgList = $('#dock img');
-			for (var i = 0,n = 0; i < _imgList.length; i++) {
-				if(_imgList[i].id == _id) continue;
-				desktop._widgets[_imgList[i].id]._position.x = n++;
+			var _divList = $('#dock div');
+			for (var i = 0,n = 0; i < _divList.length; i++) {
+				if(_divList[i].id == _id) continue;
+				desktop._widgets[_divList[i].id]._position.x = n++;
 			}
 			desktop.unRegistWidget(_id);
 			$('#'+_id).remove();
@@ -273,10 +274,12 @@ var Grid = Widget.extend({
 					if(_fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
 						continue;
 					} else {
+						console.log(data);
 						_fs.writeFile(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt', data,'utf8', function(err) {
 							if (err) throw err;
 							console.log('It\'s saved!');
 						});
+						return ;
 					}
 				};
 			});
