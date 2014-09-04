@@ -1,31 +1,60 @@
 //dock.js  for dock 
  var Dock = Class.extend({
-	init: function(position_){
+	init: function(){
 		this._id = "dock";
- 		this._position = position_;
  		this._class = "dock";
  		this._name = "dock";
+ 		this._index = 0;
  		this._dock = $('<div>', {
 			'class': this._class,
 			'id': this._id,
 			'onselectstart': 'return false'
 		});
-	},
- 	show: function() {
-		//add dock to body
 		$('body').append(this._dock);
+
+ 		this._DOCK_DIR = '/.local/share/dock';
+		this._dockWatch = Watcher.create(this._DOCK_DIR);
+		this._dockWatch.on('add', function(filename, stats) {
+			//console.log('add:', filename, stats);
+			var _filenames = filename.split('.');
+			var _Dock = 'undefined';
+			
+			if(_filenames[0] == '') {
+				return ;//ignore hidden files
+			}
+			if((!stats.isDirectory()) && _filenames[_filenames.length - 1] == 'desktop') {
+				_Dock = DockApp;
+			}
+			if (typeof _Dock != 'undefined') {
+				desktop.addAnAppToDock(_Dock.create('id-' + stats.ino.toString()
+					, desktop._dock._index
+					, desktop._dock._dockWatch.getBaseDir() + '/' + filename
+				));
+			}
+		});
+		this._dockWatch.on('delete', function(filename) {
+			//console.log('delete:', filename);
+			//find entry object by path
+			var _path = desktop._dock._dockWatch.getBaseDir() + '/' + filename;
+			var _dockApp = desktop.getAWidgetByAttr('_path', _path);
+			if(_dockApp == null) {
+				console.log('Can not find this widget');
+				return ;
+			}
+			desktop.deleteAnAppFromDock(_dockApp);
+		});
+		this._dockWatch.on('rename', function(oldName, newName) {
+			console.log('rename:', oldName, '->', newName);
+		});
+
+	},
+ 	bingEvent: function() {
+		//add dock to body
+		
 		this.bindDrag(this._dock[0]);
 
 		desktop._ctxMenu.attachToMenu('#' + this._id
 			, desktop._ctxMenu.getMenuByHeader('dock'));
-	},
-
-	getPosition: function() {return	this._position;},
-
-	setPosition: function(position_) {
-		//redraw it with new position
-		//$('#' + id).attr();
-		this._position = position_;
 	},
 
 	getID: function() {return this._id;},
@@ -50,7 +79,12 @@
 		var _id = ev.dataTransfer.getData("ID");
 		//show insert position picture
 		var _source = null;
-		if (desktop._widgets[_id]._type == 'app') {
+		if (typeof desktop._widgets[_id] != 'undefined' && 
+				desktop._widgets[_id]._type == 'dockApp') 
+			_source=$('#'+_id);
+		else if ((typeof desktop._widgets[_id] != 'undefined' &&
+				desktop._widgets[_id]._type == 'app') || 
+				ev.dataTransfer.files.length != 0) {
 			if (typeof $('#insert')[0] == 'undefined') {
 				_source = $('<img>',{
 					'id': 'insert',
@@ -58,9 +92,8 @@
 				});
 			}else _source = $('#insert');
 		}
-		else if (desktop._widgets[_id]._type == 'dockApp') _source=$('#'+_id);
-		else  return ;
-		//
+		else return;
+		// 
 		var new_img = null;
 		var imgList = $('#dock img');
 		for (var i = 0; i < imgList.length+1; i++) {
@@ -75,8 +108,10 @@
 				break;
 			};
 		};
-		if (new_img == null ) $('#dock').append(_source);
-		else if (null != new_img) new_img.before(_source);
+		if (new_img == null ) 
+			$('#dock').append(_source);
+		else if (null != new_img) 
+			new_img.before(_source);
 	},
 
 	dragleave:function(ev){
@@ -92,41 +127,48 @@
 		ev.preventDefault();
 		var _id = ev.dataTransfer.getData("ID");
 		var _source = $('#'+_id);
-		if(desktop._widgets[_id]._type == 'app'){
+		if (typeof desktop._widgets[_id] != 'undefined' &&
+				desktop._widgets[_id]._type == 'dockApp') {
+			var imgList = $('#dock img');
+			for (var i = 0; i < imgList.length; i++) {
+				desktop._widgets[imgList[i].id]._position.x = i;
+			};
+		} 
+		else {
+			var imgList = $('#dock img');
+			for (var i = 0; i < imgList.length; i++) {
+				if (imgList[i].id == 'insert') {
+					$(imgList[i]).remove();
+					desktop._dock._index = i;
+					break ;
+				} 
+			}
+			if(typeof desktop._widgets[_id] !== 'undefined' && 
+			desktop._widgets[_id]._type == 'app' ){
 			if (typeof $('#'+_id+'-dock')[0] !== 'undefined') {
 				$('#insert').remove();
 				alert("The App has been registed in dock");
 				return ;
 			}
-			var dentry = desktop._widgets[_id];
-			var path = dentry._path;
-			var pos = dentry.getPosition();
+			var _dentry = desktop._widgets[_id];
+			var _path = _dentry._path;
+			var _names = _path.split('/');
+			var _name = _names[_names.length -1];
 
-			desktop._grid._grid[pos.x][pos.y].use = false;
-			desktop.unRegistWidget(_id);
-			_source.remove();
-
-			var imgList = $('#dock img');
-			for (var i = 0; i < imgList.length; i++) {
-				if (imgList[i].id == 'insert') {
-					$(imgList[i]).remove();
-
-					var dockApp = DockApp.create(_id+'-dock' ,i ,path);
-					if(!desktop.registWidget(dockApp)) {
-						$('#insert').remove();
-						return ;
-					}
-					dockApp.show();
-					return ;
-				} 
+			var _fs = require('fs');
+			_fs.rename(_path, desktop._dock._dockWatch.getBaseDir()+'/'+_name, function() {});
+			} 
+			else if(ev.dataTransfer.files.length != 0){
+				var _files = ev.dataTransfer.files;
+				var _fs = require('fs');
+				for(var i = 0; i < _files.length; ++i) {
+					var dst = desktop._dock._dockWatch.getBaseDir() + '/' + _files[i].name;
+					if(_files[i].path == dst) continue;
+					_fs.rename(_files[i].path, dst, function() {});
+				}
+				return ;
 			}
 		}
-		else if (desktop._widgets[_id]._type == 'dockApp') {
-			var imgList = $('#dock img');
-			for (var i = 0; i < imgList.length; i++) {
-				desktop._widgets[imgList[i].id]._position.x = i;
-			};
-		};
 	}
 
 });
