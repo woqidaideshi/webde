@@ -161,6 +161,22 @@ var EntryUtil = Event.extend({
 		});
 	},
 
+	generateADesktopFile: function(path_, data_, callback_) {
+		var _cb = callback_ || function() {};
+		var _data = "";
+		for(var key in data_) {
+			_data += key + '\n';
+			for(var key2 in data_[key]) {
+				if(typeof data_[key][key2] === 'undefined') continue;
+				_data += key2 + '=' + data_[key][key2] + '\n';
+			}
+		}
+		this._fs.writeFile(path_, _data, function(err) {
+			if(err) throw err;
+			_cb.call(this);
+		});
+	},
+
 	getMimeType: function(path_, callback_) {
 		if(typeof callback_ !== 'function')
 			throw 'Bad type of callback!!';

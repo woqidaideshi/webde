@@ -22,6 +22,8 @@ var Desktop = Class.extend({
 				return false;
 			}
 		});
+		this._selectedEntries = [];
+		this._ctrlKey = false;
 		this._exec = require('child_process').exec;
 		this._fs = require('fs');
 		this._xdg_data_home = undefined;
@@ -100,7 +102,43 @@ var Desktop = Class.extend({
 			_desktop.refresh();
 		});
 		_desktop._ctxMenu.attachToMenu('html'
-				, _desktop._ctxMenu.getMenuByHeader('desktop'));
+			, _desktop._ctxMenu.getMenuByHeader('desktop'));
+		
+		$(document).on('keydown', 'html', function(e) {
+			switch(e.which) {
+				case 9:		// tab
+					if(!e.ctrlKey) {
+						_desktop.releaseSelectedEntries();
+					} else {
+						console.log('Combination Key: Ctrl + Tab');
+					}
+					break;
+				case 17:	// ctrl
+					_desktop._ctrlKey = true;
+					break;
+				case 65:	// a/A
+					if(e.ctrlKey) {
+						console.log('Combination Key: Ctrl + a/A');
+						for(var key in _desktop._dEntrys._items) {
+							_desktop._dEntrys._items[key].focus();
+						}
+					}
+					break;
+				default:
+			}
+		}).on('keyup', 'html', function(e) {
+			switch(e.which) {
+				case 17:	// ctrl
+					_desktop._ctrlKey = false;
+					break;
+			}
+		}).on('click', 'html', function(e) {
+			if(e.ctrlKey) {
+				console.log('Combination Key: Ctrl + left-click');
+			} else {
+				_desktop.releaseSelectedEntries();
+			}
+		});
 	},
 
 	shutdown: function() {
@@ -356,7 +394,8 @@ var Desktop = Class.extend({
 									_desktop._desktopWatch.getBaseDir() + '/' + files[idx_]
 									, function(err, stats) {
 										var _id = 'id-' + stats.ino.toString();
-										if(typeof _lastSave[_id] != 'undefined') {
+										if(typeof _lastSave[_id] != 'undefined'
+											&& _lastSave[_id].path.match(/[^\/]*$/) == files[idx_]) {
 											var _Entry = null;
 											switch(_lastSave[_id].type) {
 												case "app":
@@ -448,6 +487,12 @@ var Desktop = Class.extend({
 		this._dEntrys.order();
 	},
 
+	releaseSelectedEntries: function() {
+		while(this._selectedEntries.length > 0) {
+			this._selectedEntries.pop().blur();
+		}
+	},
+
 	addAnDPlugin: function(plugin_, pos_,  path_) {
 		if(!this.registWidget(plugin_)) return ;
 		if(typeof pos_ === 'undefined') {
@@ -483,15 +528,14 @@ var Desktop = Class.extend({
 });
 
 var DesktopWatcher = Event.extend({
-	init: function(ignoreInitial_) {
+	init: function(ignore_) {
 		this._prev = 0;
 		this._baseDir = undefined;
 		this._oldName = null;
 		this._watcher = null;
 		this._evQueue = [];
 		this._timer = null;
-
-		this._ignoreInitial = ignoreInitial_ || true;
+		this._ignore = ignore_ || /^\./;
 
 		this._fs = require('fs');
 		this._exec = require('child_process').exec;
@@ -502,17 +546,13 @@ var DesktopWatcher = Event.extend({
 			_this._baseDir = stdout.substr(0, stdout.length - 1);
 			_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
 				for(var i = 0; i < files.length; ++i) {
-					if(!_this._ignoreInitial) //do sth; do not count ignored files
-						;
 					_this._prev++;
 				}
 				var evHandler = function() {
-					var filename = _this._evQueue.pop();
+					var filename = _this._evQueue.shift();//.pop();
 					_this._fs.readdir(_this._baseDir + '/桌面', function(err, files) {
 						var cur = 0;
 						for(var i = 0; i < files.length; ++i) {
-							if(!_this._ignoreInitial) //do sth; do not count ignored files
-								;
 							cur++;
 						}
 
@@ -531,7 +571,6 @@ var DesktopWatcher = Event.extend({
 								return ;
 							}
 							if(_this.oldName == filename) {
-								_this._oldName = null;
 								return ;
 							}
 							_this.emit('rename', _this._oldName, filename);
@@ -542,14 +581,16 @@ var DesktopWatcher = Event.extend({
 				};
 				_this._timer = setInterval(function() {
 					if(_this._evQueue.length != 0) {
-						_this._evQueue.reverse();
+						// _this._evQueue.reverse();
 						evHandler();
+					} else {
+						_this._oldName = null;
 					}
 				}, 200);
 
 				_this._watcher = _this._fs.watch(_this._baseDir + '/桌面'
 					, function(event, filename) {
-						if(event == 'change') return ;
+						if(event == 'change' || filename.match(_this._ignore) != null) return ;
 						_this._evQueue.push(filename);
 					});
 			});

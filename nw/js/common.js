@@ -335,9 +335,11 @@ var DesktopInputer = Class.extend({
 		var _this = this;
 		this.$input.keyup(function(e) {
 			if(e.which == 13) {//enter
+				if(_this.$input.val() == '\n')
+					_this.$input.val(_this._options.oldtext);
 				desktop._inputer.hide();
 			}
-			if(e.which == 27) {//enter
+			if(e.which == 27) {//esc
 				_this.$input.val(_this._options.oldtext);
 				desktop._inputer.hide();
 			}
@@ -373,7 +375,7 @@ var DesktopInputer = Class.extend({
 
 	hide: function() {
 		if(this._options.callback)
-			this._options.callback.call(this, this.$input.val().replace(/\n$/, ''));
+			this._options.callback.call(this, this.$input.val().replace(/\n/g, ''));
 		this._options.callback = null;
 		this.$input.hide();
 	}

@@ -62,9 +62,30 @@ var DEntry = Widget.extend({
 
 		target_.mouseenter(function() {
 			$(this).parent().addClass('norhover');
+			$('#' + _entry._id + ' p').css('overflow', 'visible');
 		}).mouseleave(function() {
 			$(this).parent().removeClass('norhover');
-		});
+			$('#' + _entry._id + ' p').css('overflow', 'hidden');
+		}).focus(function(e) {
+			_entry.focus();
+		}).blur(function(e) { 
+			if(!desktop._ctrlKey) 
+				_entry.blur();
+				/* desktop.releaseSelectedEntries(); */
+		}).click(function(e) { 
+			e.stopPropagation();
+			/* e.preventDefault(); */
+			/* if(!e.ctrlKey) */
+		}) ;
+	},
+
+	focus: function() {
+		this._dEntry.parent().addClass('focusing');
+		desktop._selectedEntries.push(this);
+	},
+
+	blur: function() {
+		this._dEntry.parent().removeClass('focusing');
 	},
 
 	getName: function() {return this._name;},
@@ -119,12 +140,18 @@ var DEntry = Widget.extend({
 					}
 				}
 
-				var fs = require('fs'); 
-				fs.rename(_entry._path
-					, desktop._desktopWatch.getBaseDir() + '/' + newtext
-					, function(err) {
-						if(err) console.log(err);
-					}); 
+				if(_entry._type == 'app') {
+					_entry.rename(newtext);
+				} else if(_entry._type == 'theme') {
+					_entry.rename(newtext);
+				} else {
+					var fs = require('fs'); 
+					fs.rename(_entry._path
+						, desktop._desktopWatch.getBaseDir() + '/' + newtext
+						, function(err) {
+							if(err) console.log(err);
+						});
+				}
 			}
 		});
 	}
@@ -190,10 +217,30 @@ var AppEntry = DEntry.extend({
 		if(typeof newName_ === 'undefined') {
 			this.callSuper();
 		} else {
-			this._name = newName_;
-			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
-			this._path = _match[1] + this._name;
-			$('#' + this._id + ' p').text(this._name);
+			var _match = /(.*)[\.][^\/]*$/.exec(newName_);
+			if(_match == null) {//rename from desktop entry
+				var _this = this;
+				utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
+					if(err_) {
+						console.log(err_);
+					} else {
+						if(typeof file_['Name[zh_CN]'] !== "undefined") {
+							file_['Name[zh_CN]'] = newName_;
+						} else {
+							file_['Name'] = newName_;
+						}
+						utilIns.entryUtil.generateADesktopFile(_this._path
+							, {'[Desktop Entry]': file_}, function() {
+								$('#' + _this._id + ' p').text(newName_);
+							});
+					}
+				});
+			} else {//rename from desktop dir
+				this._name = _match[1];
+				/* var _match = /(.*[\/])([^\/]*)$/.exec(this._path); */
+				/* this._path = _match[1] + this._name; */
+				$('#' + this._id + ' p').text(this._name);
+			}
 		}
 	}
 });
@@ -217,9 +264,9 @@ var FileEntry = DEntry.extend({
 		if(match != null) this._type = match[0].substr(1);
 	},
 	
-	show: function() {
+	show: function(rename_) {
 		var _this = this;
-		_this.callSuper();
+		if(!rename_) _this.callSuper();
 		utilIns.entryUtil.getMimeType(_this._path, function(err_, mimeType_) {
 			utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48
 				, function(err_, imgPath_) {
@@ -268,16 +315,16 @@ var FileEntry = DEntry.extend({
 		if(typeof newName_ === 'undefined') {
 			this.callSuper();
 		} else {
-			//TODO: check name with all file entries
-			var _match = /(.*)[\.]([^\.].*)$/.exec(newName_);
+			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
+			this._path = _match[1] + newName_;
+			_match = /(.*)[\.]([^\.].*)$/.exec(newName_);
 			if(_match != null && _match[2] != this._type) {
-				//TODO: reparse the file type
 				this._type = _match[2];
+				//TODO: reparse the file type
+				this.show(true);
 			}
 			this._name = newName_;
-			_match = /(.*[\/])([^\/].*)$/.exec(this._path);
-			this._path = _match[1] + newName_;
-			$('#' + this._id + ' p').text(newName_);
+			$('#' + this._id + ' p').text(this._name);
 		}
 	}
 });

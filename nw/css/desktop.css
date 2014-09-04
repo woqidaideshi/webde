@@ -57,6 +57,7 @@ html body {
   -webkit-box-pack: center;
   -webkit-box-align: center;
   z-index: 99;
+  outline: none;
 }
 .icon img {
   width: 50px;
@@ -64,9 +65,13 @@ html body {
   z-index: 98;
 }
 .icon p {
+  width: 80px;
+  height: 32px;
   margin: 2px 0px;
   font-size: small;
   text-align: center;
+  overflow: hidden;
+  z-index: 99;
 }
 .icon p:hover {
   cursor: default;
@@ -107,10 +112,16 @@ html body {
   box-shadow: 0px 0px 10px 0px #000000 inset;
 }
 .gridcontainer .gridcol .grid.norhover {
-  -webkit-box-shadow: 0px 0px 3px black;
-  -moz-box-shadow: 0px 0px 3px black;
-  -o-box-shadow: 0px 0px 3px black;
-  box-shadow: 0px 0px 3px black;
+  -webkit-box-shadow: 0px 0px 3px #000000;
+  -moz-box-shadow: 0px 0px 3px #000000;
+  -o-box-shadow: 0px 0px 3px #000000;
+  box-shadow: 0px 0px 3px #000000;
+}
+.gridcontainer .gridcol .grid.focusing {
+  -webkit-box-shadow: 0px 0px 3px #000000;
+  -moz-box-shadow: 0px 0px 3px #000000;
+  -o-box-shadow: 0px 0px 3px #000000;
+  box-shadow: 0px 0px 3px #000000;
 }
 #menu {
   display: none;
