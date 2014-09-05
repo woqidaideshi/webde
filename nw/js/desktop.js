@@ -60,8 +60,8 @@ var Desktop = Class.extend({
 			_desktop.addAnDEntry(_Entry.create('id-' + stats.ino.toString()
 					, _desktop._tabIndex++
 					, _desktop._desktopWatch.getBaseDir() + '/' + filename
-					,_desktop._position
-					),_desktop._position);
+					, _desktop._position
+					), _desktop._position);
 		});
 		this._desktopWatch.on('delete', function(filename) {
 			//console.log('delete:', filename);
@@ -435,7 +435,7 @@ var Desktop = Class.extend({
 	addAnDEntry: function(entry_, pos_) {
 		if(!this.registWidget(entry_)) return ;
 		if(typeof pos_ === 'undefined' || 
-				typeof $('#grid_' + pos_.x + '_' + pos_.y).children('div')[0] != 'undefined') {
+			typeof $('#grid_' + pos_.x + '_' + pos_.y).children('div')[0] != 'undefined') {
 			pos_ = this._grid.findAnIdleGrid();
 			if(pos_ == null) {
 				alert("No room");

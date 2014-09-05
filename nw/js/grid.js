@@ -103,7 +103,7 @@ var Grid = Widget.extend({
 	//  ------------------
 	//  |  1   |   2   |
 	//  ------------------
-	//   |  4  |   8   |
+	//  |  4   |   8   |
 	//  ------------------
 	findIdleGrid: function(col,row,col_l,row_l){
 		var sum = 0;
@@ -201,6 +201,23 @@ var Grid = Widget.extend({
 		}
 	},
 
+	findALegalNearingIdleGrid: function(t_pos_) {
+		for(var i = t_pos_.x, firstX = true
+			; i != t_pos_.x || firstX
+			; i = (i + 1) % this._col_num) {
+			firstX = false;
+			for(var j = t_pos_.y, firstY = true
+				; j != t_pos_.y || firstY
+				; j = (j + 1) % this._row_num) {
+				firstY = false;
+				if(this._grid[i][j].use == false) {
+					return {x: i, y: j};
+				}
+			}
+		}
+		return null;
+	},
+
 	drag: function(ev) {
 		console.log("grid is not allowed to drag");
 	},
@@ -227,7 +244,7 @@ var Grid = Widget.extend({
 		var _target_arr = _target_id.split('_');
 		var _target_col = parseInt(_target_arr[1]);
 		var _target_row = parseInt(_target_arr[2]);
-		desktop._position={x:_target_col,y:_target_row};
+		desktop._position = {x:_target_col,y:_target_row};
 
 		if(typeof desktop._widgets[_id] !== 'undefined' &&
 				desktop._widgets[_id]._type == 'dockApp'){
@@ -286,16 +303,43 @@ var Grid = Widget.extend({
 			});
 		};
 
-		if (typeof desktop._widgets[_id] == 'undefined') return ;
+		if(typeof desktop._widgets[_id] == 'undefined') return ;
+		
 		//get source occupy number of grids follow x or y 
 		var col_num = 1;
-		var row_num =  1;	
+		var row_num = 1;	
 		if (desktop._widgets[_id]._type.match(/\w*Plugin/) != null) {
 			col_num = desktop._widgets[_id].getColNum();
 			row_num =  desktop._widgets[_id].getRowNum();
 		};
 		//get Grid obj
 		var desktopGrid = desktop.getGrid();
+
+		//handle multi-entries move
+		if(desktop._selectedEntries.length > 1) {
+			//TODO: move '_id' first
+			//TODO: change _selectedEntries to key-value
+			for(var i = 0; i < desktop._selectedEntries.length; ++i) {
+				var _s_id = $('#' + _id).parent().attr('id');
+				var _coor = /^.*[_]([0-9]+)[_]([0-9]+)$/.exec(_s_id);
+				var _pos = desktopGrid.findALegalNearingIdleGrid({
+					x: _target_col
+					, y: _target_row
+				});
+				if(_pos == null) return ;
+				$('#grid_' + _pos.x + '_' + _pos.y)
+					.append($('#' + desktop._selectedEntries[i]._id));
+				console.log(desktop._selectedEntries[i]._id 
+					+ " ---> " + _pos.x + '  '  + _pos.y);
+				desktop._selectedEntries[i].setPosition({x: _pos.x, y: _pos.y});
+				desktopGrid.flagGridOccupy(_pos.x, _pos.y, 1, 1, true);
+				_target_col = _pos.x;
+				_target_row = _pos.y;
+			
+				desktopGrid.flagGridOccupy(_coor[1], _coor[2], 1, 1, false);
+			}
+			return ;
+		}
 
 		//get source grid
 		var parent_id = $('#'+_id).parent('.grid')[0].id;
