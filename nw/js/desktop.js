@@ -423,12 +423,12 @@ var Desktop = Class.extend({
 				+ this._widgets[key]._type + '\n';
 		}
 		//console.log(data);
-
 		this._fs.writeFile(this._xdg_data_home + "dwidgets/dentries"
 				, data, function(err) {
 			if(err) {
 				console.log(err);
 			}
+			console.log(data);
 		});
 	},
 

@@ -270,15 +270,15 @@ var Grid = Widget.extend({
 		if (_items.length != 0 && typeof desktop._widgets[_id] == 'undefined') {
 			var _fs = require('fs');
 			_items[0].getAsString(function(data){
-				console.log(data);
 				for (var i = 0; ; i++) {
 					if(_fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
 						continue;
 					} else {
-						console.log(data);
-						_fs.writeFile(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt', data,'utf8', function(err) {
+						var iconv = require('iconv-lite');
+						var buf = iconv.encode(data,'ucs2');
+						var str = iconv.decode(buf,'ucs2');
+						_fs.writeFile(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt', str,{encoding:'utf8'},function(err) {
 							if (err) throw err;
-							console.log('It\'s saved!');
 						});
 						return ;
 					}
