@@ -37,34 +37,50 @@ html body {
   width: 100%;
   height: 100%;
 }
+.box-sizing {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+}
 .icon {
   width: 80px;
   height: 80px;
   margin: 5px 10px;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-box-pack: center;
   -webkit-box-align: center;
   z-index: 99;
 }
-.icon:hover {
-  box-shadow: 0px 0px 2px black;
+.icon:focus {
+  outline: white auto 5px;
 }
 .icon img {
   width: 50px;
   height: 50px;
-  -webkit-user-select: none;
-  -moz-user-select: none;
   z-index: 98;
 }
 .icon p {
-  -webkit-user-select: none;
-  -moz-user-select: none;
+  width: 80px;
+  height: 32px;
   margin: 2px 0px;
   font-size: small;
+  text-align: center;
+  overflow: hidden;
+  z-index: 99;
 }
 .icon p:hover {
   cursor: default;
+}
+.icon.focusing {
+  outline: black auto 5px;
 }
 .gridcontainer {
   position: absolute;
@@ -101,6 +117,12 @@ html body {
   -o-box-shadow: 0px 0px 10px 0px #000000 inset;
   box-shadow: 0px 0px 10px 0px #000000 inset;
 }
+.gridcontainer .gridcol .grid.norhover {
+  -webkit-box-shadow: 0px 0px 3px #000000;
+  -moz-box-shadow: 0px 0px 3px #000000;
+  -o-box-shadow: 0px 0px 3px #000000;
+  box-shadow: 0px 0px 3px #000000;
+}
 #menu {
   display: none;
   position: absolute;
@@ -132,7 +154,6 @@ html body {
   -moz-user-select: none;
   z-index: 101;
 }
-
 .unselect {
   -webkit-user-select: none;
   -moz-user-select: none;

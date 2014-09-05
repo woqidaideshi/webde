@@ -4,6 +4,7 @@ var Desktop = Class.extend({
 	init: function() {
 		this._grid = undefined;
 		this._ctxMenu = null;
+		this._inputer = DesktopInputer.create('d-inputer');
 		this._tabIndex = 100;
 		this._position = {x:0,y:0};
 		this._widgets = [];
@@ -22,6 +23,8 @@ var Desktop = Class.extend({
 				return false;
 			}
 		});
+		this._selectedEntries = [];
+		this._ctrlKey = false;
 		this._exec = require('child_process').exec;
 		this._fs = require('fs');
 		this._xdg_data_home = undefined;
@@ -73,6 +76,13 @@ var Desktop = Class.extend({
 		});
 		this._desktopWatch.on('rename', function(oldName, newName) {
 			console.log('rename:', oldName, '->', newName);
+			var _path = _desktop._desktopWatch.getBaseDir() + '/' + oldName;
+			var _entry = _desktop.getAWidgetByAttr('_path', _path);
+			if(_entry == null) {
+				console.log('Can not find this widget');
+				return ;
+			}
+			_entry.rename(newName);
 		});
 		
 		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
@@ -95,7 +105,45 @@ var Desktop = Class.extend({
 			_desktop.refresh();
 		});
 		_desktop._ctxMenu.attachToMenu('html'
-				, _desktop._ctxMenu.getMenuByHeader('desktop'));
+			, _desktop._ctxMenu.getMenuByHeader('desktop'));
+		
+		$(document).on('keydown', 'html', function(e) {
+			switch(e.which) {
+				case 9:		// tab
+					if(!e.ctrlKey) {
+						_desktop.releaseSelectedEntries();
+					} else {
+						console.log('Combination Key: Ctrl + Tab');
+					}
+					break;
+				case 17:	// ctrl
+					_desktop._ctrlKey = true;
+					break;
+				case 65:	// a/A
+					if(e.ctrlKey) {
+						console.log('Combination Key: Ctrl + a/A');
+						for(var key in _desktop._dEntrys._items) {
+							_desktop._dEntrys._items[key].focus();
+						}
+					}
+					break;
+				default:
+			}
+		}).on('keyup', 'html', function(e) {
+			switch(e.which) {
+				case 17:	// ctrl
+					_desktop._ctrlKey = false;
+					break;
+			}
+		}).on('mouseup', 'html', function(e) {
+			e.stopPropagation();
+			// e.preventDefault();
+			if(e.ctrlKey) {
+				console.log('Combination Key: Ctrl + left-click');
+			} else {
+			}
+			_desktop.releaseSelectedEntries();
+		});
 	},
 
 	shutdown: function() {
@@ -152,7 +200,7 @@ var Desktop = Class.extend({
 				e.preventDefault();
 				desktop._widgets[desktop._rightObjId].zoomIn();
 			}},
-			{text:'zoom out', action:function(e) {
+			{text: 'zoom out', action: function(e) {
 				e.preventDefault();
 				desktop._widgets[desktop._rightObjId].zoomOut();
 			}},
@@ -170,13 +218,40 @@ var Desktop = Class.extend({
 			}}
 		]);
 		this._ctxMenu.addCtxMenu([
-			{header: 'app-entry'}
+			{header: 'app-entry'},
+			{text: 'Open', action: function(e) {
+				e.preventDefault();
+				desktop.getAWidgetById(desktop._rightObjId).open();
+			}},
+			{text: 'Rename', action: function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				desktop.getAWidgetById(desktop._rightObjId).rename();
+			}}
 		]);
 		this._ctxMenu.addCtxMenu([
-			{header: 'file-entry'}
+			{header: 'file-entry'},
+			{text: 'Open', action: function(e) {
+				e.preventDefault();
+				desktop.getAWidgetById(desktop._rightObjId).open();
+			}},
+			{text: 'Rename', action: function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				desktop.getAWidgetById(desktop._rightObjId).rename();
+			}}
 		]);
 		this._ctxMenu.addCtxMenu([
-			{header: 'theme-entry'}
+			{header: 'theme-entry'},
+			{text: 'Open', action: function(e) {
+				e.preventDefault();
+				desktop.getAWidgetById(desktop._rightObjId).open();
+			}},
+			{text: 'Rename', action: function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				desktop.getAWidgetById(desktop._rightObjId).rename();
+			}}
 		]);
 	},
 	
@@ -285,10 +360,11 @@ var Desktop = Class.extend({
 					return ;
 				}
 				_desktop._fs.stat(
-						dir_ + '/' + files[index_]
-						, function(err, stats) {
+					dir_ + '/' + files[index_]
+					, function(err, stats) {
 					var _id = 'id-' + stats.ino.toString();
-					if(typeof lastSave_[_id] != 'undefined') {
+					if(typeof lastSave_[_id] != 'undefined'
+						&& lastSave_[_id].path.match(/[^\/]*$/) == files[index_]) {
 						var _Entry = null;
 						var _DockApp = null
 						switch(lastSave_[_id].type) {
@@ -303,8 +379,8 @@ var Desktop = Class.extend({
 							default:
 								_Entry = FileEntry;
 						}
-						_desktop._fs.exists(lastSave_[_id].path,function(exists_){
-							if (exists_) {
+						// _desktop._fs.exists(lastSave_[_id].path,function(exists_){
+							// if (exists_) {
 								if (_DockApp != null) {
 									_desktop.addAnAppToDock(_DockApp.create(_id
 									,lastSave_[_id].x
@@ -316,13 +392,13 @@ var Desktop = Class.extend({
 									, {x: lastSave_[_id].x, y: lastSave_[_id].y}
 									), {x: lastSave_[_id].x, y: lastSave_[_id].y});
 								}
-							} else {
-								_newEntry[_id] = {
-									'filename': files[index_],
-									'stats': stats
-								};
-							}
-						});
+							/* } else { */
+								// _newEntry[_id] = {
+									// 'filename': files[index_],
+									// 'stats': stats
+								// };
+							/* } */
+						// });
 					} else {
 						_newEntry[_id] = {
 							'filename': files[index_],
@@ -397,6 +473,13 @@ var Desktop = Class.extend({
 		this._dEntrys.order();
 	},
 
+	releaseSelectedEntries: function() {
+		while(this._selectedEntries.length > 0) {
+			var _entry = this._selectedEntries.pop();
+			if(_entry) _entry.blur();
+		}
+	},
+
 	addAnDPlugin: function(plugin_, pos_,  path_) {
 		if(!this.registWidget(plugin_)) return ;
 		if(typeof pos_ === 'undefined') {
@@ -422,10 +505,10 @@ var Desktop = Class.extend({
 	addAnAppToDock:function(dockApp_){
 		if(!this.registWidget(dockApp_)) return ;
 		dockApp_.show();
+
 	},
 
-	deleteAnAppFromDock:function(dockApp_)
-	{
+	deleteAnAppFromDock:function(dockApp_) {
 		this.unRegistWidget(dockApp_.getID());
 		$('#'+dockApp_.getID()).remove();
 		dockApp_ = undefined;

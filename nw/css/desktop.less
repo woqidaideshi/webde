@@ -1,7 +1,7 @@
 @LineHeight: 80px;
 @LineWidth: 80px;
 @col: @LineWidth + 20px;
-@row: @LineHeight + 10px;
+@row: @LineHeight + 20px;
 
 html body {
 	width: 100%;
@@ -68,17 +68,26 @@ html body {
 	-moz-user-select: @sel;
 }
 
-.box-shadow-mine(@h, @v, @blur, @spread, @c, @in) {
+.box-shadow-mine(@h, @v, @blur, @spread, @c, @in: inset) {
 	-webkit-box-shadow: @h @v @blur @spread @c @in;
 	-moz-box-shadow: @h @v @blur @spread @c @in;
 	-o-box-shadow: @h @v @blur @spread @c @in;
 	box-shadow: @h @v @blur @spread @c @in;
 }
 
+.box-sizing {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
 .icon {
 	width: @LineWidth;
 	height: @LineHeight;
 	margin: 5px 10px;
+	.box-sizing;
 	
 	//border-style: 1px solid black;
 	//border-radius: 10px;
@@ -87,13 +96,13 @@ html body {
 	.box(vertical, center, center);
 	z-index: 99;
 	
-	&:hover {
-		box-shadow: 0px 0px 2px black;
-	}
-
-	//&:focus {
-	//	border: 1px dashed black;
+	//&:hover {
+	//	box-shadow: 0px 0px 2px black;
 	//}
+
+	&:focus {
+		outline: white auto 5px;
+	}
 
 	img {
 		width: @LineWidth * 0.625;
@@ -103,13 +112,30 @@ html body {
 	}
 
 	p {
+		width: 80px;
+		height: 32px;
 		margin: 2px 0px;
 		font-size: small;
+		text-align: center;
+		overflow: hidden;
+		z-index: 99;
 		
 		&:hover {
 			cursor: default;
 		}
 	}
+
+	&.focusing {
+		//.out-box-shadow(0px, 0px, 3px, black);
+		outline: black auto 5px;
+	}
+}
+
+.out-box-shadow(@h, @v, @blur, @color) {
+	-webkit-box-shadow: @h @v @blur @color;
+	-moz-box-shadow: @h @v @blur @color;
+	-o-box-shadow: @h @v @blur @color;
+	box-shadow: @h @v @blur @color;
 }
 
 .gridcontainer {
@@ -140,6 +166,11 @@ html body {
 			&.hovering {
 				.box-shadow-mine(0px, 0px, 10px, 0px, black, inset);
 			}
+
+			&.norhover {
+				.out-box-shadow(0px, 0px, 3px, black);
+			}
+		
 		}
 	}
 }
