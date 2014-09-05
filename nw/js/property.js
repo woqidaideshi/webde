@@ -216,7 +216,7 @@ var Property = Class.extend({
 			showDiv.height(0);
 			showDiv.css('position','absolute');
 			var left_ = $('#'+desktop._rightObjId).position().left + $('#'+desktop._rightObjId).width()/2;
-			var top_ = $('#dock').position().top;
+			var top_ = $('#'+desktop._rightObjId).position().top + $('#'+desktop._rightObjId).width()/2;
 			showDiv.css('left',left_+'px');
 			showDiv.css('top',top_+'px');
 			showDiv.show();

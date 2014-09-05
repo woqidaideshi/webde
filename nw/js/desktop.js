@@ -164,16 +164,34 @@ var Desktop = Class.extend({
 		this._ctxMenu.addCtxMenu([
 			{header: 'dock'},
 			{text: 'property', action:function(){
-				var property_ = Property.create(desktop._rightObjId);
-				property_.showAppProperty();
-				property_.show();
+				var _property = Property.create(desktop._rightObjId);
+				
+				_property.showAppProperty();
+				_property.show();
 			}}
 		]);
 		this._ctxMenu.addCtxMenu([
-			{header: 'app-entry'}
+			{header: 'app-entry'},
+			{text:'open',action:function(){
+				desktop._widgets[desktop._rightObjId].open();
+			}},
+			{text:'delete' , action:function(ev){
+				ev.preventDefault();
+				var _path = desktop._widgets[desktop._rightObjId]._path;
+				utilIns.entryUtil.removeFile(_path);
+			}},
+			{text:'property',action:function(){
+				var _property = Property.create(desktop._rightObjId);
+				_property.showAppProperty();
+				_property.show();
+			}}
 		]);
 		this._ctxMenu.addCtxMenu([
-			{header: 'file-entry'}
+			{header: 'file-entry'},
+			{text:'delete' , action:function(){
+				var _path = desktop._widgets[desktop._rightObjId]._path;
+				utilIns.entryUtil.removeFile(_path);
+			}}
 		]);
 		this._ctxMenu.addCtxMenu([
 			{header: 'theme-entry'}
