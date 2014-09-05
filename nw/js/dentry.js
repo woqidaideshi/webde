@@ -16,12 +16,13 @@ var DEntry = Widget.extend({
 		this.callSuper(id_, position_);
 		this._path = path_;
 		this._tabIndex = tabIndex_;
+		this._focused = false;
 		
 		this._name = id_;
 		this._imgPath = undefined;
 		this._exec = require('child_process').exec;
 
-		this.PATTERN = "<img draggable='false'/>" + "<p>" + this._name + "</p>";// draggable='true'
+		this.PATTERN = "<img draggable='false'/><p>" + this._name + "</p>";
 		this._dEntry = $('<div>', {
 			'class': 'icon',
 			'id': this._id,
@@ -59,6 +60,52 @@ var DEntry = Widget.extend({
 		});
 
 		_entry.attachCtxMenu();
+
+		target_.mouseenter(function() {
+			$(this).parent().addClass('norhover');
+			var $p = $('#' + _entry._id + ' p');
+			$p.css('height', $p[0].scrollHeight);
+		}).mouseleave(function() {
+			$(this).parent().removeClass('norhover');
+			$('#' + _entry._id + ' p').css('height', '32px');
+		})/* .focus(function(e) { */
+			// if(e.which == 9)
+				// _entry.focus();
+		// }).blur(function(e) {
+			// if(e.which == 9)
+				// _entry.blur();
+		/* }) */.mouseup(function(e) { 
+			e.stopPropagation();
+			// e.preventDefault(); 
+			if(!e.ctrlKey) {
+				desktop.releaseSelectedEntries();
+				_entry.focus();
+			} else {
+				if(_entry._focused) {
+					for(var i = 0; i < desktop._selectedEntries.length; ++i) {
+						if(desktop._selectedEntries[i] != null
+							&& _entry._id == desktop._selectedEntries[i]._id) {
+								desktop._selectedEntries[i] = null;
+								_entry.blur();
+								break;
+							}
+					}
+				} else {
+					_entry.focus();
+				}
+			}
+		});
+	},
+
+	focus: function() {
+		this._dEntry/* .parent() */.addClass('focusing');
+		desktop._selectedEntries.push(this);
+		this._focused = true;
+	},
+
+	blur: function() {
+		this._dEntry/* .parent() */.removeClass('focusing');
+		this._focused = false;
 	},
 
 	getName: function() {return this._name;},
@@ -77,6 +124,7 @@ var DEntry = Widget.extend({
 	drop: function(ev) {
 		console.log("prevent!!");
 		$(this).parent('.grid').removeClass('hovering');
+		$(this).parent('.grid').removeClass('norhover');
 		ev.preventDefault();
 		ev.stopPropagation();
 	},
@@ -88,6 +136,44 @@ var DEntry = Widget.extend({
 
 	getTabIdx: function() {
 		return this._tabIndex;
+	},
+
+	rename: function() {
+		desktop._ctxMenu.hide();
+		var $p = $('#' + this._id + ' p');
+		desktop._inputer.show({
+			'left': $p.parent().parent().offset().left,
+			'top': $p.offset().top,
+			'height': $p.height(),
+			'width': $p.parent().parent().width(),
+			'oldtext': $p.text(),
+			'callback': function(newtext) {
+				// entry's name is not changed
+				var _entry = desktop.getAWidgetById(desktop._rightObjId);
+				if(_entry._name == newtext) return ;
+				// entry's name has already existed
+				var _entries = desktop._dEntrys._items;
+				for(var i = 0; i < _entries.length; ++i) {
+					if(_entries[i]._name == newtext) {
+						alert(newtext + ' has already existed');
+						return ;
+					}
+				}
+
+				if(_entry._type == 'app') {
+					_entry.rename(newtext);
+				} else if(_entry._type == 'theme') {
+					_entry.rename(newtext);
+				} else {
+					var fs = require('fs'); 
+					fs.rename(_entry._path
+						, desktop._desktopWatch.getBaseDir() + '/' + newtext
+						, function(err) {
+							if(err) console.log(err);
+						});
+				}
+			}
+		});
 	}
 });
 
@@ -144,6 +230,38 @@ var AppEntry = DEntry.extend({
 	attachCtxMenu: function() {
 		desktop._ctxMenu.attachToMenu('#' + this._id
 				, desktop._ctxMenu.getMenuByHeader('app-entry'));
+	},
+
+	rename: function(newName_) {
+		//TODO: check name with all app entries
+		if(typeof newName_ === 'undefined') {
+			this.callSuper();
+		} else {
+			var _match = /(.*)[\.][^\/]*$/.exec(newName_);
+			if(_match == null) {//rename from desktop entry
+				var _this = this;
+				utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
+					if(err_) {
+						console.log(err_);
+					} else {
+						if(typeof file_['Name[zh_CN]'] !== "undefined") {
+							file_['Name[zh_CN]'] = newName_;
+						} else {
+							file_['Name'] = newName_;
+						}
+						utilIns.entryUtil.generateADesktopFile(_this._path
+							, {'[Desktop Entry]': file_}, function() {
+								$('#' + _this._id + ' p').text(newName_);
+							});
+					}
+				});
+			} else {//rename from desktop dir
+				this._name = _match[1];
+				/* var _match = /(.*[\/])([^\/]*)$/.exec(this._path); */
+				/* this._path = _match[1] + this._name; */
+				$('#' + this._id + ' p').text(this._name);
+			}
+		}
 	}
 });
 
@@ -153,19 +271,22 @@ var FileEntry = DEntry.extend({
 	init: function(id_, tabIndex_, path_, position_) {
 		this.callSuper(id_, tabIndex_, path_, position_);
 		
-		var match = /^.*[\/]([^\/]*)[\.]([^\.]*)$/.exec(path_);
-		if(match == null) {
-			match = /^.*[\/]([^\/]*)$/.exec(path_);
-			this._type = '';
-		} else {
-			this._type = match[2];
-		}
+	 /*  var match = /^.*[\/]([^\/]*)[\.]([^\.]*)$/.exec(path_); */
+		/* if(match == null) { */
+		var	match = /^.*[\/]([^\/]*)$/.exec(path_);
+	 /*    this._type = ''; */
+		// } else {
+			// this._type = match[2];
+	/*   } */
 		this._name = match[1];
+		this._type = 'file';
+		match = this._name.match(/[\.][^\.]*$/);
+		if(match != null) this._type = match[0].substr(1);
 	},
 	
-	show: function() {
+	show: function(rename_) {
 		var _this = this;
-		_this.callSuper();
+		if(!rename_) _this.callSuper();
 		utilIns.entryUtil.getMimeType(_this._path, function(err_, mimeType_) {
 			utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48
 				, function(err_, imgPath_) {
@@ -192,9 +313,9 @@ var FileEntry = DEntry.extend({
 				});
 			
 		});
-		var _name = (this._type == '' || this._type == 'dir') 
-									? this._name : (this._name + '.' + this._type);
-		$('#' + _this._id + ' p').text(_name);
+		/* var _name = (this._type == '' || this._type == 'dir')  */
+									/* ? this._name : (this._name + '.' + this._type); */
+		$('#' + _this._id + ' p').text(_this._name);
 	},
 
 	open: function() {
@@ -208,6 +329,23 @@ var FileEntry = DEntry.extend({
 	attachCtxMenu: function() {
 		desktop._ctxMenu.attachToMenu('#' + this._id
 				, desktop._ctxMenu.getMenuByHeader('file-entry'));
+	},
+
+	rename: function(newName_) {
+		if(typeof newName_ === 'undefined') {
+			this.callSuper();
+		} else {
+			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
+			this._path = _match[1] + newName_;
+			_match = /(.*)[\.]([^\.].*)$/.exec(newName_);
+			if(_match != null && _match[2] != this._type) {
+				this._type = _match[2];
+				//TODO: reparse the file type
+				this.show(true);
+			}
+			this._name = newName_;
+			$('#' + this._id + ' p').text(this._name);
+		}
 	}
 });
 
@@ -232,6 +370,18 @@ var DirEntry = FileEntry.extend({
 		_fs.rename(desktop._widgets[_id]._path
 			, desktop._widgets[this.id]._path + '/' + _name[1]
 			, function() {});
+	},
+
+	rename: function(newName_) {
+		if(typeof newName_ === 'undefined') {
+			this.callSuper();
+		} else {
+			//TODO: check name with all dir entries
+			this._name = newName_;
+			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
+			this._path = _match[1] + this._name;
+			$('#' + this._id + ' p').text(this._name);
+		}
 	}
 });
 
@@ -277,6 +427,16 @@ var ThemeEntry = DEntry.extend({
 	attachCtxMenu: function() {
 		desktop._ctxMenu.attachToMenu('#' + this._id
 				, desktop._ctxMenu.getMenuByHeader('theme-entry'));
+	},
+
+	rename: function(newName_) {
+		if(typeof newName_ === 'undefined') {
+			this.callSuper();
+		} else {
+			//TODO: check name with all theme entries
+			this._name = newName_;
+			$('#' + this._id + ' p').text(this._name);
+		}
 	}
 });
 
