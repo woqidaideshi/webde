@@ -57,7 +57,9 @@ html body {
   -webkit-box-pack: center;
   -webkit-box-align: center;
   z-index: 99;
-  outline: none;
+}
+.icon:focus {
+  outline: white auto 5px;
 }
 .icon img {
   width: 50px;
@@ -75,6 +77,9 @@ html body {
 }
 .icon p:hover {
   cursor: default;
+}
+.icon.focusing {
+  outline: black auto 5px;
 }
 .gridcontainer {
   position: absolute;
@@ -112,12 +117,6 @@ html body {
   box-shadow: 0px 0px 10px 0px #000000 inset;
 }
 .gridcontainer .gridcol .grid.norhover {
-  -webkit-box-shadow: 0px 0px 3px #000000;
-  -moz-box-shadow: 0px 0px 3px #000000;
-  -o-box-shadow: 0px 0px 3px #000000;
-  box-shadow: 0px 0px 3px #000000;
-}
-.gridcontainer .gridcol .grid.focusing {
   -webkit-box-shadow: 0px 0px 3px #000000;
   -moz-box-shadow: 0px 0px 3px #000000;
   -o-box-shadow: 0px 0px 3px #000000;

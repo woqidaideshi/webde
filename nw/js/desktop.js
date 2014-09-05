@@ -132,12 +132,14 @@ var Desktop = Class.extend({
 					_desktop._ctrlKey = false;
 					break;
 			}
-		}).on('click', 'html', function(e) {
+		}).on('mouseup', 'html', function(e) {
+			e.stopPropagation();
+			// e.preventDefault();
 			if(e.ctrlKey) {
 				console.log('Combination Key: Ctrl + left-click');
 			} else {
-				_desktop.releaseSelectedEntries();
 			}
+			_desktop.releaseSelectedEntries();
 		});
 	},
 
@@ -489,7 +491,8 @@ var Desktop = Class.extend({
 
 	releaseSelectedEntries: function() {
 		while(this._selectedEntries.length > 0) {
-			this._selectedEntries.pop().blur();
+			var _entry = this._selectedEntries.pop();
+			if(_entry) _entry.blur();
 		}
 	},
 

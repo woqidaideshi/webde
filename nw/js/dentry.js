@@ -16,12 +16,13 @@ var DEntry = Widget.extend({
 		this.callSuper(id_, position_);
 		this._path = path_;
 		this._tabIndex = tabIndex_;
+		this._focused = false;
 		
 		this._name = id_;
 		this._imgPath = undefined;
 		this._exec = require('child_process').exec;
 
-		this.PATTERN = "<img draggable='false'/>" + "<p>" + this._name + "</p>";// draggable='true'
+		this.PATTERN = "<img draggable='false'/><p>" + this._name + "</p>";
 		this._dEntry = $('<div>', {
 			'class': 'icon',
 			'id': this._id,
@@ -62,30 +63,49 @@ var DEntry = Widget.extend({
 
 		target_.mouseenter(function() {
 			$(this).parent().addClass('norhover');
-			$('#' + _entry._id + ' p').css('overflow', 'visible');
+			var $p = $('#' + _entry._id + ' p');
+			$p.css('height', $p[0].scrollHeight);
 		}).mouseleave(function() {
 			$(this).parent().removeClass('norhover');
-			$('#' + _entry._id + ' p').css('overflow', 'hidden');
-		}).focus(function(e) {
-			_entry.focus();
-		}).blur(function(e) { 
-			if(!desktop._ctrlKey) 
-				_entry.blur();
-				/* desktop.releaseSelectedEntries(); */
-		}).click(function(e) { 
+			$('#' + _entry._id + ' p').css('height', '32px');
+		})/* .focus(function(e) { */
+			// if(e.which == 9)
+				// _entry.focus();
+		// }).blur(function(e) {
+			// if(e.which == 9)
+				// _entry.blur();
+		/* }) */.mouseup(function(e) { 
 			e.stopPropagation();
-			/* e.preventDefault(); */
-			/* if(!e.ctrlKey) */
-		}) ;
+			// e.preventDefault(); 
+			if(!e.ctrlKey) {
+				desktop.releaseSelectedEntries();
+				_entry.focus();
+			} else {
+				if(_entry._focused) {
+					for(var i = 0; i < desktop._selectedEntries.length; ++i) {
+						if(desktop._selectedEntries[i] != null
+							&& _entry._id == desktop._selectedEntries[i]._id) {
+								desktop._selectedEntries[i] = null;
+								_entry.blur();
+								break;
+							}
+					}
+				} else {
+					_entry.focus();
+				}
+			}
+		});
 	},
 
 	focus: function() {
-		this._dEntry.parent().addClass('focusing');
+		this._dEntry/* .parent() */.addClass('focusing');
 		desktop._selectedEntries.push(this);
+		this._focused = true;
 	},
 
 	blur: function() {
-		this._dEntry.parent().removeClass('focusing');
+		this._dEntry/* .parent() */.removeClass('focusing');
+		this._focused = false;
 	},
 
 	getName: function() {return this._name;},
