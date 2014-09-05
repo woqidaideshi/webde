@@ -4,6 +4,9 @@ Copy files in config into $HOME/.local/share/
 then mkdir dock @$HOME/.local/share/
 then copy some apps from /usr/share/applications/ to $HOME/.local/share/dock
 
+For support drag chinese from html to desktop, you must install iconv-lite as follow:
+	npm install iconv-lite 
+
 You can use commad like:
 	cp -r config/* $HOME/.local/share/
 	mkdir $HOME/.local/share/dock
