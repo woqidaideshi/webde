@@ -165,9 +165,7 @@ var ContextMenu = Class.extend({
 
 		var _this = this;
 		$(document).on('click', 'html', function () {
-			$('.dropdown-context').fadeOut(_this._options.fadeSpeed, function() {
-				$('.dropdown-context').css({display:''}).find('.drop-left').removeClass('drop-left');
-			});
+			_this.hide();
 		});
 		if(this._options.preventDoubleContext) {
 			$(document).on('contextmenu', '.dropdown-context', function (e) {
@@ -247,6 +245,25 @@ var ContextMenu = Class.extend({
 		return $menu;
 	},
 
+	removeMenu: function($menu_) {
+		$menu_.remove();
+	},
+
+	show: function($menu_, left_, top_) {
+		$('.dropdown-context:not(.dropdown-context-sub)').hide();
+		
+		$menu_.css({
+			top: top_,
+			left: left_
+		}).fadeIn(this._options.fadeSpeed);
+	},
+
+	hide: function() {
+		$('.dropdown-context').fadeOut(this._options.fadeSpeed, function() {
+			$('.dropdown-context').css({display:''}).find('.drop-left').removeClass('drop-left');
+		});
+	},
+
 	attachToMenu: function(selector_, $menu_) {
 		var _this = this;
 		$(document).on('contextmenu', selector_, function (e) {
@@ -260,19 +277,18 @@ var ContextMenu = Class.extend({
 				}
 				else desktop._rightObjId = e.target.id;
 			}
-			$('.dropdown-context:not(.dropdown-context-sub)').hide();
-			
 			var w = $menu_.width();
 			var h = $menu_.height();
 			left_ = (document.body.clientWidth < e.clientX + w) 
 							? (e.clientX - w) : e.clientX;
 			top_ = ($(document).height()< e.clientY + h + 25) 
 							? (e.clientY-h-10)  : e.clientY;
-			$menu_.css({
-						top: top_,
-						left: left_
-					}).fadeIn(_this._options.fadeSpeed);
+			_this.show($menu_, left_, top_);
 		});
+	},
+
+	detachFromMenu: function(selector_, $menu_) {
+		$(document).off('contextmenu', selector_);
 	},
 
 	activeItem: function() {},
@@ -284,7 +300,7 @@ var ContextMenu = Class.extend({
 //dir_: dir is watched 
 // ignoreInitial_:
 var Watcher = Event.extend({
-	init: function(dir_, ignoreInitial_) {
+	init: function(dir_, ignore_) {
 		if (typeof dir_ == 'undefined') {
 			dir_ = '/桌面';
 		};
@@ -295,8 +311,7 @@ var Watcher = Event.extend({
 		this._watcher = null;
 		this._evQueue = [];
 		this._timer = null;
-
-		this._ignoreInitial = ignoreInitial_ || true;
+		this._ignore = ignore_ || /^\./;
 
 		this._fs = require('fs');
 		this._exec = require('child_process').exec;
@@ -307,17 +322,13 @@ var Watcher = Event.extend({
 			_this._baseDir = stdout.substr(0, stdout.length - 1);
 			_this._fs.readdir(_this._baseDir+_this._watchDir, function(err, files) {
 				for(var i = 0; i < files.length; ++i) {
-					if(!_this._ignoreInitial) //do sth; do not count ignored files
-						;
 					_this._prev++;
 				}
 				var evHandler = function() {
-					var filename = _this._evQueue.pop();
+					var filename = _this._evQueue.shift();
 					_this._fs.readdir(_this._baseDir +_this._watchDir, function(err, files) {
 						var cur = 0;
 						for(var i = 0; i < files.length; ++i) {
-							if(!_this._ignoreInitial) //do sth; do not count ignored files
-								;
 							cur++;
 						}
 
@@ -335,8 +346,7 @@ var Watcher = Event.extend({
 								_this._oldName = filename;
 								return ;
 							}
-							if(_this.oldName == filename) {
-								_this._oldName = null;
+							if(_this._oldName == filename) {
 								return ;
 							}
 							_this.emit('rename', _this._oldName, filename);
@@ -347,14 +357,14 @@ var Watcher = Event.extend({
 				};
 				_this._timer = setInterval(function() {
 					if(_this._evQueue.length != 0) {
-						_this._evQueue.reverse();
+						// _this._evQueue.reverse();
 						evHandler();
 					}
 				}, 200);
 
 				_this._watcher = _this._fs.watch(_this._baseDir+_this._watchDir
 					, function(event, filename) {
-						if(event == 'change') return ;
+						if(event == 'change' || filename.match(_this._ignore) != null) return ;
 						_this._evQueue.push(filename);
 					});
 			});
@@ -370,5 +380,91 @@ var Watcher = Event.extend({
 	close: function() {
 		this._watcher.close();
 		clearInterval(this._timer);
+	}
+});
+
+var DesktopInputer = Class.extend({
+	init: function(name_) {
+		if(typeof name_ === 'undefined') throw 'Desktop Inputer need a name!!';
+		this._options = {
+			'left': '0',
+			'top': '0',
+			'width': '100',
+			'height': '32'
+		};
+		this.$input = $('<textarea>', {
+			// 'type': 'text',
+			'name': name_,
+		}).css({
+			'z-index': '9999',
+			'display': 'none',
+			'position': 'absolute',
+			'font-size': 'small',
+			'white-space': 'pre',
+			'-webkit-user-select': 'none',
+			'-moz-user-select': 'none',
+			'resize': 'none',
+			'overflow-y': 'hidden'
+		});
+		$('body').append(this.$input);
+
+		$(document).on('click', 'html', function(e) {
+			desktop._inputer.hide();
+		});
+
+		$(document).on('contextmenu', 'html', function(e) {
+			desktop._inputer.hide();
+		});
+
+		$(document).on('click', '[name=' + name_ + ']', function(e) {
+			e.stopPropagation();
+		});
+
+		var _this = this;
+		this.$input.keyup(function(e) {
+			if(e.which == 13) {//enter
+				if(_this.$input.val() == '\n')
+					_this.$input.val(_this._options.oldtext);
+				desktop._inputer.hide();
+			}
+			if(e.which == 27) {//esc
+				_this.$input.val(_this._options.oldtext);
+				desktop._inputer.hide();
+			}
+		});
+	},
+
+	//options: {
+	//  left: left offset to document
+	//  top: top offset to document
+	//  width: width of inputer
+	//  height: height of height
+	//  oldtext: old text to show
+	//  callback: function(input_content)
+	//}
+	show: function(options_) {
+		if(typeof options_.callback !== 'function') {
+			throw 'bad type of callback';
+		}
+		
+		for(var key in options_) {
+			this._options[key] = options_[key];
+		}
+		this.$input.css({
+			'left': this._options.left,
+			'top': this._options.top,
+			'width': this._options.width,
+			'height': this._options.height 
+		});
+		this.$input.val(this._options.oldtext).show();
+		this.$input[0].focus();
+		this.$input[0].select();
+	},
+
+	hide: function() {
+		if(this._options.callback)
+			this._options.callback.call(this, this.$input.val().replace(/\n/g, ''));
+		this._options.callback = null;
+		this.$input.hide();
 	}
 });

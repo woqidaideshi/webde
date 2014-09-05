@@ -221,6 +221,7 @@ var Grid = Widget.extend({
 		var _target_id = ev.target.id;
 		var _id = ev.dataTransfer.getData("ID");
 		var _target = $('#'+_target_id);
+		$('#' + _id).parent().removeClass('norhover');
 
 		//get target position
 		var _target_arr = _target_id.split('_');

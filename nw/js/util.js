@@ -54,7 +54,7 @@ var EntryUtil = Event.extend({
 		//5. if not found, return default icon file path(hicolor)
 		//
 		if(typeof callback_ !== "function")
-			throw "Bad function of callback!!";
+			throw "Bad type of callback!!";
 		
 		var _this = this;
 		var iconTheme = theme.getIconTheme();
@@ -157,6 +157,22 @@ var EntryUtil = Event.extend({
 				console.log("Get desktop file successfully");
 				callback_.call(this, null, attr);
 			}
+		});
+	},
+
+	generateADesktopFile: function(path_, data_, callback_) {
+		var _cb = callback_ || function() {};
+		var _data = "";
+		for(var key in data_) {
+			_data += key + '\n';
+			for(var key2 in data_[key]) {
+				if(typeof data_[key][key2] === 'undefined') continue;
+				_data += key2 + '=' + data_[key][key2] + '\n';
+			}
+		}
+		this._fs.writeFile(path_, _data, function(err) {
+			if(err) throw err;
+			_cb.call(this);
 		});
 	},
 
