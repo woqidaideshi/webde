@@ -204,7 +204,7 @@ var Grid = Widget.extend({
 	findALegalNearingIdleGrid: function(t_pos_) {
 		for(var i = t_pos_.x, firstX = true
 			; i != t_pos_.x || firstX
-			; i = (i + 1) % this._col_num) {
+			; i = (i + this._col_num - 1) % this._col_num) {
 			firstX = false;
 			for(var j = t_pos_.y, firstY = true
 				; j != t_pos_.y || firstY
@@ -310,17 +310,16 @@ var Grid = Widget.extend({
 		var row_num = 1;	
 		if (desktop._widgets[_id]._type.match(/\w*Plugin/) != null) {
 			col_num = desktop._widgets[_id].getColNum();
-			row_num =  desktop._widgets[_id].getRowNum();
+			row_num = desktop._widgets[_id].getRowNum();
 		};
 		//get Grid obj
 		var desktopGrid = desktop.getGrid();
 
 		//handle multi-entries move
-		if(desktop._selectedEntries.length > 1) {
-			//TODO: move '_id' first
-			//TODO: change _selectedEntries to key-value
-			for(var i = 0; i < desktop._selectedEntries.length; ++i) {
-				var _s_id = $('#' + _id).parent().attr('id');
+		if(desktop._selector._selectedEntries.length > 1) {
+			for(var i = 0; i < desktop._selector._selectedEntries.length; ++i) {
+				if(desktop._selector._selectedEntries[i] == null) continue;
+				var _s_id = $('#' + desktop._selector._selectedEntries[i]._id).parent().attr('id');
 				var _coor = /^.*[_]([0-9]+)[_]([0-9]+)$/.exec(_s_id);
 				var _pos = desktopGrid.findALegalNearingIdleGrid({
 					x: _target_col
@@ -328,16 +327,18 @@ var Grid = Widget.extend({
 				});
 				if(_pos == null) return ;
 				$('#grid_' + _pos.x + '_' + _pos.y)
-					.append($('#' + desktop._selectedEntries[i]._id));
-				console.log(desktop._selectedEntries[i]._id 
+					.append($('#' + desktop._selector._selectedEntries[i]._id));
+				console.log(desktop._selector._selectedEntries[i]._id 
 					+ " ---> " + _pos.x + '  '  + _pos.y);
-				desktop._selectedEntries[i].setPosition({x: _pos.x, y: _pos.y});
+				desktop._selector._selectedEntries[i].setPosition({x: _pos.x, y: _pos.y});
 				desktopGrid.flagGridOccupy(_pos.x, _pos.y, 1, 1, true);
 				_target_col = _pos.x;
 				_target_row = _pos.y;
 			
 				desktopGrid.flagGridOccupy(_coor[1], _coor[2], 1, 1, false);
 			}
+			desktop.reOrderDEntry();
+			desktop.resetDEntryTabIdx();
 			return ;
 		}
 
