@@ -69,11 +69,13 @@ var DEntry = Widget.extend({
 			$(this).parent().removeClass('norhover');
 			$('#' + _entry._id + ' p').css('height', '32px');
 		})/* .focus(function(e) { */
-			// if(e.which == 9)
-				// _entry.focus();
+			// e.preventDefault();
+			// [> if(e.which == 9) <]
+				// [> _entry.focus(); <]
 		// }).blur(function(e) {
-			// if(e.which == 9)
-				// _entry.blur();
+			// e.preventDefault();
+			// [> if(e.which == 9) <]
+				// [> _entry.blur(); <]
 		/* }) */.mousedown(function(e) {
 			e.stopPropagation();
 		}).mouseup(function(e) { 
@@ -104,6 +106,7 @@ var DEntry = Widget.extend({
 		if(!desktop._selector._selectedEntries.hasEntry(this._id))
 			desktop._selector._selectedEntries.push(this);
 		this._focused = true;
+		desktop._tabIndex = this._tabIndex - 1;
 	},
 
 	blur: function() {

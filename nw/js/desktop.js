@@ -6,7 +6,7 @@ var Desktop = Class.extend({
 		this._ctxMenu = null;
 		this._inputer = DesktopInputer.create('d-inputer');
 		this._selector = DesktopSelector.create();
-		this._tabIndex = 100;
+		this._tabIndex = -1;
 		this._position = {x: 0, y: 0};
 		this._widgets = [];
 		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
@@ -201,10 +201,10 @@ var Desktop = Class.extend({
 			}
 
 			_desktop.addAnDEntry(_Entry.create('id-' + stats.ino.toString()
-					, _desktop._tabIndex++
-					, _desktop._desktopWatch.getBaseDir() + '/' + filename
-					, _desktop._position
-					), _desktop._position);
+				, 100 + _desktop._tabIndex++
+				, _desktop._desktopWatch.getBaseDir() + '/' + filename
+				, _desktop._position
+				), _desktop._position);
 		});
 		this._desktopWatch.on('delete', function(filename) {
 			//console.log('delete:', filename);
@@ -361,7 +361,7 @@ var Desktop = Class.extend({
 									,lastSave_[_id].path));
 								} else if (_Entry != null) {
 								_desktop.addAnDEntry(_Entry.create(_id
-									, _desktop._tabIndex++
+									, 100 + _desktop._tabIndex++
 									, lastSave_[_id].path
 									, {x: lastSave_[_id].x, y: lastSave_[_id].y}
 									), {x: lastSave_[_id].x, y: lastSave_[_id].y});
@@ -429,7 +429,7 @@ var Desktop = Class.extend({
 		this.unRegistWidget(entry_.getID());
 		var _pos = entry_.getPosition();
 		this._grid._grid[_pos.x][_pos.y].use = false;
-		this._tabIndex--;
+		// this._tabIndex--;
 		this._dEntrys.remove(entry_.getTabIdx() - 1);
 		this.resetDEntryTabIdx();
 		entry_.hide();
@@ -605,6 +605,7 @@ var DesktopSelector = Class.extend({
 			e.stopPropagation();
 			if(e.which == 1) {
 				if(!e.ctrlKey) {
+					desktop._tabIndex = -1;
 					_this.releaseSelectedEntries();
 				}
 				_this._mouseDown = true;
@@ -626,8 +627,8 @@ var DesktopSelector = Class.extend({
 				});
 			}
 		}).on('mousemove', 'html', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
+			/* e.preventDefault(); */
+			/* e.stopPropagation(); */
 			if(!_this._mouseDown) return ;
 			var _off = _this.$view.offset();
 			if(e.pageX < _this._s_X) 
@@ -654,6 +655,28 @@ var DesktopSelector = Class.extend({
 				}
 			}
 		}).on('keydown', 'html', function(e) {
+			var upKey = function() {
+				desktop._tabIndex += desktop._dEntrys.length() - 1;
+				desktop._tabIndex %= desktop._dEntrys.length();
+				var _entry = desktop._dEntrys._items[desktop._tabIndex];
+				if(_entry == null) {
+					do{
+						desktop._tabIndex--;
+						_entry = desktop._dEntrys._items[0];
+					} while(_entry == null);
+				}
+				_entry.focus();
+			};
+			var downKey = function() {
+				desktop._tabIndex++;
+				desktop._tabIndex %= desktop._dEntrys.length();
+				var _entry = desktop._dEntrys._items[desktop._tabIndex];
+				if(_entry == null) {
+					desktop._tabIndex = 0;
+					_entry = desktop._dEntrys._items[0];
+				} 
+				_entry.focus();
+			};
 			switch(e.which) {
 				case 9:		// tab
 					if(!e.ctrlKey) {
@@ -661,9 +684,45 @@ var DesktopSelector = Class.extend({
 					} else {
 						console.log('Combination Key: Ctrl + Tab');
 					}
+					if(e.shiftKey) {
+						upKey();
+					} else {
+						downKey();
+					}
+					/* if(e.shiftKey) { */
+						// desktop._tabIndex += desktop._dEntrys.length() - 1;
+					// } else {
+						// desktop._tabIndex++;
+					// }
+					// desktop._tabIndex %= desktop._dEntrys.length();
+					// var _entry = desktop._dEntrys._items[desktop._tabIndex];
+					/* if(_entry != null) _entry.focus(); */
+					break;
+				case 13:	// enter
+					if(desktop._tabIndex != -1 
+						&& desktop._dEntrys._items[desktop._tabIndex] != null)
+						desktop._dEntrys._items[desktop._tabIndex].open();
 					break;
 				case 17:	// ctrl
 					desktop._ctrlKey = true;
+					break;
+				case 37:	// left
+					console.log('left');
+					break;
+				case 38:	// up
+					console.log('up');
+					if(!e.ctrlKey) 
+						_this.releaseSelectedEntries();
+					upKey();
+					break;
+				case 39:	// right
+					console.log('right');
+					break;
+				case 40:	// down
+					console.log('down');
+					if(!e.ctrlKey) 
+						_this.releaseSelectedEntries();
+					downKey();
 					break;
 				case 65:	// a/A
 					if(e.ctrlKey) {
