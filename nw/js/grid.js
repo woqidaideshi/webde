@@ -214,6 +214,7 @@ var Grid = Widget.extend({
 					return {x: i, y: j};
 				}
 			}
+			t_pos_.y = 0;
 		}
 		return null;
 	},

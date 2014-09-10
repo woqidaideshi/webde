@@ -80,6 +80,14 @@ html body {
 }
 .icon.focusing {
   outline: black auto 5px;
+  background-clip: content-box;
+  background-color: #a9a9a9;
+  opacity: 0.5;
+}
+.icon.focusing p {
+  background-clip: content-box;
+  background-color: #a9a9a9;
+  opacity: 1;
 }
 .gridcontainer {
   position: absolute;

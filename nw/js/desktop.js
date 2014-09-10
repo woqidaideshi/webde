@@ -599,7 +599,9 @@ var DesktopSelector = Class.extend({
 		this._s_Y = 0;
 
 		var _this = this;
-		$(document).on('mousedown', 'html', function(e) {
+		$(document).on('mousedown', 'body', function(e) {
+			e.preventDefault();
+		}).on('mousedown', 'html', function(e) {
 			e.stopPropagation();
 			if(e.which == 1) {
 				if(!e.ctrlKey) {
@@ -624,6 +626,8 @@ var DesktopSelector = Class.extend({
 				});
 			}
 		}).on('mousemove', 'html', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
 			if(!_this._mouseDown) return ;
 			var _off = _this.$view.offset();
 			if(e.pageX < _this._s_X) 

@@ -128,7 +128,18 @@ html body {
 	&.focusing {
 		//.out-box-shadow(0px, 0px, 3px, black);
 		outline: black auto 5px;
+		.bg(#A9A9A9, 0.5);
+
+		p {
+			.bg(#A9A9A9, 1);
+		}
 	}
+}
+
+.bg(@color, @opacity) {
+	background-clip: content-box;
+	background-color: @color;
+	opacity: @opacity;
 }
 
 .out-box-shadow(@h, @v, @blur, @color) {
