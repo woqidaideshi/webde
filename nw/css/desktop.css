@@ -3,6 +3,7 @@ html body {
   height: 100%;
   background-image: url(../img/cdos.png);
   background-size: cover;
+  overflow: hidden;
 }
 .col1 {
   width: 100px;
@@ -73,6 +74,8 @@ html body {
   font-size: small;
   text-align: center;
   overflow: hidden;
+    -webkit-user-select: none;
+  -moz-user-select: none;
   z-index: 99;
 }
 .icon p:hover {
