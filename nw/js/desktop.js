@@ -665,7 +665,9 @@ var DesktopSelector = Class.extend({
 		this._s_Y = 0;
 
 		var _this = this;
-		$(document).on('mousedown', 'html', function(e) {
+		$(document).on('mousedown', 'body', function(e) {
+			e.preventDefault();
+		}).on('mousedown', 'html', function(e) {
 			e.stopPropagation();
 			if(e.which == 1) {
 				if(!e.ctrlKey) {

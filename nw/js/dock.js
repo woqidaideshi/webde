@@ -76,6 +76,7 @@
 
 	dragOver: function(ev) {
 		ev.preventDefault();
+		ev.stopPropagation()
 		var _id = ev.dataTransfer.getData("ID");
 		//show insert position picture
 		var _source = null;
@@ -125,6 +126,7 @@
 	drop: function(ev) {
 		//if(ev.srcElement == ev.toElement) return ;
 		ev.preventDefault();
+		ev.stopPropagation();
 		var _id = ev.dataTransfer.getData("ID");
 		var _source = $('#'+_id);
 		if (typeof desktop._widgets[_id] != 'undefined' &&
@@ -286,10 +288,19 @@ var DockApp = Class.extend({
 	bindEvents: function() {
 		var img = $('#'+this._id+'-img');
 		var target_ = this;
-		  	//add onclick()
+		 //add onclick()
 		img.click (function(ev){
 			target_.openApp();
 		});
+		//forbid html mousedown and mouse up 
+		$('#'+this._id).mousedown(function(e) {
+			e.stopPropagation();
+		}).mouseup(function(e) { 
+			e.stopPropagation();
+		}).mouseover(function(e){
+			e.stopPropagation();
+		});
+
 
 
 		var dock = $('#dock');
@@ -339,7 +350,7 @@ var DockApp = Class.extend({
 	},
 
 	drag: function(ev) {
-		$(ev.target).children('img')[0].title = this._name; 
+		$(ev.currentTarget).children('img')[0].title = this._name; 
 		$('.tooltip').remove();
 		console.log("drag start");
 		ev.dataTransfer.setData("ID", ev.currentTarget.id);

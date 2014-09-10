@@ -95,7 +95,7 @@ var Property = Class.extend({
             	if ($(this).hasClass("selected")) {
             	    $($(this).attr("href")).show();  
             	}    
-            	$(this).click(function(event) {  
+            	$(this).mousedown(function(event) {  
                 	event.preventDefault();    
                 	if (!$(this).hasClass("selected")) {  
                     	tabhosts.each(function() {  
@@ -110,7 +110,7 @@ var Property = Class.extend({
     		});  
 
 		//property animate and remove();
-		$('#' +_this._id+ '-close').click(function(e){
+		$('#' +_this._id+ '-close').mousedown(function(e){
 			if (e.target.id.split('-')[0] !== 'event') {
 				var _pos = $('#' + _this._objId).offset();
 				$('#'+_this._id+'-property').animate({top:_pos.top,opacity:'hide',width:0,height:0,left:_pos.left},500,function(){
@@ -125,12 +125,14 @@ var Property = Class.extend({
 		});
 
 		$('#'+_this._id + '-title').mousedown(function(ev){
+			ev.stopPropagation();
 			_this._isMouseDown = true;
 			_this._offsetX = ev.offsetX;
 			_this._offsetY = ev.offsetY;
 			console.log('x:' +_this._offsetX + '  y: ' + _this._offsetY );
 			$('#'+_this._id+'-property').fadeTo(20, 0.5);
 		}).mouseup(function(ev){
+			ev.stopPropagation();
 			_this._isMouseDown = false;
 			$('#'+_this._id+'-property').fadeTo(20, 1);
 		});

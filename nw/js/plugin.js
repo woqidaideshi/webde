@@ -150,6 +150,13 @@ var ClockPlugin = DPlugin.extend({
 							"px' />");
 		//var value = document.getElementById(this._id+content);
 		var target = $('#'+this._id+this._content);
+		//forbid html mousedown and mouseup
+		target.mousedown(function(e) {
+			e.stopPropagation();
+		}).mouseup(function(e) { 
+			e.stopPropagation();
+		});
+
 		this.bindDrag(target[0]);
 		//set context menu add clock disabled
 		desktop._ctxMenu.disableItem('add-plugin','clock');
