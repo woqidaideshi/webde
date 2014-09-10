@@ -2,8 +2,7 @@ html body {
   width: 100%;
   height: 100%;
   background-image: url(../img/cdos.png);
-  background-size: 100%;
-  overflow:hidden;
+  background-size: cover;
 }
 .col1 {
   width: 100px;
@@ -166,8 +165,8 @@ html body {
   width: 100%;
   text-align: center;
 }
-.dock div{
-  display:inline-block;
+.dock div {
+  display: inline-block;
 }
 .dock div img {
   width: 50px;
@@ -221,14 +220,14 @@ html body {
   line-height:35px;
   color:#fff;
 }
-
-.property-show{
-    margin: 0px 10px 30px 10px;  
+.property-show {
+  margin: 0px 10px 30px 10px;
 }
 .property-tabs {
-   margin: 0px 10px -3px 10px;  
+  margin: 0px 10px -3px 10px;
   height: 24px;
 }
+
 .property-tabs a {  
     text-decoration: none;  
     background: #e7e7e7;  
@@ -299,7 +298,8 @@ html body {
     width:100%
     margin-left:5%;
   }
+  
 .property-close{
   float: right;
-  margin: 0px 10px 10px 10px;  
+  margin: 0px 10px 10px 10px;
 }

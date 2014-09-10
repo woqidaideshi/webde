@@ -5,6 +5,7 @@ var Desktop = Class.extend({
 		this._grid = undefined;
 		this._ctxMenu = null;
 		this._inputer = DesktopInputer.create('d-inputer');
+		this._selector = DesktopSelector.create();
 		this._tabIndex = 100;
 		this._position = undefined;
 		this._widgets = [];
@@ -23,7 +24,13 @@ var Desktop = Class.extend({
 				return false;
 			}
 		});
-		this._selectedEntries = [];
+		/* this._selectedEntries = []; */
+		// this._selectedEntries['hasEntry'] = function(id_) {
+			// for(var i = 0; i < this.length; ++i) {
+				// if(this[i] != null && this[i]._id == id_) return true;
+			// }
+			// return false;
+		/* };	 */
 		this._ctrlKey = false;
 		this._exec = require('child_process').exec;
 		this._fs = require('fs');
@@ -32,59 +39,11 @@ var Desktop = Class.extend({
 		this._rightObjId = undefined;
 		this.generateGrid();
 		this.initCtxMenu();
+		this.initDesktopWatcher();
 		this.bindingEvents();
 		this._dock = Dock.create();
 		
 		var _desktop = this;
-		
-		this._DESKTOP_DIR = '/桌面';
-		this._desktopWatch = Watcher.create(this._DESKTOP_DIR);
-		this._desktopWatch.on('add', function(filename, stats) {
-			//console.log('add:', filename, stats);
-			var _filenames = filename.split('.');
-			var _Entry;
-			
-			if(_filenames[0] == '') {
-				return ;//ignore hidden files
-			}
-			if(stats.isDirectory()) {
-				_Entry = DirEntry;
-			} else {
-				if(_filenames[_filenames.length - 1] == 'desktop') {
-					_Entry = AppEntry;
-				} else {
-					_Entry = FileEntry;
-				}
-			}
-
-			_desktop.addAnDEntry(_Entry.create('id-' + stats.ino.toString()
-					, _desktop._tabIndex++
-					, _desktop._desktopWatch.getBaseDir() + '/' + filename
-					,_desktop._position
-					),_desktop._position);
-		});
-		this._desktopWatch.on('delete', function(filename) {
-			//console.log('delete:', filename);
-			//find entry object by path
-			var _path = _desktop._desktopWatch.getBaseDir() + '/' + filename;
-			var _entry = _desktop.getAWidgetByAttr('_path', _path);
-			if(_entry == null) {
-				console.log('Can not find this widget');
-				return ;
-			}
-			_desktop.deleteADEntry(_entry);
-		});
-		this._desktopWatch.on('rename', function(oldName, newName) {
-			console.log('rename:', oldName, '->', newName);
-			var _path = _desktop._desktopWatch.getBaseDir() + '/' + oldName;
-			var _entry = _desktop.getAWidgetByAttr('_path', _path);
-			if(_entry == null) {
-				console.log('Can not find this widget');
-				return ;
-			}
-			_entry.rename(newName);
-		});
-		
 		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
 			if(err) {
 				console.log(err);
@@ -106,44 +65,7 @@ var Desktop = Class.extend({
 		});
 		_desktop._ctxMenu.attachToMenu('html'
 			, _desktop._ctxMenu.getMenuByHeader('desktop'));
-		
-		$(document).on('keydown', 'html', function(e) {
-			switch(e.which) {
-				case 9:		// tab
-					if(!e.ctrlKey) {
-						_desktop.releaseSelectedEntries();
-					} else {
-						console.log('Combination Key: Ctrl + Tab');
-					}
-					break;
-				case 17:	// ctrl
-					_desktop._ctrlKey = true;
-					break;
-				case 65:	// a/A
-					if(e.ctrlKey) {
-						console.log('Combination Key: Ctrl + a/A');
-						for(var key in _desktop._dEntrys._items) {
-							_desktop._dEntrys._items[key].focus();
-						}
-					}
-					break;
-				default:
-			}
-		}).on('keyup', 'html', function(e) {
-			switch(e.which) {
-				case 17:	// ctrl
-					_desktop._ctrlKey = false;
-					break;
-			}
-		}).on('mouseup', 'html', function(e) {
-			e.stopPropagation();
-			// e.preventDefault();
-			if(e.ctrlKey) {
-				console.log('Combination Key: Ctrl + left-click');
-			} else {
-			}
-			_desktop.releaseSelectedEntries();
-		});
+	
 	},
 
 	shutdown: function() {
@@ -154,6 +76,7 @@ var Desktop = Class.extend({
 	refresh: function() {
 		console.log('refresh');
 		this._desktopWatch.close();
+		// this._dock._dockWatch.close();
 		theme.saveConfig(this);
 		this.saveWidgets();
 	},
@@ -320,6 +243,57 @@ var Desktop = Class.extend({
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}}
 		]);
+	},
+
+	initDesktopWatcher: function() {
+		var _desktop = this;
+		this._DESKTOP_DIR = '/桌面';
+		this._desktopWatch = Watcher.create(this._DESKTOP_DIR);
+		this._desktopWatch.on('add', function(filename, stats) {
+			//console.log('add:', filename, stats);
+			var _filenames = filename.split('.');
+			var _Entry;
+			
+			if(_filenames[0] == '') {
+				return ;//ignore hidden files
+			}
+			if(stats.isDirectory()) {
+				_Entry = DirEntry;
+			} else {
+				if(_filenames[_filenames.length - 1] == 'desktop') {
+					_Entry = AppEntry;
+				} else {
+					_Entry = FileEntry;
+				}
+			}
+
+			_desktop.addAnDEntry(_Entry.create('id-' + stats.ino.toString()
+					, _desktop._tabIndex++
+					, _desktop._desktopWatch.getBaseDir() + '/' + filename
+					, _desktop._position
+					), _desktop._position);
+		});
+		this._desktopWatch.on('delete', function(filename) {
+			//console.log('delete:', filename);
+			//find entry object by path
+			var _path = _desktop._desktopWatch.getBaseDir() + '/' + filename;
+			var _entry = _desktop.getAWidgetByAttr('_path', _path);
+			if(_entry == null) {
+				console.log('Can not find this widget');
+				return ;
+			}
+			_desktop.deleteADEntry(_entry);
+		});
+		this._desktopWatch.on('rename', function(oldName, newName) {
+			console.log('rename:', oldName, '->', newName);
+			var _path = _desktop._desktopWatch.getBaseDir() + '/' + oldName;
+			var _entry = _desktop.getAWidgetByAttr('_path', _path);
+			if(_entry == null) {
+				console.log('Can not find this widget');
+				return ;
+			}
+			_entry.rename(newName);
+		});
 	},
 	
 	registWidget: function(widget_) {
@@ -501,7 +475,7 @@ var Desktop = Class.extend({
 	addAnDEntry: function(entry_, pos_) {
 		if(!this.registWidget(entry_)) return ;
 		if(typeof pos_ === 'undefined' || 
-				typeof $('#grid_' + pos_.x + '_' + pos_.y).children('div')[0] != 'undefined') {
+			typeof $('#grid_' + pos_.x + '_' + pos_.y).children('div')[0] != 'undefined') {
 			pos_ = this._grid.findAnIdleGrid();
 			if(pos_ == null) {
 				alert("No room");
@@ -539,12 +513,12 @@ var Desktop = Class.extend({
 		this._dEntrys.order();
 	},
 
-	releaseSelectedEntries: function() {
-		while(this._selectedEntries.length > 0) {
-			var _entry = this._selectedEntries.pop();
-			if(_entry) _entry.blur();
-		}
-	},
+	// releaseSelectedEntries: function() {
+		// while(this._selectedEntries.length > 0) {
+			// var _entry = this._selectedEntries.pop();
+			// if(_entry) _entry.blur();
+		// }
+	// },
 
 	addAnDPlugin: function(plugin_, pos_,  path_) {
 		if(!this.registWidget(plugin_)) return ;
@@ -580,4 +554,218 @@ var Desktop = Class.extend({
 		dockApp_ = undefined;
 	}
 	
+});
+
+var DesktopInputer = Class.extend({
+	init: function(name_) {
+		if(typeof name_ === 'undefined') throw 'Desktop Inputer need a name!!';
+		this._options = {
+			'left': '0',
+			'top': '0',
+			'width': '100',
+			'height': '32'
+		};
+		this.$input = $('<textarea>', {
+			// 'type': 'text',
+			'name': name_,
+		}).css({
+			'z-index': '9999',
+			'display': 'none',
+			'position': 'absolute',
+			'font-size': 'small',
+			'white-space': 'pre',
+			'-webkit-user-select': 'none',
+			'-moz-user-select': 'none',
+			'resize': 'none',
+			'overflow-y': 'hidden'
+		});
+		$('body').append(this.$input);
+
+		$(document).on('click', 'html', function(e) {
+			desktop._inputer.hide();
+		}).on('contextmenu', 'html', function(e) {
+			desktop._inputer.hide();
+		}).on('click', '[name=' + name_ + ']', function(e) {
+			e.stopPropagation();
+		});
+
+		var _this = this;
+		this.$input.keyup(function(e) {
+			if(e.which == 13) {//enter
+				if(_this.$input.val() == '\n')
+					_this.$input.val(_this._options.oldtext);
+				desktop._inputer.hide();
+			}
+			if(e.which == 27) {//esc
+				_this.$input.val(_this._options.oldtext);
+				desktop._inputer.hide();
+			}
+		});
+	},
+
+	//options: {
+	//  left: left offset to document
+	//  top: top offset to document
+	//  width: width of inputer
+	//  height: height of height
+	//  oldtext: old text to show
+	//  callback: function(input_content)
+	//}
+	show: function(options_) {
+		if(typeof options_.callback !== 'function') {
+			throw 'bad type of callback';
+		}
+		
+		for(var key in options_) {
+			this._options[key] = options_[key];
+		}
+		this.$input.css({
+			'left': this._options.left,
+			'top': this._options.top,
+			'width': this._options.width,
+			'height': this._options.height 
+		});
+		this.$input.val(this._options.oldtext).show();
+		this.$input[0].focus();
+		this.$input[0].select();
+	},
+
+	hide: function() {
+		if(this._options.callback)
+			this._options.callback.call(this, this.$input.val().replace(/\n/g, ''));
+		this._options.callback = null;
+		this.$input.hide();
+	}
+});
+
+var DesktopSelector = Class.extend({
+	init: function() {
+		this.$view = $('<div>', {
+			'id': 'd-selector'
+		}).css({
+			'z-index': '9999',
+			'display': 'none',
+			'position': 'absolute',
+			'border': '2px solid black',
+			'border-radius': '5px',
+			'background-color': '#A9A9A9',
+			'opacity': '0.5',
+			'cursor': 'default'
+		});
+		$('body').append(this.$view);
+		this._selectedEntries = [];
+		this._selectedEntries['hasEntry'] = function(id_) {
+			for(var i = 0; i < this.length; ++i) {
+				if(this[i] != null && this[i]._id == id_) return true;
+			}
+			return false;
+		};	
+		this._mouseDown = false;
+		this._s_X = 0;
+		this._s_Y = 0;
+
+		var _this = this;
+		$(document).on('mousedown', 'html', function(e) {
+			e.stopPropagation();
+			if(e.which == 1) {
+				if(!e.ctrlKey) {
+					_this.releaseSelectedEntries();
+				}
+				_this._mouseDown = true;
+				_this._s_X = e.pageX;
+				_this._s_Y = e.pageY;
+				_this.$view.css({
+					'left': e.pageX,
+					'top': e.pageY,
+				}).show();
+			}
+		}).on('mouseup', 'html', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if(e.which == 1) {
+				_this._mouseDown = false;
+				_this.$view.hide().css({
+					'width': '0px',
+					'height': '0px'
+				});
+			}
+		}).on('mousemove', 'html', function(e) {
+			if(!_this._mouseDown) return ;
+			var _off = _this.$view.offset();
+			if(e.pageX < _this._s_X) 
+				_off.left = e.pageX;
+			if(e.pageY < _this._s_Y)
+				_off.top = e.pageY;
+			_this.$view.css({
+				'top': _off.top,
+				'left': _off.left,
+				'width': Math.abs(e.pageX - _this._s_X),
+				'height': Math.abs(e.pageY - _this._s_Y)
+			});
+			if(!e.ctrlKey)
+				desktop._selector.releaseSelectedEntries();
+			for(var i = 0; i < desktop._dEntrys._items.length; ++i) {
+				if(_this.isOverlap({
+						left: _off.left,
+						top: _off.top,
+						left_e: _off.left + _this.$view.width(),
+						top_e: _off.top + _this.$view.height()
+					}, desktop._dEntrys._items[i]._dEntry)) {
+					desktop._dEntrys._items[i].focus();
+				}
+			}
+		}).on('keydown', 'html', function(e) {
+			switch(e.which) {
+				case 9:		// tab
+					if(!e.ctrlKey) {
+						_this.releaseSelectedEntries();
+					} else {
+						console.log('Combination Key: Ctrl + Tab');
+					}
+					break;
+				case 17:	// ctrl
+					desktop._ctrlKey = true;
+					break;
+				case 65:	// a/A
+					if(e.ctrlKey) {
+						console.log('Combination Key: Ctrl + a/A');
+						for(var key in desktop._dEntrys._items) {
+							desktop._dEntrys._items[key].focus();
+						}
+					}
+					break;
+				default:
+			}
+		}).on('keyup', 'html', function(e) {
+			switch(e.which) {
+				case 17:	// ctrl
+					desktop._ctrlKey = false;
+					break;
+			}
+		});
+	},
+
+	isOverlap: function(selector_, $entry_) {
+		var _d_off = $entry_.offset(),
+			_d_off_e = {
+				left: _d_off.left + $entry_.width(),
+				top: _d_off.top + $entry_.height()
+			};
+		var isIn = function(pos) {
+			return (selector_.left < pos.left && selector_.top < pos.top
+				&& selector_.left_e > pos.left && selector_.top_e > pos.top);
+		}
+		var topLeft = isIn({left: _d_off.left, top: _d_off.top});
+		var topRight = isIn({left: _d_off_e.left, top: _d_off.top});
+		var bottomLeft = isIn({left: _d_off.left, top: _d_off_e.top});
+		var bottomRigth = isIn({left: _d_off_e.left, top: _d_off_e.top});
+		return (topLeft || topRight || bottomLeft || bottomRigth);
+	},
+
+	releaseSelectedEntries: function() {
+		while(this._selectedEntries.length > 0) {
+			var _entry = this._selectedEntries.pop();
+			if(_entry) _entry.blur();
+		}
+	}
 });

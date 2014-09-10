@@ -164,8 +164,11 @@ var ContextMenu = Class.extend({
 		}
 
 		var _this = this;
-		$(document).on('click', 'html', function () {
-			_this.hide();
+		$(document).on('mouseup', 'html', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if(e.which == 1)
+				_this.hide();
 		});
 		if(this._options.preventDoubleContext) {
 			$(document).on('contextmenu', '.dropdown-context', function (e) {
@@ -211,7 +214,14 @@ var ContextMenu = Class.extend({
 					eventAction = item_.action;
 				$sub.find('a').attr('id', actionID);
 				$('#' + actionID).addClass('context-event');
-				$(document).on('click', '#' + actionID, eventAction);
+				$(document).on('mousedown', '#' + actionID, function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+				}).on('mouseup', '#' + actionID, eventAction)
+				.on('click', '#' + actionID, function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+				});
 			}
 			$menu_.append($sub);
 			if (typeof item_.subMenu != 'undefined') {
@@ -415,88 +425,3 @@ var Watcher = Event.extend({
 	}
 });
 
-var DesktopInputer = Class.extend({
-	init: function(name_) {
-		if(typeof name_ === 'undefined') throw 'Desktop Inputer need a name!!';
-		this._options = {
-			'left': '0',
-			'top': '0',
-			'width': '100',
-			'height': '32'
-		};
-		this.$input = $('<textarea>', {
-			// 'type': 'text',
-			'name': name_,
-		}).css({
-			'z-index': '9999',
-			'display': 'none',
-			'position': 'absolute',
-			'font-size': 'small',
-			'white-space': 'pre',
-			'-webkit-user-select': 'none',
-			'-moz-user-select': 'none',
-			'resize': 'none',
-			'overflow-y': 'hidden'
-		});
-		$('body').append(this.$input);
-
-		$(document).on('click', 'html', function(e) {
-			desktop._inputer.hide();
-		});
-
-		$(document).on('contextmenu', 'html', function(e) {
-			desktop._inputer.hide();
-		});
-
-		$(document).on('click', '[name=' + name_ + ']', function(e) {
-			e.stopPropagation();
-		});
-
-		var _this = this;
-		this.$input.keyup(function(e) {
-			if(e.which == 13) {//enter
-				if(_this.$input.val() == '\n')
-					_this.$input.val(_this._options.oldtext);
-				desktop._inputer.hide();
-			}
-			if(e.which == 27) {//esc
-				_this.$input.val(_this._options.oldtext);
-				desktop._inputer.hide();
-			}
-		});
-	},
-
-	//options: {
-	//  left: left offset to document
-	//  top: top offset to document
-	//  width: width of inputer
-	//  height: height of height
-	//  oldtext: old text to show
-	//  callback: function(input_content)
-	//}
-	show: function(options_) {
-		if(typeof options_.callback !== 'function') {
-			throw 'bad type of callback';
-		}
-		
-		for(var key in options_) {
-			this._options[key] = options_[key];
-		}
-		this.$input.css({
-			'left': this._options.left,
-			'top': this._options.top,
-			'width': this._options.width,
-			'height': this._options.height 
-		});
-		this.$input.val(this._options.oldtext).show();
-		this.$input[0].focus();
-		this.$input[0].select();
-	},
-
-	hide: function() {
-		if(this._options.callback)
-			this._options.callback.call(this, this.$input.val().replace(/\n/g, ''));
-		this._options.callback = null;
-		this.$input.hide();
-	}
-});
