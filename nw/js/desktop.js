@@ -7,7 +7,7 @@ var Desktop = Class.extend({
 		this._inputer = DesktopInputer.create('d-inputer');
 		this._selector = DesktopSelector.create();
 		this._tabIndex = 100;
-		this._position = {x:0,y:0};
+		this._position = {x: 0, y: 0};
 		this._widgets = [];
 		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
 			var pos1 = entry1_.getPosition();
@@ -643,7 +643,8 @@ var DesktopSelector = Class.extend({
 			if(!e.ctrlKey)
 				desktop._selector.releaseSelectedEntries();
 			for(var i = 0; i < desktop._dEntrys._items.length; ++i) {
-				if(_this.isOverlap({
+				if(desktop._dEntrys._items[i] != null
+					&& _this.isOverlap({
 						left: _off.left,
 						top: _off.top,
 						left_e: _off.left + _this.$view.width(),
@@ -667,8 +668,9 @@ var DesktopSelector = Class.extend({
 				case 65:	// a/A
 					if(e.ctrlKey) {
 						console.log('Combination Key: Ctrl + a/A');
-						for(var key in desktop._dEntrys._items) {
-							desktop._dEntrys._items[key].focus();
+						for(var i = 0; i < desktop._dEntrys._items.length; ++i) {
+							if(desktop._dEntrys._items[i] != null)
+								desktop._dEntrys._items[i].focus();
 						}
 					}
 					break;
