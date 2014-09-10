@@ -74,18 +74,20 @@ var DEntry = Widget.extend({
 		// }).blur(function(e) {
 			// if(e.which == 9)
 				// _entry.blur();
-		/* }) */.mouseup(function(e) { 
+		/* }) */.mousedown(function(e) {
+			e.stopPropagation();
+		}).mouseup(function(e) { 
 			e.stopPropagation();
 			// e.preventDefault(); 
 			if(!e.ctrlKey) {
-				desktop.releaseSelectedEntries();
+				desktop._selector.releaseSelectedEntries();
 				_entry.focus();
 			} else {
 				if(_entry._focused) {
-					for(var i = 0; i < desktop._selectedEntries.length; ++i) {
-						if(desktop._selectedEntries[i] != null
-							&& _entry._id == desktop._selectedEntries[i]._id) {
-								desktop._selectedEntries[i] = null;
+					for(var i = 0; i < desktop._selector._selectedEntries.length; ++i) {
+						if(desktop._selector._selectedEntries[i] != null
+							&& _entry._id == desktop._selector._selectedEntries[i]._id) {
+								desktop._selector._selectedEntries[i] = null;
 								_entry.blur();
 								break;
 							}
@@ -99,7 +101,8 @@ var DEntry = Widget.extend({
 
 	focus: function() {
 		this._dEntry/* .parent() */.addClass('focusing');
-		desktop._selectedEntries.push(this);
+		if(!desktop._selector._selectedEntries.hasEntry(this._id))
+			desktop._selector._selectedEntries.push(this);
 		this._focused = true;
 	},
 
@@ -114,13 +117,14 @@ var DEntry = Widget.extend({
 		//redraw dentry's name
 		this._name = name_;
 	},
-/*
+
 	drag: function(ev) {
-		if(ev.target.id != "") {
-			this.callSuper(ev);
+		if(!desktop._selector._selectedEntries.hasEntry(ev.target.id)) {
+			desktop._selector.releaseSelectedEntries();
 		}
+		this.callSuper(ev);
 	},
-*/
+
 	drop: function(ev) {
 		console.log("prevent!!");
 		$(this).parent('.grid').removeClass('hovering');
