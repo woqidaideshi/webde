@@ -7,7 +7,7 @@ var Desktop = Class.extend({
 		this._inputer = DesktopInputer.create('d-inputer');
 		this._selector = DesktopSelector.create();
 		this._tabIndex = 100;
-		this._position = {x:0,y:0};
+		this._position = undefined;
 		this._widgets = [];
 		this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
 			var pos1 = entry1_.getPosition();
@@ -74,6 +74,7 @@ var Desktop = Class.extend({
 	},
 
 	refresh: function() {
+		console.log('refresh');
 		this._desktopWatch.close();
 		// this._dock._dockWatch.close();
 		theme.saveConfig(this);
@@ -85,13 +86,44 @@ var Desktop = Class.extend({
 
 		this._ctxMenu.addCtxMenu([
 			{header: 'desktop'},
+			{text:'crezate Dir',action:function(e){
+				e.preventDefault();
+				var _fs = require('fs');
+				for (var i = 0; ; i++) {
+					if(_fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newDir'+i)) {
+						continue;
+					} else {
+					_fs.mkdir(desktop._desktopWatch.getBaseDir()+'/newDir'+i,function(){
+						});
+						return;
+					}
+				}
+			}},
+			{text:'create Text',action:function(e){
+				e.preventDefault();
+				var _fs =require('fs');
+				for (var i = 0; ; i++) {
+					if(_fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
+						continue;
+					} else {
+					_fs.writeFile(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt','',{encoding:'utf8'},function(err){
+						if (err) throw err;
+						});
+						return;
+					}
+				}
+			}},
+			{text: 'script', subMenu: [
+				{header: 'script'}
+			]},
+			{divider: true},
 			{text: 'terminal', action: function(e) {
 				e.preventDefault();
 				var exec = require('child_process').exec;
 				exec("gnome-terminal", function(err, stdout, stderr) {
-	      	console.log('stdout: ' + stdout);
-	       	console.log('stderr: ' + stderr);
-	      });
+	      		console.log('stdout: ' + stdout);
+	       		console.log('stderr: ' + stderr);
+	      		});
 			}},
 			{text:'gedit',action:function(e){
 				e.preventDefault();
@@ -99,7 +131,7 @@ var Desktop = Class.extend({
 				exec("gedit",function(err, stdout, stderr){
 	   			console.log('stdout: ' + stdout);
 	   			console.log('stderr: ' + stderr);
-	      });
+	      		});
 			}},
 			{divider: true},
 			{text: 'refresh', action: function(e) {
@@ -109,35 +141,54 @@ var Desktop = Class.extend({
 				location.reload(true);
 			}},
 			{divider: true},
-			{text: 'app plugin', subMenu: [
-				{header: 'plugin'},
+			{text: 'app-plugin', subMenu: [
+				{header: 'add-plugin'},
 				{text: 'clock', action: function(e) {
-					if (typeof $('#clock')[0] == 'undefined') 
+					e.preventDefault();
+					if (typeof $('#clock')[0] == 'undefined') {
 						desktop.addAnDPlugin(ClockPlugin.create('clock',undefined,'img/clock.png'));
+						desktop._ctxMenu.disableItem('add-plugin','clock');
+					}
 				}}
-			]}
+			]},
+			{text:'test', action:function(e){
+				e.preventDefault();
+				console.log('click  test  button ');
+				desktop._ctxMenu.disableItem('desktop','test');
+			}}
 		]);
 		this._ctxMenu.addCtxMenu([
 			{header: 'plugin'},
 			{text: 'zoom in', action: function(e) {
 				e.preventDefault();
 				desktop._widgets[desktop._rightObjId].zoomIn();
+				
 			}},
 			{text: 'zoom out', action: function(e) {
 				e.preventDefault();
 				desktop._widgets[desktop._rightObjId].zoomOut();
 			}},
 			{text:'remove', action:function(e) {
-				desktop._widgets[desktop._rightObjId].remove();
+				var _widget = desktop._widgets[desktop._rightObjId];
+				var _eventAction = function(e_){
+					e_.preventDefault();
+					desktop.addAnDPlugin(ClockPlugin.create(_widget._id,undefined,_widget._path));
+				}
+				desktop._ctxMenu.activeItem('add-plugin','clock',_eventAction);
+				_widget.remove();
 				e.preventDefault();
 			}}
 		]);
 		this._ctxMenu.addCtxMenu([
 			{header: 'dock'},
-			{text: 'property', action:function(){
-				var property_ = Property.create(desktop._rightObjId);
-				property_.showAppProperty();
-				property_.show();
+			{text: 'property', action:function(e){
+				e.preventDefault();
+				var _property = Property.create(desktop._rightObjId);
+				_property.showAppProperty();
+				_property.show();
+			}},
+			{text:'delete',action:function(){
+
 			}}
 		]);
 		this._ctxMenu.addCtxMenu([
@@ -150,6 +201,17 @@ var Desktop = Class.extend({
 				e.preventDefault();
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
+			}},
+			{text:'delete' , action:function(e){
+				e.preventDefault();
+				var _path = desktop._widgets[desktop._rightObjId]._path;
+				utilIns.entryUtil.removeFile(_path);
+			}},
+			{text:'property',action:function(e){
+				e.preventDefault();
+				var _property = Property.create(desktop._rightObjId);
+				_property.showAppProperty();
+				_property.show();
 			}}
 		]);
 		this._ctxMenu.addCtxMenu([
@@ -162,7 +224,12 @@ var Desktop = Class.extend({
 				e.preventDefault();
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
-			}}
+			}},
+			{text:'delete' , action:function(e){
+				e.preventDefault();
+				var _path = desktop._widgets[desktop._rightObjId]._path;
+				utilIns.entryUtil.removeFile(_path);
+			}},
 		]);
 		this._ctxMenu.addCtxMenu([
 			{header: 'theme-entry'},
@@ -402,7 +469,6 @@ var Desktop = Class.extend({
 			if(err) {
 				console.log(err);
 			}
-			console.log(data);
 		});
 	},
 

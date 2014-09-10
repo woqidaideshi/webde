@@ -283,5 +283,12 @@ var EntryUtil = Event.extend({
 				}
 			});
 		});
+	},
+	//rm file 
+	//path_: file Path_
+	removeFile:function(path_){
+		this._exec('rm '+path_, function(err, out ,stderr){
+			if(err) throw 'util.js-rmFile: bad path';
+		});
 	}
 });
