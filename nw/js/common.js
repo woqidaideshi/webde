@@ -201,9 +201,9 @@ var ContextMenu = Class.extend({
 				linkTarget = ' target="' + item_.target + '"';
 			}
 			if (typeof item_.subMenu !== 'undefined') {
-				$sub = ('<li class="dropdown-submenu"><a tabindex="-1" href="' + item_.href + '">' + item_.text + '</a></li>');
+				$sub = ('<li class="dropdown-submenu active"><a tabindex="-1" href="' + item_.href + '">' + item_.text + '</a></li>');
 			} else {
-				$sub = $('<li><a tabindex="-1" href="' + item_.href + '"' + linkTarget + '>' + item_.text + '</a></li>');
+				$sub = $('<li class="active"><a tabindex="-1" href="' + item_.href + '"' + linkTarget + '>' + item_.text + '</a></li>');
 			}
 			if (typeof item_.action !== 'undefined') {
 				var actiond = new Date(),
@@ -291,9 +291,41 @@ var ContextMenu = Class.extend({
 		$(document).off('contextmenu', selector_);
 	},
 
-	activeItem: function() {},
+	activeItem: function(header_, text_, eventAction_) {
+		var _menus = $(desktop._ctxMenu.getMenuByHeader(header_)).children('li');
+		for (var i = 0; i < _menus.length; i++) {
+			if(_menus[i].textContent == text_){
+				var _menuli = $(_menus[i]);
+				_menuli.removeClass('disabled');
+				_menuli.addClass('active');
+				var _aId = $(_menuli).children('a')[0].id;
+				if ((typeof _aId !== 'undefined' || _aId !== '') && typeof eventAction_ !== 'undefined') {
+					$('#' + _aId).addClass('context-event');
+					$(document).off('click', '#' + _aId);
+					$(document).on('click', '#' + _aId, eventAction_);
+				}
+				return ;
+			}
+		}
+	},
 
-	disableItem: function() {}
+	disableItem: function(header_, text_) {
+		var _menus = $(desktop._ctxMenu.getMenuByHeader(header_)).children('li');
+		for (var i = 0; i < _menus.length; i++) {
+			if(_menus[i].textContent == text_){
+				var _menuli = $(_menus[i]);
+				_menuli.removeClass('active');
+				_menuli.addClass('disabled');
+				var _aId = $(_menuli).children('a')[0].id;
+				$('#' + _aId).removeClass('context-event');
+				$(document).off('click', '#' + _aId);
+				$(document).on("click", '#' + _aId, function(e){
+					e.preventDefault();
+				}) ;
+				return ;
+			}
+		}
+	}
 });
 
 //watch  dir :Default is desktop

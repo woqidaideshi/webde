@@ -240,13 +240,6 @@ var Grid = Widget.extend({
 			var _path = desktop._widgets[_id]._path;
 			var _tmp = _path.split('/');
 			var _name = _tmp[_tmp.length -1];
-			var _divList = $('#dock div');
-			for (var i = 0,n = 0; i < _divList.length; i++) {
-				if(_divList[i].id == _id) continue;
-				desktop._widgets[_divList[i].id]._position.x = n++;
-			}
-			desktop.unRegistWidget(_id);
-			$('#'+_id).remove();
 			var _dst = desktop._desktopWatch.getBaseDir()+'/' + _name;
 			var _fs = require('fs');
 			_fs.rename(_path, _dst, function() {});

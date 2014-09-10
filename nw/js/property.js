@@ -12,6 +12,8 @@ var Property = Class.extend({
 		this._isMouseDown = false;  	//flag mouse is down or not  
 		this._offsetX = 0;						//record mouse-x relate property-div left 	
 		this._offsetY = 0;						//record mouse-y relate property-div top
+		this._objId = desktop._rightObjId;
+		this._imgPath = undefined;
 		//main div
 		var _property = $('<div>', {
 			'class': 'property',
@@ -44,6 +46,25 @@ var Property = Class.extend({
 			'id': this._id+'-basic'
 		});
 		_property_show.append(_property_basic);
+
+		var _property_icon = $('<div>', {
+			'class': 'iconcontent',
+			'id': this._id+'-icon'
+		});
+		_property_basic.append(_property_icon);
+
+		var _property_img = $('<img>',{
+			'class':'imgcontent',
+			'id':this._id+'-imgproperty'
+		});
+		_property_icon.append(_property_img);
+
+		var _property_basic_info = $('<div>', {
+			'class': 'basicinfocontent',
+			'id': this._id+'-basicinfo'
+		});
+		_property_basic.append(_property_basic_info);
+
 		var _property_power =  $('<div>', {
 			'class': 'tabcontent',
 			'id': this._id+'-power'
@@ -85,13 +106,14 @@ var Property = Class.extend({
                     	$($(this).attr("href")).show();  
                 	}  
             	});  
-        	});  
-    	});  
+        		});  
+    		});  
 
 		//property animate and remove();
 		$('#' +_this._id+ '-close').click(function(e){
 			if (e.target.id.split('-')[0] !== 'event') {
-				$('#'+_this._id+'-property').animate({top:top_,opacity:'hide',width:0,height:0,left:left_},500,function(){
+				var _pos = $('#' + _this._objId).offset();
+				$('#'+_this._id+'-property').animate({top:_pos.top,opacity:'hide',width:0,height:0,left:_pos.left},500,function(){
 					$(this).remove();
 				});
 			}
@@ -127,37 +149,45 @@ var Property = Class.extend({
 
 	//show property inform into tab-basic and tab-power
 	showAppProperty:function(){
-		var path_ = desktop._widgets[this._id]._path;
+		var _path = desktop._widgets[this._id]._path;
 		var _this = this;
-		if ($('#'+_this._id + '-basic').children('p').length != 0) return ;
+		if ($('#'+_this._id + '-basicinfo').children('p').length != 0) return ;
 		//get some basic inform and write to tabbasic 
-		utilIns.entryUtil.parseDesktopFile(path_, function(err_, file_) {
+		utilIns.entryUtil.parseDesktopFile(_path, function(err_, file_) {
 			if(err_) { 
 				console.log(err_);
 				return ;
 			}
-			var comment = file_['Comment'];
-			var genericName = undefined;
+			var _comment = file_['Comment'];
+			var _genericName = undefined;
 			if (typeof file_['GenericName[zh_CN]'] != 'undefined') 
 				genericName = file_['GenericName[zh_CN]'];
 			else genericName = file_['GenericName'];
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>名称:          " + desktop._widgets[_this._id]._name + "</p>");
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>命令:          " + desktop._widgets[_this._id]._execCmd + "</p>");
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>描述:  " + comment + "</p>");
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>备注:  " + genericName + "</p>");
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>位置:  " + path_ + "</p>");
+			_this._imgPath = file_['icon'];
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>名称:          " + desktop._widgets[_this._id]._name + "</p>");
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>命令:          " + desktop._widgets[_this._id]._execCmd + "</p>");
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>描述:  " + _comment + "</p>");
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>备注:  " + _genericName + "</p>");
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>位置:  " + _path + "</p>");
+			_this.showIcon(desktop._widgets[_this._id]._imgPath);
+			_this.showBasicProperty();
 			//get launch commad
 			var tabhosts = $($('#'+_this._id+'-tabs').children('a')); 
 			$(tabhosts[0]).addClass("selected");  
-            $($(tabhosts[0]).attr("href")).show(); 
+            	$($(tabhosts[0]).attr("href")).show(); 
 		});
+	},
+
+	showBasicProperty:function(){
+		var _path = desktop._widgets[this._id]._path;
+		var _this = this;
 		//get some basic inform and access inform
-		utilIns.entryUtil.getProperty(path_, function(err_,attr_) {
+		utilIns.entryUtil.getProperty(_path, function(err_,attr_) {
 			if (typeof attr_ == 'undefined') {
 				console.log('get Property err');
 				return ;
 			}
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>文件大小:  " + attr_['size'] + "</p>");
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>文件大小:  " + attr_['size'] + "</p>");
 			var fileType = null;
 			switch(attr_['access'][0]){
 				case '-': 
@@ -181,9 +211,9 @@ var Property = Class.extend({
 				default:
 					break ;
 			}
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>文件类型:  " + fileType + "</p>");
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>访问时间:  " + attr_['access_time']+ "</p>");
-			$('#'+_this._id+'-basic').append("<p>    <span>▪</span>修改时间:  " + attr_['modify_time']+ "</p>");
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>文件类型:  " + fileType + "</p>");
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>访问时间:  " + attr_['access_time']+ "</p>");
+			$('#'+_this._id+'-basicinfo').append("<p>    <span>▪</span>修改时间:  " + attr_['modify_time']+ "</p>");
 
 
 			var power = '';
@@ -208,6 +238,10 @@ var Property = Class.extend({
 		});
 	},
 
+	showIcon:function(path_){
+		$('#' + this._id+'-imgproperty').attr('src', path_);
+	},
+
 	//show main div of property
 	show:function(){
 		if ($('#' +desktop._rightObjId+ '-property').is(":visible") == false) {
@@ -215,8 +249,8 @@ var Property = Class.extend({
 			showDiv.width(0);
 			showDiv.height(0);
 			showDiv.css('position','absolute');
-			var left_ = $('#'+desktop._rightObjId).position().left + $('#'+desktop._rightObjId).width()/2;
-			var top_ = $('#'+desktop._rightObjId).position().top + $('#'+desktop._rightObjId).width()/2;
+			var left_ = $('#'+desktop._rightObjId).offset().left + $('#'+desktop._rightObjId).width()/2;
+			var top_ = $('#'+desktop._rightObjId).offset().top + $('#'+desktop._rightObjId).height()/2;
 			showDiv.css('left',left_+'px');
 			showDiv.css('top',top_+'px');
 			showDiv.show();
