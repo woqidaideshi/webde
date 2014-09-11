@@ -590,7 +590,8 @@ var DesktopInputer = Class.extend({
 		});
 
 		var _this = this;
-		this.$input.keyup(function(e) {
+		this.$input.keydown(function(e) {
+			e.stopPropagation();
 			if(e.which == 13) {//enter
 				if(_this.$input.val() == '\n')
 					_this.$input.val(_this._options.oldtext);

@@ -164,7 +164,7 @@ var ContextMenu = Class.extend({
 		}
 
 		var _this = this;
-		$(document).on('mouseup', 'html', function (e) {
+		$(document).on('mousedown', 'html', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
 			if(e.which == 1)
@@ -214,10 +214,10 @@ var ContextMenu = Class.extend({
 					eventAction = item_.action;
 				$sub.find('a').attr('id', actionID);
 				$('#' + actionID).addClass('context-event');
-				$(document).on('mousedown', '#' + actionID, function(e) {
+				$(document).on('mouseup', '#' + actionID, function(e) {
 					e.preventDefault();
 					e.stopPropagation();
-				}).on('mouseup', '#' + actionID, eventAction)
+				}).on('mousedown', '#' + actionID, eventAction)
 				.on('click', '#' + actionID, function(e) {
 					e.preventDefault();
 					e.stopPropagation();
