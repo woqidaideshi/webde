@@ -69,15 +69,17 @@ var DEntry = Widget.extend({
 			$(this).parent().removeClass('norhover');
 			$('#' + _entry._id + ' p').css('height', '32px');
 		})/* .focus(function(e) { */
-			// if(e.which == 9)
-				// _entry.focus();
+			// e.preventDefault();
+			// [> if(e.which == 9) <]
+				// [> _entry.focus(); <]
 		// }).blur(function(e) {
-			// if(e.which == 9)
-				// _entry.blur();
+			// e.preventDefault();
+			// [> if(e.which == 9) <]
+				// [> _entry.blur(); <]
 		/* }) */.mousedown(function(e) {
 			e.stopPropagation();
 		}).mouseup(function(e) { 
-			e.stopPropagation();
+			// e.stopPropagation();
 			// e.preventDefault(); 
 			if(!e.ctrlKey) {
 				desktop._selector.releaseSelectedEntries();
@@ -104,6 +106,7 @@ var DEntry = Widget.extend({
 		if(!desktop._selector._selectedEntries.hasEntry(this._id))
 			desktop._selector._selectedEntries.push(this);
 		this._focused = true;
+		desktop._tabIndex = this._tabIndex - 1;
 	},
 
 	blur: function() {
@@ -344,7 +347,7 @@ var FileEntry = DEntry.extend({
 			_match = /(.*)[\.]([^\.].*)$/.exec(newName_);
 			if(_match != null && _match[2] != this._type) {
 				this._type = _match[2];
-				//TODO: reparse the file type
+				// reparse the file type
 				this.show(true);
 			}
 			this._name = newName_;
@@ -366,14 +369,28 @@ var DirEntry = FileEntry.extend({
 		ev.stopPropagation();
 		ev.preventDefault();
 		$(this).parent('.grid').removeClass('hovering');
+		var _fs = require('fs');
+
+		// handle multi-entry move
+		if(desktop._selector._selectedEntries.length > 1) {
+			for(var i = 0; i < desktop._selector._selectedEntries.length; ++i) {
+				if(desktop._selector._selectedEntries[i] == null) continue;
+				var _s_id = desktop._selector._selectedEntries[i]._id;
+				if(_s_id == this.id) continue;
+				var _s_path = desktop._selector._selectedEntries[i]._path;
+				var _name = /^.*[\/]([^\/]*)$/.exec(_s_path);
+				_fs.rename(_s_path, desktop._widgets[this.id]._path + '/' + _name[1]
+					, function(err) {if(err) console.log(err);});
+			}
+			return ;
+		}
 
 		var _id = ev.dataTransfer.getData('ID');
 		if(_id == this.id) return ;
-		var _fs = require('fs');
 		var _name = /^.*[\/]([^\/]*)$/.exec(desktop._widgets[_id]._path);
 		_fs.rename(desktop._widgets[_id]._path
 			, desktop._widgets[this.id]._path + '/' + _name[1]
-			, function() {});
+			, function(err) {if(err) console.log(err);});
 	},
 
 	rename: function(newName_) {

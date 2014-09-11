@@ -53,14 +53,12 @@ html body {
   -o-box-sizing: border-box;
   -ms-box-sizing: border-box;
   box-sizing: border-box;
+  outline: none;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-box-pack: center;
   -webkit-box-align: center;
   z-index: 99;
-}
-.icon:focus {
-  outline: white auto 5px;
 }
 .icon img {
   width: 50px;
@@ -83,6 +81,14 @@ html body {
 }
 .icon.focusing {
   outline: black auto 5px;
+  background-clip: content-box;
+  background-color: #a9a9a9;
+  opacity: 0.5;
+}
+.icon.focusing p {
+  background-clip: content-box;
+  background-color: #a9a9a9;
+  opacity: 1;
 }
 .gridcontainer {
   position: absolute;
