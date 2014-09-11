@@ -309,7 +309,7 @@ var DockApp = Class.extend({
 		var _imgMaxWidth = IMGART * 2;
    		var _imgMaxHeight = IMGART * 2;
    		var _distance = IMGART * 3.5;
-   		console.log(IMGART+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
+   		//console.log(IMGART+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
 		document.onmousemove = function (ev) {
      		var ev = ev || window.event;
      		for (var i = 0; i <imgList.length; i++) {
