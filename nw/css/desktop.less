@@ -88,6 +88,7 @@ html body {
 	height: @LineHeight;
 	margin: 5px 10px;
 	.box-sizing;
+	outline: none;
 	
 	//border-style: 1px solid black;
 	//border-radius: 10px;
@@ -100,9 +101,9 @@ html body {
 	//	box-shadow: 0px 0px 2px black;
 	//}
 
-	&:focus {
-		outline: white auto 5px;
-	}
+	//&:focus {
+	//	outline: white auto 5px;
+	//}
 
 	img {
 		width: @LineWidth * 0.625;
@@ -128,7 +129,18 @@ html body {
 	&.focusing {
 		//.out-box-shadow(0px, 0px, 3px, black);
 		outline: black auto 5px;
+		.bg(#A9A9A9, 0.5);
+
+		p {
+			.bg(#A9A9A9, 1);
+		}
 	}
+}
+
+.bg(@color, @opacity) {
+	background-clip: content-box;
+	background-color: @color;
+	opacity: @opacity;
 }
 
 .out-box-shadow(@h, @v, @blur, @color) {
