@@ -318,8 +318,11 @@ var TrashUtil =  Event.extend({
 		var _now = new Date(); 
 		_data += 'DeletionDate=' + _now.toLocaleString();
 		console.log(_data);
+		var iconv = require('iconv-lite');
+		var buf = iconv.encode(_data,'ucs2');
+		var str = iconv.decode(buf,'ucs2');
 		this._fs.writeFile(_this._TRASH + '/info/' + filename_ + '.trashinfo'
-			, _data
+			, str
 			,function(err) {
 				if (err) throw err;
 		});
@@ -354,7 +357,7 @@ var TrashUtil =  Event.extend({
 			if (err_) console.log(err_);
 			if (out_) console.log(out_);
 		});
-		//_this.writeInfoFile(_path, _filename);
+		_this.writeInfoFile(_path, _filename);
 	}
 
 });
