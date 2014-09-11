@@ -35,6 +35,7 @@ var Desktop = Class.extend({
 		this._exec = require('child_process').exec;
 		this._fs = require('fs');
 		this._xdg_data_home = undefined;
+		this._home = undefined;
 		this._rightMenu = undefined;
 		this._rightObjId = undefined;
 		this.generateGrid();
@@ -44,15 +45,17 @@ var Desktop = Class.extend({
 		this._dock = Dock.create();
 		
 		var _desktop = this;
-		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
+		this._exec("echo $HOME", function(err, stdout, stderr) {
 			if(err) {
 				console.log(err);
 			} else {
-				_desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
+				_desktop._home = stdout.substr(0, stdout.length - 1);
+				_desktop._xdg_data_home = _desktop._home+'/.local/share/';
 				//add dock div to desktop
 				_desktop._dock.bingEvent();
 				theme.loadThemeEntry(_desktop);
 				_desktop.loadWidgets();
+				_desktop.loadScriptMenu();
 			}
 		});
 	},
@@ -86,7 +89,7 @@ var Desktop = Class.extend({
 
 		this._ctxMenu.addCtxMenu([
 			{header: 'desktop'},
-			{text:'crezate Dir',action:function(e){
+			{text:'create Dir',action:function(e){
 				e.preventDefault();
 				var _fs = require('fs');
 				for (var i = 0; ; i++) {
@@ -225,6 +228,10 @@ var Desktop = Class.extend({
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}},
+			{text:'move to Trash' , action:function(e){
+				e.preventDefault();
+				utilIns.trashUtil.moveToTrash(desktop._rightObjId);
+			}},
 			{text:'delete' , action:function(e){
 				e.preventDefault();
 				var _path = desktop._widgets[desktop._rightObjId]._path;
@@ -243,6 +250,43 @@ var Desktop = Class.extend({
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}}
 		]);
+	},
+
+	loadScriptMenu:function(){
+		var _desktop = this;
+		var _DIR = _desktop._home + '/.gnome2/nemo-scripts';
+		console.log(_DIR);
+		_desktop._fs.readdir(_DIR
+				,function(err_,files_){
+			for (var i = 0; i < files_.length; i++) {
+				var _names = files_[i].split('.');
+				if (_names[_names.length - 1] == 'desktop') {
+					utilIns.entryUtil.parseDesktopFile(_DIR+'/'+files_[i], function(err_, file_) {
+						if(err_) throw err_;
+						//get launch commad
+						var _execCmd = file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+							.replace(/\\\\/g, '\\');
+						var _name = undefined; 
+						if(typeof file_['Name[zh_CN]'] !== "undefined") {
+							_name = file_['Name[zh_CN]'];
+						} else {
+							_name = file_['Name'];
+						}
+						if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
+							return ;
+						};
+						$menu  = desktop._ctxMenu.getMenuByHeader('script');
+						var _item = {text:_name,action:function(e){
+							e.preventDefault();
+							desktop._exec(_execCmd,function(err){
+								console.log(err);
+							});
+						}};
+						desktop._ctxMenu.addItem($menu,_item);
+					});
+				};
+			};
+		});
 	},
 
 	initDesktopWatcher: function() {

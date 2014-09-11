@@ -3,6 +3,7 @@
 var Util = Class.extend({
 	init: function() {
 		this.entryUtil = EntryUtil.create();
+		this.trashUtil = TrashUtil.create();
 	}
 });
 
@@ -287,8 +288,76 @@ var EntryUtil = Event.extend({
 	//rm file 
 	//path_: file Path_
 	removeFile:function(path_){
-		this._exec('rm '+path_, function(err, out ,stderr){
-			if(err) throw 'util.js-rmFile: bad path';
+		this._exec('rm -r '+path_, function(err, out ,stderr){
+			if(err) console.log('util.js-rmFile: bad path. '+ err) ;
 		});
 	}
+});
+
+var TrashUtil =  Event.extend({
+	init:function(){
+		this._xdg_data_home = undefined;
+		this._TRASH = undefined;
+		this._exec = require('child_process').exec;
+		this._fs = require('fs');
+		var  _trash = this;
+		this._exec("echo $HOME/.local/share", function(err, stdout, stderr) {
+			if(err) {
+				console.log(err);
+			} else {
+				_trash._xdg_data_home = stdout.substr(0, stdout.length - 1);
+				_trash._TRASH = _trash._xdg_data_home + '/Trash';
+			}
+		});
+	},
+
+	writeInfoFile:function(path_, filename_){
+		var _this = this;
+		var _data = '[Trash Info]\n';
+		_data += 'Path=' + path_ + '\n';
+		var _now = new Date(); 
+		_data += 'DeletionDate=' + _now.toLocaleString();
+		console.log(_data);
+		var iconv = require('iconv-lite');
+		var buf = iconv.encode(_data,'ucs2');
+		var str = iconv.decode(buf,'ucs2');
+		this._fs.writeFile(_this._TRASH + '/info/' + filename_ + '.trashinfo'
+			, str
+			,function(err) {
+				if (err) throw err;
+		});
+	},
+
+	moveToTrash:function(id_){
+		var _this = this;
+		var _obj = desktop._widgets[id_];
+		var _path = _obj._path;
+		var _num = 1;
+		var _filename =  _path.split('/')[_path.split('/').length -1];
+		//get filename and suffix
+		var _names = _filename.split('.');
+		var _preName = '';
+		var _lastName = '.'+_names[_names.length - 1]; 
+		for (var i = 0; i < _names.length-1; i++) {
+				 _preName += _names[i] + '.';
+		};
+		if (_preName == ''){
+			_preName = _names[_names.length - 1] + '.';
+			_lastName = '';
+		}
+		//check filename exist or not , if (exists) then rename  
+		if (_this._fs.existsSync(_this._TRASH + '/files/' + _filename)) {
+			while(_this._fs.existsSync(_this._TRASH + '/files/' + _preName+_num.toString()+_lastName)){
+				_num++;
+			}
+			_filename =  _preName + _num.toString() + _lastName;
+		};
+		//check is dir or file 
+		_this._exec('mv '+_path + ' ' + _this._TRASH + '/files/'+_filename, function(err_,out_){
+			if (err_) console.log(err_);
+			if (out_) console.log(out_);
+		});
+		_this.writeInfoFile(_path, _filename);
+	}
+
 });
