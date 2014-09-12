@@ -10,6 +10,11 @@ var desktop = undefined;
 //Should be a singleton!
 var theme = Theme.create();
 var	utilIns = Util.create();
+// try {
+	var dialog = require('dialog');
+/* } catch(e) { */
+	// console.log(e);
+// }
 
 $(document).ready(function() {
 	desktop =  Desktop.create();
