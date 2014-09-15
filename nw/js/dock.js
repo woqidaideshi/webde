@@ -229,7 +229,10 @@ var DockApp = Class.extend({
 		
 		
  		utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
-			if(err_) console.log(err_);
+			if(err_){ 
+				console.log(err_);
+				return ;
+			}
 			//get launch commad
 			_this._execCmd = file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
 				.replace(/\\\\/g, '\\');

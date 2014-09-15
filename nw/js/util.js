@@ -227,7 +227,7 @@ var EntryUtil = Event.extend({
 						if(stdout == '') {//err || 
 							tryInThisPath(index_ + 1);
 						} else {
-							_this.emit('findDFile', null, stdout.replace('\n', ''));
+							//_this.emit('findDFile', null, stdout.replace('\n', ''));
 							callback_.call(this, null, stdout.replace('\n', ''));
 						}
 					});
@@ -291,6 +291,72 @@ var EntryUtil = Event.extend({
 		this._exec('rm -r '+path_, function(err, out ,stderr){
 			if(err) console.log('util.js-rmFile: bad path. '+ err) ;
 		});
+	},
+
+	getRelevantAppName:function(mimeTypes_, callback_){
+		var _path = '/usr/share/applications/';
+		utilIns.entryUtil.parseDesktopFile(_path + 'mimeinfo.cache', function(err_, file_) {
+			if(err_){ 
+				console.log(err_);
+				return ;
+			}
+			var _relevantAppNames = [];
+			for (var i = 0; i < mimeTypes_.length; i++) {
+				if (typeof file_[mimeTypes_[i]] !== 'undefined') {
+					var _appNames = file_[mimeTypes_[i]].split(';');
+					$.merge(_relevantAppNames, _appNames);
+				}
+			};
+			$.unique(_relevantAppNames);
+			if (_relevantAppNames.length == 0) 
+				return callback_.call(this, 'Unknown relevant App!');
+			return callback_.call(this, null, _relevantAppNames);
+		});
+	},
+
+	isTextFile:function(path_, callback_){
+		this._exec('file '+ path_ + " | grep 'text'",function(err_, out_ ,stderr_){
+			if (out_ !== '' ) {
+				return callback_.call(this, null , true);
+			}else {
+				return callback_.call(this,null, false);
+			}
+		});
+	},
+
+	getItemFromApp:function(path_, callback_){
+		utilIns.entryUtil.parseDesktopFile(path_, function(err_, file_){
+			if(err_) throw err_;
+			//get launch commad
+			var _execCmd = undefined;
+			if (typeof desktop._widgets[desktop._rightObjId] !== 'undefined') {
+				_execCmd = file_['Exec']
+					.replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g
+						, desktop._widgets[desktop._rightObjId]._path)
+					.replace(/\\\\/g, '\\');
+			}else{
+				_execCmd = file_['Exec']
+					.replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+					.replace(/\\\\/g, '\\');
+			}
+			var _name = undefined; 
+			if(typeof file_['Name[zh_CN]'] !== "undefined") {
+				_name = file_['Name[zh_CN]'];
+			} else {
+				_name = file_['Name'];
+			}
+			if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
+				return callback_.call(this, 'Unknown name or cmd!');
+			};
+						
+			var _item = {text:_name,action:function(e){
+				e.preventDefault();
+				desktop._exec(_execCmd ,function(err){
+				console.log(err);
+				});
+			}};
+			return callback_.call(this, null, _item);
+		});
 	}
 });
 
@@ -324,7 +390,7 @@ var TrashUtil =  Event.extend({
 		this._fs.writeFile(_this._TRASH + '/info/' + filename_ + '.trashinfo'
 			, str
 			,function(err) {
-				if (err) throw err;
+				if (err) console.log(err);
 		});
 	},
 

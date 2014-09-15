@@ -223,16 +223,21 @@ var Desktop = Class.extend({
 				e.preventDefault();
 				desktop.getAWidgetById(desktop._rightObjId).open();
 			}},
+			{text:'Open with...', subMenu: [
+				{header: 'Open with'}
+				]
+			},
+			{divider: true},
 			{text: 'Rename', action: function(e) {
 				e.preventDefault();
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}},
-			{text:'move to Trash' , action:function(e){
+			{text:'Move to Trash' , action:function(e){
 				e.preventDefault();
 				utilIns.trashUtil.moveToTrash(desktop._rightObjId);
 			}},
-			{text:'delete' , action:function(e){
+			{text:'Delete' , action:function(e){
 				e.preventDefault();
 				var _path = desktop._widgets[desktop._rightObjId]._path;
 				utilIns.entryUtil.removeFile(_path);
@@ -261,32 +266,72 @@ var Desktop = Class.extend({
 			for (var i = 0; i < files_.length; i++) {
 				var _names = files_[i].split('.');
 				if (_names[_names.length - 1] == 'desktop') {
-					utilIns.entryUtil.parseDesktopFile(_DIR+'/'+files_[i], function(err_, file_) {
-						if(err_) throw err_;
-						//get launch commad
-						var _execCmd = file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
-							.replace(/\\\\/g, '\\');
-						var _name = undefined; 
-						if(typeof file_['Name[zh_CN]'] !== "undefined") {
-							_name = file_['Name[zh_CN]'];
-						} else {
-							_name = file_['Name'];
-						}
-						if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
-							return ;
-						};
+					utilIns.entryUtil.getItemFromApp(_DIR+'/'+files_[i], function(err_, item_) {
 						$menu  = desktop._ctxMenu.getMenuByHeader('script');
-						var _item = {text:_name,action:function(e){
-							e.preventDefault();
-							desktop._exec(_execCmd,function(err){
-								console.log(err);
-							});
-						}};
-						desktop._ctxMenu.addItem($menu,_item);
+						desktop._ctxMenu.addItem($menu,item_);
 					});
 				};
 			};
 		});
+	},
+
+	loadFileMenu:function($menu_){
+		var _path = desktop._widgets[desktop._rightObjId]._path;
+		utilIns.entryUtil.getMimeType(_path, function(err_ , mimeType_){
+			if (err_ != null || typeof mimeType_ == 'undefined' || mimeType_ == '') {
+				console.log('getMimeType: '+err_);
+				return ;
+			} 
+			console.log(mimeType_);
+			utilIns.entryUtil.isTextFile(_path,function(err_0, isText_){
+				if (err_0) {
+					console.log('isTextFile: '+err_0);
+					return ;
+				} 
+				var mimetypes_ = [];
+				mimetypes_.push(mimeType_);
+				if (isText_ && mimeType_ !== 'text/plain') {
+					mimetypes_ .push('text/plain');
+				}
+				insertItemByMimetype(mimetypes_);
+			});
+		});
+
+		var insertItemByMimetype =function(mimeTypes_){
+			utilIns.entryUtil.getRelevantAppName(mimeTypes_, function(err_1, relevantAppNames_){
+				if (err_1 != null || typeof relevantAppNames_ == 'undefined' || relevantAppNames_.length == 0) {
+					console.log('getRelevantAppName:'+err_1);
+					return ;
+				} 
+				for (var i = 0; i < relevantAppNames_.length; i++) {
+					console.log(relevantAppNames_[i]);
+					utilIns.entryUtil.findDesktopFile(relevantAppNames_[i], function(err_2, path_){
+						if (err_2 != null || typeof path_ == 'undefined' || path_ == '') {
+							console.log('findDesktopFile:' + err_2);
+							return ;
+						}
+						console.log(path_);
+						utilIns.entryUtil.getItemFromApp(path_, function(err_3, item_){
+							if (err_3 != null || typeof item_ == 'undefined' || item_ == null) {
+								console.log('getItemFromApp:' + err_3)
+								return;
+							}
+							$_menu  = desktop._ctxMenu.getMenuByHeader('Open with');
+							if (typeof $_menu == 'undefined' ) {
+								$_open = desktop._ctxMenu.getItemByText($menu_,'Open');
+								var _subMemu = {text:'Open with...', subMenu: [
+															{header: 'Open with'}]
+															};
+								desktop._ctxMenu.addItem($menu_, _subMemu, $_open);
+								$_menu  = desktop._ctxMenu.getMenuByHeader('Open with');
+							};
+							if (!desktop._ctxMenu.hasItem($_menu,item_))
+								desktop._ctxMenu.addItem($_menu,item_);
+						});
+					});
+				};
+			});
+		}
 	},
 
 	initDesktopWatcher: function() {

@@ -190,11 +190,17 @@ var ContextMenu = Class.extend({
 		return this._menus['dropdown-' + header_];
 	},
 	
-	addItem: function($menu_, item_) {
+	addItem: function($menu_, item_, $index_) {
 		var linkTarget = '';
 		if (typeof item_.divider !== 'undefined') {
-			$menu_.append('<li class="divider"></li>');
+			if (typeof $index_ !== 'undefined') 
+				$index_.after('<li class="divider"></li>');
+			else 
+				$menu_.append('<li class="divider"></li>');
 		} else if (typeof item_.header !== 'undefined') {//should be added just once!!
+			if (typeof $index_ !== 'undefined') 
+				$index_.after('<li class="nav-header">' + item_.header + '</li>');
+			else 
 			$menu_.append('<li class="nav-header">' + item_.header + '</li>');
 		} else {
 			if (typeof item_.href == 'undefined') {
@@ -223,7 +229,10 @@ var ContextMenu = Class.extend({
 					e.stopPropagation();
 				});
 			}
-			$menu_.append($sub);
+			if (typeof $index_ !== 'undefined') 
+				$index_.after($sub);
+			else 
+				$menu_.append($sub);
 			if (typeof item_.subMenu != 'undefined') {
 				var subMenuData = this.addCtxMenu(item_.subMenu, true);
 				$menu_.find('li:last').append(subMenuData);
@@ -259,6 +268,28 @@ var ContextMenu = Class.extend({
 		$menu_.remove();
 	},
 
+	getItemByText:function($menu_, text_){
+		var _items = $menu_.children('li');
+		for (var i = 0; i < _items.length; i++) {
+			if(_items[i].textContent == text_)
+				return $(_items[i]);
+		}
+		return undefined;
+	},
+
+	removeItem:function($item_){
+		$item_.remove();
+	},
+
+	hasItem:function($menu_, item_){
+		var _items = $menu_.children('li');
+		for (var i = 0; i < _items.length; i++) {
+			if(_items[i].textContent === item_.text)
+				return true;
+		}
+		return false;
+	},
+
 	show: function($menu_, left_, top_) {
 		$('.dropdown-context:not(.dropdown-context-sub)').hide();
 		
@@ -286,6 +317,23 @@ var ContextMenu = Class.extend({
 					}
 				}
 				else desktop._rightObjId = e.target.id;
+
+				if (typeof desktop._widgets[desktop._rightObjId] !== 'undefined' 
+						&& desktop._widgets[desktop._rightObjId]._type != 'dockApp' 
+						&& desktop._widgets[desktop._rightObjId]._type != 'app'
+						&& desktop._widgets[desktop._rightObjId]._type != 'plugin') {
+					/*if (typeof _this.getMenuByHeader('Open with') !== 'undefined') 
+						_this.removeMenu(_this.getMenuByHeader('Open with'));
+					if (typeof _this.getItemByText($menu_, 'Open with...') !== 'undefined')	
+						_this.removeItem(_this.getItemByText($menu_,'Open with...'));*/
+					var _menu = _this.getMenuByHeader('Open with');
+					var _items = _menu.children('li');
+					for (var i = 0; i < _items.length; i++) {
+						if(!$(_items[i]).hasClass('nav-header'))
+							$(_items[i]).remove();
+					};
+					desktop.loadFileMenu();
+				};
 			}
 			var w = $menu_.width();
 			var h = $menu_.height();
@@ -302,39 +350,33 @@ var ContextMenu = Class.extend({
 	},
 
 	activeItem: function(header_, text_, eventAction_) {
-		var _menus = $(desktop._ctxMenu.getMenuByHeader(header_)).children('li');
-		for (var i = 0; i < _menus.length; i++) {
-			if(_menus[i].textContent == text_){
-				var _menuli = $(_menus[i]);
-				_menuli.removeClass('disabled');
-				_menuli.addClass('active');
-				var _aId = $(_menuli).children('a')[0].id;
-				if ((typeof _aId !== 'undefined' || _aId !== '') && typeof eventAction_ !== 'undefined') {
-					$('#' + _aId).addClass('context-event');
-					$(document).off('click', '#' + _aId);
-					$(document).on('click', '#' + _aId, eventAction_);
-				}
-				return ;
-			}
+		var _menuli = desktop._ctxMenu.getItemByText(
+				desktop._ctxMenu.getMenuByHeader(header_), text_)
+		if (typeof _menuli == 'undefined') return ;
+		_menuli.removeClass('disabled');
+		_menuli.addClass('active');
+		var _aId = $(_menuli).children('a')[0].id;
+		if ((typeof _aId !== 'undefined' || _aId !== '') && typeof eventAction_ !== 'undefined') {
+			$('#' + _aId).addClass('context-event');
+			$(document).off('mouseup', '#' + _aId);
+			$(document).on('mouseup', '#' + _aId, eventAction_);
 		}
+		return ;
 	},
 
 	disableItem: function(header_, text_) {
-		var _menus = $(desktop._ctxMenu.getMenuByHeader(header_)).children('li');
-		for (var i = 0; i < _menus.length; i++) {
-			if(_menus[i].textContent == text_){
-				var _menuli = $(_menus[i]);
-				_menuli.removeClass('active');
-				_menuli.addClass('disabled');
-				var _aId = $(_menuli).children('a')[0].id;
-				$('#' + _aId).removeClass('context-event');
-				$(document).off('click', '#' + _aId);
-				$(document).on("click", '#' + _aId, function(e){
-					e.preventDefault();
-				}) ;
-				return ;
-			}
-		}
+		var _menuli = desktop._ctxMenu.getItemByText(
+				desktop._ctxMenu.getMenuByHeader(header_), text_)
+		if (typeof _menuli == 'undefined') return ;
+		_menuli.removeClass('active');
+		_menuli.addClass('disabled');
+		var _aId = $(_menuli).children('a')[0].id;
+		$('#' + _aId).removeClass('context-event');
+		$(document).off('mouseup', '#' + _aId);
+		$(document).on("mouseup", '#' + _aId, function(e){
+			e.preventDefault();
+		}) ;
+		return ;
 	}
 });
 
