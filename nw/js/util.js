@@ -315,7 +315,7 @@ var EntryUtil = Event.extend({
 	},
 
 	isTextFile:function(path_, callback_){
-		this._exec('file '+ path_ + " | grep 'text'",function(err_, out_ ,stderr_){
+		this._exec('file '+ path_ + " | grep -E 'text|empty'",function(err_, out_ ,stderr_){
 			if (out_ !== '' ) {
 				return callback_.call(this, null , true);
 			}else {
