@@ -18,7 +18,6 @@
 			//console.log('add:', filename, stats);
 			var _filenames = filename.split('.');
 			var _Dock = undefined;
-			
 			if(_filenames[0] == '') {
 				return ;//ignore hidden files
 			}

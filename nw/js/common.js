@@ -235,11 +235,17 @@ var ContextMenu = Class.extend({
 				$menu_.append($sub);
 			if (typeof item_.subMenu != 'undefined') {
 				var subMenuData = this.addCtxMenu(item_.subMenu, true);
+			if (typeof $index_ !== 'undefined') 
+				$index_.next().append(subMenuData);
+			else 
 				$menu_.find('li:last').append(subMenuData);
 			}
 		}
 		if (typeof this._options.filter == 'function') {
-			this._options.filter($menu_.find('li:last'));
+			if (typeof $index_ !== 'undefined') 
+				this._options.filter($menu_.find('li:last'));
+				//this._options.filter($index_.next());
+			
 		}
 	},
 
@@ -264,8 +270,9 @@ var ContextMenu = Class.extend({
 		return $menu;
 	},
 
-	removeMenu: function($menu_) {
-		$menu_.remove();
+	removeMenuByHeader: function(header_) {
+		this._menus['dropdown-' + header_].remove();
+		delete this._menus['dropdown-' + header_];
 	},
 
 	getItemByText:function($menu_, text_){
@@ -322,17 +329,15 @@ var ContextMenu = Class.extend({
 						&& desktop._widgets[desktop._rightObjId]._type != 'dockApp' 
 						&& desktop._widgets[desktop._rightObjId]._type != 'app'
 						&& desktop._widgets[desktop._rightObjId]._type != 'plugin') {
-					/*if (typeof _this.getMenuByHeader('Open with') !== 'undefined') 
-						_this.removeMenu(_this.getMenuByHeader('Open with'));
-					if (typeof _this.getItemByText($menu_, 'Open with...') !== 'undefined')	
-						_this.removeItem(_this.getItemByText($menu_,'Open with...'));*/
 					var _menu = _this.getMenuByHeader('Open with');
-					var _items = _menu.children('li');
-					for (var i = 0; i < _items.length; i++) {
-						if(!$(_items[i]).hasClass('nav-header'))
-							$(_items[i]).remove();
-					};
-					desktop.loadFileMenu();
+					if (typeof _menu !== 'undefined') {
+						var _items = _menu.children('li');
+						for (var i = 0; i < _items.length; i++) {
+							if(!$(_items[i]).hasClass('nav-header'))
+								$(_items[i]).remove();
+						};
+					}
+					desktop.loadFileMenu($menu_);
 				};
 			}
 			var w = $menu_.width();

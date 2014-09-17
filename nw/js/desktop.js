@@ -79,7 +79,7 @@ var Desktop = Class.extend({
 	refresh: function() {
 		console.log('refresh');
 		this._desktopWatch.close();
-		// this._dock._dockWatch.close();
+		this._dock._dockWatch.close();
 		theme.saveConfig(this);
 		this.saveWidgets();
 	},
@@ -224,8 +224,7 @@ var Desktop = Class.extend({
 				desktop.getAWidgetById(desktop._rightObjId).open();
 			}},
 			{text:'Open with...', subMenu: [
-				{header: 'Open with'}
-				]
+				{header: 'Open with'}]
 			},
 			{divider: true},
 			{text: 'Rename', action: function(e) {
@@ -300,6 +299,11 @@ var Desktop = Class.extend({
 		var insertItemByMimetype =function(mimeTypes_){
 			utilIns.entryUtil.getRelevantAppName(mimeTypes_, function(err_1, relevantAppNames_){
 				if (err_1 != null || typeof relevantAppNames_ == 'undefined' || relevantAppNames_.length == 0) {
+					var _item = desktop._ctxMenu.getItemByText($menu_,"Open with...Open with");
+					if (typeof _item !== 'undefined') {
+						desktop._ctxMenu.removeMenuByHeader('Open with');
+						_item.remove();
+					}
 					console.log('getRelevantAppName:'+err_1);
 					return ;
 				} 
