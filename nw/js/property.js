@@ -29,7 +29,7 @@ var Property = Class.extend({
 
 		//show information of property
 		var _property_show = $('<div>', {
-			'class': 'property-show'
+			'class': 'property-show',
 		});
 		_property.append(_property_show);
 
