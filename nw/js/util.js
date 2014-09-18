@@ -292,7 +292,12 @@ var EntryUtil = Event.extend({
 			if(err) console.log('util.js-rmFile: bad path. '+ err) ;
 		});
 	},
-
+	/**
+	 * [getRelevantAppName : get relevant app's name ]
+	 * @param  {string} mimeTypes_: xdg type
+	 * @param  {function} callback_(err, name);
+	 * @return {callbask_}
+	 */
 	getRelevantAppName:function(mimeTypes_, callback_){
 		var _path = '/usr/share/applications/';
 		utilIns.entryUtil.parseDesktopFile(_path + 'mimeinfo.cache', function(err_, file_) {
@@ -313,7 +318,12 @@ var EntryUtil = Event.extend({
 			return callback_.call(this, null, _relevantAppNames);
 		});
 	},
-
+/**
+ * [isTextFile : check file is text or not]
+ * @param  {string}  path_
+ * @param  {function}  callback_(err, isText)
+ * @return {callbask_}
+ */
 	isTextFile:function(path_, callback_){
 		this._exec('file '+ path_ + " | grep -E 'text|empty'",function(err_, out_ ,stderr_){
 			if (out_ !== '' ) {
@@ -323,7 +333,12 @@ var EntryUtil = Event.extend({
 			}
 		});
 	},
-
+/**
+ * [getItemFromApp : read .desktop then  get name and exec to build Item]
+ * @param  {string} path_
+ * @param  {function} callback_(err, Item);
+ * @return {callback_}
+ */
 	getItemFromApp:function(path_, callback_){
 		utilIns.entryUtil.parseDesktopFile(path_, function(err_, file_){
 			if(err_) throw err_;
