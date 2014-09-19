@@ -106,7 +106,9 @@ var Theme = Event.extend({
 						this._theme[key]['path'],
 						this._theme[key]['icon'],
 						this._theme[key]['name']
-						), this._theme[key]['pos']);
+						), ((typeof this._theme[key]['pos'].x === 'undefined' 
+									|| typeof this._theme[key]['pos'].y === 'undefined')
+									? undefined : this._theme[key]['pos']));
 		}
 	},
 

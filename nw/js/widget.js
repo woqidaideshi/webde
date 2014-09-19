@@ -36,13 +36,22 @@ var Widget = Class.extend({
 	
 		console.log(_id + " ---> " + ev.target.id);
 		var attr = ev.target.id.split('_');
-		desktop._widgets[_id].setPosition({x: attr[1], y: attr[2]});
-		console.log(attr[1], attr[2]);
+		console.log(desktop._widgets[_id]);
+		if (typeof desktop._widgets[_id] !== 'undefined') {
+				desktop._widgets[_id].setPosition({x: attr[1], y: attr[2]});
+				console.log(attr[1], attr[2]);
+			}
 	},
+
+	dragEnter: function(ev) {},
+
+	dragLeave: function(ev) {},
 
 	bindDrag: function(target) {
 		target.ondragstart = this.drag;
 		target.ondragover = this.dragOver;
 		target.ondrop = this.drop;
+		target.ondragenter = this.dragEnter;
+		target.ondragleave = this.dragLeave;
 	}
 });
