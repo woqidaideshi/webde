@@ -8,7 +8,6 @@
  		this._dock = $('<div>', {
 			'class': this._class,
 			'id': this._id,
-			'onselectstart': 'return false'
 		});
 		$('body').append(this._dock);
 
@@ -302,8 +301,6 @@ var DockApp = Class.extend({
 		}).mouseover(function(e){
 			e.stopPropagation();
 		});
-
-
 
 		var dock = $('#dock');
 		var imgList = $('#dock div img');

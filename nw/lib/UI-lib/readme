@@ -1,0 +1,10 @@
+UI-lib is a libary for UI
+
+you can use less(a app of npm)to compile less file to css.
+in order to use less, you shuold install less as follow:
+	sudo apt-get install nodejs npm
+	sudo npm install -g less
+and then you can use lessc to compile less to css as :
+	lessc NAME.less > NAME.css  (NAME is file's name),
+there you can use less/lessc.sh to complie less file to desktop.css 
+

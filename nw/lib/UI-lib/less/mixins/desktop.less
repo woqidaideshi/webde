@@ -1,0 +1,13 @@
+.box-shadow-mine(@h, @v, @blur, @spread, @c, @in: inset) {
+	-webkit-box-shadow: @h @v @blur @spread @c @in;
+	-moz-box-shadow: @h @v @blur @spread @c @in;
+	-o-box-shadow: @h @v @blur @spread @c @in;
+	box-shadow: @h @v @blur @spread @c @in;
+}
+
+.out-box-shadow(@h, @v, @blur, @color) {
+	-webkit-box-shadow: @arguments;
+	-moz-box-shadow: @arguments;
+	-o-box-shadow: @arguments;
+	box-shadow: @arguments;
+}

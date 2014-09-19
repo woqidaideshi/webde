@@ -39,47 +39,6 @@ html body {
 	height:100%;
 }
 
-#cdos{
-	position: absolute;
-	left: 0px;
-	top:0px;
-	width: 100%;
-	height: 100%;
-}
-
-.box(@orient, @pack, @align) {
-	//for Safari, Opera, Chrome
-	display: -webkit-box;
-	-webkit-box-orient: @orient;
-	-webkit-box-pack: @pack;
-	-webkit-box-align: @align;
-	//for firefox
-	//display: -moz-box;
-	//-moz-box-orient: @orient;
-	//-moz-box-pack: @pack;
-	//-moz-box-align: @align;
-}
-
-.select(@sel) {
-	-webkit-user-select: @sel;
-	-moz-user-select: @sel;
-}
-
-.box-shadow-mine(@h, @v, @blur, @spread, @c, @in: inset) {
-	-webkit-box-shadow: @h @v @blur @spread @c @in;
-	-moz-box-shadow: @h @v @blur @spread @c @in;
-	-o-box-shadow: @h @v @blur @spread @c @in;
-	box-shadow: @h @v @blur @spread @c @in;
-}
-
-.box-sizing {
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -o-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-}
-
 .icon {
 	width: @LineWidth;
 	height: @LineHeight;
@@ -134,19 +93,6 @@ html body {
 	}
 }
 
-.bg(@color, @opacity) {
-	background-clip: content-box;
-	background-color: @color;
-	opacity: @opacity;
-}
-
-.out-box-shadow(@h, @v, @blur, @color) {
-	-webkit-box-shadow: @arguments;
-	-moz-box-shadow: @arguments;
-	-o-box-shadow: @arguments;
-	box-shadow: @arguments;
-}
-
 .gridcontainer {
 	position: absolute;
 	width: 92%;
@@ -187,18 +133,13 @@ html body {
 .plugin-div {
   width: @pluginWidth;
   height: @pluginHeight;
-  .unselect;
+  .select(none);
   z-index: 101;
-}
-
-.unselect{
-  -webkit-user-select: none;
-  -moz-user-select: none;
 }
 
 .dock {   
   position: fixed;
-  .unselect;
+  .select(none);
   bottom: @dockBottom;
   width: 100%;
   text-align: center;
@@ -238,12 +179,6 @@ html body {
 	}
 }
 
-.radius(@topLeft:6px,@topRight:6px,@bottomRight:6px,@bottomLeft:6px){
-	-webkit-border-radius: @arguments;
-	-moz-border-radius: @arguments;
-	border-radius: @arguments;
-}
-
 .property{
   	width:0px;
 	height:0px;
@@ -263,7 +198,7 @@ html body {
   		padding-left:10px;
   		line-height:35px;
   		color:#fff;
-  		.unselect;
+  		.select(none);
 	}
 	
 	.property-show{
@@ -280,7 +215,7 @@ html body {
     				padding: 5px;  
     				.border(1px,solid,#ddd);
     				z-index: 999;
-    				.unselect;
+    				.select(none);
 			
 				&:hover {
 					background: @tabTextColor;  
@@ -303,7 +238,7 @@ html body {
     			height: 360px;  
 
     			p{
-    				.unselect;
+    				.select(none);
     				font-size: 17px;
     				margin-left: 5%;
     			}
@@ -327,7 +262,7 @@ html body {
     				height: 100%;
     				float: left;
     				p{
-					.unselect;
+					.select(none);
 				    font-size: 13px;
 				    overflow: hidden;
 				    white-space: nowrap;
