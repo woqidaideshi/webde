@@ -16,7 +16,7 @@
   padding: 5px 0;
   margin: 2px 0 0;
   list-style: none;
-  background-color: #eeeeee;
+  background-color: #989898;
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -55,7 +55,7 @@
   *margin: -5px 0 5px;
   overflow: hidden;
   background-color: #e5e5e5;
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid #989898;
 }
 .dropdown-menu .active > a {
   display: block;
@@ -68,15 +68,15 @@
   text-decoration: none;
 }
 .dropdown-menu .active > a:hover {
-  color: #eeeeee;
+  color: #989898;
   text-decoration: none;
-  background-color: #0099aa;
+  background-color: #0088cc;
   background-color: #0081c2;
-  background-image: linear-gradient(to bottom, #0099aa, #006680);
-  background-image: -moz-linear-gradient(top, #0099aa, #006680);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0099aa), to(#006680));
-  background-image: -webkit-linear-gradient(top, #0099aa, #006680);
-  background-image: -o-linear-gradient(top, #0099aa, #006680);
+  background-image: linear-gradient(to bottom, #0088cc, #0077b3);
+  background-image: -moz-linear-gradient(top, #0088cc, #0077b3);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0077b3));
+  background-image: -webkit-linear-gradient(top, #0088cc, #0077b3);
+  background-image: -o-linear-gradient(top, #0088cc, #0077b3);
   background-repeat: repeat-x;
   outline: 0;
 }
@@ -128,7 +128,7 @@
   display: block;
 }
 .dropdown-submenu:hover > a:after {
-  border-left-color: #eeeeee;
+  border-left-color: #989898;
 }
 .dropdown-context .nav-header {
   cursor: default;
@@ -169,7 +169,7 @@
   z-index: 100;
   border: 1px solid #8FA4F5;
   padding: 1px;
-  background-color: #eeeeee;
+  background: #989898;
   -webkit-border-radius: 6px 6px 6px 6px;
   -moz-border-radius: 6px 6px 6px 6px;
   border-radius: 6px 6px 6px 6px;
@@ -182,12 +182,12 @@
   position: relative;
   padding-left: 10px;
   line-height: 35px;
-  color: #eeeeee;
+  color: #989898;
   -webkit-user-select: none;
   -moz-user-select: none;
 }
 .property .property-show {
-  margin: 0px 10px 10px 10px;
+  margin: 0px 10px 30px 10px;
 }
 .property .property-show .property-tabs {
   margin: 0px 10px 0px 10px;
@@ -205,11 +205,11 @@
 }
 .property .property-show .property-tabs a:hover {
   background: #335533;
-  color: #eeeeee;
+  color: #989898;
   padding-bottom: 6px;
 }
 .property .property-show .property-tabs a.selected {
-  background: #eeeeee;
+  background: #989898;
   color: #335533;
   border-bottom: none;
   padding-bottom: 6px;
@@ -219,7 +219,6 @@
   z-index: 10;
   border: 1px solid #cccccc;
   height: 360px;
-  background-color: #eeeeee;
 }
 .property .property-show .tabcontent p {
   -webkit-user-select: none;
@@ -233,7 +232,6 @@
   height: 100%;
   text-align: center;
   float: left;
-  background-color: #eeeeee;
 }
 .property .property-show .tabcontent .iconcontent img {
   width: 80%;
@@ -245,7 +243,6 @@
   width: 73%;
   height: 100%;
   float: left;
-  background-color: #eeeeee;
 }
 .property .property-show .tabcontent .basicinfocontent p {
   -webkit-user-select: none;
@@ -260,7 +257,7 @@
 }
 .property button {
   float: right;
-  margin: 0px 10px 50px 20px;
+  margin: 0px 10px 10px 10px;
 }
 html body {
   width: 100%;
@@ -464,11 +461,11 @@ html body {
 }
 .property .property-show .property-tabs a:hover {
   background: #335533;
-  color: #eeeeee;
+  color: #989898;
   padding-bottom: 6px;
 }
 .property .property-show .property-tabs a.selected {
-  background: #eeeeee;
+  background: #989898;
   color: #335533;
   border-bottom: none;
   padding-bottom: 6px;
