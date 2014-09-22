@@ -162,7 +162,9 @@ var DEntry = Widget.extend({
 				var _entries = desktop._dEntrys._items;
 				for(var i = 0; i < _entries.length; ++i) {
 					if(_entries[i]._name == newtext) {
-						alert(newtext + ' has already existed');
+						var dialog = require('dialog'); 
+						dialog.warningBox(newtext + ' has already existed'); 
+						// alert(newtext + ' has already existed');
 						return ;
 					}
 				}

@@ -581,11 +581,11 @@ var DesktopInputer = Class.extend({
 		});
 		$('body').append(this.$input);
 
-		$(document).on('click', 'html', function(e) {
+		$(document).on('mousedown', 'html', function(e) {
 			desktop._inputer.hide();
 		}).on('contextmenu', 'html', function(e) {
 			desktop._inputer.hide();
-		}).on('click', '[name=' + name_ + ']', function(e) {
+		}).on('mousedown', '[name=' + name_ + ']', function(e) {
 			e.stopPropagation();
 		});
 

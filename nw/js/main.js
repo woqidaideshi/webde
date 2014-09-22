@@ -10,14 +10,9 @@ var desktop = undefined;
 //Should be a singleton!
 var theme = Theme.create();
 var	utilIns = Util.create();
-// try {
-	var dialog = require('dialog');
-/* } catch(e) { */
-	// console.log(e);
-// }
 
 $(document).ready(function() {
-	desktop =  Desktop.create();
+	desktop = Desktop.create();
 	/*desktop.addAnDPlugin(ClockPlugin.create('clock'));
 	desktop.addAnDPlugin(PicPlugin.create('cat'),undefined,'img/cat.jpg');
 	desktop.addAnDPlugin(PicPlugin.create('book'),undefined,'img/book.jpg');
