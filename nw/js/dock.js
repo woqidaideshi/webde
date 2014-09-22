@@ -31,7 +31,6 @@
 			}
 		});
 		this._dockWatch.on('delete', function(filename) {
-			//console.log('delete:', filename);
 			//find entry object by path
 			var _path = desktop._dock._dockWatch.getBaseDir() + '/' + filename;
 			var _dockApp = desktop.getAWidgetByAttr('_path', _path);
@@ -46,9 +45,8 @@
 		});
 
 	},
+
  	bingEvent: function() {
-		//add dock to body
-		
 		this.bindDrag(this._dock[0]);
 
 		desktop._ctxMenu.attachToMenu('#' + this._id
@@ -179,8 +177,6 @@ var DockApp = Class.extend({
 		if(typeof id_ === "undefined"
 			|| typeof x_ === "undefined"
 			|| typeof path_ === "undefined") {
-			//console.log("not enough params!! init failed!!");
-			//return ;
 			throw "Dock-APP: Not enough params!! Init failed!!";
 		}
 		this._id = id_+'-dock';
@@ -188,8 +184,6 @@ var DockApp = Class.extend({
  		this._path = path_;
  		this._type = "dockApp";
  		this._position = {x:x_, y:0};
- 		this.noTitle = false;
- 		this.myTitle = false;
 
  		this._execCmd = undefined;
  		this._imgPath = undefined;
@@ -249,9 +243,10 @@ var DockApp = Class.extend({
 			} else {
 				_this._name = file_['Name'];
 			}
-			$('#' + _this._id+'-img').attr('title', _this._name);
+			$('#' + _this._id+"-img").attr('title', _this._name);
 		});
-
+		// init Tooltip
+		Tooltip.create($('#' + _this._id),"top");
 		this.bindEvents();
 		this._index = 0;
 	},
@@ -308,7 +303,6 @@ var DockApp = Class.extend({
 		var _imgMaxWidth = IMGART * 2;
    		var _imgMaxHeight = IMGART * 2;
    		var _distance = IMGART * 3.5;
-   		//console.log(IMGART+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
 		document.onmousemove = function (ev) {
      		var ev = ev || window.event;
      		for (var i = 0; i <imgList.length; i++) {
@@ -325,7 +319,6 @@ var DockApp = Class.extend({
    			}
    		}
 
-   		this.bingTitle(img);
    		this.bindDrag($('#'+this._id)[0]);
 	},
 
@@ -335,21 +328,8 @@ var DockApp = Class.extend({
 		target.ondrop = this.drop;
 	},
 
-	bingTitle:function(target){
-		var target_ = this;
-		target.mouseover(function(ev){
-   			target_.mouseOver(ev);
-   		}); 
-   		target.mouseout(function(){
-   			target_.mouseOut();
-   		}); 
-   		target.mousemove(function(ev){
-   			target_.mouseMove(ev);
-   		}); 
-	},
-
 	drag: function(ev) {
-		$(ev.currentTarget).children('img')[0].title = this._name; 
+		$(ev.currentTarget)[0].title = this._name; 
 		$('.tooltip').remove();
 		console.log("drag start");
 		ev.dataTransfer.setData("ID", ev.currentTarget.id);
@@ -363,36 +343,6 @@ var DockApp = Class.extend({
 
 	drop:function(ev){
 		ev.preventDefault();
-	},
-
-	mouseOver:function(ev){
-		var isTitle = false;
-		if(this.noTitle){ isTitle = true;
-		}
-		else{ 
-			isTitle = $.trim(this._image[0].title) != '';
-		} 
-		if(isTitle){ 
-			this.myTitle = this._image[0].title; 
-			this._image[0].title = ""; 
-			var tooltip = "<div class='tooltip'><div id='title-inner' class='tipsy-inner'>"+this.myTitle+"</div></div>"; 
-			$('body').append(tooltip); 
-			$('.tooltip').css({"top" :( $(ev.target).offset().top-25)+"px", "left" :( $(ev.target).offset().left)+"px" }).show('fast');
- 		}
-	},
-
-	mouseOut:function(){
-		if(this.myTitle != null){ 
-			this._image[0].title = this._name; 
-			$('.tooltip').remove();
-		}
-	},
-
-	mouseMove:function(ev){
-		var t_width = $(ev.target).width();
- 		var _width = $('#title-inner').width();
- 		var left =  $(ev.target).offset().left + (t_width - _width) / 2 - 5;
- 		$('.tooltip').css({ "top" :( $(ev.target).offset().top-25)+"px", "left" :left+"px" });
 	},
 
 	getID: function() {return this._id;},

@@ -356,7 +356,7 @@ var ContextMenu = Class.extend({
 
 	activeItem: function(header_, text_, eventAction_) {
 		var _menuli = desktop._ctxMenu.getItemByText(
-				desktop._ctxMenu.getMenuByHeader(header_), text_)
+				desktop._ctxMenu.getMenuByHeader(header_), text_);
 		if (typeof _menuli == 'undefined') return ;
 		_menuli.removeClass('disabled');
 		_menuli.addClass('active');
@@ -371,7 +371,7 @@ var ContextMenu = Class.extend({
 
 	disableItem: function(header_, text_) {
 		var _menuli = desktop._ctxMenu.getItemByText(
-				desktop._ctxMenu.getMenuByHeader(header_), text_)
+				desktop._ctxMenu.getMenuByHeader(header_), text_);
 		if (typeof _menuli == 'undefined') return ;
 		_menuli.removeClass('active');
 		_menuli.addClass('disabled');
@@ -382,6 +382,13 @@ var ContextMenu = Class.extend({
 			e.preventDefault();
 		}) ;
 		return ;
+	},
+
+	isDisabledItem:function(header_, text_){
+		var _menuli = desktop._ctxMenu.getItemByText(
+				desktop._ctxMenu.getMenuByHeader(header_), text_);
+		if (typeof _menuli == 'undefined') return null;
+		return _menuli.hasClass('disabled');
 	}
 });
 
