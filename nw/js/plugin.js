@@ -88,9 +88,9 @@ var DPlugin = Widget.extend({
 		} else {
 			_this.resize(_width + 20,_width + 20);
 			desktop._grid.flagGridOccupy(_this._position.x, _this._position.y, _this._col_num, _this._row_num, true);
-			if(_width+20 == 180){ 
+			if(_width+20 >= 180){ 
 				desktop._ctxMenu.disableItem('plugin','zoom in');
-			}else if (_width == 60) {
+			}else if (_width >= 60 && desktop._ctxMenu.isDisabledItem('plugin','zoom out') == true) {
 				desktop._ctxMenu.activeItem('plugin', 'zoom out', function(e){
 					e.preventDefault();
 					_this.zoomOut();
@@ -110,9 +110,9 @@ var DPlugin = Widget.extend({
 			var row_num_old =  parseInt(_width/desktop._grid._row-0.00001)+1;
 			desktop._grid.flagGridOccupy(_this._position.x, _this._position.y, col_num_old, row_num_old, false);
 			desktop._grid.flagGridOccupy(_this._position.x, _this._position.y, _this._col_num, _this._row_num, true);
-			if(_width-20 == 60){ 
+			if(_width-20 <= 60){ 
 				desktop._ctxMenu.disableItem('plugin','zoom out');
-			}else if (_width == 180) {
+			}else if (_width <= 180&& desktop._ctxMenu.isDisabledItem('plugin','zoom in') == true) {
 				desktop._ctxMenu.activeItem('plugin', 'zoom in', function(e){
 					e.preventDefault();
 					_this.zoomIn();
@@ -146,7 +146,7 @@ var ClockPlugin = DPlugin.extend({
 	// path_: path of image;
 	setPanel:function(path_){
 		//return "<canvas id=\"clockContent\" width='"+ plugin.offsetWidth+"px' height='"+plugin.offsetHeight+"px'/>";
-		this._dPlugin.html("<canvas id=\""+this._id+ this._content + "\" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+
+		this._dPlugin.html("<canvas id=\""+this._id+ this._content + "\" title='clock' width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+
 							"px' />");
 		//var value = document.getElementById(this._id+content);
 		var target = $('#'+this._id+this._content);
@@ -162,12 +162,12 @@ var ClockPlugin = DPlugin.extend({
 		desktop._ctxMenu.disableItem('add-plugin','clock');
 		//set context menu add zoomIn or zoomOut disable
 		var _width = $(this._dPlugin).width();
-		if(_width == 180){ 
+		if(_width >= 180){ 
 			desktop._ctxMenu.disableItem('plugin','zoom in');
-		}else if (_width == 60) {
+		}else if (_width <= 60) {
 			desktop._ctxMenu.disableItem('plugin','zoom out');
-		};
-		
+		}
+		Tooltip.create(target,'bottom');
 		this.clockRun(path_);
 	},
 
