@@ -19,6 +19,25 @@
 	-webkit-box-align: @align;
 }
 
-.border(@width:1px, @style:solid, @color:#ccc){
+.border(@width:1px, @style:solid, @color:@borderColor){
  	border:@arguments;
  }
+
+.disableMixins(@color:@btnDisableFrontColor, @bgColor:@btnDisableBgColor,@borderColor:@btnDisableBorderColor){
+	cursor: default;
+	pointer-events: none;
+	color:@color;
+	background-color: @bgColor;
+	border-color: @borderColor;
+}
+
+.setBackgroundColor(@topColor,@bottomColor){
+	background-color: @topColor;
+	background-image: linear-gradient(to bottom, @topColor, @bottomColor);
+	background-image: -moz-linear-gradient(top, @topColor, @bottomColor);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@topColor), to(@bottomColor));
+	background-image: -webkit-linear-gradient(top, @topColor, @bottomColor);
+	background-image: -o-linear-gradient(top, @topColor, @bottomColor);
+	background-repeat: repeat-x;
+	outline: 0;
+} 

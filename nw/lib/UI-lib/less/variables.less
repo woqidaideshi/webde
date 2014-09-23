@@ -1,6 +1,8 @@
 
 ///******************************common********************************///
 @backgroundColor:#fff;
+@borderColor:#ccc;
+
 
 ///*******************************context******************************///
 @contextHoverColor:#0099aa;
@@ -10,10 +12,10 @@
 @contextMinWidth:160px;
 
 ///*******************************desktop******************************///
-@LineHeight: 80px;
-@LineWidth: 80px;
-@col: @LineWidth + 20px;
-@row: @LineHeight + 20px;
+@entryHeight: 80px;
+@entryWidth: 80px;
+@colWidth: @entryWidth + 20px;
+@rowHeight: @entryHeight + 20px;
 
 ///*******************************plugin*******************************///
 @pluginWidth:90px;
@@ -25,3 +27,35 @@
 @dockImgHeight:50px;
 ///******************************property******************************///
 @tabTextColor:#335533;
+@propertyBackgroundColor:#eee;
+@propertyTitleBackgroundColor:#e3e3e3;
+@propertyTitleTextColor:#353;
+@propertyHeight:450px;
+@propertyTitleHeight:24px;
+@propertyTitleFrontSize:15px;
+@propertyContextHeight:@propertyHeight/3*2.1;
+@propertyFrontSize:16px;
+
+///******************************tooltip*******************************///
+@tooltipBackgroundColor:@backgroundColor;
+@tooltipRadiusLT:16px;
+@tooltipRadiusRT:6px;
+@tooltipRadiusRB:16px;
+@tooltipRadiusLB:6px;
+
+///******************************button********************************///
+@btnFrontSize:15px;
+//background color;
+@btnActiveBgColor:#2d2d2d;
+@btnDisableBgColor:#e6e6e6;
+@btnHoverBgColor:#d9d9d9;
+//front color;
+@btnActiveFrontColor:#fff;
+@btnDisableFrontColor:#ababab;
+//border color;
+@btnActiveBorderColor:@borderColor;
+@btnDisableBorderColor:#d2d2d2;
+@btnHoverBorderColor:#b3b3b3;
+//
+
+
