@@ -144,7 +144,7 @@ var Property = Class.extend({
 		var y = ev.clientY - _this._offsetY; 
 		console.log('ev.y: '+ev.clientY + '   this:y '+_this._offsetY + '  y: ' + y);
 		$('#'+_this._id+'-property').css("left", x);
-		$('#'+_this._id+'-property').css("top", y-10);
+		$('#'+_this._id+'-property').css("top", y);
 		$('#'+_this._id+'-title').css('cursor','move');
 		});
 	},
@@ -257,7 +257,7 @@ var Property = Class.extend({
 			showDiv.css('top',top_+'px');
 			showDiv.show();
 			var box_width =$(window).width()/4;
-			var box_height = $(window).height()/2;
+			var box_height = $(".property .property-show .tabcontent").height()*3/2.1;
 			var top_property= $(window).height()/2-box_height/2;
 			var left_property =$(window).width()/2-box_width/2;
 			$('#' +desktop._rightObjId+ '-property').animate({top:top_property,opacity:'show',width:box_width,height:box_height,left:left_property},500);

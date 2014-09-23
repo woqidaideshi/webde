@@ -8,27 +8,27 @@ html body {
 }
 
 .col1 {
-	width: @col;
+	width: @colWidth;
 }
 
 .col2 {
-	width: @col * 2;
+	width: @colWidth * 2;
 }
 
 .col3 {
-	width: @col * 3;
+	width: @colWidth * 3;
 }
 
 .row1 {
-	height: @row;
+	height: @rowHeight;
 }
 
 .row2 {
-	height: @row * 2;
+	height: @rowHeight * 2;
 }
 
 .row3 {
-	height: @row * 3;
+	height: @rowHeight * 3;
 }
 
 .desktop{
@@ -49,7 +49,7 @@ html body {
 	.select(none);
 
 	.gridcol {
-		width: @col;
+		width: @colWidth;
 		height: 100%;
 		display: block;
 		float: right;
@@ -58,7 +58,7 @@ html body {
 
 		.grid {
 			width: 100%;
-			height: @row;
+			height: @rowHeight;
 			display: block;
 			vertical-align: middle;
 			//.box(vertical, center, center);

@@ -4,61 +4,64 @@
 	display:none;
 	position:absolute;
 	z-index:100;
-	border:1px solid #8FA4F5;
-	padding:1px;
-	background-color:@backgroundColor;
+	.border;
+	background-color:@propertyBackgroundColor;
+  padding: 0;
 	.radius;
 	h2{
-  		height:35px;
-  		font-size:14px;
+  		height:@propertyTitleHeight;
+  		font-size:@propertyTitleFrontSize;
   		text-align: center;
-  		background-color:#3366cc;
+  		background-color:@propertyTitleBackgroundColor;
   		position:relative;
-  		padding-left:10px;
-  		line-height:35px;
-  		color:@backgroundColor;
+        margin: 0 0 10px 0;
+        padding: 5px;
+        cursor: move;
+  		line-height:@propertyTitleHeight;
+  		color:@propertyTitleTextColor;
   		.select(none);
 	}
 	
 	.property-show{
-    		margin: 0px 10px 10px 10px;  
+    		margin: 10px;  
 
 		.property-tabs {
-   			margin: 0px 10px 0px 10px;  
-  			height: 24px;
+   			margin: 0px 5px 7px 5px;  
+  			height: @propertyHeight/30;
 			
 			a {  
     				text-decoration: none;  
-    				background: #e7e7e7;  
+    				background: @propertyBackgroundColor;    
     				color: @tabTextColor;  
-    				padding: 5px;  
-    				.border(1px,solid,#ddd);
+    				padding: 5px 5px 1px 5px;  
+    				.border;
+                    .radius(6px,6px,0,0);
     				z-index: 999;
     				.select(none);
 			
 				&:hover {
 					background: @tabTextColor;  
     					color: @backgroundColor;  
-    					padding-bottom: 6px; 
+    					padding-bottom: 2px; 
 				}
 
 				&.selected{
 					background: @backgroundColor;  
     					color: @tabTextColor;  
     					border-bottom:none;
-    					padding-bottom: 6px; 
+    					padding-bottom: 2px; 
 				}
 			}  
 		}
 		.tabcontent {  
-   			margin: -2px 10px 0px 10px;  
+   			margin: -2px 5px 0px 5px;  
     		z-index: 10;
     		.border;
-    		height: 360px;  
+    		height: @propertyContextHeight;  
             background-color: @backgroundColor;
     			p{
     				.select(none);
-    				font-size: 17px;
+    				font-size:@propertyFrontSize;
     				margin-left: 5%;
     			}
 
@@ -83,7 +86,7 @@
                     background-color: @backgroundColor;
     				p{
 					.select(none);
-				    font-size: 13px;
+				    font-size: @propertyFrontSize - 2;
 				    overflow: hidden;
 				    white-space: nowrap;
 				    -webkit-text-overflow:ellipsis;
@@ -96,7 +99,11 @@
 	}
 
 	button{
-		float: right;
- 	 	margin: 0px 10px 50px 20px;  
+   // .radius(4px,4px,4px,4px);
+        .btn;
+        .btn .active;
+        margin-top: 10px; 
+        margin-left: 81%;
+        margin-bommom: 4%; 
 	}
 }

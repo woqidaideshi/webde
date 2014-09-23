@@ -66,15 +66,7 @@
 			&:hover {
 				color: @contextBackgroundColor;
 				text-decoration: none;
-				background-color: @contextHoverColor;
-				background-color: #0081c2;
-				background-image: linear-gradient(to bottom, @contextHoverColor, @contextGradientColor);
-				background-image: -moz-linear-gradient(top, @contextHoverColor, @contextGradientColor);
-				background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@contextHoverColor), to(@contextGradientColor));
-				background-image: -webkit-linear-gradient(top, @contextHoverColor, @contextGradientColor);
-				background-image: -o-linear-gradient(top, @contextHoverColor, @contextGradientColor);
-				background-repeat: repeat-x;
-				outline: 0;
+				.setBackgroundColor(@contextHoverColor,@contextGradientColor);
 			}
 		}
 	}
@@ -83,7 +75,7 @@
 		> a{
 			display: block;
 			padding: 3px 20px;
-			color: @contextDisabledColor;
+			.disableMixins(@contextDisabledColor,@contextBackgroundColor);
 			white-space: nowrap;
 			text-decoration: none;
 

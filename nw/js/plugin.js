@@ -220,8 +220,10 @@ var ClockPlugin = DPlugin.extend({
 				_second=_second/60;
 				drwePointer(0,_second);
 				drwePointer(1,_mimute);
-				drwePointer(2,_hour); 
-			},100);
+				drwePointer(2,_hour);
+				if (_target[0].title !== '')
+					_target[0].title = _time.toLocaleString();
+			},200);
 		};
 		var _paint = paintClock();
 	}

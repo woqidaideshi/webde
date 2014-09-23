@@ -1,6 +1,6 @@
 .icon {
-	width: @LineWidth;
-	height: @LineHeight;
+	width: @entryWidth;
+	height: @entryHeight;
 	margin: 5px 10px;
 	.box-sizing;
 	outline: none;
@@ -21,15 +21,15 @@
 	//}
 
 	img {
-		width: @LineWidth * 0.625;
-		height: @LineHeight * 0.625;
+		width: @entryWidth * 0.625;
+		height: @entryHeight * 0.625;
 		//border: 1px solid black;
 		z-index: 98;
 	}
 
 	p {
-		width: @LineWidth;
-		height: 32px;
+		width: @entryWidth;
+		height: @entryHeight * 0.4;
 		margin: 2px 0px;
 		font-size: small;
 		text-align: center;
@@ -52,39 +52,3 @@
 	}
 }
 
-.gridcontainer {
-	position: absolute;
-	width: 92%;
-	height: 90%;
-	top: 4%;
-	right: 100px;
-	//.box(horizontal, start, start);
-	.select(none);
-
-	.gridcol {
-		width: @col;
-		height: 100%;
-		display: block;
-		float: right;
-		.box(vertical, start, start);
-		.select(none);
-
-		.grid {
-			width: 100%;
-			height: @row;
-			display: block;
-			vertical-align: middle;
-			//.box(vertical, center, center);
-			.select(none);
-
-			&.hovering {
-				.box-shadow-mine(0px, 0px, 10px, 0px, black, inset);
-			}
-
-			&.norhover {
-				.out-box-shadow(0px, 0px, 3px, black);
-			}
-		
-		}
-	}
-}
