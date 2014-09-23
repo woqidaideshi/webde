@@ -1,5 +1,67 @@
-//This file includes all common help classes.
+//Base Class for every class in this project!!
 //
+function Class() {}
+
+//Use extend to realize inhrietion
+//
+Class.extend = function extend(props) {
+	var prototype = new this();
+	var _super = this.prototype;
+
+	for(var name in props) {
+		//if a function of subclass has the same name with super
+		//override it, not overwrite
+		//use this.callSuper to call the super's function
+		//
+		if(typeof props[name] == "function"
+				&& typeof _super[name] == "function") {
+			prototype[name] = (function(super_fn, fn) {
+				return function() {
+					var tmp = this.callSuper;
+					this.callSuper = super_fn;
+					
+					var ret = fn.apply(this, arguments);
+
+					this.callSuper = tmp;
+					
+					if(!this.callSuper) {
+						delete this.callSuper;
+					}
+
+					return ret;
+				}
+			})(_super[name], props[name])
+		} else {
+			prototype[name] = props[name];
+		}
+	}
+
+	var SubClass = function() {};
+
+	SubClass.prototype = prototype;
+	SubClass.prototype.constructor = SubClass;
+
+	SubClass.extend = extend;
+	//Use create to replace new
+	//we need give our own init function to do some initialization
+	//
+	SubClass.create = SubClass.prototype.create = function() {
+		var instance = new this();
+
+		if(instance.init) {
+			instance.init.apply(instance, arguments);
+		}
+
+		return instance;
+	}
+
+	return SubClass;
+}
+
+//Event base Class
+//Inherited from Node.js' EventEmitter
+//
+var Event = Class.extend(require('events').EventEmitter.prototype);
 
 //Ordered Queue Class
 //constructor:
@@ -84,8 +146,6 @@ var OrderedQueue = Class.extend({
 
 });
 
-//TODO: change to MVC style
-//
 var ContextMenu = Class.extend({
 	init: function(options_) {
 		this._options = {
@@ -278,7 +338,6 @@ var ContextMenu = Class.extend({
 	}
 });
 
-//TODO: change to nodejs independent
 //watch  dir :Default is desktop
 //dir_: dir is watched 
 // ignoreInitial_:
@@ -366,157 +425,3 @@ var Watcher = Event.extend({
 	}
 });
 
-// This class is used for serialize tasks running
-//
-var Serialize = Class.extend({
-	init: function() {},
-
-	// fnArr_: [
-	//	{
-	//		fn: function(pera_, callback_) (type: Funciton, callback_ -> function(err_, ret_))
-	//		pera: {} (type: Object)
-	//	},
-	//	...
-	// ],
-	// callback_: function(err_, rets_) (rets_ -> [ret1, ret2, ...])
-	//
-	// example:
-	//	Serialize.series([
-	//		{
-	//			fn: function(pera_, callback_) {
-	//				// do something
-	//				callback_(null, ret); // should be the last sentence
-	//			},
-	//			pera: {}
-	//		},
-	//		{
-	//			fn: function(pera_, callback_) {
-	//				// do something
-	//				callback_(null, ret); // should be the last sentence
-	//			},
-	//		},
-	//		...
-	//	], function(err_, rets_) {
-	//		//rets_[i] = fnArr_[i]'s ret
-	//	});
-	//
-	series: function(fnArr_, callback_) {
-		if(!Array.isArray(fnArr_)) {
-			console.log('bad type for series, should be an array');
-			return ;
-		}
-		var cb = callback_ || function() {};
-		var complete = 0, rets = [];
-		var doSeries = function(iterator_) {
-			var iterate = function() {
-				iterator_(fnArr_[complete], function(err_) {
-					if(err_) {
-						callback_(err_);
-					} else {
-						complete += 1;
-						if(complete >= fnArr_.length) {
-							cb(null, rets);
-						} else {
-							iterate();
-						}
-					}
-				});
-			};
-			iterate();
-		};
-		doSeries(function(fn_, callback_) {
-			fn_.fn(fn_.pera, function(err_, ret_) {
-				rets[complete] = ret_;
-				callback_(err_, ret_);
-			});
-		});
-	},
-
-	// peraArr_: [
-	//	{
-	//		arg1: value,
-	//		arg2: value,
-	//		...
-	//	},
-	//	...
-	// ],
-	// fn_: function(pera_, callback_) (type: Funciton, callback_ -> function(err_, ret_))
-	// callback_: function(err_, rets_) (rets_ -> [ret1, ret2, ...])
-	//
-	// example:
-	//	Serialize.series1([
-	//		{
-	//			arg1: value,
-	//			arg2: value,
-	//			...
-	//		},
-	//		...
-	//	], function(pera_, callback_) {
-	//		// do something
-	//		callback_(null, ret); // should be the last sentence
-	//	}, function(err_, rets_) {
-	//		//rets_[i] = fnArr_[i]'s ret
-	//	});
-	//
-	series1: function(peraArr_, fn_, callback_) {
-		var fnArr = [];
-		for(var i = 0; i < peraArr_.length; ++i) {
-			fnArr[i] = {
-				'fn': fn_,
-				'pera': peraArr_[i]
-			};
-		}
-		this.series(fnArr, callback_);
-	},
-});
-
-// This class includes all global objects used in this project
-//
-var Global = Class.extend({
-	// g_objects: [
-	//	{
-	//		name: obj_name(String),
-	//		class: class_name(Object),
-	//		args: init_args(Array),
-	//		serialize: (Bool) // should be inited serialized?
-	//	},
-	//	{...}
-	// ]
-	init: function() {
-		this.Series = Serialize.prototype;
-		this.objects = [];
-		addGObjects(arguments);
-	},
-
-	addGObjects: function() {
-		var tasks = [];
-		for(var i = 0; i < arguments.length; ++i) {
-			var isSerialize = arguments[i].serialize || false;
-			var args = arguments[i].args || [];
-			if(isSerialize) {
-				tasks.push({
-					'name': arguments[i].name,
-					'class': arguments[i].class,
-					'args': args
-				});
-			} else {
-				this.objects[arguments.name] = arguments.class.create.apply(this, args);
-			}
-		}
-		var _this = this;
-		this.Series.series1(tasks, function(pera_, callback_) {
-			var args = pera_.args.push(function(err_) {
-				callback_(err_);
-			});
-			_this.objects[pera_.name] = pera_.class.create.apply(this, args);
-		});
-	},
-
-	removeAGObject: function(objName_) {
-		delete this.objects[objName_];
-	},
-
-	get: function(objName_) {
-		return this.objects[objName_];
-	}
-});
