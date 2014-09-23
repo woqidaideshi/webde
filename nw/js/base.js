@@ -69,19 +69,32 @@ var Event = Class.extend(require('events').EventEmitter.prototype);
 //The base Class for Model classes
 //
 var Model = Class.extend({
-	init: function() {},
+	init: function(id_) {
+		this._id = id_;
+		this._obList = [];
+	},
 
-	addObserver: function(observer_) {},
+	addObserver: function(observer_) {
+		this._obList[observer_._id] = observer_;
+	},
 
-	removeObserver: function(observer_) {},
+	removeObserver: function(observer_) {
+		delete this._obList[observer_._id];
+	},
 
-	notify: function(updatedObj_) {}
+	notify: function(updatedObj_) {
+		for(var key in this._obList) {
+			this._obList[key].update(updatedObj_);
+		}
+	}
 });
 
 //The base Class for Observer classes
 //
 var Observer = Class.extend({
-	init: function() {},
+	init: function(id_) {
+		this._id = id_;
+	},
 
 	update: function(updatedObj_) {}
 });
@@ -91,6 +104,7 @@ var Observer = Class.extend({
 //
 var View = Observer.extend({
 	init: function(model_) {
+		this.callSuper(model_._id + '-view');
 		this._model = model_;
 
 		this._model.addObserver(this);
@@ -106,6 +120,7 @@ var View = Observer.extend({
 //
 var Controller = Observer.extend({
 	init: function(view_) {
+		this.callSuper(view_._model._id + '-controller');
 		this._model = view_._model;
 		this._view = view_;
 
