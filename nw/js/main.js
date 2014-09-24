@@ -15,5 +15,9 @@ $(document).ready(function() {
 		'name': 'desktop',
 		'class': Desktop,
 		'serialize': true
+	}, {
+		'name': 'theCP',
+		'class': CommandProcessor,
+		'serialize': false
 	});
 });

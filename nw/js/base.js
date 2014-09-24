@@ -106,12 +106,22 @@ var View = Observer.extend({
 	init: function(model_) {
 		this.callSuper(model_._id + '-view');
 		this._model = model_;
+		this._controller = null; // created by subclasses
+		this._ops = []; // this array contains ops to update this view
 
 		this._model.addObserver(this);
 	},
 	
 	destroy: function() {
 		this._model.removeObserver(this);
+	},
+
+	show: function() {
+		this.$view.show();
+	},
+
+	hide: function() {
+		this.$view.hide();
 	}
 });
 

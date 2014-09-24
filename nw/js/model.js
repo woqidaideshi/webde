@@ -2,10 +2,10 @@
 //
 
 //This class contains all theme relevant data and service.
-//TODO: replace the nodejs apis to ourself.
+//TODO: replace the nodejs apis to ourselves.
 //
 var ThemeModel = Model.extend({
-	init: function() {
+	init: function(callback_) {
 		// this.req = undefined;
 
 		this._fs = require('fs');
@@ -20,17 +20,18 @@ var ThemeModel = Model.extend({
 				console.log(err);
 			} else {
 				theme._themePath = stdout.substr(0, stdout.length - 1) + "themeConf";
-				theme.getCurThemeConfig();
+				theme.getCurThemeConfig(callback_);
 			}
 		});
 	},
 		
-	getCurThemeConfig: function() {
+	getCurThemeConfig: function(callback_) {
 		var theme = this;
 
 		this._fs.readFile(this._themePath, 'utf-8', function(err, data) {
 			if(err) {
 				console.log(err);
+				callback_.call(this, err);
 			} else {
 				var lines = data.split('\n');
 				for(var i = 0; i < lines.length; ++i) {
@@ -49,6 +50,7 @@ var ThemeModel = Model.extend({
 				}
 				/* theme.inited = true; */
 				/* theme.emit('inited', theme.req); */
+				callback_.call(this, null);
 			}
 		});
 	},
@@ -107,36 +109,36 @@ var ThemeModel = Model.extend({
 		this._theme['icontheme']['name'] = iconTheme_;
 	},
 
-	activeComputer: function() {
-		this._theme['computer']['active'] = 'true';
+	getComputer: function() {
+		this._theme['computer']['active'];
 	},
 
-	deactiveComputer: function() {
-		this._theme['computer']['active'] = 'false';
+	setComputer: function(active_) {
+		this._theme['computer']['active'] = active_;
 	},
 	
-	activeTrash: function() {
-		this._theme['trash']['active'] = 'true';
+	getTrash: function() {
+		this._theme['trash']['active'];
 	},
 
-	deactiveTrash: function() {
-		this._theme['trash']['active'] = 'false';
+	setTrash: function(active_) {
+		this._theme['trash']['active'] = active_;
 	},
 	
-	activeNetwork: function() {
-		this._theme['network']['active'] = 'true';
+	getNetwork: function() {
+		this._theme['network']['active'];
 	},
 
-	deactiveNetwork: function() {
-		this._theme['network']['active'] = 'false';
+	setNetwork: function(active_) {
+		this._theme['network']['active'] = active_;
 	},
 	
-	activeDocument: function() {
-		this._theme['document']['active'] = 'true';
+	getDocument: function() {
+		this._theme['document']['active'];
 	},
 
-	deactiveDocument: function() {
-		this._theme['document']['active'] = 'false';
+	setDocument: function(active_) {
+		this._theme['document']['active'] = active_;
 	}
 });
 

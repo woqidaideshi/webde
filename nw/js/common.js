@@ -771,18 +771,18 @@ var EntryUtil = Event.extend({
 					throw 'Bad filename_';
 				} else {
 					var attrs = stdout.split('\n');
-					var attr_  = attrs[1].replace(/(\s+$)|(^\s+)/g,"");
+					var attr_ = attrs[1].replace(/(\s+$)|(^\s+)/g, "");
 					var size_ = attr_.split(' ')[1];
-					attr_  = attrs[3].replace(/(\s+$)|(^\s+)/g,"");
+					attr_  = attrs[3].replace(/(\s+$)|(^\s+)/g, "");
 					attr_ = attr_.replace(/\s+/g," ");
-					var access_ = attr_.split(' ')[1].substr(6,10);
+					var access_ = attr_.split(' ')[1].substr(6, 10);
 					var attr_s = attr_.split(' ');
 					var uid_ = attr_s[5].substr(0,attr_s[5].length -1);
 					var gid_ = attr_s[9].substr(0,attr_s[9].length -1);
 					attr_ = attrs[4].split(' ');
-					var access_time = attr_[1]+' ' + attr_[2].substr(0,8);
+					var access_time = attr_[1] + ' ' + attr_[2].substr(0,8);
 					attr_ = attrs[5].split(' ');
-					var modify_time = attr_[1]+' ' + attr_[2].substr(0,8);
+					var modify_time = attr_[1] + ' ' + attr_[2].substr(0,8);
 					var attr = [];
 
 					attr['size'] = size_;
@@ -815,5 +815,79 @@ var EntryUtil = Event.extend({
 		this._exec('rm '+path_, function(err, out ,stderr){
 			if(err) throw 'util.js-rmFile: bad path';
 		});
+	}
+});
+
+// The base class for all command classes
+//
+var Command = Class.extend({
+	doIt: function() {},
+	undo: function() {}
+});
+
+// NormalCommand which is allowed to undo should be inited with two
+// handlers, get_ and set_.
+//
+var NormalCommand = Command.extend({
+	init: function(get_, set_, newVal_) {
+		this._cType = 0;
+		this._get = get_;
+		this._set = set_;
+		this._newVal = newVal_;
+	},
+
+	doIt: function() {
+		this._oldVal = this._get();
+		this._set(this._newVal);
+	},
+
+	undo: function() {
+		this._set(this._oldVal);
+	}
+});
+
+// NoUndoCommand which is not allowed to undo should be inited with only one handler
+//
+var NoUndoCommand = Command.extend({
+	init: function(cType_, handler_, args_) {
+		this._cType = cType_;
+		this._handler = handler_;
+		this._args = arguments.substr(1);
+	},
+
+	doIt: function() {
+		this._handler.apply(this, this._args);
+	}
+})
+
+// The center processor of command
+//
+var CommandProcessor = Class.extend({
+	init: function() {
+		this._size = 20;
+		this._cmdList = new Array(this._size);
+		this._idx = -1;
+	},
+		
+	perform: function(cmd_) {
+		if(cmd_._cType == 0) {
+			if(this._idx == this._size - 1) {
+				this._cmdList.shift();
+			} else {
+				this._idx++;
+			}
+			this._cmdList[this._idx] = cmd_;
+		}
+		cmd_.doIt();
+	},
+
+	undo: function() {
+		if(this._idx < 0) return ;
+		this._cmdList[this._idx--].undo();
+	},
+
+	redo: function() {
+		if(this._idx == this._cmdList.length - 1) return ;
+		this._cmdList[++this._idx].doIt();
 	}
 });
