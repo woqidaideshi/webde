@@ -5,6 +5,151 @@
   -ms-box-sizing: border-box;
   box-sizing: border-box;
 }
+.property {
+  width: 0px;
+  height: 0px;
+  display: none;
+  position: absolute;
+  z-index: 100;
+  border: 1px solid #cccccc;
+  background-color: #eeeeee;
+  padding: 0;
+  -webkit-border-radius: 6px 6px 6px 6px;
+  -moz-border-radius: 6px 6px 6px 6px;
+  border-radius: 6px 6px 6px 6px;
+}
+.property h2 {
+  height: 24px;
+  font-size: 15px;
+  text-align: center;
+  background-color: #e3e3e3;
+  position: relative;
+  margin: 0 0 10px 0;
+  padding: 5px;
+  cursor: move;
+  line-height: 24px;
+  color: #335533;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+.property .property-show {
+  margin: 10px;
+}
+.property .property-show .property-tabs {
+  margin: 0px 5px 7px 5px;
+  height: 15px;
+}
+.property .property-show .property-tabs a {
+  text-decoration: none;
+  background: #eeeeee;
+  color: #335533;
+  padding: 5px 5px 1px 5px;
+  border: 1px solid #cccccc;
+  -webkit-border-radius: 6px 6px 0 0;
+  -moz-border-radius: 6px 6px 0 0;
+  border-radius: 6px 6px 0 0;
+  z-index: 999;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+.property .property-show .property-tabs a:hover {
+  background: #335533;
+  color: #ffffff;
+  padding-bottom: 2px;
+}
+.property .property-show .property-tabs a.selected {
+  background: #ffffff;
+  color: #335533;
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+.property .property-show .tabcontent {
+  margin: -2px 5px 0px 5px;
+  z-index: 10;
+  border: 1px solid #cccccc;
+  height: 315px;
+  background-color: #ffffff;
+}
+.property .property-show .tabcontent p {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  font-size: 16px;
+  margin-left: 5%;
+}
+.property .property-show .tabcontent .iconcontent {
+  margin: 0px;
+  width: 25%;
+  height: 100%;
+  text-align: center;
+  float: left;
+  background-color: #ffffff;
+}
+.property .property-show .tabcontent .iconcontent img {
+  width: 80%;
+  margin-top: 20px;
+}
+.property .property-show .tabcontent .basicinfocontent {
+  margin: 0;
+  padding: 0;
+  width: 73%;
+  height: 100%;
+  float: left;
+  background-color: #ffffff;
+}
+.property .property-show .tabcontent .basicinfocontent p {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  width: 100%;
+  margin-left: 5%;
+}
+.property button {
+  padding: 4px;
+  font-size: 15px;
+  border: 1px solid #cccccc;
+  -webkit-border-radius: 4px 4px 4px 4px;
+  -moz-border-radius: 4px 4px 4px 4px;
+  border-radius: 4px 4px 4px 4px;
+  background-color: #ffffff;
+  cursor: default;
+  background-color: #2d2d2d;
+  color: #ffffff;
+  border-color: #cccccc;
+  margin-top: 10px;
+  margin-left: 81%;
+  margin-bommom: 4%;
+}
+.property button:hover {
+  border: 2px solid #b3b3b3;
+  background-color: #d9d9d9;
+  background-image: linear-gradient(to bottom, #d9d9d9, #2d2d2d);
+  background-image: -moz-linear-gradient(top, #d9d9d9, #2d2d2d);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#d9d9d9), to(#2d2d2d));
+  background-image: -webkit-linear-gradient(top, #d9d9d9, #2d2d2d);
+  background-image: -o-linear-gradient(top, #d9d9d9, #2d2d2d);
+  background-repeat: repeat-x;
+  outline: 0;
+}
+.dock {
+  position: fixed;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+}
+.dock div {
+  display: inline-block;
+}
+.dock div img {
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
 .btn {
   padding: 4px;
   font-size: 15px;
@@ -196,135 +341,6 @@
   border-radius: 16px 6px 16px 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
-.property {
-  width: 0px;
-  height: 0px;
-  display: none;
-  position: absolute;
-  z-index: 100;
-  border: 1px solid #cccccc;
-  background-color: #eeeeee;
-  padding: 0;
-  -webkit-border-radius: 6px 6px 6px 6px;
-  -moz-border-radius: 6px 6px 6px 6px;
-  border-radius: 6px 6px 6px 6px;
-}
-.property h2 {
-  height: 24px;
-  font-size: 15px;
-  text-align: center;
-  background-color: #e3e3e3;
-  position: relative;
-  margin: 0 0 10px 0;
-  padding: 5px;
-  cursor: move;
-  line-height: 24px;
-  color: #335533;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-}
-.property .property-show {
-  margin: 10px;
-}
-.property .property-show .property-tabs {
-  margin: 0px 5px 7px 5px;
-  height: 15px;
-}
-.property .property-show .property-tabs a {
-  text-decoration: none;
-  background: #eeeeee;
-  color: #335533;
-  padding: 5px 5px 1px 5px;
-  border: 1px solid #cccccc;
-  -webkit-border-radius: 6px 6px 0 0;
-  -moz-border-radius: 6px 6px 0 0;
-  border-radius: 6px 6px 0 0;
-  z-index: 999;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-}
-.property .property-show .property-tabs a:hover {
-  background: #335533;
-  color: #ffffff;
-  padding-bottom: 2px;
-}
-.property .property-show .property-tabs a.selected {
-  background: #ffffff;
-  color: #335533;
-  border-bottom: none;
-  padding-bottom: 2px;
-}
-.property .property-show .tabcontent {
-  margin: -2px 5px 0px 5px;
-  z-index: 10;
-  border: 1px solid #cccccc;
-  height: 315px;
-  background-color: #ffffff;
-}
-.property .property-show .tabcontent p {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  font-size: 16px;
-  margin-left: 5%;
-}
-.property .property-show .tabcontent .iconcontent {
-  margin: 0px;
-  width: 25%;
-  height: 100%;
-  text-align: center;
-  float: left;
-  background-color: #ffffff;
-}
-.property .property-show .tabcontent .iconcontent img {
-  width: 80%;
-  margin-top: 20px;
-}
-.property .property-show .tabcontent .basicinfocontent {
-  margin: 0;
-  padding: 0;
-  width: 73%;
-  height: 100%;
-  float: left;
-  background-color: #ffffff;
-}
-.property .property-show .tabcontent .basicinfocontent p {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  font-size: 14px;
-  overflow: hidden;
-  white-space: nowrap;
-  -webkit-text-overflow: ellipsis;
-  text-overflow: ellipsis;
-  width: 100%;
-  margin-left: 5%;
-}
-.property button {
-  padding: 4px;
-  font-size: 15px;
-  border: 1px solid #cccccc;
-  -webkit-border-radius: 4px 4px 4px 4px;
-  -moz-border-radius: 4px 4px 4px 4px;
-  border-radius: 4px 4px 4px 4px;
-  background-color: #ffffff;
-  cursor: default;
-  background-color: #2d2d2d;
-  color: #ffffff;
-  border-color: #cccccc;
-  margin-top: 10px;
-  margin-left: 81%;
-  margin-bommom: 4%;
-}
-.property button:hover {
-  border: 2px solid #b3b3b3;
-  background-color: #d9d9d9;
-  background-image: linear-gradient(to bottom, #d9d9d9, #2d2d2d);
-  background-image: -moz-linear-gradient(top, #d9d9d9, #2d2d2d);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#d9d9d9), to(#2d2d2d));
-  background-image: -webkit-linear-gradient(top, #d9d9d9, #2d2d2d);
-  background-image: -o-linear-gradient(top, #d9d9d9, #2d2d2d);
-  background-repeat: repeat-x;
-  outline: 0;
-}
 html body {
   width: 100%;
   height: 100%;
@@ -398,22 +414,6 @@ html body {
   -o-box-shadow: 0px 0px 3px #000000;
   box-shadow: 0px 0px 3px #000000;
 }
-.dock {
-  position: fixed;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  bottom: 20px;
-  width: 100%;
-  text-align: center;
-}
-.dock div {
-  display: inline-block;
-}
-.dock div img {
-  width: 50px;
-  height: 50px;
-  cursor: pointer;
-}
 .plugin-div {
   width: 90px;
   height: 90px;
@@ -465,3 +465,4 @@ html body {
   background-color: #a9a9a9;
   opacity: 1;
 }
+/*# sourceMappingURL=demoUI.css.map */

@@ -16,3 +16,21 @@ You can use commad like:
 	cp /usr/share/applications/totem.desktop $HOME/.local/share/dock/
 	cp /usr/share/applications/cinnamon-settings.desktop $HOME/.local/share/dock/
 	chmod +x $HOME/.local/share/dock/*
+
+about UI-lib 
+环境依赖
+    git
+    node(包括npm)
+    grunt (npm install -g grunt-cli)
+
+    UI-lib自动打包的实现
+	1、安装依赖包
+		npm install
+	2、代码规范检查
+		grunt jshint
+	3、生成UI-lib.js和UI.lib.css
+		grunt
+	4、启动ui-lib代码自动集成（当UI-lib/js/*.js和UI-lib/less/**/*.less文件修改时自动编译生成库文件）
+		grunt watch
+
+
