@@ -1,3 +1,5 @@
+/*! demo-webde - v - 2014-09-24
+* Copyright (c) 2014 */
 //Tooltip libary 
 var Tooltip = Class.extend({
 	/**

@@ -6,7 +6,7 @@
 	z-index:100;
 	.border;
 	background-color:@propertyBackgroundColor;
-  padding: 0;
+    padding: 0;
 	.radius;
 	h2{
   		height:@propertyTitleHeight;
@@ -23,33 +23,33 @@
 	}
 	
 	.property-show{
-    		margin: 10px;  
+    	margin: 10px;  
 
 		.property-tabs {
    			margin: 0px 5px 7px 5px;  
   			height: @propertyHeight/30;
 			
 			a {  
-    				text-decoration: none;  
-    				background: @propertyBackgroundColor;    
-    				color: @tabTextColor;  
-    				padding: 5px 5px 1px 5px;  
-    				.border;
-                    .radius(6px,6px,0,0);
-    				z-index: 999;
-    				.select(none);
+    			text-decoration: none;  
+    			background: @propertyBackgroundColor;    
+    			color: @tabTextColor;  
+    			padding: 5px 5px 1px 5px;  
+                .border;
+                .radius(6px,6px,0,0);
+    			z-index: 999;
+    			.select(none);
 			
 				&:hover {
 					background: @tabTextColor;  
-    					color: @backgroundColor;  
-    					padding-bottom: 2px; 
+    				color: @backgroundColor;  
+    				padding-bottom: 2px; 
 				}
 
 				&.selected{
 					background: @backgroundColor;  
-    					color: @tabTextColor;  
-    					border-bottom:none;
-    					padding-bottom: 2px; 
+    				color: @tabTextColor;  
+    				border-bottom:none;
+    				padding-bottom: 2px; 
 				}
 			}  
 		}
