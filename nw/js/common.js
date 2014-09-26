@@ -393,7 +393,7 @@ var Serialize = Class.extend({
 	//			fn: function(pera_, callback_) {
 	//				// do something
 	//				callback_(null, ret); // should be the last sentence
-	//			},
+	//			}
 	//		},
 	//		...
 	//	], function(err_, rets_) {
@@ -482,14 +482,43 @@ var Global = Class.extend({
 	//	},
 	//	{...}
 	// ]
-	init: function() {
+	init: function(callback_) {
 		this.Series = Serialize.prototype;
+		this.$home = undefined;
+		this.$xdg_data_dirs = undefined;
 		this.objects = [];
-		addGObjects(arguments);
+		//TODO: change the nodejs'API to ourselves
+		this._fs = require('fs');
+		this._exec = require('child_process').exec;
+	
+		var _this = this;
+		_this._exec('echo $HOME', function(err, stdout, stderr) {
+			if(err) {
+				console.log(err);
+				callback_(err);
+			} else {
+				_this.$home = stdout.substr(0, stdout.length - 1);
+				_this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
+					if(err) {
+						console.log(err);
+						callback_(err);
+					} else {
+						_this.$xdg_data_dirs = stdout.substr(0, stdout.length - 1).split(':');
+						for(var i = 0; i < _this.$xdg_data_dirs.length; ++i) {
+							_this.$xdg_data_dirs[i] 
+								= _this.$xdg_data_dirs[i].replace(/[\/]$/, '');
+						}
+
+						callback_(null);
+					}
+				});
+			}
+		});
 	},
 
 	addGObjects: function() {
 		var tasks = [];
+		var cb = arguments[arguments.length - 1];
 		for(var i = 0; i < arguments.length; ++i) {
 			var isSerialize = arguments[i].serialize || false;
 			var args = arguments[i].args || [];
@@ -500,15 +529,15 @@ var Global = Class.extend({
 					'args': args
 				});
 			} else {
-				this.objects[arguments.name] = arguments.class.create.apply(this, args);
+				this.objects[arguments[i].name] = arguments[i].class.create.apply(arguments[i].class, args);
 			}
 		}
 		var _this = this;
 		this.Series.series1(tasks, function(pera_, callback_) {
-			var args = pera_.args.push(function(err_) {
+			pera_.args.push(function(err_) {
 				callback_(err_);
 			});
-			_this.objects[pera_.name] = pera_.class.create.apply(this, args);
+			_this.objects[pera_.name] = pera_.class.create.apply(pera_.class, pera_.args);
 		});
 	},
 
@@ -524,47 +553,24 @@ var Global = Class.extend({
 // Could be seen as a util-box
 //
 var Util = Class.extend({
-	init: function() {
-		this.entryUtil = EntryUtil.create();
+	init: function(callback_) {
+		this.entryUtil = EntryUtil.create(callback_);
 	}
 });
 
 // TODO: replace nodejs' apis to ourselvs.
 //
 var EntryUtil = Event.extend({
-	init: function() {
-		this._fs = require('fs');
-		this._exec = require('child_process').exec;
-
-		this.$home = undefined;
-		this.$xdg_data_dirs = undefined;
-		this._iconSearchPath = null;
-
-		var _this = this;
-		this._exec('echo $HOME', function(err, stdout, stderr) {
-			if(err) {
-				console.log(err);
-			} else {
-				_this.$home = stdout.substr(0, stdout.length - 1);
-				_this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
-					if(err) {
-						console.log(err);
-					} else {
-						_this._iconSearchPath = [];
-						_this._iconSearchPath.push(_this.$home + "/.local/share/icons/");
+	init: function(callback_) {
+		var cb = callback_ || function() {};
+		this._iconSearchPath = [];
+		this._iconSearchPath.push(_global.$home + "/.local/share/icons/");
+		for(var i = 0; i < _global.$xdg_data_dirs.length; ++i) {
+			this._iconSearchPath.push(_global.$xdg_data_dirs[i] + "/icons/");
+		}
+		this._iconSearchPath.push("/usr/share/pixmaps");
 		
-						_this.$xdg_data_dirs = stdout.substr(0, stdout.length - 1).split(':');
-						for(var i = 0; i < _this.$xdg_data_dirs.length; ++i) {
-							_this.$xdg_data_dirs[i] 
-								= _this.$xdg_data_dirs[i].replace(/[\/]$/, '');
-							_this._iconSearchPath.push(_this.$xdg_data_dirs[i] + "/icons/");
-						}
-
-						_this._iconSearchPath.push("/usr/share/pixmaps");
-					}
-				});
-			}
-		});
+		cb.call(this, null);
 	},
 	
 	getIconPath: function(iconName_, size_, callback_) {
@@ -611,7 +617,7 @@ var EntryUtil = Event.extend({
 			}
 			var _path = _this._iconSearchPath[index_];
 			if(index_ < _this._iconSearchPath.length - 1) _path += themeName_;
-			_this._fs.exists(_path, function(exists_) {
+			_global._fs.exists(_path, function(exists_) {
 				if(exists_) {
 					var tmp = 'find ' + _path
 						+ ' -regextype \"posix-egrep\" -regex \".*'
@@ -619,7 +625,7 @@ var EntryUtil = Event.extend({
 						? size_ : '') + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
 					_this._exec(tmp, function(err, stdout, stderr) {
 						if(stdout == '') {
-							_this._fs.readFile(_path + '/index.theme'
+							_global._fs.readFile(_path + '/index.theme'
 								, 'utf-8', function(err, data) {
 									var _parents = [];
 									if(err) {
@@ -695,7 +701,7 @@ var EntryUtil = Event.extend({
 				_data += key2 + '=' + data_[key][key2] + '\n';
 			}
 		}
-		this._fs.writeFile(path_, _data, function(err) {
+		_global._fs.writeFile(path_, _data, function(err) {
 			if(err) throw err;
 			_cb.call(this);
 		});
@@ -800,9 +806,9 @@ var EntryUtil = Event.extend({
 	// from : fromPath_,
 	// to : outPath_.
 	copyFile:function(fromPath_, outPath_){
-		var _fs = require('fs');
-		_fs.readFile(fromPath_, function(err, data){
-			_fs.writeFile(outPath_, data, function(err){
+		// var _fs = require('fs');
+		_global._fs.readFile(fromPath_, function(err, data){
+			_global._fs.writeFile(outPath_, data, function(err){
 				if (err) {
 					console.log(err);
 				}
@@ -891,3 +897,49 @@ var CommandProcessor = Class.extend({
 		this._cmdList[++this._idx].doIt();
 	}
 });
+
+// The base Class for Cache classes
+//
+var Cache = Class.extend({
+	// The unit of timeout_ is second
+	// 0 means no timeout
+	//
+	init: function(timeout_) {
+		this.to = timeout_ || 0;
+		this._cacheList = [];
+
+		if(this.to != 0) {
+			this._t = new Array(this.to);
+			for(var i = 0; i < this._t.length; ++i) this._t = [];
+			this._ti = 0;
+			var _this = this;
+			this._timer = setInterval(function() {
+				var tmp;
+				while(typeof (tmp = _this._t[_this._ti].pop()) !== 'undefined') {
+					delete _this._cacheList[tmp];
+				}
+				_this._ti = (_this._ti + 1) % this.to;
+			}, 1000);
+		}
+	},
+
+	destroy: function() {
+		clearInterval(this._timer);
+	},
+
+	// If the return is 'undefined', some functions should be implemented
+	// in client classes to handle this situation.
+	get: function(key_) {
+		return this._cacheList[key_].val;
+	},
+	
+	set: function(key_, val_) {
+		this._cacheList[key_] = val_;
+
+		if(this.to != 0) {
+			var idx = (this._ti + this.to - 1) % this.to;
+			this._t[idx].push(key_);
+		}
+	}
+});
+

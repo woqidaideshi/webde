@@ -1,23 +1,26 @@
 //This is the main file of this project
 
-var global = null;
+var _global = null;
 $(document).ready(function() {
-	global = Global.create();
-	global.addGObjects({
-		'name': 'theme',
-		'class': ThemeModel,
-		'serialize': true
-	}, {
-		'name': 'utilIns',
-		'class': Util,
-		'serialize': true
-	}, {
-		'name': 'desktop',
-		'class': Desktop,
-		'serialize': true
-	}, {
-		'name': 'theCP',
-		'class': CommandProcessor,
-		'serialize': false
+	_global = Global.create(function(err_) {
+		if(err_) throw err_;
+		_global.addGObjects({
+			'name': 'theme',
+			'class': ThemeModel,
+			'serialize': true
+		}, {
+			'name': 'utilIns',
+			'class': Util,
+			'serialize': false 
+		}, {
+			'name': 'desktop',
+			'class': DesktopModel,
+			'serialize': true
+		}, {
+			'name': 'theCP',
+			'class': CommandProcessor,
+			'serialize': false
+		});
 	});
 });
+

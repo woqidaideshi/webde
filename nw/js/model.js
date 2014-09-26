@@ -6,29 +6,15 @@
 //
 var ThemeModel = Model.extend({
 	init: function(callback_) {
-		// this.req = undefined;
-
-		this._fs = require('fs');
-		this._exec = require('child_process').exec;
-		this._themePath = "";
-
 		this._theme = [];
-		
-		var theme = this;
-		this._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
-			if(err) {
-				console.log(err);
-			} else {
-				theme._themePath = stdout.substr(0, stdout.length - 1) + "themeConf";
-				theme.getCurThemeConfig(callback_);
-			}
-		});
+		this._themePath = _global.$home + "/.local/share/themeConf";
+		this.getCurThemeConfig(callback_);
 	},
 		
 	getCurThemeConfig: function(callback_) {
 		var theme = this;
 
-		this._fs.readFile(this._themePath, 'utf-8', function(err, data) {
+		_global._fs.readFile(this._themePath, 'utf-8', function(err, data) {
 			if(err) {
 				console.log(err);
 				callback_.call(this, err);
@@ -48,8 +34,6 @@ var ThemeModel = Model.extend({
 						'pos': {x: attrs[5], y: attrs[6]}
 					};
 				}
-				/* theme.inited = true; */
-				/* theme.emit('inited', theme.req); */
 				callback_.call(this, null);
 			}
 		});
@@ -73,7 +57,7 @@ var ThemeModel = Model.extend({
 		// for(var i = 0; i < this._keys.length; ++i) {
 			// data += this._keys[i] + this._theme[this._keys[i]] + '\n';
 		// }
-		this._fs.writeFile(this._themePath, data, 'utf-8', function(err) {
+		_global._fs.writeFile(this._themePath, data, 'utf-8', function(err) {
 			if(err) {
 				console.log(err);
 			} 
@@ -142,6 +126,89 @@ var ThemeModel = Model.extend({
 	}
 });
 
+// The model of Desktop
+//
+var DesktopModel = Model.extend({
+	init: function(callback_) {
+		this.callSuper('desktop');
+		this._view = DesktopView.create(this);
+		// TODO: Create a app launcher, all app models are contained here, can be used as a Cache.
+		// TODO: Get the config first, load model of Desktop widgets
+		//	, and then init the layout of them base of the config
+		this._layout; // the model of entry layout
+		this.initLayout();
+		// this._grid;
+		/* this._ctxMenu = null; // TODO: put to Global? */
+		// this._inputer = DesktopInputer.create('d-inputer');
+		// this._selector = DesktopSelector.create();
+		// this._position = undefined;
+		// this._tabIndex = -1;
+		// this._widgets = [];
+		// this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
+			// var pos1 = entry1_.getPosition();
+			// var pos2 = entry2_.getPosition();
+			// if(pos1.x > pos2.x) {
+				// return true;
+			// } else if(pos1.x == pos2.x) {
+				// if(pos1.y < pos2.y) {
+					// return true;
+				// } else {
+					// return false;
+				// }
+			// } else {
+				// return false;
+			// }
+		// });
+		// this._ctrlKey = false;
+		// this._xdg_data_home = undefined; // TODO: put to Global
+		// this._rightMenu = undefined;
+		// this._rightObjId = undefined;
+		// this.generateGrid();
+		// this.initCtxMenu();
+		// this.initDesktopWatcher();
+		// this.bindingEvents();
+		// this._dock = Dock.create();
+		
+		// var _desktop = this;
+		// _global._exec("echo $HOME/.local/share/", function(err, stdout, stderr) {
+			// if(err) {
+				// console.log(err);
+				// callback_.call(this, err);
+			// } else {
+				// _desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
+				// //add dock div to desktop
+				// _desktop._dock.bingEvent();
+				// theme.loadThemeEntry(_desktop);
+				// _desktop.loadWidgets();
+				// callback_.call(this, null);
+			// }
+		/* }); */
+	},
+
+	initLayout: function() {
+		this._layoutModel = LayoutModel.create('layout');
+		// TODO: check config of layout
+		this.setLayoutType('grid');
+	},
+
+	getLayoutType: function() {return this._layoutType;},
+
+	setLayoutType: function(layoutType_) {
+		this._layoutType = layoutType_;
+		// TODO: 
+		//	1. notify all entry models
+		//	2. reset desktop layout
+		switch(this._layoutType) {
+			case 'grid':
+				this._layoutView = GridView.create(this._layoutModel);
+				this._layoutView.show();
+				break;
+			default:
+				break;
+		};
+	}
+});
+
 // Base Class for all widget models
 //
 var WidgetModel = Model.extend({
@@ -160,4 +227,329 @@ var WidgetModel = Model.extend({
 	getID: function() {return this._id;},
 
 	setID: function(id_) {this._id = id_;}
+});
+
+// The model of Entry
+//
+var EntryModel = WidgetModel.extend({
+	init: function(id_, path_, position_) {
+		if(typeof id_ === "undefined"
+			|| typeof path_ === "undefined") {
+			throw "Not enough params!! Init failed!!";
+		}
+		this.callSuper(id_, position_);
+		this._path = path_;
+		this._name = id_;
+		this._imgPath = '';
+	},
+
+	getPath: function() {return this._path;},
+
+	setPath: function(path_) {
+		this._path = path_;
+		// TODO: notify
+	},
+
+	getName: function() {return this._name;},
+
+	setName: function(name_) {
+		this._name = name_;
+		// TODO: notify
+	},
+
+	getImgPath: function() {return this._imgPath;},
+
+	setImgPath: function(imgPath_) {
+		this._imgPath = imgPath_;
+		// TODO: notify
+	}
+});
+
+// The model of App Entry
+// callback_: function(err)
+var AppEntryModel = EntryModel.extend({
+	init: function(id_, path_, position_, callback_) {
+		this.callSuper(id_, path_, position_);
+		this._execCmd = null;
+		this._type = 'app';
+		this.realInit(callback_);
+	},
+
+	realInit: function(callback_) {
+		var _this = this;
+		_global.get('utilIns').entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
+			if(err_) {
+				console.log(err_);
+				callback_.call(this, err_);
+			}
+			//get launch commad
+			_this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+				.replace(/\\\\/g, '\\'));
+			//get icon
+			// TODO: change to get icon path from catch
+			utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
+				if(err_) {
+					console.log(err_);
+					callback_.call(this, err_);
+				} else {
+					_this.setImgPath(imgPath_[0]);
+					// TODO: move to entry view's update
+					$('#' + _this._id + ' img').attr('src', _this._imgPath);
+				}
+			});
+			//get name
+			if(typeof file_['Name[zh_CN]'] !== "undefined") {
+				_this.setName(file_['Name[zh_CN]']);
+			} else {
+				_this.setName(file_['Name']);
+			}
+			//TODO: move to entry view's update
+			$('#' + _this._id + ' p').text(_this._name);
+		});
+	},
+
+	getCmd: function() {return this._execCmd;},
+
+	setCmd: function(cmd_) {
+		this._execCmd = cmd_;
+		// TODO: notify
+	},
+
+	getType: function() {return this._type;},
+
+	setType: function(type_) {
+		this._type = type_;
+	}
+});
+
+// The model class of Launcher
+// Use lazy stratagy
+//
+var LauncherModel = Model.extend({
+	init: function() {
+		this.callSuper('launcher');
+		this._appCache = Cache.create(); // caches app models
+	},
+
+	get: function(key_, path_) {
+		var ret = this._appCache.get(key_);
+		if(typeof ret === 'undefined') {
+			// TODO: get app model from FS
+			// this._appCache.set(ret.name, ret);
+		}
+	}
+});
+
+// The model class of Layout
+//
+var LayoutModel = WidgetModel.extend({
+	init: function(id_) {
+		this.callSuper(id_);
+
+		this._width = $(document).width() * 0.92;
+		this._height = $(document).height() * 0.9;
+		
+		this._col = 80 + 20;
+		this._row = 80 + 20;
+		this._col_num = Math.floor(this._width / this._col);
+		this._row_num = Math.floor(this._height / this._row);
+		this._grid = [];
+	},
+
+	getSize: function() {
+		return {
+			'width': this._width,
+			'height': this._height
+		};
+	},
+
+	setSize: function(size_) {
+		this._width = size_.width || this._width;
+		this._height = size_.height || this._height;
+		// TODO: check if the size is different, recalculate the col_num and row_num
+		//	and then notify to redraw the view of layout
+	},
+	
+	getGridSize: function() {
+		return {
+			'gridWidth': this._col,
+			'gridHeight': this._row
+		};
+	},
+
+	setGridSize: function(gridSize_) {
+		this._col = gridSize_.gridWidth || this._col;
+		this._row = gridSize_.gridHeight || this._row;
+		// TODO: check if the size is different, recalculate the col_num and row_num
+		//	and then notify to redraw the view of layout
+	},
+	
+	getColNum: function() {return this._col_num;},
+
+	getRowNum: function() {return this._row_num;},
+
+	findAnIdleGrid: function() {
+		for(var i = parseInt(this._col_num - 1); i >= 0; --i) {
+			for(var j = 0; j < this._row_num; ++j) {
+				if(this._grid[i][j].use == false) {
+					return {x: i, y: j};
+				}
+			}
+		}
+		return null;
+	},
+
+	findAnIdleGridFromRight: function() {
+		var col_add = parseInt($('.plugin-div').width()/this._col-0.00001)+1;
+		var row_add =  parseInt($('.plugin-div').height()/this._row-0.00001)+1;
+		//console.log(col_add+" "+row_add+" "+ this._col + " "+ $('.plugin-div').height());
+		for(var i =0; i < this._col_num; i=i+col_add) {
+			for(var j = 0; j < this._row_num; j=j+row_add) {
+				if(this._grid[i][j].use == false) {
+					return {x: i, y: j};
+				}
+			}
+		}
+		return null;
+	},
+
+	//check grid is occupy return true
+	// if grid is Idle or null  return false
+	isIdleGrid: function(col,row, col_l, row_l){
+		if(col >= 0 && col < this._col_num && row >= 0 && row < this._row_num)
+		{
+			for (var i = col; i >= 0; i--) {
+				if (col - i >=  col_l) {break};
+				for(var j = row; j< this._row_num ;j++){
+						if(j-row >= row_l) break;
+						if(this._grid[i][j].use == true) return false;
+				}
+			}
+			return true;
+		}
+		else return false;
+	},
+	// col_l , row_l <= 2
+	// power of 2*2 grid as follow :
+	//  ------------------
+	//  |  1   |   2   |
+	//  ------------------
+	//  |  4   |   8   |
+	//  ------------------
+	findIdleGrid: function(col,row,col_l,row_l){
+		var sum = 0;
+		for (var i = col; i >= 0; i--) {
+			if (col - i >=  col_l) {break};
+			for(var j = row; j< this._row_num ;j++)
+			{
+				if(j-row >= row_l) break;
+				if(this._grid[i][j].use == true)
+				{
+					sum += (col-i+1)*(j-row+1)*(j-row+1);
+				}
+			}
+		}
+		switch(sum){
+			case 0:
+			return {x:col,y:row};					
+			case 8: 
+				if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};                 //left
+				else if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};		// top
+				else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				break;
+			case 4 :
+				if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};				//right
+				else if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};		//top
+				else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};		//right-top
+				break;
+			case 2:
+				if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};				//left 
+				else if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};		//down
+				else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};	//left-down
+				break;
+			case 1:
+				if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};				//right
+				else if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};		//down
+				else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
+			case 3:
+				if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};				//down
+				else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};	//left-down
+				else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
+			case 12:
+				if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};				//top
+				else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};		//right-top
+				break;
+			case 10:
+				if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};				//left
+				else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};	//left-down
+				break;
+			case 5:
+				if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};				//right
+				else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};		//right-top
+				else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
+			case 6:
+				if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
+			case 14:
+				if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};		//left-top
+				break;
+			case 9:
+				if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};			//right-top
+				else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};	//left-down
+				break;
+			case 13:
+				if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};			//right-top
+				break;
+			case 7:
+				if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};		//right-down
+				break;
+			case 11:
+				if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};		//left-down
+				break;
+			default:
+				return null;									//no Idle grid;
+		}
+		return null;											// can't find grid is Idel
+	},
+
+	//flag grid_x_y is occupied or not 
+	// width=col_l height = row_l  
+	//occupy_ = true or false(occupy or not) ;  brother_ is nomber of all the brother grids 
+	flagGridOccupy : function(col,row,col_l,row_l,occupy_){
+		for (var i = col; i >= 0; i--) {
+			if (col - i >=  col_l) {break};
+			for(var j = row; j< this._row_num ;j++)
+			{
+				if(j-row >= row_l) break;
+				this._grid[i][j].use=occupy_;
+			}
+		}
+	},
+
+	findALegalNearingIdleGrid: function(t_pos_) {
+		for(var i = t_pos_.x, firstX = true
+			; i != t_pos_.x || firstX
+			; i = (i + this._col_num - 1) % this._col_num) {
+			firstX = false;
+			for(var j = t_pos_.y, firstY = true
+				; j != t_pos_.y || firstY
+				; j = (j + 1) % this._row_num) {
+				firstY = false;
+				if(this._grid[i][j].use == false) {
+					return {x: i, y: j};
+				}
+			}
+			t_pos_.y = 0;
+		}
+		return null;
+	},
+
+	// TODO: implement a funtion for PlaneView to judge whether two entries are overlap.
+	isOverlap: function(entry1_, entry2_) {}
 });
