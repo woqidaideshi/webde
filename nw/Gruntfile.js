@@ -4,6 +4,7 @@ module.exports = function(grunt) {
 grunt.initConfig({
 	// Metadata.
 	uiname: 'demoUI',
+	cssPath: 'lib/UI-lib/dist/css/',
 	pkg: grunt.file.readJSON('package.json'),
 		banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
 			'<%= grunt.template.today("yyyy-mm-dd") %>\n' +
@@ -17,7 +18,7 @@ grunt.initConfig({
 		},
 		dist: {
 			src: ['lib/UI-lib/js/**/*.js'],  // all children and subdir children
-			dest: 'lib/<%= uiname %>.js'	
+			dest: 'lib/UI-lib/dist/js/<%= uiname %>.js'	
 		}
 	},
 
@@ -27,21 +28,24 @@ grunt.initConfig({
 		},
 		dist: {
 			src: '<%= concat.dist.dest %>',
-			dest: 'lib/<%= uiname %>.min.js'
+			dest: 'lib/UI-lib/dist/js/<%= uiname %>.min.js'
 		}
 	},
 	less: {
+		options: {
+		banner: '<%= banner %>'
+		},
 		compileCore: {
 			options: {
 			strictMath: false,
 			sourceMap: true,
 			outputSourceFiles: true,
 			sourceMapURL: '<%= uiname %>.css.map',
-			sourceMapFilename: 'css/<%= uiname %>.css.map'
+			sourceMapFilename: 'lib/UI-lib/dist/css/<%= uiname %>.css.map'
 			},
 			files: {
-				'css/<%= uiname %>.css': 'lib/UI-lib/less/main.less',
-				'css/<%= uiname %>theme.css': 'lib/UI-lib/less/messenger-theme.less'
+				'<%= cssPath %><%= uiname %>.css': 'lib/UI-lib/less/main.less',
+				'<%= cssPath %><%= uiname %>theme.css': 'lib/UI-lib/less/messenger-theme.less'
 			}
 		}
 	},
@@ -59,14 +63,22 @@ grunt.initConfig({
 	
 	jshint:{
 		options:{
-			eqeqeq: true,		// 使用===&!== 不使用==和！=		
+			eqeqeq: false,		// 使用===&!== 不使用==和！=		
 			noarg: true,		//禁用arguments.caller and argument.callee
 			boss: true,				//查找类似if(a=0)的代码
-			jquery: true,
-			eqeqeq: false 
+			jquery: true
 		},
 		src:{
 			src: ['js/*.js']
+		}
+	},
+
+	copy: {
+		cssFile: {
+			expand: true,
+			cwd: 'lib/UI-lib/dist/css',
+			src: '<%= uiname %>*.css',
+			dest: 'css'
 		}
 	}
 });
@@ -74,5 +86,6 @@ grunt.initConfig({
 // These plugins provide necessary tasks.
 require('load-grunt-tasks')(grunt);
 // Default task.
-grunt.registerTask('default', ['concat', 'uglify', 'less']);
+grunt.registerTask('default', ['concat', 'uglify', 'less', 'copy:cssFile']);
+grunt.registerTask('copyCss', ['copy:cssFile']);
 };
