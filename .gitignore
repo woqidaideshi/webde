@@ -2,3 +2,4 @@ nw/node_modules
 *.map
 nw/css/*.css
 nw/lib/*.js
+nw/lib/UI-lib/dist/
