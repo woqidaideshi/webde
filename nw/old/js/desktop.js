@@ -612,6 +612,7 @@ var DesktopInputer = Class.extend({
 	//  oldtext: old text to show
 	//  callback: function(input_content)
 	//}
+	//
 	show: function(options_) {
 		if(typeof options_.callback !== 'function') {
 			throw 'bad type of callback';
