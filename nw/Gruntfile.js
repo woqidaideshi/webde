@@ -40,7 +40,8 @@ grunt.initConfig({
 			sourceMapFilename: 'css/<%= uiname %>.css.map'
 			},
 			files: {
-				'css/<%= uiname %>.css': 'lib/UI-lib/less/main.less'
+				'css/<%= uiname %>.css': 'lib/UI-lib/less/main.less',
+				'css/<%= uiname %>theme.css': 'lib/UI-lib/less/messenger-theme.less'
 			}
 		}
 	},

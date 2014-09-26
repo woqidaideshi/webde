@@ -88,6 +88,11 @@ var DPlugin = Widget.extend({
 		} else {
 			_this.resize(_width + 20,_width + 20);
 			desktop._grid.flagGridOccupy(_this._position.x, _this._position.y, _this._col_num, _this._row_num, true);
+			Messenger().post({
+				message:"plugin zoom in",
+				showCloseButton: true
+			});
+			//Messenger().post("plugin zoom in");
 			if(_width+20 >= 180){ 
 				desktop._ctxMenu.disableItem('plugin','zoom in');
 			}else if (_width >= 60 && desktop._ctxMenu.isDisabledItem('plugin','zoom out') == true) {
@@ -146,7 +151,9 @@ var ClockPlugin = DPlugin.extend({
 	// path_: path of image;
 	setPanel:function(path_){
 		//return "<canvas id=\"clockContent\" width='"+ plugin.offsetWidth+"px' height='"+plugin.offsetHeight+"px'/>";
-		this._dPlugin.html("<canvas id=\""+this._id+ this._content + "\" title='clock' width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+
+		var _time = new Date();
+		var _now = _time.toLocaleString();
+		this._dPlugin.html("<canvas id=\""+this._id+ this._content + "\" title="+ _now +" width='"+ this._dPlugin.width()+"px' height='"+this._dPlugin.height()+
 							"px' />");
 		//var value = document.getElementById(this._id+content);
 		var target = $('#'+this._id+this._content);
