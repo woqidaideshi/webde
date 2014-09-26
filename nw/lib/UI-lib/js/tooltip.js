@@ -9,7 +9,7 @@ var Tooltip = Class.extend({
 	init:function($target_, pos_){
 		if (typeof $target_ === 'undefined') {
 			console.log("argument err!!");
-			return  null;
+			return ;
 		}
 		this._title = "";
 		this._tooltip = null;

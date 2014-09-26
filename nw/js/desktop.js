@@ -157,6 +157,9 @@ var Desktop = Class.extend({
 			{text:'test', action:function(e){
 				e.preventDefault();
 				console.log('click  test  button ');
+				Messenger.options = {
+					extraClasses: "messenger-fixed messenger-on-left messenger-on-top"
+				};
 				desktop._ctxMenu.disableItem('desktop','test');
 			}}
 		]);

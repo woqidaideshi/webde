@@ -1,3 +1,4 @@
+##UI-lib-api##
 UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关插件调用api使用方法。
 
 本文主要说明ui-lib 提供的api解释说明以及api调用方法说明。
@@ -24,5 +25,20 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
     c."left":显示在元素的左方
     d."right":显示在元素的右方
     e."cursor":跟随光标移动。
+
+2、messenger：消息提示工具栏，从hubspot/messenger移植过来，主要完成工作是将sass该写为less语法
+	使用方法：
+	在坐下方显示一个提示：
+		Messenger().post("plugin zoom in");
+	设置显示位置：
+	Messenger.options = {
+		//设置为左上角显示;
+  		extraClasses: 'messenger-fixed messenger-on-left messenger-on-top';
+	}
+	更多使用方法参见messenger的官方网站：
+		http://github.hubspot.com/messenger/
+	github网址：
+		https://github.com/HubSpot/messenger
+
 
 
