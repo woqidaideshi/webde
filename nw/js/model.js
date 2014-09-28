@@ -91,6 +91,7 @@ var ThemeModel = Model.extend({
 
 	setIconTheme: function(iconTheme_) {
 		this._theme['icontheme']['name'] = iconTheme_;
+		this.emit('IconTheme', null, iconTheme_);
 	},
 
 	getComputer: function() {
@@ -99,6 +100,7 @@ var ThemeModel = Model.extend({
 
 	setComputer: function(active_) {
 		this._theme['computer']['active'] = active_;
+		this.emit('Computer', null, active_);
 	},
 	
 	getTrash: function() {
@@ -107,6 +109,7 @@ var ThemeModel = Model.extend({
 
 	setTrash: function(active_) {
 		this._theme['trash']['active'] = active_;
+		this.emit('Trash', null, active_);
 	},
 	
 	getNetwork: function() {
@@ -115,6 +118,7 @@ var ThemeModel = Model.extend({
 
 	setNetwork: function(active_) {
 		this._theme['network']['active'] = active_;
+		this.emit('Network', null, active_);
 	},
 	
 	getDocument: function() {
@@ -123,6 +127,7 @@ var ThemeModel = Model.extend({
 
 	setDocument: function(active_) {
 		this._theme['document']['active'] = active_;
+		this.emit('Document', null, active_);
 	}
 });
 
@@ -131,12 +136,32 @@ var ThemeModel = Model.extend({
 var DesktopModel = Model.extend({
 	init: function(callback_) {
 		this.callSuper('desktop');
-		this._view = DesktopView.create(this);
-		// TODO: Create a app launcher, all app models are contained here, can be used as a Cache.
-		// TODO: Get the config first, load model of Desktop widgets
-		//	, and then init the layout of them base of the config
-		this._layout; // the model of entry layout
-		this.initLayout();
+
+		var _this = this;
+		_global.Series.series([
+			{
+				fn: function(pera_, cb_) {
+					_this.preStart(cb_);
+				}
+			},
+			{
+				fn: function(pera_, cb_) {
+					_this.start(cb_);
+				}
+			},
+			{
+				fn: function(pera_, cb_) {
+					callback_.call(this, null);
+					cb_(null);
+				}
+			},
+			{
+				fn: function(pera_, cb_) {
+					_this.postStart(cb_);
+				}
+			}
+		]);
+		
 		// this._grid;
 		/* this._ctxMenu = null; // TODO: put to Global? */
 		// this._inputer = DesktopInputer.create('d-inputer');
@@ -185,6 +210,29 @@ var DesktopModel = Model.extend({
 		/* }); */
 	},
 
+	// Put codes needed run before starting in this function
+	preStart: function(cb_) {
+		console.log('pre start');
+		cb_(null);
+	},
+
+	start: function(cb_) {
+		console.log('starting');
+		this._view = DesktopView.create(this);
+		// TODO: Create a app launcher view
+		// TODO: Get the config first, load model of Desktop widgets
+		//	, and then init the layout of them base of the config
+		this._layout; // the model of entry layout
+		this.initLayout();
+		cb_(null);
+	},
+
+	// Put codes needed run afert started in this function
+	postStart: function(cb_) {
+		console.log('post start');
+		cb_(null);
+	},
+
 	initLayout: function() {
 		this._layoutModel = LayoutModel.create('layout');
 		// TODO: check config of layout
@@ -221,7 +269,7 @@ var WidgetModel = Model.extend({
 
 	setPosition: function(position_) {
 		this._position = position_;
-		this.notify({'position': this._position});
+		this.emit('position', null, this._position);
 	},
 
 	getID: function() {return this._id;},
@@ -241,6 +289,7 @@ var EntryModel = WidgetModel.extend({
 		this._path = path_;
 		this._name = id_;
 		this._imgPath = '';
+		this._tabIdx = 0;
 	},
 
 	getPath: function() {return this._path;},
@@ -248,6 +297,7 @@ var EntryModel = WidgetModel.extend({
 	setPath: function(path_) {
 		this._path = path_;
 		// TODO: notify
+		this.emit('path', null, this._path);
 	},
 
 	getName: function() {return this._name;},
@@ -255,6 +305,7 @@ var EntryModel = WidgetModel.extend({
 	setName: function(name_) {
 		this._name = name_;
 		// TODO: notify
+		this.emit('name', null, this._name);
 	},
 
 	getImgPath: function() {return this._imgPath;},
@@ -262,11 +313,21 @@ var EntryModel = WidgetModel.extend({
 	setImgPath: function(imgPath_) {
 		this._imgPath = imgPath_;
 		// TODO: notify
+		this.emit('imgPath', null, this._imgPath);
+	},
+
+	getTabIdx: function() {return this._tabIdx;},
+
+	setTabIdx: function(tabIdx_) {
+		this._tabIdx = tabIdx_;
+		this.emit('tabIdx', null, this._tabIdx);
 	}
 });
 
 // The model of App Entry
 // callback_: function(err)
+// events provided: {'position', 'name', 'path', 'imgPath', 'cmd', 'type'}
+//
 var AppEntryModel = EntryModel.extend({
 	init: function(id_, path_, position_, callback_) {
 		this.callSuper(id_, path_, position_);
@@ -293,8 +354,7 @@ var AppEntryModel = EntryModel.extend({
 					callback_.call(this, err_);
 				} else {
 					_this.setImgPath(imgPath_[0]);
-					// TODO: move to entry view's update
-					$('#' + _this._id + ' img').attr('src', _this._imgPath);
+					callback_.call(this, null);
 				}
 			});
 			//get name
@@ -303,8 +363,6 @@ var AppEntryModel = EntryModel.extend({
 			} else {
 				_this.setName(file_['Name']);
 			}
-			//TODO: move to entry view's update
-			$('#' + _this._id + ' p').text(_this._name);
 		});
 	},
 
@@ -312,13 +370,14 @@ var AppEntryModel = EntryModel.extend({
 
 	setCmd: function(cmd_) {
 		this._execCmd = cmd_;
-		// TODO: notify
+		this.emit('cmd', null, this._execCmd);
 	},
 
 	getType: function() {return this._type;},
 
 	setType: function(type_) {
 		this._type = type_;
+		this.emit('type', null, this._type);
 	}
 });
 
@@ -331,12 +390,18 @@ var LauncherModel = Model.extend({
 		this._appCache = Cache.create(); // caches app models
 	},
 
-	get: function(key_, path_) {
-		var ret = this._appCache.get(key_);
+	get: function(id_) {
+		var ret = this._appCache.get(id_);
 		if(typeof ret === 'undefined') {
-			// TODO: get app model from FS
-			// this._appCache.set(ret.name, ret);
+			// catch this exception and get app model from FS
+			throw 'Not in catch!';
+			// this._appCache.set(ret.getID(), ret);
 		}
+		return ret;
+	},
+
+	set: function(id_, app_) {
+		this._appCache[id_] = app_;
 	}
 });
 
