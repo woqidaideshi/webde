@@ -32,7 +32,8 @@ var DPlugin = Widget.extend({
 		this.setColRowNum();
 
 		desktop._ctxMenu.attachToMenu('#' + this._id
-			, desktop._ctxMenu.getMenuByHeader('plugin'));
+			, desktop._ctxMenu.getMenuByHeader('plugin')
+			,function(id_){ desktop._rightObjId = id_});
 	},
 
 	getPosition: function() {return	this._position;},
@@ -93,7 +94,7 @@ var DPlugin = Widget.extend({
 				showCloseButton: true
 			});
 			//Messenger().post("plugin zoom in");
-			if(_width+20 >= 180){ 
+			if(_width + 20 >= 160){ 
 				desktop._ctxMenu.disableItem('plugin','zoom in');
 			}else if (_width >= 60 && desktop._ctxMenu.isDisabledItem('plugin','zoom out') == true) {
 				desktop._ctxMenu.activeItem('plugin', 'zoom out', function(e){
@@ -115,7 +116,7 @@ var DPlugin = Widget.extend({
 			var row_num_old =  parseInt(_width/desktop._grid._row-0.00001)+1;
 			desktop._grid.flagGridOccupy(_this._position.x, _this._position.y, col_num_old, row_num_old, false);
 			desktop._grid.flagGridOccupy(_this._position.x, _this._position.y, _this._col_num, _this._row_num, true);
-			if(_width-20 <= 60){ 
+			if(_width - 20 <=80){ 
 				desktop._ctxMenu.disableItem('plugin','zoom out');
 			}else if (_width <= 180&& desktop._ctxMenu.isDisabledItem('plugin','zoom in') == true) {
 				desktop._ctxMenu.activeItem('plugin', 'zoom in', function(e){

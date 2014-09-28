@@ -48,9 +48,6 @@
 
  	bingEvent: function() {
 		this.bindDrag(this._dock[0]);
-
-		desktop._ctxMenu.attachToMenu('#' + this._id
-			, desktop._ctxMenu.getMenuByHeader('dock'));
 	},
 
 	getID: function() {return this._id;},
@@ -319,6 +316,9 @@ var DockApp = Class.extend({
    			}
    		}
 
+		desktop._ctxMenu.attachToMenu('#' + this._id
+			, desktop._ctxMenu.getMenuByHeader('dock')
+			,function(id_){ desktop._rightObjId = id_});
    		this.bindDrag($('#'+this._id)[0]);
 	},
 

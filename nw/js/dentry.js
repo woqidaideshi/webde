@@ -236,7 +236,8 @@ var AppEntry = DEntry.extend({
 
 	attachCtxMenu: function() {
 		desktop._ctxMenu.attachToMenu('#' + this._id
-				, desktop._ctxMenu.getMenuByHeader('app-entry'));
+				, desktop._ctxMenu.getMenuByHeader('app-entry')
+				,function(id_){ desktop._rightObjId =id_});
 	},
 
 	rename: function(newName_) {
@@ -335,7 +336,21 @@ var FileEntry = DEntry.extend({
 
 	attachCtxMenu: function() {
 		desktop._ctxMenu.attachToMenu('#' + this._id
-				, desktop._ctxMenu.getMenuByHeader('file-entry'));
+				, desktop._ctxMenu.getMenuByHeader('file-entry')
+				,this.dynamicsMenu);
+	},
+
+	dynamicsMenu: function(id_, $menu_){
+		desktop._rightObjId = id_;
+		var _menu = desktop._ctxMenu.getMenuByHeader('Open with');
+		if (typeof _menu !== 'undefined') {
+			var _items = _menu.children('li');
+			for (var i = 0; i < _items.length; i++) {
+			if(!$(_items[i]).hasClass('nav-header'))
+				$(_items[i]).remove();
+			};
+		}
+		desktop.loadFileMenu($menu_);
 	},
 
 	rename: function(newName_) {
