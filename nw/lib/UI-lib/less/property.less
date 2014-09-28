@@ -8,6 +8,7 @@
 	background-color:@propertyBackgroundColor;
     padding: 0;
 	.radius;
+    .select(none);
 	h2{
   		height:@propertyTitleHeight;
   		font-size:@propertyTitleFrontSize;
@@ -24,6 +25,7 @@
 	
 	.property-show{
     	margin: 10px;  
+        .select(none);
 
 		.property-tabs {
    			margin: 0px 5px 7px 5px;  
@@ -37,7 +39,6 @@
                 .border;
                 .radius(6px,6px,0,0);
     			z-index: 999;
-    			.select(none);
 			
 				&:hover {
 					background: @tabTextColor;  
@@ -59,10 +60,11 @@
     		.border;
     		height: @propertyContextHeight;  
             background-color: @backgroundColor;
+            .select(none);
     			p{
-    				.select(none);
     				font-size:@propertyFrontSize;
     				margin-left: 5%;
+                    .select(text);
     			}
 
     			.iconcontent{
@@ -85,7 +87,6 @@
     				float: left;
                     background-color: @backgroundColor;
     				p{
-					.select(none);
 				    font-size: @propertyFrontSize - 2;
 				    overflow: hidden;
 				    white-space: nowrap;
@@ -93,6 +94,7 @@
 				    text-overflow:ellipsis;
 				    width:100%;
 				    margin-left:5%;
+                        .select(text);
   				}
   			}
 		}
@@ -105,5 +107,6 @@
         margin-top: 10px; 
         margin-left: 81%;
         margin-bommom: 4%; 
+        .select(none);
 	}
 }

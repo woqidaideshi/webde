@@ -17,7 +17,8 @@ var Property = Class.extend({
 		//main div
 		var _property = $('<div>', {
 			'class': 'property',
-			'id': id_+'-property'
+			'id': id_+'-property',
+			'z-index': '10000'
 		});
 		
 		//title 
@@ -110,9 +111,15 @@ var Property = Class.extend({
     		});  
 
 		//property animate and remove();
-		$('#' +_this._id+ '-close').mousedown(function(e){
+		$('#' +_this._id+ '-close').click(function(e){
 			if (e.target.id.split('-')[0] !== 'event') {
-				var _pos = $('#' + _this._objId).offset();
+				var _pos = {top:0,
+					left:0};
+				if (typeof $('#' + _this._objId).offset() !== 'undefined') {
+					_pos = $('#' + _this._objId).offset();
+				}else {
+					_pos = $('#' + _this._id + '-icon').offset();
+				}
 				$('#'+_this._id+'-property').animate({top:_pos.top,opacity:'hide',width:0,height:0,left:_pos.left},500,function(){
 					$(this).remove();
 				});
@@ -135,6 +142,12 @@ var Property = Class.extend({
 			ev.stopPropagation();
 			_this._isMouseDown = false;
 			$('#'+_this._id+'-property').fadeTo(20, 1);
+		});
+
+		$('#' +this._id+'-property').mousedown(function(ev){
+			ev.stopPropagation();
+		}).mouseup(function(ev){
+			ev.stopPropagation;
 		});
 
 		$(document).mousemove(function(ev){

@@ -55,7 +55,7 @@ var Desktop = Class.extend({
 				_desktop._dock.bingEvent();
 				theme.loadThemeEntry(_desktop);
 				_desktop.loadWidgets();
-				_desktop.loadScriptMenu();
+				//_desktop.loadScriptMenu();
 			}
 		});
 	},
@@ -67,7 +67,8 @@ var Desktop = Class.extend({
 			_desktop.refresh();
 		});
 		_desktop._ctxMenu.attachToMenu('html'
-			, _desktop._ctxMenu.getMenuByHeader('desktop'));
+			, _desktop._ctxMenu.getMenuByHeader('desktop')
+			,this.loadScriptMenu);
 	
 	},
 
@@ -77,7 +78,7 @@ var Desktop = Class.extend({
 	},
 
 	refresh: function() {
-		console.log('refresh');
+		//console.log('refresh');
 		this._desktopWatch.close();
 		this._dock._dockWatch.close();
 		theme.saveConfig(this);
@@ -260,17 +261,23 @@ var Desktop = Class.extend({
 	},
 
 	loadScriptMenu:function(){
-		var _desktop = this;
-		var _DIR = _desktop._home + '/.gnome2/nemo-scripts';
+		var _DIR = desktop._home + '/.gnome2/nemo-scripts';
 		console.log(_DIR);
-		_desktop._fs.readdir(_DIR
+		var _menu  = desktop._ctxMenu.getMenuByHeader('script');
+		if (typeof _menu !== 'undefined') {
+			var _items = _menu.children('li');
+			for (var i = 0; i < _items.length; i++) {
+			if(!$(_items[i]).hasClass('nav-header'))
+				$(_items[i]).remove();
+			};
+		}
+		desktop._fs.readdir(_DIR
 				,function(err_,files_){
 			for (var i = 0; i < files_.length; i++) {
 				var _names = files_[i].split('.');
 				if (_names[_names.length - 1] == 'desktop') {
 					utilIns.entryUtil.getItemFromApp(_DIR+'/'+files_[i], function(err_, item_) {
-						$menu  = desktop._ctxMenu.getMenuByHeader('script');
-						desktop._ctxMenu.addItem($menu,item_);
+						desktop._ctxMenu.addItem(_menu,item_);
 					});
 				};
 			};

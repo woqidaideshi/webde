@@ -59,13 +59,17 @@
 
 
 ///******************************messenger****************************///
-@messengerThemeBorderRadius: 4px;
+@messengerThemeBorderRadius: 6px;				//
 @messengerSpinnerSize: 32px;
-@messengerMessageFontSize:13px;
-@messengerMessageFontColor:#f0f0f0;
+@messengerMessageFontSize:14px;
+@messengerMessageFontColor:#fff;   
+@messengerMessageBkgColorStart:#919191;       
+@messengerMessageBkgColorStop:#535353;
+@messengerMessageBorderColor:#333333;
+
 @messengerMessageTextShadow:0px 1px #111;
-@messengerMessage-A-FontColor:#5599ff;
-@messengerCloseColor:#888;
+@messengerMessage-A-FontColor:#111111;
+@messengerCloseColor:#888;										//close "x"
 @messengerCloseTextShadow:0px 1px #000;
 @messengerCloseFontSize:20px;
 @messengerCloseHoverColor:#bbb;
@@ -76,10 +80,24 @@
 @messengerActions-A-ActiveBgColor: rgba(0, 0, 0, 0.04);
 @messengerActions-A-ActiveColor: #aaa;
 
+@messengerSuccessBkgColorStart: #5fca42;
+@messengerSuccessBkgColorStop: #199238;
+@messengerInfoBkgColorStart: #61c4b8;
+@messengerInfoBkgColorStop: #1992a3;
+@messengerErrorBkgColorStart: #dd6a45;
+@messengerErrorBkgColorStop: #91361a;
+
 @messengerDefaultHoleColor: transparent;
 @messengerDefaultSize: 46px;
 @messengerDefaultBkgColorLight: #ddd;
 @messengerDefaultBkgColorDark: #3c76ca;
 @messengerDefaultOpacity: .8;
 @messengerDefaultDuration: 3s;
+@messengerSetHoleColor: #333;
+@messengerSetSize: @messengerSpinnerSize;
+@messengerSetBkgColorLight: transparent;
+@messengerSetBkgColorDark: #dd6a45;
+@messengerSetOpacity: 1;
+@messengerSetDurationSoon: 10s;
+@messengerSetDurationLater:300s;
 

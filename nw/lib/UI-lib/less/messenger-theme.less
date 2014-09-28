@@ -110,8 +110,8 @@ ul.messenger-theme-future{
     .box-shadow-mine(inset 0px 1px rgba(255, 255, 255, 0.24), 0px 1px 5px rgba(0, 0, 0, 0.6));
     .radius(@messengerThemeBorderRadius);
     .select(none);
-    .background-image(rgb(92,91,91), rgb(53,53,53));
-    .border(1px, solid, rgba(0,0,0,0.5));
+    .background-image(@messengerMessageBkgColorStart, @messengerMessageBkgColorStop);
+    .border(1px, solid, @messengerMessageBorderColor);
 
     .messenger-message{
         .box-shadow-mine(inset 0px 1px rgba(255, 255, 255, 0.13), inset 0px -1px rgba(0, 0, 0, 0.23), inset 48px 0px 0px rgba(0, 0, 0, 0.3), inset 46px 0px 0px rgba(255, 255, 255, 0.07));
@@ -204,24 +204,34 @@ ul.messenger-theme-future{
         }
 
         &.alert-success .messenger-message-inner:before{
-            .background-image(top,rgb(95, 202, 74), rgb(25,146, 56));   
+            .background-image(top, @messengerSuccessBkgColorStart, @messengerSuccessBkgColorStop);   
         }
 
         &.alert-info .messenger-message-inner:before{
-            .background-image(top,rgb(97, 196, 184),rgb(25, 146, 163));
+            .background-image(top, @messengerInfoBkgColorStart, @messengerInfoBkgColorStart);
         }
 
         &.alert-error{
             .messenger-message-inner:before{
-                .background-image(top, rgb(221, 106, 69), rgb(145, 54, 26));
+                .background-image(top, @messengerErrorBkgColorStart, @messengerErrorBkgColorStart);
             }
 
             &.messenger-retry-soon{
-                .ui-spinner(#333, @messengerSpinnerSize, transparent, rgb(221, 106, 69), 1, 10s);
+                .ui-spinner(@messengerSetHoleColor, 
+                    @messengerSetSize, 
+                    @messengerSetBkgColorLight, 
+                    @messengerSetBkgColorDark, 
+                    @messengerSetOpacity, 
+                    @messengerSetDurationSoon);
             }
 
             &.messenger-retry-later{
-                .ui-spinner(#333, @messengerSpinnerSize, transparent, rgb(221, 106, 69), 1, 300s);
+                .ui-spinner(@messengerSetHoleColor, 
+                    @messengerSetSize, 
+                    @messengerSetBkgColorLight, 
+                    @messengerSetBkgColorDark, 
+                    @messengerSetOpacity, 
+                    @messengerSetDurationLater);
             }
         }   
     }
