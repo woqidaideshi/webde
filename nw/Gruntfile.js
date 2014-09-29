@@ -47,6 +47,14 @@ grunt.initConfig({
 				'<%= cssPath %><%= uiname %>.css': 'lib/UI-lib/less/main.less',
 				'<%= cssPath %><%= uiname %>theme.css': 'lib/UI-lib/less/messenger-theme.less'
 			}
+		},
+		compileFont:{
+			options: {
+			strictMath: false
+			},
+			files:{
+				'<%= cssPath %><%= uiname %>Font.css':'lib/UI-lib/less/main-font.less'
+			}
 		}
 	},
 	
@@ -57,7 +65,7 @@ grunt.initConfig({
 		},
 		lib_css:{
 			files: 'lib/UI-lib/less/**/*.less',
-			tasks: ['less:compileCore', 'copy:cssFile']
+			tasks: ['less:compileCore', 'less:compileFont', 'copy:cssFile']
 		}
 	},
 	
@@ -79,6 +87,12 @@ grunt.initConfig({
 			cwd: 'lib/UI-lib/dist/css',
 			src: '<%= uiname %>*.css',
 			dest: 'css'
+		},
+		fontFile:{
+			expand: true,
+			cwd: 'lib/UI-lib/dist/font',
+			src: '*',
+			dest: 'font'
 		}
 	}
 });
@@ -88,4 +102,5 @@ require('load-grunt-tasks')(grunt);
 // Default task.
 grunt.registerTask('default', ['concat', 'uglify', 'less', 'copy:cssFile']);
 grunt.registerTask('copyCss', ['copy:cssFile']);
+grunt.registerTask('copyFont', ['copy:fontFile']);
 };
