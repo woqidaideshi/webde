@@ -131,6 +131,164 @@ var ThemeModel = Model.extend({
 	}
 });
 
+// The manager of Widgets
+//
+var WidgetManager = Model.extend({
+	init: function() {
+		this._widgets = [];
+	},
+
+	add: function(widget_) {
+		this._widgets[widget_.getID()] = widget_;
+	},
+
+	remove: function(widget_) {
+		this._widgets[widget_.getID()] = null;
+		delete this._widgets[widget_.getID()];
+	},
+
+	getById: function(id_) {
+		return this._widgets[id_];
+	},
+
+	getByAttr: function(attr_, value_) {
+		for(var key1 in this._widgets) {
+			for(var key2 in this._widgets[key1]) {
+				if(key2 == attr_ && this._widgets[key1][key2] == value_)
+					return this._widgets[key1];
+			}
+		}
+		return null;
+	},
+
+	loadWidgets: function() {
+		var _lastSave = [],
+				lines = this._USER_CONFIG.split('\n');
+		for(var i = 0; i < lines.length; ++i) {
+			if(lines[i].match('[\s,\t]*#+') != null) continue;
+			if(lines[i] == "") continue;
+			var attr = lines[i].split('$');
+			if(attr.length != 5) continue;
+			var _plugin = null;
+			switch(attr[4]) {
+				case "ClockPlugin":
+					// _plugin = ClockPlugin;
+					break;
+				case "ImagePlugin":
+					// _plugin = PicPlugin;
+					break;
+				default:
+					_lastSave[attr[0]] = {
+						path: attr[1],
+						x: attr[2],
+						y: attr[3],
+						type: attr[4]
+					};	
+			}
+			/* if (_plugin != null) { */
+				// _desktop.addAnDPlugin(_plugin.create(attr[0]
+					// ,{x: attr[2], y: attr[3]}
+					// ,attr[1]
+					// ), {x: attr[2], y: attr[3]});
+			/* } */
+		}
+		//handle destop entries
+		this.addWidgets(_lastSave, this._desktopWatch.getBaseDir()
+				,this._desktopWatch);
+		//handle dock entries
+	 /*  _desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir() */
+				/* ,_desktop._dock._dockWatch); */
+	},
+
+	//add entries by argv
+	//lastSave_: saved config argv, from <dentries> file
+	// dir_: full dir for watch ,such as: /home/user/桌面
+	// watch_: watch_ is _desktopWatch or _dockWatch
+	addWidgets:function(lastSave_, dir_, watch_) {
+		var _this = this,
+				desktop = global.get('desktop'),
+				_newEntry = [];
+		_global._fs.readdir(dir_, function(err, files) {
+			_global.Series.series1(files, function(file_, cb_) {
+				_global._fs.stat(dir_ + '/' + file_, function(err, stats) {
+					var _id = 'id-' + stats.ino.toString();
+					if(typeof lastSave_[_id] != 'undefined'
+						&& lastSave_[_id].path.match(/[^\/]*$/) == file_) {
+						// var _EntryView = null;
+						var _DockAppView = null;
+						var _model = null;
+						switch(lastSave_[_id].type) {
+							case "dockApp":
+								// _DockApp = DockApp;
+							case "app":
+								_Entry = AppEntry;
+								try {
+									_model = desktop._launcher.get(_id);
+								} catch(e) {
+									_model = AppEntryModel.create(_id
+										, lastSave_[_id].path
+										, {x: lastSave_[_id].x, y: lastSave_[_id].y});
+									desktop._launcher.set(_model);
+								}
+								break;
+							case "dir":
+								// _Entry = DirEntry;
+								break;
+							default:
+								// _Entry = FileEntry;
+						}
+						if(_DockAppView) {
+						} else {
+							desktop.addAnDEntry(EntryView.create(_model), _model.getPosition());
+						}
+						/* if (_DockApp != null) { */
+							// desktop.addAnAppToDock(_DockApp.create(_id
+							// ,lastSave_[_id].x
+							// ,lastSave_[_id].path));
+						// } else if (_Entry != null) {
+						// desktop.addAnDEntry(_Entry.create(_id
+							// , 100 + desktop._tabIndex++
+							// , lastSave_[_id].path
+							// , {x: lastSave_[_id].x, y: lastSave_[_id].y}
+							// ), {x: lastSave_[_id].x, y: lastSave_[_id].y});
+						/* } */
+					} else {
+						_newEntry[_id] = {
+							'filename': files[index_],
+							'stats': stats
+						};
+					}
+					cb_(null);
+				});
+			}, function() {
+				for(var key in _newEntry) {
+					watch_.emit('add'
+						, _newEntry[key].filename
+						, _newEntry[key].stats);
+				}
+			});
+		});
+	},
+
+	saveWidgets: function() {
+		var data = "";
+		for(var key in this._widgets) {
+			if(typeof theme._theme[key] !== 'undefined') continue;
+			data += key + "$" + this._widgets[key]._path + "$"
+			 	+ this._widgets[key]._position.x + "$"
+			 	+ this._widgets[key]._position.y + "$"
+				+ this._widgets[key]._type + '\n';
+		}
+		//console.log(data);
+		this._fs.writeFile(this._xdg_data_home + "dwidgets/dentries"
+				, data, function(err) {
+			if(err) {
+				console.log(err);
+			}
+		});
+	}
+});
+
 // The model of Desktop
 //
 var DesktopModel = Model.extend({
@@ -265,46 +423,7 @@ var DesktopModel = Model.extend({
 				break;
 			default:
 				break;
-		};
-	},
-
-	loadWidgets: function() {
-		var _lastSave = [],
-				lines = this._USER_CONFIG.split('\n');
-		for(var i = 0; i < lines.length; ++i) {
-			if(lines[i].match('[\s,\t]*#+') != null) continue;
-			if(lines[i] == "") continue;
-			var attr = lines[i].split('$');
-			if(attr.length != 5) continue;
-			var _plugin = null;
-			switch(attr[4]) {
-				case "ClockPlugin":
-					// _plugin = ClockPlugin;
-					break;
-				case "ImagePlugin":
-					// _plugin = PicPlugin;
-					break;
-				default:
-					_lastSave[attr[0]] = {
-						path: attr[1],
-						x: attr[2],
-						y: attr[3],
-						type: attr[4]
-					};	
-			};
-			/* if (_plugin != null) { */
-				// _desktop.addAnDPlugin(_plugin.create(attr[0]
-					// ,{x: attr[2], y: attr[3]}
-					// ,attr[1]
-					// ), {x: attr[2], y: attr[3]});
-			/* } */
 		}
-		//handle destop entries
-		this.addWidgets(_lastSave, this._desktopWatch.getBaseDir()
-				,this._desktopWatch);
-		//handle dock entries
-	 /*  _desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir() */
-				/* ,_desktop._dock._dockWatch); */
 	}
 });
 

@@ -289,7 +289,7 @@ var GridView = WidgetView.extend({
 	}
 });
 
-var EntrView = WidgetView.extend({
+var EntryView = WidgetView.extend({
 	init: function(model_) {
 		this.callSuper(model_);
 		this.registObservers();

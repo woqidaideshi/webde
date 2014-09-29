@@ -389,8 +389,7 @@ var Desktop = Class.extend({
 	addWidgets:function(lastSave_, dir_, watch_){
 		var _desktop = this;
 		var _newEntry = [];
-		_desktop._fs.readdir(dir_
-				, function(err, files) {
+		_desktop._fs.readdir(dir_, function(err, files) {
 			var traverse = function(index_) {
 				if(index_ == files.length) {
 					for(var key in _newEntry) {
