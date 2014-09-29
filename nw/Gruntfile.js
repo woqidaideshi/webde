@@ -57,7 +57,7 @@ grunt.initConfig({
 		},
 		lib_css:{
 			files: 'lib/UI-lib/less/**/*.less',
-			tasks: ['less:compileCore']
+			tasks: ['less:compileCore', 'copy:cssFile']
 		}
 	},
 	
