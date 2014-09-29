@@ -63,9 +63,21 @@ var ContextMenu = Class.extend({
 				linkTarget = ' target="' + item_.target + '"';
 			}
 			if (typeof item_.subMenu !== 'undefined') {
-				$sub = ('<li class="dropdown-submenu active"><a tabindex="-1" href="' + item_.href + '">' + item_.text + '</a></li>');
+				if (typeof item_.icon !== 'undefined') {
+					$sub = ('<li class="dropdown-submenu active"><a class="width-icon" tabindex="-1" href="' + item_.href + '">' 
+						+ '<i class= \'' + item_.icon + '\'></i><span>  </span>' + item_.text + '</a></li>');
+				}else {
+					$sub = ('<li class="dropdown-submenu active"><a class="widthout-icon" tabindex="-1" href="' + item_.href + '">' 
+							+ item_.text + '</a></li>');
+				}
 			} else {
-				$sub = $('<li class="active"><a tabindex="-1" href="' + item_.href + '"' + linkTarget + '>' + item_.text + '</a></li>');
+				if (typeof item_.icon !== 'undefined') {
+					$sub = $('<li class="active"><a class="width-icon" tabindex="-1" href="' + item_.href + '"' + linkTarget + '>' 
+							+ '<i class= \'' + item_.icon + '\'></i><span>  </span>' + item_.text + '</a></li>');
+				} else {
+					$sub = $('<li class="active"><a class="widthout-icon" tabindex="-1" href="' + item_.href + '"' + linkTarget + '>' 
+							+ item_.text + '</a></li>');
+				}
 			}
 			if (typeof item_.action !== 'undefined') {
 				var actiond = new Date(),

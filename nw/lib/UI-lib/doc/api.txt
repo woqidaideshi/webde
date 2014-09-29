@@ -40,4 +40,35 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 	github网址：
 		https://github.com/HubSpot/messenger
 
+3、contextMenu：右键菜单，可以在任意元素上设置右键菜单，设置方法是：
+  //新建一个对象
+  this._ctxMenu = ContextMenu.create();
+  //增加一个菜单项
+ this._ctxMenu.addCtxMenu([
+    {header: 'desktop'},	//头标题
+    {text:'create Dir', icon:'icon-folder-close-alt' ,action:function(e){   //菜单一个条目，text 显示的文字， icon：图标，action，点击响应函数
+      ....
+    }},
+    {text:'messenger set',icon: 'icon-cog', subMenu:[    //子菜单，鼠标放上显示的菜单，与主菜单定义方法相同。
+    {header: 'messenger set'},
+      {...}...
+    }
+  ]);
+
+  定义好菜单之后在绑定菜单项与元素：
+  desktop._ctxMenu.attachToMenu('#' + this._id           //this._id，绑定元素的id
+    , desktop._ctxMenu.getMenuByHeader('plugin')		   //通过contextMenu提供的方法getMenuByHeader('plugin')获取相应的菜单
+    ,function(id_){ desktop._rightObjId = id_});		   //右键点击元素时，响应函数
+
+  contextMenu的api接口：
+    getMenuByHeader('header')                            //通过菜单的头标题获取菜单
+    addItem($menu_, item_, $index_)                      //向菜单$menu_, 添加item_， 位置在$index_后边，没有$index_（为item对象）则添加到最后
+    addCtxMenu(data,subMenu)                             //向菜单subMenu添加数据data是上边定义的数组
+    removeMenuByHeader(header)                           //通过头文件删除菜单。
+    getItemByText($menu_, text_)                         //在$menu_中获取text_的item
+    hasItem($item_)  //判断是否有这个item
+    attachToMenu(selector_, $menu_, function_)           //向元素selector_中注册右键菜单，菜单弹出时的响应函数为function_
+    activeItem(header_, text_，eventAction_)             //设置菜单header_的text_ item可点击 ，响应函数为eventAction_
+    disableItem(header_, text_)                          //设置菜单header_的text_ item不可点击
+    isDisabledItem(header_, text_)                       //判断菜单header_的text_ item是否不可点击，不可点击true，可点击false，没有这个item返回null;
 

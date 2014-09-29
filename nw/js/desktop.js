@@ -90,7 +90,7 @@ var Desktop = Class.extend({
 
 		this._ctxMenu.addCtxMenu([
 			{header: 'desktop'},
-			{text:'create Dir',action:function(e){
+			{text:'create Dir', icon:'icon-folder-close-alt' ,action:function(e){
 				e.preventDefault();
 				var _fs = require('fs');
 				for (var i = 0; ; i++) {
@@ -103,7 +103,7 @@ var Desktop = Class.extend({
 					}
 				}
 			}},
-			{text:'create Text',action:function(e){
+			{text:'create Text',icon:'icon-file', action:function(e){
 				e.preventDefault();
 				var _fs =require('fs');
 				for (var i = 0; ; i++) {
@@ -121,7 +121,7 @@ var Desktop = Class.extend({
 				{header: 'script'}
 			]},
 			{divider: true},
-			{text: 'terminal', action: function(e) {
+			{text: 'terminal', icon: 'icon-terminal', action: function(e) {
 				e.preventDefault();
 				var exec = require('child_process').exec;
 				exec("gnome-terminal", function(err, stdout, stderr) {
@@ -129,7 +129,7 @@ var Desktop = Class.extend({
 	       		console.log('stderr: ' + stderr);
 	      		});
 			}},
-			{text:'gedit',action:function(e){
+			{text:'gedit', icon: 'icon-edit', action:function(e){
 				e.preventDefault();
 				var exec = require('child_process').exec;
 				exec("gedit",function(err, stdout, stderr){
@@ -138,16 +138,16 @@ var Desktop = Class.extend({
 	      		});
 			}},
 			{divider: true},
-			{text: 'refresh', action: function(e) {
+			{text: 'refresh', icon: 'icon-refresh', action: function(e) {
 				location.reload();
 			}},
-			{text: 'refresh (F5)', action:function(e){
+			{text: 'refresh (F5)', icon: 'icon-refresh',  action:function(e){
 				location.reload(true);
 			}},
 			{divider: true},
-			{text: 'app-plugin', subMenu: [
+			{text: 'app-plugin',icon: 'icon-plus', subMenu: [
 				{header: 'add-plugin'},
-				{text: 'clock', action: function(e) {
+				{text: 'clock',icon: 'icon-time', action: function(e) {
 					e.preventDefault();
 					if (typeof $('#clock')[0] == 'undefined') {
 						desktop.addAnDPlugin(ClockPlugin.create('clock',undefined,'img/clock.png'));
@@ -155,7 +155,7 @@ var Desktop = Class.extend({
 					}
 				}}
 			]},
-			{text:'messenger set', subMenu:[
+			{text:'messenger set',icon: 'icon-cog', subMenu:[
 				{header: 'messenger set'},
 				{text:'position',subMenu:[
 					{header:'messenger-pos'},
@@ -255,7 +255,7 @@ var Desktop = Class.extend({
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}},
-			{text:'delete' , action:function(e){
+			{text:'delete' , icon: 'icon-remove-circle', action:function(e){
 				e.preventDefault();
 				var _path = desktop._widgets[desktop._rightObjId]._path;
 				utilIns.entryUtil.removeFile(_path);
@@ -269,11 +269,11 @@ var Desktop = Class.extend({
 		]);
 		this._ctxMenu.addCtxMenu([
 			{header: 'file-entry'},
-			{text: 'Open', action: function(e) {
+			{text: 'Open', icon: 'icon-folder-open-alt', action: function(e) {
 				e.preventDefault();
 				desktop.getAWidgetById(desktop._rightObjId).open();
 			}},
-			{text:'Open with...', subMenu: [
+			{text:'Open with...',icon: 'icon-folder-open', subMenu: [
 				{header: 'Open with'}]
 			},
 			{divider: true},
@@ -282,11 +282,11 @@ var Desktop = Class.extend({
 				e.stopPropagation();
 				desktop.getAWidgetById(desktop._rightObjId).rename();
 			}},
-			{text:'Move to Trash' , action:function(e){
+			{text:'Move to Trash' ,icon: 'icon-trash', action:function(e){
 				e.preventDefault();
 				utilIns.trashUtil.moveToTrash(desktop._rightObjId);
 			}},
-			{text:'Delete' , action:function(e){
+			{text:'Delete' , icon: 'icon-remove-circle', action:function(e){
 				e.preventDefault();
 				var _msg;
 				_msg = Messenger().post({
