@@ -8,9 +8,9 @@ var DesktopView = View.extend({
 		this.callSuper(model_);
 		this.controller = DesktopController.create(this);
 		this.$view = $('body');
-	},
+	}/* , */
 	
-	update: function(updatedObj_) {}
+	/* update: function(updatedObj_) {} */
 });
 
 // Base class for all widget views 
@@ -18,24 +18,23 @@ var DesktopView = View.extend({
 var WidgetView = View.extend({
 	init: function(model_) {
 		this.callSuper(model_);
-		this.initOPs();
 	},
 	
-	// updatedObj_: {
-	//	key1: newVal1,
-	//	key2: newVal2,
-	//	...
-	// }
-	// Keys in updatedObj_ should be same as keys in ops
-	//
-	update: function(updatedObj_) {
-		for(var key in updatedObj_) {
-			this._ops[key].call(this, updatedObj_[key]);
-		}
-	},
+	// // updatedObj_: {
+	// //	key1: newVal1,
+	// //	key2: newVal2,
+	// //	...
+	// // }
+	// // Keys in updatedObj_ should be same as keys in ops
+	// //
+	// update: function(updatedObj_) {
+		// for(var key in updatedObj_) {
+			// this._ops[key].call(this, updatedObj_[key]);
+		// }
+	/* }, */
 
-	initOPs: function() {
-		this._ops['position'] = function(newPos_) {};
+	registObservers: function() {
+		this._model.on('position', function(err_, newPos_) {});
 	},
 
 	initAction: function($selector) {
@@ -99,7 +98,7 @@ var GridView = WidgetView.extend({
 		});
 	},
 
-	update: function(updatedObj_) {},
+	registObservers: function() {},
 
 	show: function() {
 		$('body').append(this.$view);
@@ -290,3 +289,120 @@ var GridView = WidgetView.extend({
 	}
 });
 
+var EntrView = WidgetView.extend({
+	init: function(model_) {
+		this.callSuper(model_);
+		this.registObservers();
+		this._controller = EntryController.create(this);
+		this.$view = $('<div>', {
+			'class': 'icon',
+			'id': this._id,
+			'draggable': 'true'/* , */
+			/* 'tabindex': this._tabIndex */
+		}).html("<img draggable='false'/><p>" + this._model.getName() + "</p>");
+	},
+
+	registObservers: function() {
+		this.callSuper();
+		var _this = this;
+		this._model.on('name', function(err_, newName_) {
+			$('#' + _this._id + ' p').text(newName_);
+		}).on('imgPath', function(err_, imgPath_) {
+			$('#' + _this._id + ' img').attr('src', imgPath_);
+		}).on('tabIdx', function(err_, tabIdx_) {
+			$('#' + _this._id).attr('tabindex', tabIdx_);
+		});
+	},
+
+	initAction: function($selector) {
+		this.callSuper();
+		var _entry = this._model,
+				_this = this,
+				desktop = _global.get('desktop');
+
+		$selector.dblclick(function() {
+		}).mouseenter(function() {
+			$(this).parent().addClass('norhover');
+			var $p = $('#' + _entry.getID() + ' p');
+			$p.css('height', $p[0].scrollHeight);
+		}).mouseleave(function() {
+			$(this).parent().removeClass('norhover');
+			$('#' + _entry.getID() + ' p').css('height', '32px');
+		}).mousedown(function(e) {
+			e.stopPropagation();
+		}).mouseup(function(e) { 
+			/* if(!e.ctrlKey) { */
+				// desktop._selector.releaseSelectedEntries();
+				// _this.focus();
+			// } else {
+				// if(_this._focused) {
+					// for(var i = 0; i < desktop._selector._selectedEntries.length; ++i) {
+						// if(desktop._selector._selectedEntries[i] != null
+							// && _entry._id == desktop._selector._selectedEntries[i]._id) {
+								// desktop._selector._selectedEntries[i] = null;
+								// _this.blur();
+								// break;
+							// }
+					// }
+				// } else {
+					// _this.focus();
+				// }
+			/* } */
+		});
+	},
+
+	focus: function() {
+		var desktop = _global.get('desktop');
+		this.$view/* .parent() */.addClass('focusing');
+		if(!desktop._selector._selectedEntries.hasEntry(this._id))
+			desktop._selector._selectedEntries.push(this);
+		this._focused = true;
+		desktop._tabIndex = this._tabIndex - 1;
+	},
+
+	blur: function() {
+		this.$view/* .parent() */.removeClass('focusing');
+		this._focused = false;
+	},
+
+	show: function() {
+		var pos = this._model.getPosition(),
+				layout = _global.get('desktop').getLayoutType();
+		switch(layout) {
+			case 'grid':
+				$('#grid_' + pos.x + '_' + pos.y).append(this.$view);
+				break;
+			default:
+				break;
+		};
+	},
+
+	hide: function() {
+		var pos = this._model.getPosition(),
+				layout = _global.get('desktop').getLayoutType();
+		switch(layout) {
+			case 'grid':
+				$('#grid_' + pos.x + '_' + pos.y).empty();
+				break;
+			default:
+				break;
+		};
+	},
+
+	drag: function(ev) {
+		var desktop = _global.get('desktop');
+		if(!desktop._selector._selectedEntries.hasEntry(ev.target.id)) {
+			desktop._selector.releaseSelectedEntries();
+		}
+		this.callSuper(ev);
+	},
+
+	drop: function(ev) {
+		// TODO: send a command to processer
+		// console.log("prevent!!");
+		$(this).parent('.grid').removeClass('hovering');
+		$(this).parent('.grid').removeClass('norhover');
+		ev.preventDefault();
+		ev.stopPropagation();
+	}
+})

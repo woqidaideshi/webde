@@ -63,30 +63,60 @@ Class.extend = function extend(props) {
 
 //Event base Class
 //Inherited from Node.js' EventEmitter
-//
-var Event = Class.extend(require('events').EventEmitter.prototype);
+//require('events').EventEmitter.prototype
+var Event = Class.extend({
+	init: function() {
+		this._handlers = [];
+	},
+
+	on: function(event_, handler_) {
+		if(typeof this._handlers[event_] === 'undefined') {
+			this._handlers[event_] = [];
+		}
+		this._handlers[event_].push(handler_);
+		return this;
+	},
+
+	off: function(event_, handler_) {
+		var idx;
+		for(idx = 0; idx < this._handlers[event_].length; ++idx) {
+			if(handler_ == this._handlers[event_][idx]) break;
+		}
+		this._handlers[event_].splice(idx, 1);
+		return this;
+	},
+
+	emit: function(event_) {
+		if(typeof this._handlers[event_] === 'undefined') return ;
+		var args = arguments.slice(1);
+		for(var i = 0; i < this._handlers[event_].length; ++i) {
+			this._handlers[event_][i].apply(this, args);
+		}
+		return this;
+	}
+});
 
 //The base Class for Model classes
 //
-var Model = Class.extend({
+var Model = Event.extend({
 	init: function(id_) {
 		this._id = id_;
-		this._obList = [];
+		// this._obList = [];
 	},
 
-	addObserver: function(observer_) {
-		this._obList[observer_._id] = observer_;
-	},
+	// addObserver: function(observer_) {
+		// this._obList[observer_._id] = observer_;
+	// },
 
-	removeObserver: function(observer_) {
-		delete this._obList[observer_._id];
-	},
+	// removeObserver: function(observer_) {
+		// delete this._obList[observer_._id];
+	// },
 
-	notify: function(updatedObj_) {
-		for(var key in this._obList) {
-			this._obList[key].update(updatedObj_);
-		}
-	}
+	// notify: function(updatedObj_) {
+		// for(var key in this._obList) {
+			// this._obList[key].update(updatedObj_);
+		// }
+	/* } */
 });
 
 //The base Class for Observer classes
@@ -96,7 +126,7 @@ var Observer = Class.extend({
 		this._id = id_;
 	},
 
-	update: function(updatedObj_) {}
+	registObservers: function() {}
 });
 
 //The base Class for View classes
@@ -107,13 +137,13 @@ var View = Observer.extend({
 		this.callSuper(model_._id + '-view');
 		this._model = model_;
 		this._controller = null; // created by subclasses
-		this._ops = []; // this array contains ops to update this view
+		// this._ops = []; // this array contains ops to update this view
 
-		this._model.addObserver(this);
+		// this._model.addObserver(this);
 	},
 	
 	destroy: function() {
-		this._model.removeObserver(this);
+		// this._model.removeObserver(this);
 	},
 
 	show: function() {
@@ -134,11 +164,11 @@ var Controller = Observer.extend({
 		this._model = view_._model;
 		this._view = view_;
 
-		this._model.addObserver(this);
+		// this._model.addObserver(this);
 	},
 
 	destroy: function() {
-		this._model.removeObserver(this);
+		// this._model.removeObserver(this);
 	}
 });
 
