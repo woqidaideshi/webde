@@ -347,7 +347,7 @@ var EntryUtil = Event.extend({
 			if (typeof desktop._widgets[desktop._rightObjId] !== 'undefined') {
 				_execCmd = file_['Exec']
 					.replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g
-						, desktop._widgets[desktop._rightObjId]._path)
+						, '\''+desktop._widgets[desktop._rightObjId]._path+'\'')
 					.replace(/\\\\/g, '\\');
 			}else{
 				_execCmd = file_['Exec']
@@ -434,7 +434,7 @@ var TrashUtil =  Event.extend({
 			_filename =  _preName + _num.toString() + _lastName;
 		};
 		//check is dir or file 
-		_this._exec('mv '+_path + ' ' + _this._TRASH + '/files/'+_filename, function(err_,out_){
+		_this._exec('mv \''+_path + '\' \'' + _this._TRASH + '/files/'+_filename+'\'', function(err_,out_){
 			if (err_) console.log(err_);
 			if (out_) console.log(out_);
 		});

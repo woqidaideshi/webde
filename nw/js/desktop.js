@@ -155,14 +155,60 @@ var Desktop = Class.extend({
 					}
 				}}
 			]},
-			{text:'test', action:function(e){
-				e.preventDefault();
-				console.log('click  test  button ');
-				Messenger.options = {
-					extraClasses: "messenger-fixed messenger-on-left messenger-on-top"
-				};
-				desktop._ctxMenu.disableItem('desktop','test');
-			}}
+			{text:'messenger set', subMenu:[
+				{header: 'messenger set'},
+				{text:'position',subMenu:[
+					{header:'messenger-pos'},
+					{text:'left-bottom', action:function(e){
+						Messenger.options = {
+							extraClasses: "messenger-fixed messenger-on-left messenger-on-bottom"
+						};
+					}},
+					{text:'left-top', action:function(e){
+						Messenger.options = {
+							extraClasses: "messenger-fixed messenger-on-left messenger-on-top"
+						};
+					}},
+					{text:'top', action:function(e){
+						Messenger.options = {
+							extraClasses: "messenger-fixed messenger-on-top"
+						};
+					}},
+					{text:'right-top', action:function(e){
+						Messenger.options = {
+							extraClasses: "messenger-fixed messenger-on-right messenger-on-top"
+						};
+					}},
+					{text:'right-bottom', action:function(e){
+						Messenger.options = {
+							extraClasses: "messenger-fixed messenger-on-right messenger-on-bottom"
+						};
+					}},
+					{text:'bottom', action:function(e){
+						Messenger.options = {
+							extraClasses: "messenger-fixed messenger-on-bottom"
+						};
+					}},
+
+				]},
+				{text:'maxMessages',subMenu:[
+					{text:'one',action:function(){
+						Messenger.options={
+							maxMessages: '1'
+						}
+					}},
+					{text:'three',action:function(){
+						Messenger.options={
+							maxMessages: '3'
+						}
+					}},
+					{text:'five',action:function(){
+						Messenger.options={
+							maxMessages: '5'
+						}
+					}}
+				]}
+			]}
 		]);
 		this._ctxMenu.addCtxMenu([
 			{header: 'plugin'},
@@ -242,8 +288,51 @@ var Desktop = Class.extend({
 			}},
 			{text:'Delete' , action:function(e){
 				e.preventDefault();
-				var _path = desktop._widgets[desktop._rightObjId]._path;
-				utilIns.entryUtil.removeFile(_path);
+				var _msg;
+				_msg = Messenger().post({
+					message: 'If delete it , you can\'t recover it. \n Are you sure delete the file?',
+					type: 'info',
+					showCloseButton: true,
+					actions:{
+						sure:{
+							label: 'sure delete',
+							action:function(){
+								var _path = desktop._widgets[desktop._rightObjId]._path;
+								utilIns.entryUtil.removeFile(_path);
+								_msg.update({
+          							message: 'Deleted file!',
+          							type: 'success',
+          							showCloseButton: true,
+          							actions: false
+        							});
+							}
+						},
+						trash:{
+							label:'move to trash',
+							action:function(){
+								utilIns.trashUtil.moveToTrash(desktop._rightObjId);
+								_msg.update({
+          							message: 'Moved file into trash!',
+          							type: 'success',
+          							showCloseButton: true,
+          							actions: false
+        							});
+							}
+						},
+						cancel:{
+							label:'cancel',
+							action:function(){
+								_msg.update({
+          							message: 'Cancel delete file!',
+          							type: 'error',
+          							showCloseButton: true,
+          							actions: false
+        							});
+							}
+						}
+					}
+				});
+				
 			}},
 		]);
 		this._ctxMenu.addCtxMenu([

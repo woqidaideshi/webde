@@ -25,7 +25,7 @@ var Tooltip = Class.extend({
  * [setPosition set postion]
  * @param {[event]} ev [event]
  */
-	setPosition:function(ev){
+	calPosition:function(ev){
 		var _this = this;
 		var _targetWidth = $(ev.target).width();
 		var _targetHeight = $(ev.target).height();
@@ -59,6 +59,9 @@ var Tooltip = Class.extend({
 		$(".tooltip").css({"top" :(_this._top)+"px", "left" :(_this._left)+"px"});
 	},
 
+	setPosition:function(pos_){
+		this._pos = pos_;
+	},
 
 	getTitle:function(){
 		return this._title;
@@ -71,7 +74,7 @@ var Tooltip = Class.extend({
 			ev.target.title = '';
 			this._tooltip = "<div class='tooltip'><div id='title-inner' class='tipsy-inner'>"+this._title+"</div></div>";
 			$('body').append(this._tooltip);
-			this.setPosition(ev);
+			this.calPosition(ev);
 			$(".tooltip").show('fast');
 		}
 	},
@@ -87,7 +90,7 @@ var Tooltip = Class.extend({
 	},
 
 	mouseMove:function(ev){
-		this.setPosition(ev);
+		this.calPosition(ev);
 	}, 
 /**
  * [bindTarget bind event to target]
