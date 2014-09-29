@@ -213,15 +213,27 @@ var DesktopModel = Model.extend({
 	// Put codes needed run before starting in this function
 	preStart: function(cb_) {
 		console.log('pre start');
-		cb_(null);
+		// TODO: get user config data, init all components
+		this._launcher = LauncherModel.create();
+		var _this = this;
+		_global._fs.readFile(_global._xdg_data_home + "/dwidgets/dentries"
+			, 'utf-8', function(err, data) {
+				if(err) {
+					console.log(err);
+					cb_(err);
+				} else {
+					_this._USER_CONFIG = data;
+					cb_(null);
+				}
+			});
 	},
 
 	start: function(cb_) {
 		console.log('starting');
 		this._view = DesktopView.create(this);
-		// TODO: Create a app launcher view
 		// TODO: Get the config first, load model of Desktop widgets
 		//	, and then init the layout of them base of the config
+		// TODO: Create a app launcher view
 		this._layout; // the model of entry layout
 		this.initLayout();
 		cb_(null);
@@ -254,6 +266,45 @@ var DesktopModel = Model.extend({
 			default:
 				break;
 		};
+	},
+
+	loadWidgets: function() {
+		var _lastSave = [],
+				lines = this._USER_CONFIG.split('\n');
+		for(var i = 0; i < lines.length; ++i) {
+			if(lines[i].match('[\s,\t]*#+') != null) continue;
+			if(lines[i] == "") continue;
+			var attr = lines[i].split('$');
+			if(attr.length != 5) continue;
+			var _plugin = null;
+			switch(attr[4]) {
+				case "ClockPlugin":
+					// _plugin = ClockPlugin;
+					break;
+				case "ImagePlugin":
+					// _plugin = PicPlugin;
+					break;
+				default:
+					_lastSave[attr[0]] = {
+						path: attr[1],
+						x: attr[2],
+						y: attr[3],
+						type: attr[4]
+					};	
+			};
+			/* if (_plugin != null) { */
+				// _desktop.addAnDPlugin(_plugin.create(attr[0]
+					// ,{x: attr[2], y: attr[3]}
+					// ,attr[1]
+					// ), {x: attr[2], y: attr[3]});
+			/* } */
+		}
+		//handle destop entries
+		this.addWidgets(_lastSave, this._desktopWatch.getBaseDir()
+				,this._desktopWatch);
+		//handle dock entries
+	 /*  _desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir() */
+				/* ,_desktop._dock._dockWatch); */
 	}
 });
 

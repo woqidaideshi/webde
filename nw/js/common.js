@@ -486,6 +486,7 @@ var Global = Class.extend({
 		this.Series = Serialize.prototype;
 		this.$home = undefined;
 		this.$xdg_data_dirs = undefined;
+		this.$xdg_data_home = undefined;
 		this.objects = [];
 		//TODO: change the nodejs'API to ourselves
 		this._fs = require('fs');
@@ -498,6 +499,7 @@ var Global = Class.extend({
 				callback_(err);
 			} else {
 				_this.$home = stdout.substr(0, stdout.length - 1);
+				_this.$xdg_data_home = _this.$home + '/.local/share';
 				_this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
 					if(err) {
 						console.log(err);
