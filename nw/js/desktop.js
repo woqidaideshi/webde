@@ -350,6 +350,7 @@ var Desktop = Class.extend({
 	},
 
 	loadScriptMenu:function(){
+		desktop._rightObjId = undefined;
 		var _DIR = desktop._home + '/.gnome2/nemo-scripts';
 		console.log(_DIR);
 		var _menu  = desktop._ctxMenu.getMenuByHeader('script');
