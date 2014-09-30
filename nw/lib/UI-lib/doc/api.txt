@@ -72,3 +72,13 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
     disableItem(header_, text_)                          //设置菜单header_的text_ item不可点击
     isDisabledItem(header_, text_)                       //判断菜单header_的text_ item是否不可点击，不可点击true，可点击false，没有这个item返回null;
 
+4、font-awesome图标库
+	本UI库的图标使用的是font-awesome的图标库，其特点是将图标打包成字体文件，通过读取字体文件来载入各个图标。
+	使用方法：
+	在需要添加图标的位置写入<i class='icon-user'></i> 其中icon-user是要添加图标的种类。
+	
+	详细的使用方法见：
+				http://www.bootcss.com/p/font-awesome/#icons-new
+	具体图标对应的class类可以查阅：
+			 	http://www.bootcss.com/p/font-awesome/design.html
+
