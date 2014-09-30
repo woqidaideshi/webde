@@ -138,10 +138,10 @@ var Desktop = Class.extend({
 	      		});
 			}},
 			{divider: true},
-			{text: 'refresh', icon: 'icon-refresh', action: function(e) {
+			{text: 'refresh', icon: 'icon-refresh icon-spin', action: function(e) {
 				location.reload();
 			}},
-			{text: 'refresh (F5)', icon: 'icon-refresh',  action:function(e){
+			{text: 'refresh (F5)', icon: 'icon-refresh icon-spin',  action:function(e){
 				location.reload(true);
 			}},
 			{divider: true},
