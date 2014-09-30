@@ -284,79 +284,68 @@ var ContextMenu = Class.extend({
 // ignoreInitial_:
 var Watcher = Event.extend({
 	init: function(dir_, ignore_) {
-		if (typeof dir_ == 'undefined') {
-			dir_ = '/桌面';
-		};
+		this.callSuper();
+		this._watchDir = dir_ || _global.$xdg_data_home;
 		this._prev = 0;
-		this._baseDir = undefined;
-		this._watchDir = dir_;
 		this._oldName = null;
 		this._watcher = null;
 		this._evQueue = [];
 		this._timer = null;
 		this._ignore = ignore_ || /^\./;
 
-		this._fs = require('fs');
-		this._exec = require('child_process').exec;
-
 		var _this = this;
-		this._exec('echo $HOME', function(err, stdout, stderr) {
-			if(err) throw err;
-			_this._baseDir = stdout.substr(0, stdout.length - 1);
-			_this._fs.readdir(_this._baseDir+_this._watchDir, function(err, files) {
-				for(var i = 0; i < files.length; ++i) {
-					_this._prev++;
-				}
-				var evHandler = function() {
-					var filename = _this._evQueue.shift();
-					_this._fs.readdir(_this._baseDir +_this._watchDir, function(err, files) {
-						var cur = 0;
-						for(var i = 0; i < files.length; ++i) {
-							cur++;
-						}
-
-						if(_this._prev < cur) {
-							_this._fs.stat(_this._baseDir +_this._watchDir+'/' + filename
-								, function(err, stats) {
-									_this.emit('add', filename, stats);
-								});
-							_this._prev++;
-						} else if(_this._prev > cur) {
-							_this.emit('delete', filename);
-							_this._prev--;
-						} else {
-							if(_this._oldName == null) {
-								_this._oldName = filename;
-								return ;
-							}
-							if(_this._oldName == filename) {
-								return ;
-							}
-							_this.emit('rename', _this._oldName, filename);
-							_this._oldName = null;
-						}
-						if(_this._evQueue.length != 0) evHandler();
-					});
-				};
-				_this._timer = setInterval(function() {
-					if(_this._evQueue.length != 0) {
-						// _this._evQueue.reverse();
-						evHandler();
+		_global._fs.readdir(_this._watchDir, function(err, files) {
+			for(var i = 0; i < files.length; ++i) {
+				_this._prev++;
+			}
+			var evHandler = function() {
+				var filename = _this._evQueue.shift();
+				_global._fs.readdir(_this._watchDir, function(err, files) {
+					var cur = 0;
+					for(var i = 0; i < files.length; ++i) {
+						cur++;
 					}
-				}, 200);
 
-				_this._watcher = _this._fs.watch(_this._baseDir+_this._watchDir
-					, function(event, filename) {
-						if(event == 'change' || filename.match(_this._ignore) != null) return ;
-						_this._evQueue.push(filename);
-					});
-			});
+					if(_this._prev < cur) {
+						_global._fs.stat(_this._watchDir + '/' + filename
+							, function(err, stats) {
+								_this.emit('add', filename, stats);
+							});
+						_this._prev++;
+					} else if(_this._prev > cur) {
+						_this.emit('delete', filename);
+						_this._prev--;
+					} else {
+						if(_this._oldName == null) {
+							_this._oldName = filename;
+							return ;
+						}
+						if(_this._oldName == filename) {
+							return ;
+						}
+						_this.emit('rename', _this._oldName, filename);
+						_this._oldName = null;
+					}
+					if(_this._evQueue.length != 0) evHandler();
+				});
+			};
+			_this._timer = setInterval(function() {
+				if(_this._evQueue.length != 0) {
+					evHandler();
+				}
+			}, 200);
+
+			_this._watcher = _global._fs.watch(_this._watchDir
+				, function(event, filename) {
+					if(event == 'change' || filename.match(_this._ignore) != null) return ;
+					_this._evQueue.push(filename);
+				});
 		});
 	},
 
 	//get dir 
 	getBaseDir: function() {
-		return this._baseDir + this._watchDir;
+		return this._watchDir;
 	},
 
 	//close watch()
@@ -499,7 +488,7 @@ var Global = Class.extend({
 				callback_(err);
 			} else {
 				_this.$home = stdout.substr(0, stdout.length - 1);
-				_this.$xdg_data_home = _this.$home + '/.local/share';
+				_this.$xdg_data_home = _this.$home + '/.local/share/cdos';
 				_this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
 					if(err) {
 						console.log(err);
@@ -590,7 +579,7 @@ var EntryUtil = Event.extend({
 			throw "Bad type of callback!!";
 		
 		var _this = this;
-		var iconTheme = theme.getIconTheme();
+		var iconTheme = _global.get('theme').getIconTheme();
 		_this.getIconPathWithTheme(iconName_, size_, iconTheme, function(err_, iconPath_) {
 			if(err_) {
 				_this.getIconPathWithTheme(iconName_, size_, "hicolor"
@@ -625,7 +614,7 @@ var EntryUtil = Event.extend({
 						+ ' -regextype \"posix-egrep\" -regex \".*'
 					 	+ ((index_ < _this._iconSearchPath.length - 1)
 						? size_ : '') + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
-					_this._exec(tmp, function(err, stdout, stderr) {
+					_global._exec(tmp, function(err, stdout, stderr) {
 						if(stdout == '') {
 							_global._fs.readFile(_path + '/index.theme'
 								, 'utf-8', function(err, data) {
@@ -713,7 +702,7 @@ var EntryUtil = Event.extend({
 		if(typeof callback_ !== 'function')
 			throw 'Bad type of callback!!';
 		var _this = this;
-		_this._exec('xdg-mime query filetype ' + path_.replace(/ /g, '\\ ')
+		_global._exec('xdg-mime query filetype ' + path_.replace(/ /g, '\\ ')
 				, function(err, stdout, stderr) {
 					if(err) {
 						console.log(err);
@@ -728,7 +717,7 @@ var EntryUtil = Event.extend({
 		if(typeof callback_ !== 'function')
 			throw 'Bad type for callback!!';
 		var _this = this;
-		_this._exec('xdg-mime query default ' + mimeType_
+		_global._exec('xdg-mime query default ' + mimeType_
 			, function(err, stdout, stderr) {
 			if(err) {
 				console.log(err);
@@ -754,7 +743,7 @@ var EntryUtil = Event.extend({
 				callback_.call(this, 'Not found');
 				return ;
 			}
-			_this._exec('find ' + _this.$xdg_data_dirs[index_] + ' -name ' + fileName_
+			_global._exec('find ' + _this.$xdg_data_dirs[index_] + ' -name ' + fileName_
 					, function(err, stdout, stderr) {
 						if(stdout == '') {//err || 
 							tryInThisPath(index_ + 1);
@@ -774,7 +763,7 @@ var EntryUtil = Event.extend({
 		var _this = this;
 		if(typeof callback_ !== 'function')
 			throw 'Bad type for callback';
-		_this._exec('stat '+ filename_,function(err,stdout,stderr){
+		_global._exec('stat '+ filename_,function(err,stdout,stderr){
 				if(stdout == '') {//err 
 					throw 'Bad filename_';
 				} else {
@@ -820,7 +809,7 @@ var EntryUtil = Event.extend({
 	//rm file 
 	//path_: file Path_
 	removeFile:function(path_){
-		this._exec('rm '+path_, function(err, out ,stderr){
+		_global._exec('rm '+path_, function(err, out ,stderr){
 			if(err) throw 'util.js-rmFile: bad path';
 		});
 	}

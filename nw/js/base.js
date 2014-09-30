@@ -88,7 +88,9 @@ var Event = Class.extend({
 
 	emit: function(event_) {
 		if(typeof this._handlers[event_] === 'undefined') return ;
-		var args = arguments.slice(1);
+		var args = [];
+		for(var i = 1; i < arguments.length; ++i)
+			args.push(arguments[i]);
 		for(var i = 0; i < this._handlers[event_].length; ++i) {
 			this._handlers[event_][i].apply(this, args);
 		}
@@ -100,6 +102,7 @@ var Event = Class.extend({
 //
 var Model = Event.extend({
 	init: function(id_) {
+		this.callSuper();
 		this._id = id_;
 		// this._obList = [];
 	},
@@ -126,6 +129,8 @@ var Observer = Class.extend({
 		this._id = id_;
 	},
 
+	getID: function() {return this._id;},
+
 	registObservers: function() {}
 });
 
@@ -133,8 +138,8 @@ var Observer = Class.extend({
 //One kind of Observer
 //
 var View = Observer.extend({
-	init: function(model_) {
-		this.callSuper(model_._id + '-view');
+	init: function(id_, model_) {
+		this.callSuper(id_);
 		this._model = model_;
 		this._controller = null; // created by subclasses
 		// this._ops = []; // this array contains ops to update this view
@@ -160,7 +165,7 @@ var View = Observer.extend({
 //
 var Controller = Observer.extend({
 	init: function(view_) {
-		this.callSuper(view_._model._id + '-controller');
+		this.callSuper(view_.getID() + '-controller');
 		this._model = view_._model;
 		this._view = view_;
 

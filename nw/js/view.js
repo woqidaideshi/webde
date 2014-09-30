@@ -5,7 +5,7 @@
 //
 var DesktopView = View.extend({
 	init: function(model_) {
-		this.callSuper(model_);
+		this.callSuper('desktop-view', model_);
 		this.controller = DesktopController.create(this);
 		this.$view = $('body');
 	}/* , */
@@ -16,8 +16,8 @@ var DesktopView = View.extend({
 // Base class for all widget views 
 //
 var WidgetView = View.extend({
-	init: function(model_) {
-		this.callSuper(model_);
+	init: function(id_, model_) {
+		this.callSuper(id_, model_);
 	},
 	
 	// // updatedObj_: {
@@ -88,8 +88,8 @@ var WidgetView = View.extend({
 // Grid view for Layout model
 //
 var GridView = WidgetView.extend({
-	init: function(model_) {
-		this.callSuper(model_);
+	init: function(id_, model_) {
+		this.callSuper(id_, model_);
 		this.controller = GridController.create(this);
 		this.$view = $('<div>', {
 			'class': 'gridcontainer', 
@@ -290,8 +290,8 @@ var GridView = WidgetView.extend({
 });
 
 var EntryView = WidgetView.extend({
-	init: function(model_) {
-		this.callSuper(model_);
+	init: function(id_, model_) {
+		this.callSuper(id_, model_);
 		this.registObservers();
 		this._controller = EntryController.create(this);
 		this.$view = $('<div>', {
