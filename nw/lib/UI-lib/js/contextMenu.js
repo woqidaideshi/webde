@@ -143,7 +143,7 @@ var ContextMenu = Class.extend({
 	getItemByText:function($menu_, text_){
 		var _items = $menu_.children('li');
 		for (var i = 0; i < _items.length; i++) {
-			if(_items[i].textContent == text_)
+			if(_items[i].textContent.replace('  ','') === text_)
 				return $(_items[i]);
 		}
 		return undefined;
