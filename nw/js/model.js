@@ -211,7 +211,7 @@ var WidgetManager = Model.extend({
 	//lastSave_: saved config argv, from <dentries> file
 	// dir_: full dir for watch ,such as: /home/user/桌面
 	// watch_: watch_ is _desktopWatch or _dockWatch
-	addWidgets:function(lastSave_, dir_, watch_) {
+	addWidgets: function(lastSave_, dir_, watch_) {
 		var _this = this,
 				desktop = _global.get('desktop'),
 				_newEntry = [];
@@ -355,7 +355,6 @@ var DesktopModel = Model.extend({
 			// }
 		// });
 		// this._ctrlKey = false;
-		// this._xdg_data_home = undefined; // TODO: put to Global
 		// this._rightMenu = undefined;
 		// this._rightObjId = undefined;
 		// this.generateGrid();
@@ -380,6 +379,8 @@ var DesktopModel = Model.extend({
 	},
 
 	// Put codes needed run before starting in this function
+	// The cb_ should be called at the end of this function
+	//
 	preStart: function(cb_) {
 		console.log('pre start');
 		// TODO: get user config data, init all components
@@ -398,6 +399,8 @@ var DesktopModel = Model.extend({
 			});
 	},
 
+	// The cb_ should be called at the end of this function
+	//
 	start: function(cb_) {
 		console.log('starting');
 		this._view = DesktopView.create(this);
@@ -411,7 +414,10 @@ var DesktopModel = Model.extend({
 	},
 
 	// Put codes needed run afert started in this function
+	// The cb_ should be called at the end of this function
+	//
 	postStart: function(cb_) {
+		// TODO: initial all app entry model contained in launcher
 		console.log('post start');
 		cb_(null);
 	},
@@ -437,6 +443,13 @@ var DesktopModel = Model.extend({
 			default:
 				break;
 		}
+	},
+
+	getGrid: function() {
+		if(this._layoutType == 'grid') {
+			return this._layoutModel;
+		}
+		return null;
 	},
 
 	initDesktopWatcher: function() {
@@ -515,7 +528,7 @@ var DesktopModel = Model.extend({
 	},
 
 	deleteADEntry: function(entry_) {
-		this._wm.unRegistWidget(entry_.getID());
+		this._wm.remove(entry_.getID());
 		var _pos = entry_._model.getPosition();
 		this._layoutModel._grid[_pos.x][_pos.y].use = false;
 		this._dEntrys.remove(entry_.getTabIdx() - 1);
@@ -558,6 +571,7 @@ var EntryModel = WidgetModel.extend({
 		this._name = id_;
 		this._imgPath = '';
 		this._tabIdx = 0;
+		this._focused = false;
 	},
 
 	getPath: function() {return this._path;},
@@ -589,6 +603,25 @@ var EntryModel = WidgetModel.extend({
 	setTabIdx: function(tabIdx_) {
 		this._tabIdx = tabIdx_;
 		this.emit('tabIdx', null, this._tabIdx);
+	},
+
+	getType: function() {return this._type;},
+
+	setType: function(type_) {
+		this._type = type_;
+		this.emit('type', null, this._type);
+	},
+
+	getFocus: function() {return this._focused;},
+
+	focus: function() {
+		this._focused = true;
+		this.emit('focus', null);
+	},
+
+	blur: function() {
+		this._focused = false;
+		this.emit('blur', null);
 	}
 });
 
@@ -617,7 +650,7 @@ var AppEntryModel = EntryModel.extend({
 			_this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
 				.replace(/\\\\/g, '\\'));
 			//get icon
-			// TODO: change to get icon path from catch
+			// TODO: change to get icon path from cache
 			utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
 				if(err_) {
 					console.log(err_);
@@ -641,13 +674,6 @@ var AppEntryModel = EntryModel.extend({
 	setCmd: function(cmd_) {
 		this._execCmd = cmd_;
 		this.emit('cmd', null, this._execCmd);
-	},
-
-	getType: function() {return this._type;},
-
-	setType: function(type_) {
-		this._type = type_;
-		this.emit('type', null, this._type);
 	}
 });
 
@@ -664,14 +690,14 @@ var LauncherModel = Model.extend({
 		var ret = this._appCache.get(id_);
 		if(typeof ret === 'undefined') {
 			// catch this exception and get app model from FS
-			throw 'Not in catch!';
-			// this._appCache.set(ret.getID(), ret);
+			throw 'Not in cache!';
 		}
 		return ret;
 	},
 
 	set: function(id_, app_) {
 		this._appCache[id_] = app_;
+		this.emit('new', null, app_);
 	}
 });
 
@@ -703,6 +729,12 @@ var LayoutModel = WidgetModel.extend({
 		this._height = size_.height || this._height;
 		// TODO: check if the size is different, recalculate the col_num and row_num
 		//	and then notify to redraw the view of layout
+		this.emit('layout_size', {
+			'width': this._width,
+			'height': this._height
+		});
+		if(typeof size_.width !== 'undefined' || typeof size_.height !== 'undefined')
+			this.cal();
 	},
 	
 	getGridSize: function() {
@@ -717,11 +749,30 @@ var LayoutModel = WidgetModel.extend({
 		this._row = gridSize_.gridHeight || this._row;
 		// TODO: check if the size is different, recalculate the col_num and row_num
 		//	and then notify to redraw the view of layout
+		this.emit('grid_size', {
+			'gridWidth': this._col,
+			'gridHeight': this._row
+		});
+		if(typeof gridSize_.gridWidth !== 'undefined' || typeof gridSize_.gridHeight !== 'undefined')
+			this.cal();
 	},
 	
 	getColNum: function() {return this._col_num;},
 
 	getRowNum: function() {return this._row_num;},
+
+	cal: function() {
+		var cn = Math.floor(this._width / this._col);
+		var rn = Math.floor(this._height / this._row);
+		if(cn != this._col_num || rn != this._row_num) {
+			this._col_num = cn;
+			this._row_num = rn;
+			this.emit('col_row', {
+				'col': this._col_num,
+				'row': this._row_num
+			});
+		}
+	},
 
 	findAnIdleGrid: function() {
 		for(var i = parseInt(this._col_num - 1); i >= 0; --i) {

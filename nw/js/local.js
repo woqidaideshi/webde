@@ -18,7 +18,7 @@ var WidgetController = Controller.extend({
 		this.callSuper(view_);
 	},
 
-	update: function(updatedObj_) {},
+	registObservers: function() {},
 
 	changePos: function(newPos_) {
 		var cmd = NormalCommand.create(this._model.getPosition, this._model.setPosition, newPos_);

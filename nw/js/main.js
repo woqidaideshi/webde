@@ -2,6 +2,7 @@
 
 var _global = null;
 $(document).ready(function() {
+	// jQuery.event.props.push('dataTransfer');
 	_global = Global.create(function(err_) {
 		if(err_) throw err_;
 		_global.addGObjects({

@@ -151,6 +151,14 @@ var View = Observer.extend({
 		// this._model.removeObserver(this);
 	},
 
+	getModel: function() {
+		return this._model;
+	},
+
+	getCtrlor: function() {
+		return this._controller;
+	},
+
 	show: function() {
 		this.$view.show();
 	},
