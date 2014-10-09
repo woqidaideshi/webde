@@ -7,12 +7,12 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 使用UI-lib要载入css和js文件，以及复制font文件，
 <pre>
 <code>
-  <link rel="stylesheet" type="text/css" href="css/demoUI.css"/>
-  <link rel="stylesheet" type="text/css" href="css/demoUItheme.css"/>
-  <link rel="stylesheet" type="text/css" href="css/demoUIFont.css"/>
+  link rel="stylesheet" type="text/css" href="css/demoUI.css"
+  link rel="stylesheet" type="text/css" href="css/demoUItheme.css"
+  link rel="stylesheet" type="text/css" href="css/demoUIFont.css"
 
-  <script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
-  <script type="text/javascript" src="lib/UI-lib/dist/js/demoUI.js"></script>
+  script type="text/javascript" src="lib/jquery-2.1.1.min.js"
+  script type="text/javascript" src="lib/UI-lib/dist/js/demoUI.js"
 </code>
 </pre>
 
@@ -39,16 +39,14 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
   首先：建立一个带有title的元素如图片：
 <pre>
 <code>
-  <img title='picture-title' id='test-img' src="/picture/test.jpg"/>
+  <img title='picture-title' id='test-img' src="/img/clock.png"/>
 </code>
 </pre>
 <br />
   然后：向这个图片元素建立一个tooltip
 <pre>
-<code>
-  <script type="text/javascript">	
-  Tooltip.create($('#test-img'),"top");
-  </script>
+<code>	
+  	Tooltip.create($('#test-img'),"top");
 </code>
 </pre>
 	
@@ -88,9 +86,9 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 </code>
 </pre>
 	更多使用方法参见messenger的官方网站：
-		<a href="http://github.hubspot.com/messenger/">http://github.hubspot.com/messenger/</a>
+		[messenger官方网站](http://github.hubspot.com/messenger/)
 	github网址：
-		<a href="https://github.com/HubSpot/messenger">https://github.com/HubSpot/messenger</a>
+		[github网址](https://github.com/HubSpot/messenger)
 
 3、contextMenu：
 ============
@@ -145,14 +143,14 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 	在需要添加图标的位置写入
 <pre>
 <code>
-<a href="#" id="user"><i class='icon-user'></i>user</a> //其中icon-user是要添加图标的种类。
+	<i class='icon-user'></i> //其中icon-user是要添加图标的种类。
 </code>
 </pre>
 
 	详细的使用方法见：
-				<a href="http://www.bootcss.com/p/font-awesome/#icons-new">href="http://www.bootcss.com/p/font-awesome/#icons-new</a>
+				[font-awesome使用方法](http://www.bootcss.com/p/font-awesome/#icons-new)
 	具体图标对应的class类可以查阅：
-			 	<a href="http://www.bootcss.com/p/font-awesome/design.html">http://www.bootcss.com/p/font-awesome/design.html</a>
+			 	[图标对应编码查询](http://www.bootcss.com/p/font-awesome/design.html)
 
 5、modalBox-jquery插件
 ===========
@@ -168,6 +166,6 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 	});
 </code>
 </pre>
-	更多设置（demo）：<a href="http://ignitersworld.com/lab/modalBox.html#demo">http://ignitersworld.com/lab/modalBox.html#demo</a>
-	github项目网址：<a href="https://github.com/s-yadav/modalBox.js">https://github.com/s-yadav/modalBox.js</a>
+	更多设置（demo）：[demo](http://ignitersworld.com/lab/modalBox.html#demo)
+	github项目网址：[github网址](https://github.com/s-yadav/modalBox.js)
 	
