@@ -39,7 +39,7 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
   首先：建立一个带有title的元素如图片：
 <pre>
 <code>
-  <img title='picture-title' id='test-img' src="/img/clock.png"/>
+  \<img title='picture-title' id='test-img' src="/img/clock.png"/\>
 </code>
 </pre>
 <br />
@@ -86,9 +86,9 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 </code>
 </pre>
 	更多使用方法参见messenger的官方网站：
-		[messenger官方网站](http://github.hubspot.com/messenger/)
+[messenger官方网站]: <http://github.hubspot.com/messenger/>
 	github网址：
-		[github网址](https://github.com/HubSpot/messenger)
+[github网址]: <https://github.com/HubSpot/messenger>
 
 3、contextMenu：
 ============
@@ -143,14 +143,14 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 	在需要添加图标的位置写入
 <pre>
 <code>
-	<i class='icon-user'></i> //其中icon-user是要添加图标的种类。
+	\<a href='#'\>\<i class='icon-user'\>\</i\>\</a\> //其中icon-user是要添加图标的种类。
 </code>
 </pre>
 
 	详细的使用方法见：
-				[font-awesome使用方法](http://www.bootcss.com/p/font-awesome/#icons-new)
+				[font-awesome使用方法]: <http://www.bootcss.com/p/font-awesome/#icons-new>
 	具体图标对应的class类可以查阅：
-			 	[图标对应编码查询](http://www.bootcss.com/p/font-awesome/design.html)
+			 	[图标对应编码查询]: < http://www.bootcss.com/p/font-awesome/design.html>
 
 5、modalBox-jquery插件
 ===========
@@ -166,6 +166,8 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 	});
 </code>
 </pre>
-	更多设置（demo）：[demo](http://ignitersworld.com/lab/modalBox.html#demo)
-	github项目网址：[github网址](https://github.com/s-yadav/modalBox.js)
+	更多设置（demo）：
+[demo]: <http://ignitersworld.com/lab/modalBox.html#demo>
+	github项目网址：
+[github网址]: <https://github.com/s-yadav/modalBox.js>
 	
