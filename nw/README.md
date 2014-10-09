@@ -1,4 +1,4 @@
-##For web devironment##.
+##For web devironment##
 
 Copy files in config into $HOME/.local/share/
 then mkdir dock @$HOME/.local/share/
@@ -20,7 +20,7 @@ You can use commad like:
 ###运行说明###
 	运行前请安装grunt，使用grunt生成运行依赖的ui-lib，
 	目前生成的文件包括nw/css/demoUI.css & nw/css/demoUItheme.css，
-	以及在nw/lib下的demoUI.js & demoUI.min.js。
+	以及在nw/dist/lib下的demoUI.js & demoUI.min.js。
  
 ##环境依赖##
     git
@@ -33,6 +33,8 @@ You can use commad like:
 	2、安装依赖
 	  进入nw目录下，执行：
 	 npm install （此时该目录下会生成node-modules文件夹）
+	3、执行grunt命令：
+	 grunt （用于生成dist目录下项目文件）
 	
 ###grunt 自动打包###
 	1、代码规范检查（目前尚未完善代码规范）
@@ -51,4 +53,4 @@ You can use commad like:
 		grunt less
 
 ##关于api##
-	请阅读lib/UI-lib/doc/api.txt
+	请阅读lib/UI-lib/doc/api.md
