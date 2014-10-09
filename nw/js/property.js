@@ -101,10 +101,10 @@ var Property = Class.extend({
                 	if (!$(this).hasClass("selected")) {  
                     	tabhosts.each(function() {  
                         	$(this).removeClass("selected");  
-                        	$($(this).attr("href")).hide();  
+                        	$($(this).attr("href")).hide(500);  
                     	});  
                     	$(this).addClass("selected");  
-                    	$($(this).attr("href")).show();  
+                    	$($(this).attr("href")).show(500);  
                 	}  
             	});  
         		});  

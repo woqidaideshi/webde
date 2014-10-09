@@ -215,7 +215,6 @@ var Desktop = Class.extend({
 			{text: 'zoom in', action: function(e) {
 				e.preventDefault();
 				desktop._widgets[desktop._rightObjId].zoomIn();
-				
 			}},
 			{text: 'zoom out', action: function(e) {
 				e.preventDefault();
@@ -241,7 +240,12 @@ var Desktop = Class.extend({
 				_property.show();
 			}},
 			{text:'delete',action:function(){
-
+				$('#clock').modalBox({
+					iconImg:'img/close.png',
+					iconClose:true,
+					keyClose:true,
+					bodyClose:true
+				});
 			}}
 		]);
 		this._ctxMenu.addCtxMenu([

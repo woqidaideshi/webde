@@ -278,7 +278,14 @@ var Grid = Widget.extend({
 
 		//handle item transfer (not support chinese) 
 		var _items = ev.dataTransfer.items;
-		if (_items.length != 0 && typeof desktop._widgets[_id] == 'undefined') {
+		if (_items.length != 0 && typeof desktop._widgets[_id] == 'undefined' && _items[1].type === 'text/uri-list' ) {
+			_items[1].getAsString(function(uri){
+				var _chp = require('child_process').exec;
+				_chp('wget -P ' + desktop._desktopWatch.getBaseDir() +' '+ uri,function(out,err){
+					if (out) {console.log(out)};
+				});
+			});
+		}else if (_items.length != 0 && typeof desktop._widgets[_id] == 'undefined') {
 			var _fs = require('fs');
 			_items[0].getAsString(function(data){
 				for (var i = 0; ; i++) {
