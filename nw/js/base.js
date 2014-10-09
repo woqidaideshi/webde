@@ -104,8 +104,42 @@ var Model = Event.extend({
 	init: function(id_) {
 		this.callSuper();
 		this._id = id_;
+		this._c = []; // model container
 		// this._obList = [];
 	},
+
+	add: function(component_) {
+		if(typeof this._c[component_.getID()] !== "undefined") {
+			this.emit('add', 'This component has already existed!!');
+			return ;
+		}
+		this._c[component_.getID()] = component_;
+		this.emit('add', null, component_);
+	},
+
+	remove: function(component_) {
+		if(typeof this._c[component_.getID()] === 'undefined') {
+			this.emit('remove', 'This component is not existed!!');
+			return ;
+		}
+		this.emit('remove', null, component_);
+		this._c[component_.getID()] = null;
+		delete this._c[component_.getID()];
+	},
+
+	getCOMById: function(id_) {
+		return this._c[id_];
+	},
+
+	getCOMByAttr: function(attr_, value_) {
+		for(var key1 in this._c) {
+			for(var key2 in this._c[key1]) {
+				if(key2 == attr_ && this._c[key1][key2] == value_)
+					return this._c[key1];
+			}
+		}
+		return null;
+	}
 
 	// addObserver: function(observer_) {
 		// this._obList[observer_._id] = observer_;

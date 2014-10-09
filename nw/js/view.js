@@ -7,10 +7,36 @@ var DesktopView = View.extend({
 	init: function(model_) {
 		this.callSuper('desktop-view', model_);
 		this.controller = DesktopController.create(this);
+		this.registObservers();
 		this.$view = $('body');
-	}/* , */
+		this._c = [];
+	}, 
 	
-	/* update: function(updatedObj_) {} */
+	registObservers: function() {
+		var _this = this;
+		this._model.on('add', function(err_, component_) {
+			switch(component_.getID()) {
+				case 'launcher':
+					// TODO: create a launcher view(split create and init into two functions, and
+					//	here just create a view object)
+					break;
+				case 'layout':
+					break;
+			}
+		}).on('remove', function(err_, component_) {
+		}).on('layout', function(err_, viewType_, layoutModel_) {
+			// TODO: 
+			//	reset desktop layout
+			switch(viewType_) {
+				case 'grid':
+					_this._c['layout-view'] = GridView.create('grid-view', layoutModel_);
+					_this._c['layout-view'].show(_this.$view);
+					break;
+				default:
+					break;
+			}
+		});
+	}
 });
 
 // Base class for all widget views 
@@ -92,8 +118,8 @@ var GridView = WidgetView.extend({
 	registObservers: function() {
 	},
 
-	show: function() {
-		$('body').append(this.$view);
+	show: function($parent) {
+		$parent.append(this.$view);
 
 		for(var i = 0; i < this._model._col_num; ++i) {
 			var col_ = $('<div>', {
@@ -407,10 +433,29 @@ var EntryView = WidgetView.extend({
 
 	drop: function(ev) {
 		// TODO: send a command to processer
-		// console.log("prevent!!");
 		$(this).parent('.grid').removeClass('hovering');
 		$(this).parent('.grid').removeClass('norhover');
 		ev.preventDefault();
 		ev.stopPropagation();
+		this._controller.onDrop(ev);
+	}
+});
+
+var DeviceListView = View.extend({
+	init: function(model_) {
+		this.callSuper('device-list-view', model_);
+		this.registObservers();
+		this.$view = $('div', {
+			'id': this._id
+		});
+	},
+	
+	registObservers: function() {
+		var _this = this;
+		this._model.on('add', function(err_, dev_) {
+			// TODO: create a device entry view with the dev_ model object
+		}).on('remove', function(err_, dev_){
+			// TODO: delete the device entry view associated by dev_
+		});
 	}
 });

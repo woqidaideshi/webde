@@ -69,5 +69,15 @@ var EntryController = WidgetController.extend({
 				_global.get('theCP').perform(cmd);
 			}
 		});
+	},
+
+	onDrop: function(ev) {
+		var cmd;
+		if(ev.ctrlKey || this._model.getType() == 'dev' || this._model.getType() == 'app') {
+			cmd = NoUndoCommand.create('exec', this._model.copyTo, {});
+		} else {
+			cmd = NoUndoCommand.create('exec', this._model.moveTo, {});
+		}
+		_global.get('theCP').perform(cmd);
 	}
 });

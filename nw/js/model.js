@@ -44,15 +44,15 @@ var ThemeModel = Model.extend({
 		for(var key in this._theme) {
 			data += key + ":" 
 				+ ((this._theme[key]['active'] == 'true') ?
-					desktop_._widgets[key]._name : this._theme[key]['name']) + ' '
+					desktop_._c[key]._name : this._theme[key]['name']) + ' '
 				+ this._theme[key]['active'] + ' '
 				+ this._theme[key]['icon'] + ' '
 				+ this._theme[key]['path'] + ' '
 				+ this._theme[key]['id'] + ' '
 				+ ((this._theme[key]['active'] == 'true') ?
-					desktop_._widgets[key]._position.x : this._theme[key]['pos'].x) + ' '
+					desktop_._c[key]._position.x : this._theme[key]['pos'].x) + ' '
 				+ ((this._theme[key]['active'] == 'true') ?
-					desktop_._widgets[key]._position.y : this._theme[key]['pos'].y) + '\n';
+					desktop_._c[key]._position.y : this._theme[key]['pos'].y) + '\n';
 		}
 		// for(var i = 0; i < this._keys.length; ++i) {
 			// data += this._keys[i] + this._theme[this._keys[i]] + '\n';
@@ -135,36 +135,7 @@ var ThemeModel = Model.extend({
 //
 var WidgetManager = Model.extend({
 	init: function() {
-		this._widgets = [];
-		this.loadWidgets();
-	},
-
-	add: function(widget_) {
-		if(typeof this._widgets[widget_.getID()] !== "undefined") {
-			alert("This widget has already existed!!");
-			return false;
-		}
-		this._widgets[widget_.getID()] = widget_;
-		return true;
-	},
-
-	remove: function(widget_) {
-		this._widgets[widget_.getID()] = null;
-		delete this._widgets[widget_.getID()];
-	},
-
-	getById: function(id_) {
-		return this._widgets[id_];
-	},
-
-	getByAttr: function(attr_, value_) {
-		for(var key1 in this._widgets) {
-			for(var key2 in this._widgets[key1]) {
-				if(key2 == attr_ && this._widgets[key1][key2] == value_)
-					return this._widgets[key1];
-			}
-		}
-		return null;
+		// this.loadWidgets();
 	},
 
 	loadWidgets: function() {
@@ -284,12 +255,12 @@ var WidgetManager = Model.extend({
 
 	saveWidgets: function() {
 		var data = "";
-		for(var key in this._widgets) {
+		for(var key in this._c) {
 			if(typeof theme._theme[key] !== 'undefined') continue;
-			data += key + "$" + this._widgets[key]._path + "$"
-			 	+ this._widgets[key]._position.x + "$"
-			 	+ this._widgets[key]._position.y + "$"
-				+ this._widgets[key]._type + '\n';
+			data += key + "$" + this._c[key]._path + "$"
+			 	+ this._c[key]._position.x + "$"
+			 	+ this._c[key]._position.y + "$"
+				+ this._c[key]._type + '\n';
 		}
 		//console.log(data);
 		this._fs.writeFile(_global.$xdg_data_home + "/widget.conf"
@@ -383,9 +354,12 @@ var DesktopModel = Model.extend({
 	//
 	preStart: function(cb_) {
 		console.log('pre start');
+		this._view = DesktopView.create(this);
 		// TODO: get user config data, init all components
-		this._launcher = LauncherModel.create();
+		// this._launcher = LauncherModel.create();
+		this.add(LauncherModel.create());
 		this.initDesktopWatcher();
+		this.initLayout();
 		var _this = this;
 		_global._fs.readFile(_global.$xdg_data_home + "/widget.conf"
 			, 'utf-8', function(err, data) {
@@ -403,13 +377,10 @@ var DesktopModel = Model.extend({
 	//
 	start: function(cb_) {
 		console.log('starting');
-		this._view = DesktopView.create(this);
 		// TODO: Get the config first, load model of Desktop widgets
 		//	, and then init the layout of them base of the config
 		// TODO: Create a app launcher view
-		this._layout; // the model of entry layout
-		this.initLayout();
-		this._wm = WidgetManager.create();
+		// this.getCOMById('layout').load();
 		cb_(null);
 	},
 
@@ -418,12 +389,13 @@ var DesktopModel = Model.extend({
 	//
 	postStart: function(cb_) {
 		// TODO: initial all app entry model contained in launcher
+		// TODO: initial Device List
 		console.log('post start');
 		cb_(null);
 	},
 
 	initLayout: function() {
-		this._layoutModel = LayoutModel.create('layout');
+		this.add(LayoutModel.create('layout'));
 		// TODO: check config of layout
 		this.setLayoutType('grid');
 	},
@@ -431,17 +403,9 @@ var DesktopModel = Model.extend({
 	getLayoutType: function() {return this._layoutType;},
 
 	setLayoutType: function(layoutType_) {
-		this._layoutType = layoutType_;
-		// TODO: 
-		//	1. notify all entry models
-		//	2. reset desktop layout
-		switch(this._layoutType) {
-			case 'grid':
-				this._layoutView = GridView.create('grid-view', this._layoutModel);
-				this._layoutView.show();
-				break;
-			default:
-				break;
+		if(this._layoutType != layoutType_) {
+			this._layoutType = layoutType_;
+			this.emit('layout', null, this._layoutType, this.getCOMById('layout'));
 		}
 	},
 
@@ -555,7 +519,7 @@ var WidgetModel = Model.extend({
 
 	getID: function() {return this._id;},
 
-	setID: function(id_) {this._id = id_;}
+	setID: function(id_) {this._id = id_;},
 });
 
 // The model of Entry
@@ -622,7 +586,11 @@ var EntryModel = WidgetModel.extend({
 	blur: function() {
 		this._focused = false;
 		this.emit('blur', null);
-	}
+	},
+
+	moveTo: function() {},
+
+	copyTo: function() {}
 });
 
 // The model of App Entry
@@ -674,7 +642,10 @@ var AppEntryModel = EntryModel.extend({
 	setCmd: function(cmd_) {
 		this._execCmd = cmd_;
 		this.emit('cmd', null, this._execCmd);
-	}
+	},
+
+	// TODO: open a file by using this app
+	copyTo: function() {}
 });
 
 // The model class of Launcher
@@ -698,7 +669,9 @@ var LauncherModel = Model.extend({
 	set: function(id_, app_) {
 		this._appCache[id_] = app_;
 		this.emit('new', null, app_);
-	}
+	},
+
+	getID: function() {return this._id;}
 });
 
 // The model class of Layout
@@ -707,6 +680,7 @@ var LayoutModel = WidgetModel.extend({
 	init: function(id_) {
 		this.callSuper(id_);
 
+		this._wm = WidgetManager.create();
 		this._width = $(document).width() * 0.92;
 		this._height = $(document).height() * 0.9;
 		
@@ -715,6 +689,38 @@ var LayoutModel = WidgetModel.extend({
 		this._col_num = Math.floor(this._width / this._col);
 		this._row_num = Math.floor(this._height / this._row);
 		this._grid = [];
+	},
+
+	add: function(widget_) {
+		this._wm.add(widget_);
+	},
+
+	remove: function(widget_) {
+		this._wm.remove(widget_);
+	},
+
+	getWidgetById: function(id_) {
+		return this._wm.getCOMById(id_);
+	},
+
+	getWidgetByAttr: function(attr_, value_) {
+		return this._wm.getCOMByAttr(attr_, value_);
+	},
+
+	on: function() {
+		this._wm.on.apply(this, arguments);
+	},
+
+	off: function() {
+		this._wm.off.apply(this, arguments);
+	},
+
+	load: function() {
+		this._wm.loadWidgets();
+	},
+
+	save: function() {
+		this._wm.saveWidgets();
 	},
 
 	getSize: function() {
@@ -938,4 +944,30 @@ var LayoutModel = WidgetModel.extend({
 
 	// TODO: implement a funtion for PlaneView to judge whether two entries are overlap.
 	isOverlap: function(entry1_, entry2_) {}
+});
+
+var DeviceListModel = Model.extend({
+	init: function(id_) {
+		this.callSuper(id_);
+	},
+
+	add: function(dev_) {
+		this.emit('add', null, dev_);
+	},
+
+	remove: function(dev_) {
+		this.emit('remove', null, dev_);
+	}
+});
+
+var DeviceEntry = EntryModel.extend({
+	init: function(id_, path_, position_) {
+		this.callSuper(id_, path_, position_);
+	},
+
+	// TODO: show something of this device
+	open: function() {},
+
+	// TODO: send a file to this device
+	copyTo: function() {}
 });

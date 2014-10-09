@@ -298,6 +298,7 @@ var Watcher = Event.extend({
 			for(var i = 0; i < files.length; ++i) {
 				_this._prev++;
 			}
+
 			var evHandler = function() {
 				var filename = _this._evQueue.shift();
 				_global._fs.readdir(_this._watchDir, function(err, files) {
@@ -329,6 +330,7 @@ var Watcher = Event.extend({
 					if(_this._evQueue.length != 0) evHandler();
 				});
 			};
+
 			_this._timer = setInterval(function() {
 				if(_this._evQueue.length != 0) {
 					evHandler();
@@ -763,7 +765,7 @@ var EntryUtil = Event.extend({
 		var _this = this;
 		if(typeof callback_ !== 'function')
 			throw 'Bad type for callback';
-		_global._exec('stat '+ filename_,function(err,stdout,stderr){
+		_global._exec('stat ' + filename_, function(err, stdout, stderr){
 				if(stdout == '') {//err 
 					throw 'Bad filename_';
 				} else {
@@ -793,6 +795,7 @@ var EntryUtil = Event.extend({
 				}
 		});
 	},
+
 	// copy file ;
 	// from : fromPath_,
 	// to : outPath_.
@@ -846,10 +849,12 @@ var NormalCommand = Command.extend({
 // NoUndoCommand which is not allowed to undo should be inited with only one handler
 //
 var NoUndoCommand = Command.extend({
-	init: function(cType_, handler_, args_) {
+	init: function(cType_, handler_/* , args_ */) {
 		this._cType = cType_;
 		this._handler = handler_;
-		this._args = arguments.substr(1);
+		this._args = [];
+		for(var i = 2; i < arguments.length; ++i)
+			this._args.push(arguments[i]);
 	},
 
 	doIt: function() {
