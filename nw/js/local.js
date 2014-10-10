@@ -21,7 +21,8 @@ var WidgetController = Controller.extend({
 	registObservers: function() {},
 
 	changePos: function(newPos_) {
-		var cmd = NormalCommand.create(this._model.getPosition, this._model.setPosition, newPos_);
+		var cmd = NormalCommand.create(this._model
+			, this._model.getPosition, this._model.setPosition, newPos_);
 		_global.get('theCP').perform(cmd);
 	}
 });
@@ -65,7 +66,8 @@ var EntryController = WidgetController.extend({
 						return ;
 					}
 				}
-				var cmd = NormalCommand.create(_entry._model.getName, _entry._model.setName, newtext);
+				var cmd = NormalCommand.create(_entry._model
+					, _entry._model.getName, _entry._model.setName, newtext);
 				_global.get('theCP').perform(cmd);
 			}
 		});
@@ -74,10 +76,15 @@ var EntryController = WidgetController.extend({
 	onDrop: function(ev) {
 		var cmd;
 		if(ev.ctrlKey || this._model.getType() == 'dev' || this._model.getType() == 'app') {
-			cmd = NoUndoCommand.create('exec', this._model.copyTo, {});
+			cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo, {});
 		} else {
-			cmd = NoUndoCommand.create('exec', this._model.moveTo, {});
+			cmd = NoUndoCommand.create(this._model, 'exec', this._model.moveTo, {});
 		}
+		_global.get('theCP').perform(cmd);
+	},
+
+	onDblclick: function() {
+		var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open);
 		_global.get('theCP').perform(cmd);
 	}
 });

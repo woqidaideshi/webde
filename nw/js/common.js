@@ -482,6 +482,7 @@ var Global = Class.extend({
 		//TODO: change the nodejs'API to ourselves
 		this._fs = require('fs');
 		this._exec = require('child_process').exec;
+		// this._device = require('device.js');
 	
 		var _this = this;
 		_this._exec('echo $HOME', function(err, stdout, stderr) {
@@ -829,27 +830,29 @@ var Command = Class.extend({
 // handlers, get_ and set_.
 //
 var NormalCommand = Command.extend({
-	init: function(get_, set_, newVal_) {
+	init: function(ctx_, get_, set_, newVal_) {
 		this._cType = 0;
+		this._ctx = ctx_;
 		this._get = get_;
 		this._set = set_;
 		this._newVal = newVal_;
 	},
 
 	doIt: function() {
-		this._oldVal = this._get();
-		this._set(this._newVal);
+		this._oldVal = this._get.apply(this._ctx);
+		this._set.apply(this._ctx, this._newVal);
 	},
 
 	undo: function() {
-		this._set(this._oldVal);
+		this._set.apply(this._ctx, this._oldVal);
 	}
 });
 
 // NoUndoCommand which is not allowed to undo should be inited with only one handler
 //
 var NoUndoCommand = Command.extend({
-	init: function(cType_, handler_/* , args_ */) {
+	init: function(ctx_, cType_, handler_/* , args_ */) {
+		this._ctx = ctx_;
 		this._cType = cType_;
 		this._handler = handler_;
 		this._args = [];
@@ -858,7 +861,7 @@ var NoUndoCommand = Command.extend({
 	},
 
 	doIt: function() {
-		this._handler.apply(this, this._args);
+		this._handler.apply(this._ctx, this._args);
 	}
 })
 

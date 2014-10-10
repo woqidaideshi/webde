@@ -108,6 +108,8 @@ var Model = Event.extend({
 		// this._obList = [];
 	},
 
+	getID: function() {return this._id;},
+
 	add: function(component_) {
 		if(typeof this._c[component_.getID()] !== "undefined") {
 			this.emit('add', 'This component has already existed!!');

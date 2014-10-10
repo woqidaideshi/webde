@@ -22,6 +22,12 @@ var DesktopView = View.extend({
 					break;
 				case 'layout':
 					break;
+				case 'device-list':
+					_this._c['device-list'] = DeviceListView.create(component_);
+					break;
+				default:
+					console.log('unknown type of component');
+					break;
 			}
 		}).on('remove', function(err_, component_) {
 		}).on('layout', function(err_, viewType_, layoutModel_) {
@@ -49,7 +55,7 @@ var WidgetView = View.extend({
 	registObservers: function() {
 		var _this = this;
 		this._model.on('position', function(err_, newPos_) {
-			$('#grid_' + newPos_.x + '_' + newPos_.y).append(_this.$view);
+			_this.show();
 		});
 	},
 
@@ -113,9 +119,70 @@ var GridView = WidgetView.extend({
 			'id': this._id,
 			'onselectstart': 'return false'
 		});
+		this._c = [];
 	},
 
 	registObservers: function() {
+		var _this = this;
+		this._model.on('add', function(err_, widget_) {
+			if(err_) {
+				console.log(err_);
+				return ;
+			}
+			switch(widget_.getType()) {
+				case 'ClockPlugin':
+					break;
+				case 'ImagePlugin':
+					break;
+				default:
+					_this.addAnDEntry(widget_);
+					break;
+			}
+		}).on('remove', function(err_, widget_) {
+			if(err_) {
+				console.log(err_);
+				return ;
+			}
+			switch(widget_.getType()) {
+				case 'ClockPlugin':
+					break;
+				case 'ImagePlugin':
+					break;
+				default:
+					_this.deleteAnDEntry(widget_);
+					break;
+			}
+		});
+	},
+
+	addAnDEntry: function(entry_) {
+		var pos_ = entry_.getPosition();
+		if(typeof pos_ === 'undefined' || 
+			typeof $('#grid_' + pos_.x + '_' + pos_.y).children('div')[0] != 'undefined') {
+			pos_ = this._model.findAnIdleGrid();
+			if(pos_ == null) {
+				alert("No room");
+				this._model.remove(entry_);
+				return ;
+			}
+		}
+
+		this._c[entry_.getID()] = DEntryView.create(entry_.getID(), entry_);
+		entry_.setPosition(pos_);
+		// this._c[entry_.getID()].show();
+		/* this._dEntrys.push(entry_); */
+		/* this.resetDEntryTabIdx(); */
+		this._model._grid[pos_.x][pos_.y].use = true;
+	},
+
+	deleteADEntry: function(entry_) {
+		var _pos = entry_.getPosition();
+		this._layoutModel._grid[_pos.x][_pos.y].use = false;
+		// this._dEntrys.remove(entry_.getTabIdx() - 1);
+		// this.resetDEntryTabIdx();
+		this._c[entry_.getID()].hide();
+		this._c[entry_.getID()] = null;
+		delete this._c[entry_.getID()];
 	},
 
 	show: function($parent) {
@@ -165,10 +232,12 @@ var GridView = WidgetView.extend({
 		ev.preventDefault();
 		$(this).removeClass('hovering');
 		
-		var desktop = _global.get('desktop');
 		var _target_id = ev.target.id;
 		var _id = ev.originalEvent.dataTransfer.getData("ID");
 		var _target = $('#'+_target_id);
+		var desktop = _global.get('desktop'),
+				model = desktop.getCOMById('layout'),
+				s_widget = model.getWidgetById(_id);
 		$('#' + _id).parent().removeClass('norhover');
 
 		//get target position
@@ -177,8 +246,8 @@ var GridView = WidgetView.extend({
 		var _target_row = parseInt(_target_arr[2]);
 		desktop._position = {x:_target_col,y:_target_row};
 
-		if(typeof desktop._wm.getById(_id) !== 'undefined' &&
-				desktop._wm.getById(_id).getModel().getType() == 'dockApp'){
+		if(typeof s_widget !== 'undefined' &&
+				s_widget.getType() == 'dockApp'){
 			var id = _id.split('-')[0];
 			if (typeof $('#'+id)[0] !== 'undefined') {
 				alert("The app has been registed in desktop");
@@ -207,7 +276,7 @@ var GridView = WidgetView.extend({
 
 		//handle item transfer (not support chinese) 
 		var _items = ev.originalEvent.dataTransfer.items;
-		if (_items.length != 0 && typeof desktop._wm.getById(_id) == 'undefined') {
+		if (_items.length != 0 && typeof s_widget == 'undefined') {
 			var _fs = require('fs');
 			_items[0].getAsString(function(data){
 				for (var i = 0; ; i++) {
@@ -227,17 +296,17 @@ var GridView = WidgetView.extend({
 			});
 		};
 
-		if(typeof desktop._wm.getById(_id) == 'undefined') return ;
+		if(typeof s_widget == 'undefined') return ;
 		
 		//get source occupy number of grids follow x or y 
 		var col_num = 1;
 		var row_num = 1;	
-		if (desktop._wm.getById(_id).getModel().getType().match(/\w*Plugin/) != null) {
-			col_num = desktop._wm.getById(_id).getModel().getColNum();
-			row_num = desktop._wm.getById(_id).getModel().getRowNum();
+		if (s_widget.getType().match(/\w*Plugin/) != null) {
+			col_num = s_widget.getColNum();
+			row_num = s_widget.getRowNum();
 		};
 		//get Grid obj
-		var desktopGrid = desktop.getGrid();
+		// var desktopGrid = desktop.getGrid();
 
 		//handle multi-entries move
 		//
@@ -274,23 +343,23 @@ var GridView = WidgetView.extend({
 		var row = parseInt(arr[2]);
 
 		//flag grid  isn't occupied
-		desktopGrid.flagGridOccupy(col, row, col_num, row_num, false);
+		model.flagGridOccupy(col, row, col_num, row_num, false);
 
 		//find Idle grids arround from the target grid
-		var pos_ = desktopGrid.findIdleGrid(_target_col,_target_row,col_num,row_num);
+		var pos_ = model.findIdleGrid(_target_col,_target_row,col_num,row_num);
 		if (pos_ != null) {
 			// $('#grid_'+pos_.x+'_'+pos_.y).append($('#'+_id));
 			console.log(_id + " ---> " + pos_.x + '  '  + pos_.y);
-			desktop._wm.getById(_id).getModel().setPosition({x: pos_.x, y: pos_.y});
-			desktopGrid.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
-			if(desktop._wm.getById(_id).getModel().getType().match(/\w*Plugin/) == null) {
+			s_widget.setPosition({x: pos_.x, y: pos_.y});
+			model.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
+			if(s_widget.getType().match(/\w*Plugin/) == null) {
 				desktop.reOrderDEntry();
 				desktop.resetDEntryTabIdx();
 			}
 			return ;
 		}
 
-		desktopGrid.flagGridOccupy(col, row, col_num, row_num, true);
+		model.flagGridOccupy(col, row, col_num, row_num, true);
 		console.log(_target_id + " is occupied");
 	},
 
@@ -307,7 +376,7 @@ var GridView = WidgetView.extend({
 	}
 });
 
-var EntryView = WidgetView.extend({
+var DEntryView = WidgetView.extend({
 	init: function(id_, model_) {
 		this.callSuper(id_, model_);
 		this.registObservers();
@@ -318,6 +387,7 @@ var EntryView = WidgetView.extend({
 			'draggable': 'true'/* , */
 			/* 'tabindex': this._tabIndex */
 		}).html("<img draggable='false'/><p>" + this._model.getName() + "</p>");
+		this.initAction(this.$view);
 	},
 
 	registObservers: function() {
@@ -368,6 +438,7 @@ var EntryView = WidgetView.extend({
 				desktop = _global.get('desktop');
 
 		$selector.dblclick(function() {
+			_this._controller.onDblclick();
 		}).mouseenter(function() {
 			$(this).parent().addClass('norhover');
 			var $p = $('#' + _entry.getID() + ' p');
@@ -408,7 +479,6 @@ var EntryView = WidgetView.extend({
 			default:
 				break;
 		};
-		this.initAction(this.$view);
 	},
 
 	hide: function() {
@@ -443,19 +513,43 @@ var EntryView = WidgetView.extend({
 
 var DeviceListView = View.extend({
 	init: function(model_) {
-		this.callSuper('device-list-view', model_);
+		this.callSuper('device-list', model_);
 		this.registObservers();
 		this.$view = $('div', {
 			'id': this._id
 		});
+		this._c = [];
 	},
 	
 	registObservers: function() {
 		var _this = this;
 		this._model.on('add', function(err_, dev_) {
 			// TODO: create a device entry view with the dev_ model object
+			_this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_);
+			_this._c[dev_.getID()].show(this.$view);
 		}).on('remove', function(err_, dev_){
 			// TODO: delete the device entry view associated by dev_
 		});
+	},
+
+	show: function($parent) {
+		$parent.append(this.$view);
 	}
 });
+
+var DevEntryView = View.extend({
+	init: function(id_, model_) {
+		this.callSuper(id_, model_);
+		this.registObservers();
+		this.$view = $();
+		this.initAction();
+	},
+
+	registObservers: function() {},
+
+	show: function($parent) {
+		$parent.append(this.$view);
+	},
+
+	initAction: function() {},
+})
