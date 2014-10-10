@@ -39,7 +39,7 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
   首先：建立一个带有title的元素如图片：
 <pre>
 <code>
-  \<img title='picture-title' id='test-img' src="/img/clock.png"/\>
+  img title='picture-title' id='test-img' src="/img/clock.png"/
 </code>
 </pre>
 <br />
@@ -143,7 +143,7 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 	在需要添加图标的位置写入
 <pre>
 <code>
-	\<a href='#'\>\<i class='icon-user'\>\</i\>\</a\> //其中icon-user是要添加图标的种类。
+	<a href='http://www.bootcss.com/p/font-awesome/#icons-new'><i class='icon-user'><i> </a> //其中icon-user是要添加图标的种类。
 </code>
 </pre>
 
@@ -167,7 +167,46 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 </code>
 </pre>
 	更多设置（demo）：
-[demo]: <http://ignitersworld.com/lab/modalBox.html#demo>
+[demo]: <http://ignitersworld.com/lab/modalBox.html#demo> "demo"
 	github项目网址：
-[github网址]: <https://github.com/s-yadav/modalBox.js>
+[github网址]: <https://github.com/s-yadav/modalBox.js> "github网址"
+
+6、tab库
+=========
+	tab库提供简单的建立tab的方法，使用方法如下：
+	1、首先创建一个tab对象：
+<pre>
+<code>
+	var tab = Tab.create('id',['tab1','tab2',...]，pos，size); 
+	//'id'为自己定义的tab的窗口的id，不可为空。
+	//tab1和tab2是tab标签的标签名。用于显示标签名，不可为空。
+	//pos位置选项，要有pos.left和pos.top项。可为空
+	//size大小选项，要有size.width和size.height选项，可为空
+	如：
+		_tab = Tab.create('property-tab',['basic', 'power']);
+</code>
+</pre> <br />
+	2、向tab对象中添加要显示的内容
+<pre>
+<code>
+	_tab.addaddDivByTab($div_,'tab1');
+	//$div_ 是一个jquery元素对象用于append（$div_）
+	//tab1是一个tab的标签名
+</code>
+</pre> <br />
+	3、将tab对象加入到父元素内
+<pre>
+<code>
+	_tab.injectParent($parent_);
+	//$parent_是父元素的jquery对象。
+</code>
+</pre> <br />
+	4、设置最初显示的tab。
+<pre>
+<code>
+	_tab.setShowByTab('tab1');
+	//tab1为初始显示tab1指向的div的内容，如果tab1不存在初始不显示任何内容。
+</code>
+</pre> <br />
+	<strong>注：可以自定义设置css，具体设置方法可以参看property.less内容。</strong>
 	
