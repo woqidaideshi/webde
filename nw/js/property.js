@@ -28,31 +28,16 @@ var Property = Class.extend({
 		});
 		_property.append(_property_title);
 
-		//show information of property-show
-		var _property_show = $('<div>', {
-			'class': 'property-show',
-		});
-		_property.append(_property_show);
+		this._tab = Tab.create('property-tab',['basic', 'power']);
 
-		//tabs of different type of information
-		var _property_tabs  = "<div id='" +this._id
-				+"-tabs' class='property-tabs'><a href='#"
-				+this._id +"-basic'>基本</a><a href='#"
-				+this._id+"-power'>权限</a></div>";
-		_property_show.html(_property_tabs);
-
-		//2 tab of basic information
-		var _property_basic =  $('<div>', {
-			'class': 'tabcontent',
-			'id': this._id+'-basic'
-		});
-		_property_show.append(_property_basic);
+		//_property.append(this._tab._tabShow);
+		this._tab.injectParent(_property);
 
 		var _property_icon = $('<div>', {
 			'class': 'iconcontent',
 			'id': this._id+'-icon'
 		});
-		_property_basic.append(_property_icon);
+		this._tab.addDivByTab(_property_icon,'basic');
 
 		var _property_img = $('<img>',{
 			'class':'imgcontent',
@@ -64,14 +49,7 @@ var Property = Class.extend({
 			'class': 'basicinfocontent',
 			'id': this._id+'-basicinfo'
 		});
-		_property_basic.append(_property_basic_info);
-
-		var _property_power =  $('<div>', {
-			'class': 'tabcontent',
-			'id': this._id+'-power'
-		});
-		_property_show.append(_property_power);
-		
+		this._tab.addDivByTab(_property_basic_info,'basic');
 		//button 
 		var _property_close = $('<button>',{
 			'class': 'property-close',
@@ -88,27 +66,6 @@ var Property = Class.extend({
 	//bind events to div: include drag, tabs and close
 	bindEvents:function(){
 		var _this = this;
-		// tabs 
-		$(function() {  
-        	var tabhosts = $($('#'+_this._id+'-tabs').children('a')); 
-          	tabhosts.each(function() {
-            	$($(this).attr("href")).hide();
-            	if ($(this).hasClass("selected")) {
-            	    $($(this).attr("href")).show();  
-            	}    
-            	$(this).mousedown(function(event) {  
-                	event.preventDefault();    
-                	if (!$(this).hasClass("selected")) {  
-                    	tabhosts.each(function() {  
-                        	$(this).removeClass("selected");  
-                        	$($(this).attr("href")).hide(500);  
-                    	});  
-                    	$(this).addClass("selected");  
-                    	$($(this).attr("href")).show(500);  
-                	}  
-            	});  
-        		});  
-    		});  
 
 		//property animate and remove();
 		$('#' +_this._id+ '-close').click(function(e){
@@ -187,9 +144,7 @@ var Property = Class.extend({
 			_this.showIcon(desktop._widgets[_this._id]._imgPath);
 			_this.showBasicProperty();
 			//get launch commad
-			var tabhosts = $($('#'+_this._id+'-tabs').children('a')); 
-			$(tabhosts[0]).addClass("selected");  
-            	$($(tabhosts[0]).attr("href")).show(); 
+			_this._tab.setShowByTab('basic');
 		});
 	},
 
@@ -242,14 +197,14 @@ var Property = Class.extend({
 			}
 			var _access = attr_['access'];
 			checkPower(_access.substr(1,3));
-			$('#'+_this._id+'-power').append("<p>    <span>▪</span>所有者:  " + attr_['uid'] + "</p>");
-			$('#'+_this._id+'-power').append("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>");
+			_this._tab.addDivByTab("<p>    <span>▪</span>所有者:  " + attr_['uid'] + "</p>",'power');
+			_this._tab.addDivByTab("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
 			checkPower(_access.substr(4,3));
-			$('#'+_this._id+'-power').append("<p>    <span>▪</span>用户组:  " + attr_['gid'] + "</p>");
-			$('#'+_this._id+'-power').append("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>");
+			_this._tab.addDivByTab("<p>    <span>▪</span>用户组:  " + attr_['gid'] + "</p>",'power');
+			_this._tab.addDivByTab("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
 			checkPower(_access.substr(7,3));
-			$('#'+_this._id+'-power').append("<p>    <span>▪</span> 其他:  </p>");
-			$('#'+_this._id+'-power').append("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>");
+			_this._tab.addDivByTab("<p>    <span>▪</span> 其他:  </p>", 'power');
+			_this._tab.addDivByTab("<p> &nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>", 'power');
 		});
 	},
 
@@ -270,7 +225,7 @@ var Property = Class.extend({
 			showDiv.css('top',top_+'px');
 			showDiv.show();
 			var box_width =$(window).width()/4;
-			var box_height = $(".property .property-show .tabcontent").height()*3/2.1;
+			var box_height = $(".property .tab-show .tab-content").height()*3/2.1;
 			var top_property= $(window).height()/2-box_height/2;
 			var left_property =$(window).width()/2-box_width/2;
 			$('#' +desktop._rightObjId+ '-property').animate({top:top_property,opacity:'show',width:box_width,height:box_height,left:left_property},500);

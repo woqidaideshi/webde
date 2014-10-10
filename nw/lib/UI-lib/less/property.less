@@ -15,51 +15,18 @@
   		text-align: center;
   		background-color:@propertyTitleBackgroundColor;
   		position:relative;
-        margin: 0 0 10px 0;
-        padding: 5px;
-        cursor: move;
+          margin: 0 0 10px 0;
+          padding: 5px;
+          cursor: move;
   		line-height:@propertyTitleHeight;
   		color:@propertyTitleTextColor;
   		.select(none);
 	}
 	
-	.property-show{
-    	margin: 10px;  
-        .select(none);
-
-		.property-tabs {
-   			margin: 0px 5px 7px 5px;  
-  			height: @propertyHeight/30;
-			
-			a {  
-    			text-decoration: none;  
-    			background: @propertyBackgroundColor;    
-    			color: @tabTextColor;  
-    			padding: 5px 5px 1px 5px;  
-                .border;
-                .radius(6px,6px,0,0);
-    			z-index: 999;
-			
-				&:hover {
-					background: @tabTextColor;  
-    				color: @backgroundColor;  
-    				padding-bottom: 2px; 
-				}
-
-				&.selected{
-					background: @backgroundColor;  
-    				color: @tabTextColor;  
-    				border-bottom:none;
-    				padding-bottom: 2px; 
-				}
-			}  
-		}
-		.tabcontent {  
-   			margin: -2px 5px 0px 5px;  
-    		z-index: 10;
-    		.border;
-    		height: @propertyContextHeight;  
-            background-color: @backgroundColor;
+	.tab-show{
+        background-color:@propertyBackgroundColor;
+		.tab-content{  
+    		  height: @propertyContextHeight;  
             .select(none);
     			p{
     				font-size:@propertyFrontSize;
