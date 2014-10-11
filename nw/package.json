@@ -10,6 +10,9 @@
     "as_desktop": true,
     "frame": true
   },
+  "dependencies": {
+    "demo-rio": "~0.0.1"
+  },
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-contrib-concat": "~0.4.0",
