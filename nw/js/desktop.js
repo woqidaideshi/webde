@@ -145,6 +145,14 @@ var Desktop = Class.extend({
 				location.reload(true);
 			}},
 			{divider: true},
+			{text:'window',action:function(){
+				Window.create('newWin','Test Window ', {
+					left:200,
+					top:100,
+					height: 300,
+					width: 800
+				});
+			}},
 			{text: 'app-plugin',icon: 'icon-plus', subMenu: [
 				{header: 'add-plugin'},
 				{text: 'clock',icon: 'icon-time', action: function(e) {
