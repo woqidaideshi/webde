@@ -209,4 +209,39 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 </code>
 </pre> <br />
 	<strong>注：可以自定义设置css，具体设置方法可以参看property.less内容。</strong>
+
+7、window库
+==========
+	用于快速建立窗口的插件，使用方法为：
+<code>
+<pre>
+	Window.create('newWin','Test Window ', {
+		left:200,
+		top:100,
+		height: 300,
+		width: 800
+	});
+</pre>
+</code>
+
+	目前可设置的选项有：
+<code>
+<pre> <br />
+	close: true，              //右上角关闭按钮，可点击
+	max: true,                ////右上角最大化按钮，可点击
+	min: false,               //右上角最小化按钮，可点击
+	hide: true,               //右上角隐藏内容按钮，可点击
+	fadeSpeed: 100,           //打开窗口速度
+	hideWindow: false,        //是否直接显示窗口
+	width: 600,               //宽
+	height: 600,              //高
+	left: 0,
+	top: 0,
+	contentDiv: true,         //是否新建div窗口
+	resize: false,            //目前不可用
+	minWidth: 200,            //最小窗口 目前不可用
+	minHeight:200             //最小窗口 目前不可用
+</code>
+</pre> <br />
+
 	
