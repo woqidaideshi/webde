@@ -108,6 +108,8 @@ var Model = Event.extend({
 		// this._obList = [];
 	},
 
+	release: function() {},
+
 	getID: function() {return this._id;},
 
 	add: function(component_) {

@@ -207,6 +207,13 @@ var DesktopModel = Model.extend({
 		/* }); */
 	},
 
+	release: function() {
+		for(var key in this._c) {
+			this._c[key].release();
+		}
+		this._desktopWatch.close();
+	},
+
 	// Put codes needed run before starting in this function
 	// The cb_ should be called at the end of this function
 	//
@@ -279,17 +286,18 @@ var DesktopModel = Model.extend({
 		this._desktopWatch.on('add', function(filename, stats) {
 			//console.log('add:', filename, stats);
 			var _filenames = filename.split('.'),
-					_model,
+					_model = null,
 					_id = 'id-' + stats.ino.toString();
 			
 			if(_filenames[0] == '') {
 				return ;//ignore hidden files
 			}
 			if(stats.isDirectory()) {
-				// _Entry = DirEntry;
+				_model = DirEntryModel.create(_id
+							, _desktop._desktopWatch.getBaseDir() + '/' + filename
+							, _desktop._position);
 			} else {
 				if(_filenames[_filenames.length - 1] == 'desktop') {
-					// _Entry = AppEntry;
 					try {
 						_model = _desktop.getCOMById('launcher').get(_id);
 					} catch(e) {
@@ -299,11 +307,14 @@ var DesktopModel = Model.extend({
 						_desktop.getCOMById('launcher').set(_model);
 					} 
 				} else {
-					// _Entry = FileEntry;
+					_model = FileEntryModel.create(_id
+							, _desktop._desktopWatch.getBaseDir() + '/' + filename
+							, _desktop._position);
 				}
 			}
 
-			_desktop.getCOMById('layout').add(_model);
+			if(_model != null)
+				_desktop.getCOMById('layout').add(_model);
 			// _desktop.addAnDEntry(EntryView.create(_id + '-entry-view', _model), _model.getPosition());
 		});
 		this._desktopWatch.on('delete', function(filename) {
@@ -480,6 +491,104 @@ var AppEntryModel = EntryModel.extend({
 				console.log(err);
 			}
 		});
+	},
+
+	setName: function(name_) {
+		if(name_ != this._name) {
+			// TODO: rename a app entry
+		}
+	}
+});
+
+var FileEntryModel = EntryModel.extend({
+	init: function(id_, path_, position_, callback_) {
+		this.callSuper(id_, path_, position_);
+		var	match = /^.*[\/]([^\/]*)$/.exec(path_);
+		this._name = match[1];
+		this._type = 'file';
+		match = this._name.match(/[\.][^\.]*$/);
+		if(match != null) this._type = match[0].substr(1);
+		this.realInit(callback_);
+	},
+
+	realInit: function(callback_) {
+		var cb_ = callback_ || function() {};
+		var _this = this,
+				utilIns = _global.get('utilIns');
+		utilIns.entryUtil.getMimeType(_this._path, function(err_, mimeType_) {
+			// TODO: try to get icon from cache first
+			utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48
+				, function(err_, imgPath_) {
+					if(err_) {
+						utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) {
+							if(err_) console.log(err_);
+							// TODO: try to get icon from cache first
+							utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+								if(err_) console.log(err_);
+								utilIns.entryUtil.getIconPath(file_['Icon'], 48
+									, function(err_, imgPath_) {
+										if(err_) {
+											console.log(err_);
+											cb_(err_);
+										} else {
+											_this.setImgPath(imgPath_[0]);
+											cb_(null);
+										}
+								});
+							});
+						});
+					} else {
+						_this.setImgPath(imgPath_[0]);
+						cb_(null);
+					}
+				});
+		});
+		_this.setName(this._name);
+	},
+
+	setName: function(name_) {
+		if(name_ != this._name) {
+			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
+			this._path = _match[1] + newName_;
+			_match = /(.*)[\.]([^\.].*)$/.exec(newName_);
+			if(_match != null && _match[2] != this._type) {
+				this._type = _match[2];
+				// reparse the file type
+				this.realInit();
+			} else {
+				this._name = newName_;
+				this.emit('name', null, this._name);
+			}
+		}
+	},
+
+	open: function() {
+		_global._exec('xdg-open ' + this._path.replace(/ /g, '\\ ')
+				, function(err, stdout, stderr) {
+					if(err) console.log(err);
+				});
+	}
+});
+
+var DirEntryModel = FileEntryModel.extend({
+	init: function(id_, path_, position_, callback_) {
+		this.callSuper(id_, path_, position_);
+		this._type = 'dir';
+	},
+
+	// TODO: copy file to this dir
+	copyTo: function() {},
+
+	// TODO: move file to this dir
+	moveTo: function() {},
+
+	setName: function(name_) {
+		if(name_ != this._name) {
+			this._name = newName_;
+			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
+			this._path = _match[1] + this._name;
+			this.emit('name', null, this._name);
+		}
 	}
 });
 
@@ -504,7 +613,9 @@ var LauncherModel = Model.extend({
 	set: function(id_, app_) {
 		this._appCache[id_] = app_;
 		this.emit('new', null, app_);
-	}
+	},
+
+	release: function() {}
 });
 
 // The manager of Widgets
@@ -516,6 +627,7 @@ var WidgetManager = Model.extend({
 	},
 
 	loadWidgets: function() {
+		// TODO: load theme entry
 		var _lastSave = [],
 				desktop = _global.get('desktop'),
 				lines = desktop._USER_CONFIG.split('\n');
@@ -668,6 +780,8 @@ var LayoutModel = WidgetModel.extend({
 		this._row_num = Math.floor(this._height / this._row);
 		this._grid = [];
 	},
+
+	release: function() {},
 
 	add: function(widget_) {
 		this._wm.add(widget_);
@@ -929,23 +1043,49 @@ var DeviceListModel = Model.extend({
 		this.callSuper('device-list');
 	},
 
+	release: function() {
+		// TODO: release device monitor server
+		_global._device.removeDeviceListener(this.__handler);
+		_global._device.entryGroupReset();
+	},
+
+	__handler: function(ev_, dev_) {
+		if(dev_ == null) return ;
+		var _this = _global.get('desktop').getCOMById('device-list'),
+				id_ = dev_.address + ':' + dev_.port;
+		switch(ev_) {
+			case 'ItemNew':
+				var device = DeviceEntryModel.create(id_, dev_.name);
+				_this.add(device);
+				break;
+			case 'ItemRemove':
+				var device = _this.getCOMById(id_);
+				_this.remove(device);
+				break;
+		}
+	},
+
 	start: function() {
-		// load devices
-		/* _global._device.showDeviceList(function(devs_) {  */
+		//load devices
+		/* _global._device.showDeviceList(function(devs_) {   */
 			// for(var addr in devs_) {
 				// var id_ = addr + ':' + devs_[addr].port;
 				// var device = DeviceEntryModel.create(id_, devs_[addr].name);
 				// _this.add(device);
 			// }
 		/* }); */
-
 		var _this = this;
-		this._timer = setInterval(function() {
-			for(var id in _this._c) {
-				_this._c[id]._offline = true;
-			}
-			// update device list
-			/* _global._device.showDeviceList(function(devs_) { */
+		_global._device.addDeviceListener(this.__handler);
+		_global._device.createServer(function() {
+			_global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
+		})
+
+		/* this._timer = setInterval(function() { */
+			// for(var id in _this._c) {
+				// _this._c[id]._offline = true;
+			// }
+			// // update device list
+			// _global._device.showDeviceList(function(devs_) { 
 				// for(var addr in devs_) {
 					// var id_ = addr + ':' + devs_[addr].port;
 					// if(typeof _this._c[id_] === 'undefined') {
@@ -960,23 +1100,20 @@ var DeviceListModel = Model.extend({
 						// _this.remove(_this._c[id]);
 					// }
 				// }
-			/* }); */
-		}, 5000);
-	},
-
-	stop: function() {
-		clearInterval(this._timer);
+			// }); 
+		/* }, 5000); */
 	}
 });
 
 var DeviceEntryModel = EntryModel.extend({
 	// @id_ is address:port
 	// @path_ is name
-	init: function(id_, path_, position_) {
+	init: function(id_, path_, position_, callback_) {
 		this.callSuper(id_, path_, position_);
 		this._name = path_;
 		this._offline = false;
 		this._type = 'dev';
+		this.realInit(callback_);
 	},
 
 	realInit: function(cb_) {
@@ -991,3 +1128,4 @@ var DeviceEntryModel = EntryModel.extend({
 	// TODO: send a file to this device
 	copyTo: function() {}
 });
+

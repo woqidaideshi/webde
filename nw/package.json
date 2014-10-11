@@ -8,5 +8,9 @@
 		"show_in_taskbar": false,
 		"as_desktop": true,
 		"frame":true
+	}, 
+	"dependencies": {
+    "demo-rio": "~0.0.1"
 	}
-}
+}	
+

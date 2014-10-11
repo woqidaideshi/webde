@@ -10,6 +10,7 @@ var DesktopView = View.extend({
 		this.registObservers();
 		this.$view = $('body');
 		this._c = [];
+		this.initAction();
 	}, 
 	
 	registObservers: function() {
@@ -24,6 +25,7 @@ var DesktopView = View.extend({
 					break;
 				case 'device-list':
 					_this._c['device-list'] = DeviceListView.create(component_);
+					_this._c['device-list'].show(_this.$view);
 					break;
 				default:
 					console.log('unknown type of component');
@@ -41,6 +43,13 @@ var DesktopView = View.extend({
 				default:
 					break;
 			}
+		});
+	},
+
+	initAction: function() {
+		var _this = this;
+		$(window).on('unload', function() {
+			_this._model.release();
 		});
 	}
 });
@@ -217,6 +226,7 @@ var GridView = WidgetView.extend({
 
 	drag: function(ev) {
 		console.log("grid is not allowed to drag");
+		ev.stopPropagation();
 	},
 
 	dragOver: function(ev) {
@@ -515,8 +525,15 @@ var DeviceListView = View.extend({
 	init: function(model_) {
 		this.callSuper('device-list', model_);
 		this.registObservers();
-		this.$view = $('div', {
+		this.$view = $('<div>', {
 			'id': this._id
+		}).css({
+			'position': 'absolute',
+			'left': '0',
+			'top': '50%',
+			'background-color': '#000',
+			'width': '100px',
+			'height': '50%'
 		});
 		this._c = [];
 	},
@@ -525,10 +542,21 @@ var DeviceListView = View.extend({
 		var _this = this;
 		this._model.on('add', function(err_, dev_) {
 			// TODO: create a device entry view with the dev_ model object
+			if(err_) {
+				console.log(err_);
+				return ;
+			}
 			_this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_);
-			_this._c[dev_.getID()].show(this.$view);
+			_this._c[dev_.getID()].show(_this.$view);
 		}).on('remove', function(err_, dev_){
 			// TODO: delete the device entry view associated by dev_
+			if(err_) {
+				console.log(err_);
+				return ;
+			}
+			_this._c[dev_.getID()].hide();
+			_this._c[dev_.getID()] = null;
+			delete _this._c[dev_.getID()];
 		});
 	},
 
@@ -541,7 +569,14 @@ var DevEntryView = View.extend({
 	init: function(id_, model_) {
 		this.callSuper(id_, model_);
 		this.registObservers();
-		this.$view = $();
+		this.$view = $('<div>', {
+			'id': this._id
+		}).css({
+			'position': 'absolute',
+			'background-color': '#FFF',
+			'width': '80px',
+			'height': '80px'
+		});
 		this.initAction();
 	},
 
@@ -549,6 +584,10 @@ var DevEntryView = View.extend({
 
 	show: function($parent) {
 		$parent.append(this.$view);
+	},
+
+	hide: function() {
+		this.$view.remove();
 	},
 
 	initAction: function() {},

@@ -479,35 +479,54 @@ var Global = Class.extend({
 		this.$xdg_data_dirs = undefined;
 		this.$xdg_data_home = undefined;
 		this.objects = [];
-		//TODO: change the nodejs'API to ourselves
-		this._fs = require('fs');
-		this._exec = require('child_process').exec;
-		// this._device = require('device.js');
-	
+		
 		var _this = this;
-		_this._exec('echo $HOME', function(err, stdout, stderr) {
-			if(err) {
-				console.log(err);
-				callback_(err);
-			} else {
-				_this.$home = stdout.substr(0, stdout.length - 1);
-				_this.$xdg_data_home = _this.$home + '/.local/share/cdos';
-				_this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
-					if(err) {
-						console.log(err);
-						callback_(err);
-					} else {
-						_this.$xdg_data_dirs = stdout.substr(0, stdout.length - 1).split(':');
-						for(var i = 0; i < _this.$xdg_data_dirs.length; ++i) {
-							_this.$xdg_data_dirs[i] 
-								= _this.$xdg_data_dirs[i].replace(/[\/]$/, '');
+		this.Series.series([
+			{
+				fn: function(pera_, cb_) {
+					//TODO: change the nodejs'API to ourselves
+					_this._fs = require('fs');
+					_this._exec = require('child_process').exec;
+					WDC.requireAPI(['device'], function(dev) {
+						_this._device = dev;
+						cb_(null);
+					});
+				}
+			},
+			{
+				fn: function(pera_, cb_) {
+					_this._exec('echo $HOME', function(err, stdout, stderr) {
+						if(err) {
+							console.log(err);
+							callback_(err);
+						} else {
+							_this.$home = stdout.substr(0, stdout.length - 1);
+							_this.$xdg_data_home = _this.$home + '/.local/share/cdos';
+							_this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
+								if(err) {
+									console.log(err);
+									callback_(err);
+								} else {
+									_this.$xdg_data_dirs = stdout.substr(0, stdout.length - 1).split(':');
+									for(var i = 0; i < _this.$xdg_data_dirs.length; ++i) {
+										_this.$xdg_data_dirs[i] 
+											= _this.$xdg_data_dirs[i].replace(/[\/]$/, '');
+									}
+			
+									cb_(null);
+								}
+							});
 						}
-
-						callback_(null);
-					}
-				});
+					});
+				}
 			}
+		], function(err_, rets_) {
+			if(err_)
+				callback_(err_);
+			else
+				callback_(null);
 		});
+		
 	},
 
 	addGObjects: function() {
