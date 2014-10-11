@@ -26,6 +26,7 @@ You can use commad like:
     git
     node(包括npm)
     grunt (npm install -g grunt-cli)
+    demo-rio(branch data2)
 
 ###配置环境###
 	1、请安装grunt客户端，使用如下命令进行安装：
