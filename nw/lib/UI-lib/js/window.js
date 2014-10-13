@@ -165,6 +165,11 @@ var Window = Class.extend({
 			ev.stopPropagation();
 		});
 
+		//forbid context menu
+		$(document).on('contextmenu','#'+_this._window[0].id, function(ev){
+			ev.stopPropagation();
+			ev.preventDefault();
+		});
 
 		//drag window
 		this._titleDiv.mousedown(function(ev){
