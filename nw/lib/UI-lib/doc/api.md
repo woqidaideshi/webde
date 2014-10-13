@@ -228,19 +228,21 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 <code>
 <pre> <br />
 	close: true，              //右上角关闭按钮，可点击
-	max: true,                ////右上角最大化按钮，可点击
+	max: true,                //右上角最大化按钮，可点击
 	min: false,               //右上角最小化按钮，可点击
 	hide: true,               //右上角隐藏内容按钮，可点击
 	fadeSpeed: 100,           //打开窗口速度
 	hideWindow: false,        //是否直接显示窗口
 	width: 600,               //宽
 	height: 600,              //高
-	left: 0,
-	top: 0,
+	left: 0,                  //位置x坐标
+	top: 0,                   //位置y坐标
 	contentDiv: true,         //是否新建div窗口
-	resize: false,            //目前不可用
-	minWidth: 200,            //最小窗口 目前不可用
-	minHeight:200             //最小窗口 目前不可用
+	resize: false,            //设置是否可重新调整窗口的大小
+	minWidth: 200,            //设置窗口的最小宽度
+	minHeight:200,            //设置窗口的最小高度
+	animate: true,            //动画效果
+	contentDiv: true          //包含放置内容的div
 </code>
 </pre> <br />
 

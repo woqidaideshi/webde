@@ -66,7 +66,7 @@ var Desktop = Class.extend({
 		win.once('loading', function() {
 			_desktop.refresh();
 		});
-		_desktop._ctxMenu.attachToMenu('html'
+		_desktop._ctxMenu.attachToMenu('body'
 			, _desktop._ctxMenu.getMenuByHeader('desktop')
 			,this.loadScriptMenu);
 	
@@ -149,8 +149,20 @@ var Desktop = Class.extend({
 				Window.create('newWin','Test Window ', {
 					left:200,
 					top:100,
-					height: 300,
-					width: 800
+					height: 400,
+					width: 700,
+					fadeSpeed: 500,
+					animate: false
+				});
+			}},
+			{text:'window2',action:function(){
+				Window.create('newWin','Test Window2!', {
+					left:400,
+					top:300,
+					height: 500,
+					width: 800,
+					fadeSpeed: 500,
+					animate: false
 				});
 			}},
 			{text: 'app-plugin',icon: 'icon-plus', subMenu: [
