@@ -194,6 +194,24 @@ var GridView = WidgetView.extend({
 		delete this._c[entry_.getID()];
 	},
 
+  addAnDPlugin: function(pluginView_, plugin_) {
+		var pos_ = plugin_.getPosition();
+		if(typeof pos_ === 'undefined') {
+			pos_ = this._model.findAnIdleGridFromRight();
+			if(pos_ == null) {
+				alert("No room");
+				this._model.remove(plugin_);
+				return ;
+			}
+		}
+
+		plugin_.setPosition(pos_);
+		/* plugin_.show(); */
+		/* plugin_.setPanel(path_); */
+		//get number of occupy-grid col and row
+		this._model.flagGridOccupy(pos_.x, pos_.y, plugin_.getColNum(), plugin_.getRowNum(), true);
+	},
+
 	show: function($parent) {
 		$parent.append(this.$view);
 
@@ -386,6 +404,119 @@ var GridView = WidgetView.extend({
 	}
 });
 
+var DPluginView = WidgetView.extend({
+  init: function(id_, model_) {
+    this.callSuper(id_, model_);
+    this.registObservers();
+    // this._controller = null;
+    this.$view = $('<div>', {
+			'class': 'plugin-div',
+			'id': this._id,
+			'draggable': 'true'
+		}).html("<canvas id='" + this._id + this._model._content + "' width='100%' height='100%'/>");
+    this.initAction(this.$view);
+  },
+	
+	registObservers: function() {
+		var _this = this;
+		this._model.on('size', function(err_, size_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      _this.$view.width(size_.width);
+      _this.$view.height(size_.height);
+		}).on('position', function(err_, pos_) {
+      var layoutType = _global.get('desktop').getLayoutType();
+      switch(layoutType) {
+        case 'grid':
+          _this.show($('#grid_' + pos_.x + ' ' + pos_.y));
+          break;
+        default:
+          break;
+      }
+    });
+	},
+
+	initAction: function($selector) {
+    this.callSuper($selector);
+		$selector.on('mousedown', function(e) {
+      e.stopPropagation();
+    }).on('mouseup', function(e) {
+      e.stopPropagation();
+    });
+	},
+
+  show: function($parent) {
+    $parent.append(this.$view);
+  },
+
+  hide: function() {
+    this.$view.remove();
+  }
+
+  dragover: function(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+  },
+
+  drop: function(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+});
+
+var ClockPluginView = DPluginView({
+  init: function(id_, model_) {
+    this.callSuper(id_, model_);
+  },
+
+  show: function($parent) {
+    this.callSuper($parent);
+    var _target = $('#' + this._id + this._model._content),
+		    _context = _target[0].getContext('2d'),
+        _size = this._model.getSize(),
+        _img = new Image();
+
+    _img.src = this._model._path;
+		_img.onload = function() {  
+		  _context.drawImage(_img, 0, 0, _width, _height);
+		}
+
+    (function() {
+			var _type = [['#000',70,1],['#ccc',60,2],['red',50,3]];
+			function drwePointer(type_, angle_){
+				type_ = _type[type_];
+				angle_ = angle_*Math.PI*2 - 90/180*Math.PI; 
+				var _length= type_[1] / (200/ _width);
+				_context.beginPath();
+				_context.lineWidth = type_[2];
+				_context.strokeStyle = type_[0];
+				_context.moveTo( _width/2, _height/2); 
+				_context.lineTo( _width/2 + _length*Math.cos(angle_), _height/2 + _length*Math.sin(angle_)); 
+				_context.stroke();
+				_context.closePath();
+			}
+			setInterval(function (){
+				_context.clearRect(0,0, _height, _width);
+				_context.drawImage(_img,0,0, _width, _height);
+				var _time = new Date();
+				var _hour = _time.getHours();
+				var _mimute = _time.getMinutes();
+				var _second = _time.getSeconds(); 
+				_hour = _hour > 12?_hour - 12: _hour;
+				_hour = _hour+_mimute/60; 
+				_hour=_hour/12;
+				_mimute=_mimute/60;
+				_second=_second/60;
+				drwePointer(0,_second);
+				drwePointer(1,_mimute);
+				drwePointer(2,_hour); 
+			}, 100);
+		})();
+  }
+});
+
 var DEntryView = WidgetView.extend({
 	init: function(id_, model_) {
 		this.callSuper(id_, model_);
@@ -408,7 +539,7 @@ var DEntryView = WidgetView.extend({
 				console.log(err_);
 				return;
 			}
-			$('#' + _this._id + ' p').text(newName_);
+      _this.$view.children('p').text(newName_);
 		}).on('imgPath', function(err_, imgPath_) {
 			if(err_) {
 				console.log(err_);
@@ -527,14 +658,22 @@ var DeviceListView = View.extend({
 		this.registObservers();
 		this.$view = $('<div>', {
 			'id': this._id
-		}).css({
+		}).css({ 
 			'position': 'absolute',
 			'left': '0',
 			'top': '50%',
 			'background-color': '#000',
+      'opacity': '0.5',
 			'width': '100px',
-			'height': '50%'
-		});
+			'height': '50%',
+			'display': '-webkit-box',
+			'-webkit-box-orient': 'vertical',
+			'-webkit-box-pack': 'start',
+			'-webkit-box-align': 'start',
+			'-webkit-user-select': 'none',
+			'-moz-user-select': 'none',
+      'box-shadow': '0px 0px 10px black'
+		}) ;
 		this._c = [];
 	},
 	
@@ -570,17 +709,25 @@ var DevEntryView = View.extend({
 		this.callSuper(id_, model_);
 		this.registObservers();
 		this.$view = $('<div>', {
+      'class': 'icon',
 			'id': this._id
-		}).css({
-			'position': 'absolute',
-			'background-color': '#FFF',
-			'width': '80px',
-			'height': '80px'
-		});
+    }).html("<img draggable='false'/><p>" + this._model.getName() + "</p>").css({ 
+      'color': '#FFF'
+    }) ;
 		this.initAction();
 	},
 
-	registObservers: function() {},
+	registObservers: function() {
+    var _this = this;
+    _this._model.on('name', function(err_, name_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      _this.$view.children('p').text(name_);
+			// $('#' + _this._id + ' p').text(name_);
+    })
+  },
 
 	show: function($parent) {
 		$parent.append(this.$view);
@@ -591,4 +738,4 @@ var DevEntryView = View.extend({
 	},
 
 	initAction: function() {},
-})
+});

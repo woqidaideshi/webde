@@ -197,7 +197,7 @@ var ClockPlugin = DPlugin.extend({
 			function drwePointer(type_,angle_){
 				type_ = _type[type_];
 				angle_ = angle_*Math.PI*2 - 90/180*Math.PI; 
-				var _length= type_[1]/(200/ _width);
+				var _length= type_[1] / (200/ _width);
 				_context.beginPath();
 				_context.lineWidth = type_[2];
 				_context.strokeStyle = type_[0];

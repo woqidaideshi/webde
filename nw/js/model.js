@@ -73,25 +73,46 @@ var ThemeModel = Model.extend({
 		for(var key in this._theme) {
 			if(key == 'icontheme') continue;
 			if(this._theme[key]['active'] == 'false') continue;
-			desktop_.addAnDEntry(ThemeEntry.create(
-						this._theme[key]['id'],
-						desktop_._tabIndex++,
-						this._theme[key]['path'],
-						this._theme[key]['icon'],
-						this._theme[key]['name']
-						), ((typeof this._theme[key]['pos'].x === 'undefined' 
-									|| typeof this._theme[key]['pos'].y === 'undefined')
-									? undefined : this._theme[key]['pos']));
+      this.addAThemeEntry(key);
+			/* desktop_.addAnDEntry(ThemeEntry.create( */
+						// this._theme[key]['id'],
+						// desktop_._tabIndex++,
+						// this._theme[key]['path'],
+						// this._theme[key]['icon'],
+						// this._theme[key]['name']
+						// ), ((typeof this._theme[key]['pos'].x === 'undefined' 
+									// || typeof this._theme[key]['pos'].y === 'undefined')
+									/* ? undefined : this._theme[key]['pos'])); */
 		}
 	},
+
+  addAThemeEntry: function(key_) {
+    _global.get('desktop').getCOMById('layout').add(ThemeEntryModel.create(
+      this._theme[key_]['id'],
+      this._theme[key_]['path'],
+      this._theme[key_]['icon'],
+      this._theme[key_]['name'],
+      ((typeof this._theme[key_]['pos'].x === 'undefined' 
+        || typeof this._theme[key_]['pos'].y === 'undefined')
+        ? undefined : this._theme[key_]['pos'])
+    ));
+  },
+
+  removeAThemeEntry: function(key_) {
+    var layout = _global.get('desktop').getCOMById('layout'),
+        entry = layout.getWidgetById(key_);
+    layout.remove(entry);
+  },
 
 	getIconTheme: function() {
 		return this._theme['icontheme']['name'];
 	},
 
 	setIconTheme: function(iconTheme_) {
-		this._theme['icontheme']['name'] = iconTheme_;
-		this.emit('IconTheme', null, iconTheme_);
+		if(this._theme['icontheme']['name'] != iconTheme_) {
+		  this.emit('IconTheme', null, iconTheme_);
+      this._theme['icontheme']['name'] = iconTheme_;
+    }
 	},
 
 	getComputer: function() {
@@ -99,8 +120,15 @@ var ThemeModel = Model.extend({
 	},
 
 	setComputer: function(active_) {
-		this._theme['computer']['active'] = active_;
-		this.emit('Computer', null, active_);
+    if(this._theme['computer']['active'] != active_) {
+		  this.emit('Computer', null, active_);
+      this._theme['computer']['active'] = active_;
+      if(active_) {
+        this.addAThemeEntry('computer');
+      } else {
+        this.removeAThemeEntry('computer');
+      }
+    }		
 	},
 	
 	getTrash: function() {
@@ -108,8 +136,15 @@ var ThemeModel = Model.extend({
 	},
 
 	setTrash: function(active_) {
-		this._theme['trash']['active'] = active_;
-		this.emit('Trash', null, active_);
+		if(this._theme['trash']['active'] != active_) {
+  	  this.emit('Trash', null, active_);
+      this._theme['trash']['active'] = active_;
+      if(active_) {
+        this.addAThemeEntry('trash');
+      } else {
+        this.removeAThemeEntry('trash');
+      }
+    }
 	},
 	
 	getNetwork: function() {
@@ -117,8 +152,15 @@ var ThemeModel = Model.extend({
 	},
 
 	setNetwork: function(active_) {
-		this._theme['network']['active'] = active_;
-		this.emit('Network', null, active_);
+    if(this._theme['network']['active'] != active_) {
+		  this.emit('Network', null, active_);
+      this._theme['network']['active'] = active_;
+      if(active_) {
+        this.addAThemeEntry('network');
+      } else {
+        this.removeAThemeEntry('network');
+      }
+    }
 	},
 	
 	getDocument: function() {
@@ -126,8 +168,15 @@ var ThemeModel = Model.extend({
 	},
 
 	setDocument: function(active_) {
-		this._theme['document']['active'] = active_;
-		this.emit('Document', null, active_);
+    if(this._theme['document']['active'] != active_) {
+		  this.emit('Document', null, active_);
+      this._theme['document']['active'] = active_;
+      if(active_) {
+        this.addAThemeEntry('document');
+      } else {
+        this.removeAThemeEntry('document');
+      }
+    }
 	}
 });
 
@@ -167,7 +216,6 @@ var DesktopModel = Model.extend({
 		// this._selector = DesktopSelector.create();
 		// this._position = undefined;
 		// this._tabIndex = -1;
-		// this._widgets = [];
 		// this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
 			// var pos1 = entry1_.getPosition();
 			// var pos2 = entry2_.getPosition();
@@ -243,6 +291,7 @@ var DesktopModel = Model.extend({
 	start: function(cb_) {
 		console.log('starting');
 		// TODO: Load contents to all components except Launcher and DeciceList
+    _global.get('theme').loadThemeEntry(this);
 		this.getCOMById('layout').load();
 		cb_(null);
 	},
@@ -359,6 +408,111 @@ var WidgetModel = Model.extend({
 	getID: function() {return this._id;},
 
 	setID: function(id_) {this._id = id_;},
+});
+
+var DPluginModel = WidgetModel.extend({
+  init: function(id_, path_, type_, position_) {
+    this.callSuper(id_, position_);
+    this._path = path_;
+		this._type = type_ || 'plugin';
+		this._col_num = 0;
+		this._row_num = 0;
+		this._content = 'Content';
+  },
+
+  getPath: function() {return this._path;},
+
+  getType: function() {return this._type;},
+
+  getColNum: function() {return this._col_num;},
+
+  getRowNum: function() {return this._row_num;},
+
+  getSize: function() {return this._size;},
+
+  setSize: function(size_) {
+    this._size = size_;
+    // TODO: recal col_num and row_num;
+    var grid = _global.get('desktop').getGrid();
+    if(grid != null) {
+      var gridSize = grid.getGridSize();
+      this._col_num = parseInt(this._size.width / gridSize.gridWidth - 0.00001) + 1;
+		  this._row_num = parseInt(this._size.height / gridSize.gridHeight - 0.00001) + 1;
+    }
+    this._emit('size', null, this._size);
+  },
+
+  zoomIn: function() {
+		if(this._size.width >= 180) {
+			alert('the plugin has been max size!!');
+		} else {
+			this.setSize({
+        'width': _width + 20,
+        'height': _width + 20
+      });
+      var grid = _global.get('desktop').getGrid();
+      if(grid != null)
+			  grid.flagGridOccupy(
+            _this._position.x, 
+            _this._position.y, 
+            _this._col_num, 
+            _this._row_num, 
+            true);
+
+			if(this._size.width == 180) { 
+				desktop._ctxMenu.disableItem('plugin', 'zoom in');
+			} else if (this._size.width == 60) {
+				desktop._ctxMenu.activeItem('plugin', 'zoom out', function(e) {
+					e.preventDefault();
+					_this.zoomOut();
+				});
+			};
+		}
+  },
+
+  zoomOut: function() {
+		if(this._size.width <= 60) {
+			alert('the plugin has been min size!!');
+		} else {
+      var grid = _global.get('desktop').getGrid();
+      if(grid != null)
+			  grid.flagGridOccupy(
+            _this._position.x, 
+            _this._position.y, 
+            _this._col_num, 
+            _this._row_num, 
+            false);
+      this.setSize({
+        'width': _width * 1 - 20,
+        'height': _width * 1 - 20
+      });
+      if(grid != null)
+			  grid.flagGridOccupy(
+            _this._position.x, 
+            _this._position.y, 
+            _this._col_num, 
+            _this._row_num, 
+            true);
+
+			if(this._size.width - 20 == 60) { 
+				desktop._ctxMenu.disableItem('plugin', 'zoom out');
+			} else if (this._size.width == 180) {
+				desktop._ctxMenu.activeItem('plugin', 'zoom in', function(e) {
+					e.preventDefault();
+					_this.zoomIn();
+				});
+			};
+		}
+  }
+});
+
+var ClockPluginModel = DPluginModel.extend({
+  init: function(id_, position_, path_) {
+    this.callSuper(id_, position_);
+    this._type = 'ClockPlugin';
+		this._path = path_;
+		this._content = 'Content';
+  }
 });
 
 // The model of Entry
@@ -493,7 +647,7 @@ var AppEntryModel = EntryModel.extend({
 		});
 	},
 
-	setName: function(name_) {
+	rename: function(name_) {
 		if(name_ != this._name) {
 			// TODO: rename a app entry
 		}
@@ -546,18 +700,17 @@ var FileEntryModel = EntryModel.extend({
 		_this.setName(this._name);
 	},
 
-	setName: function(name_) {
+	rename: function(name_) {
 		if(name_ != this._name) {
 			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
-			this._path = _match[1] + newName_;
-			_match = /(.*)[\.]([^\.].*)$/.exec(newName_);
+			this._path = _match[1] + name_;
+			_match = /(.*)[\.]([^\.].*)$/.exec(name_);
 			if(_match != null && _match[2] != this._type) {
 				this._type = _match[2];
 				// reparse the file type
 				this.realInit();
 			} else {
-				this._name = newName_;
-				this.emit('name', null, this._name);
+				this.setName(name_);
 			}
 		}
 	},
@@ -582,14 +735,49 @@ var DirEntryModel = FileEntryModel.extend({
 	// TODO: move file to this dir
 	moveTo: function() {},
 
-	setName: function(name_) {
+	rename: function(name_) {
 		if(name_ != this._name) {
-			this._name = newName_;
+			this.setName(name_);
 			var _match = /(.*[\/])([^\/].*)$/.exec(this._path);
 			this._path = _match[1] + this._name;
-			this.emit('name', null, this._name);
 		}
 	}
+});
+
+var ThemeEntryModel = EntryModel.extend({
+  init: function(id_, path_, iconName_, name_, position_, callback_) {
+    this.callSuper(id_, path_, position_, callback_);
+    this._iconName = iconName_;
+    this._name = name_;
+    this._type = 'theme';
+    this.realInit(callback_);
+  },
+
+  realInit: function(callback_) {
+    var cb = callback_ || function() {},
+        _this = this;
+    _global.get('utilIns').entryUtil.getIconPath(_this._iconName, 48, function(err_, iconPath_) {
+			if(err_) {
+        console.log(err_);
+        cb(err_);
+			} else {
+        _this.setImgPath(iconPath_[0]);
+        cb(null);
+			}
+		});
+  },
+
+  rename: function(name_) {
+    this.setName(name_);
+  },
+
+  open: function() {
+    _global._exec('xdg-open ' + this._path, function(err, stdout, stderr) {
+			if(err) {
+				console.log(err);
+			}
+		});
+  }
 });
 
 // The model class of Launcher
@@ -640,9 +828,11 @@ var WidgetManager = Model.extend({
 			switch(attr[4]) {
 				case "ClockPlugin":
 					// _plugin = ClockPlugin;
-					break;
+					// break;
 				case "ImagePlugin":
 					// _plugin = PicPlugin;
+          _plugin = DPluginModel.create(attr[0], attr[1], attr[4]
+              , {x: attr[2], y: attr[3]});
 					break;
 				default:
 					_lastSave[attr[0]] = {
@@ -1119,7 +1309,7 @@ var DeviceEntryModel = EntryModel.extend({
 	realInit: function(cb_) {
 		var cb = cb_ || function() {};
 		// TODO: get icon from cache or fs, and call cb at last
-		cb();
+		cb(null);
 	},
 
 	// TODO: show something of this device
