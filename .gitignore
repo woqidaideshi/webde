@@ -1,8 +1,7 @@
+ui-lib/node_modules
 nw/node_modules
 *.map
 nw/css/*.css
-nw/lib/*.js
-nw/lib/UI-lib/dist/css/
-nw/lib/UI-lib/dist/js/
-nw/font/
-!nw/lib/UI-lib/dist/font/
+nw/css/*.map
+nw/lib/demoUI.js
+ui-lib/dist/

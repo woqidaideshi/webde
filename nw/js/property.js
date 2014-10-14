@@ -52,10 +52,11 @@ var Property = Class.extend({
 		this._tab.addDivByTab(_property_basic_info,'basic');
 		//button 
 		var _property_close = $('<button>',{
-			'class': 'property-close',
+			'class': 'btn',
 			'id': this._id+'-close',
 			'text': 'CLOSE'
 		});
+		_property_close.addClass('active');
 		_property.append(_property_close);
 
 		$('body').append(_property);

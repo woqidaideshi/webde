@@ -1,0 +1,22 @@
+.btn{
+  padding: 4px;
+  font-size: @btnFrontSize;
+  .border;
+  .radius(4px);
+  background-color: @backgroundColor;
+  &.disabled,
+  &.disable{
+    .disableMixins;
+  }
+
+  &.active{
+    cursor: default;
+    background-color: @btnActiveBgColor;
+    color:@btnActiveFrontColor;
+    border-color: @btnActiveBorderColor;
+    &:hover{
+      .border(2px,solid,@btnHoverBorderColor);
+      .setBackgroundColor(@btnHoverBgColor,@btnActiveBgColor);
+    }
+  }
+}
