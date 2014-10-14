@@ -1,14 +1,19 @@
+///******************************color*********************************///
+@white: #fff;
+@red: #cc0000;
+
 
 ///******************************common********************************///
 @backgroundColor:#fff;
 @borderColor:#ccc;
 @radius: 6px;
+@disableTestColor: #ababab;
 
 ///*******************************context******************************///
 @contextHoverColor:#0099aa;
 @contextBackgroundColor:@backgroundColor;
 @contextGradientColor:#006680;
-@contextDisabledColor:#999999;
+@contextDisabledColor:@disableTestColor;
 @contextMinWidth:160px;
 
 ///*******************************desktop******************************///
@@ -103,3 +108,12 @@
 ///*********************************tab*********************************///
 @tabTextColor:#335533;
 
+///*******************************window*******************************///
+@windowBkgColor: #ccc;
+@windowTitleBkgColor: #e3e3e3;
+@windowTitleTextColor: #353;
+@windowTitleActiveButtonColor: #333333;
+@windowTitleHoverButtonColor: @backgroundColor;
+@windowTitleShadowButtonColor: #444;
+@windowTitleDisableButtonColor: @disableTestColor;
+@windowContentBkgColor: @white;
