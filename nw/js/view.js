@@ -27,6 +27,10 @@ var DesktopView = View.extend({
 					_this._c['device-list'] = DeviceListView.create(component_);
 					_this._c['device-list'].show(_this.$view);
 					break;
+        case 'dock':
+          _this._c[component_.getID()] = DockView.create(component_);
+          _this._c[component_.getID()].show(_this.$view);
+          break;
 				default:
 					console.log('unknown type of component');
 					break;
@@ -140,6 +144,7 @@ var GridView = WidgetView.extend({
 			}
 			switch(widget_.getType()) {
 				case 'ClockPlugin':
+          _this.addAnDPlugin(ClockPluginView.create(widget_.getID(), widget_), widget_);
 					break;
 				case 'ImagePlugin':
 					break;
@@ -413,7 +418,8 @@ var DPluginView = WidgetView.extend({
 			'class': 'plugin-div',
 			'id': this._id,
 			'draggable': 'true'
-		}).html("<canvas id='" + this._id + this._model._content + "' width='100%' height='100%'/>");
+		}).html("<canvas id='" + this._id + this._model._content + "'/>");//  width='100%' height='100%'
+    this._ctx = this.$view.children('canvas')[0].getContext('2d');
     this.initAction(this.$view);
   },
 	
@@ -424,13 +430,17 @@ var DPluginView = WidgetView.extend({
         console.log(err_);
         return ;
       }
-      _this.$view.width(size_.width);
-      _this.$view.height(size_.height);
+      _this.$view.width(size_.width).height(size_.height);/* .children('canvas').css({ */
+        // 'width': size_.width,
+        // 'height': size_.height
+      /* }) */;
+      _this._ctx.canvas.width = size_.width;
+      _this._ctx.canvas.height = size_.height;
 		}).on('position', function(err_, pos_) {
       var layoutType = _global.get('desktop').getLayoutType();
       switch(layoutType) {
         case 'grid':
-          _this.show($('#grid_' + pos_.x + ' ' + pos_.y));
+          _this.show($('#grid_' + pos_.x + '_' + pos_.y));
           break;
         default:
           break;
@@ -449,11 +459,15 @@ var DPluginView = WidgetView.extend({
 
   show: function($parent) {
     $parent.append(this.$view);
+    this._model.setSize({
+      width: this.$view.width(),
+      height: this.$view.height()
+    });
   },
 
   hide: function() {
     this.$view.remove();
-  }
+  },
 
   dragover: function(ev) {
     ev.preventDefault();
@@ -466,40 +480,41 @@ var DPluginView = WidgetView.extend({
   }
 });
 
-var ClockPluginView = DPluginView({
+var ClockPluginView = DPluginView.extend({
   init: function(id_, model_) {
     this.callSuper(id_, model_);
   },
 
   show: function($parent) {
     this.callSuper($parent);
-    var _target = $('#' + this._id + this._model._content),
-		    _context = _target[0].getContext('2d'),
+    var /* _target = $('#' + this._id + this._model._content), */
+        _context = this._ctx/* _target[0].getContext('2d') */,
         _size = this._model.getSize(),
         _img = new Image();
 
     _img.src = this._model._path;
 		_img.onload = function() {  
-		  _context.drawImage(_img, 0, 0, _width, _height);
+		  _context.drawImage(_img, 0, 0, _size.width, _size.height);
 		}
 
-    (function() {
+    var run = function() {
 			var _type = [['#000',70,1],['#ccc',60,2],['red',50,3]];
 			function drwePointer(type_, angle_){
 				type_ = _type[type_];
 				angle_ = angle_*Math.PI*2 - 90/180*Math.PI; 
-				var _length= type_[1] / (200/ _width);
+				var _length = type_[1] / (200 / _size.width);
 				_context.beginPath();
 				_context.lineWidth = type_[2];
 				_context.strokeStyle = type_[0];
-				_context.moveTo( _width/2, _height/2); 
-				_context.lineTo( _width/2 + _length*Math.cos(angle_), _height/2 + _length*Math.sin(angle_)); 
+				_context.moveTo( _size.width / 2, _size.height / 2); 
+				_context.lineTo( _size.width / 2 + _length*Math.cos(angle_), _size.height/2 
+            + _length*Math.sin(angle_)); 
 				_context.stroke();
 				_context.closePath();
 			}
 			setInterval(function (){
-				_context.clearRect(0,0, _height, _width);
-				_context.drawImage(_img,0,0, _width, _height);
+				_context.clearRect(0,0, _size.height, _size.width);
+				_context.drawImage(_img,0,0, _size.width, _size.height);
 				var _time = new Date();
 				var _hour = _time.getHours();
 				var _mimute = _time.getMinutes();
@@ -513,7 +528,8 @@ var ClockPluginView = DPluginView({
 				drwePointer(1,_mimute);
 				drwePointer(2,_hour); 
 			}, 100);
-		})();
+		};
+    run();
   }
 });
 
@@ -545,7 +561,8 @@ var DEntryView = WidgetView.extend({
 				console.log(err_);
 				return;
 			}
-			$('#' + _this._id + ' img').attr('src', imgPath_);
+      _this.$view.children('img').attr('src', imgPath_);
+			// $('#' + _this._id + ' img').attr('src', imgPath_);
 		}).on('tabIdx', function(err_, tabIdx_) {
 			if(err_) {
 				console.log(err_);
@@ -738,4 +755,301 @@ var DevEntryView = View.extend({
 	},
 
 	initAction: function() {},
+});
+
+// View of Dock component
+//
+var DockView = View.extend({
+  init: function(model_) {
+    this.callSuper(model_.getID(), model_);
+    this.registObservers();
+    this.$view = $('<div>', {
+			'class': 'dock',
+			'id': this._id,
+			'onselectstart': 'return false'
+		});
+    this.initAction(this.$view);
+  },
+
+  registObservers: function() {
+    this._model.on('add', function(err_, dockApp_) {
+    }).on('remove', function(err_, dockApp_) {
+    });
+  },
+
+  initAction: function($selector) {
+    $selector.on('dragover', this.dragOver)
+			.on('drop', this.drop)
+			.on('dragleave', this.dragLeave);
+
+		var dock = $selector,
+        imgList = $selector.children('div img'),
+        IMGART = 50,
+        _imgMaxWidth = IMGART * 2,
+        _imgMaxHeight = IMGART * 2,
+        _distance = IMGART * 3.5;
+    console.log(IMGART+" " + _imgMaxWidth + " " + _imgMaxHeight + "_distance: " + _distance);
+		document.onmousemove = function(ev) {
+   		var ev = ev || window.event;
+   		for(var i = 0; i < imgList.length; i++) {
+    		var jqImg = $(imgList[i]);
+     	 	var a = ev.clientX - (jqImg.position().left + jqImg.width() / 2);
+     		var b = ev.clientY - (jqImg.position().top + jqImg.height() / 2 + dock.position().top);
+     		var c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+     		var spex = 1 - c / _distance;
+     		if (spex < 0.5) {
+       		spex = 0.5;
+     		}
+     		imgList[i].style.width = spex * (_imgMaxWidth) + 'px';
+     		imgList[i].style.height = spex * (_imgMaxHeight) + 'px';
+ 			}
+ 		}
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+  },
+
+	dragOver: function(ev) {
+		ev.preventDefault();
+		ev.stopPropagation()
+		var _id = ev.dataTransfer.getData("ID");
+		//show insert position picture
+		var _source = null,
+        desktop = _global.get('desktop'),
+        layout = desktop.getCOMById('layout'),
+        widget = layout.getWidgetById(_id);
+		if(typeof widget !== 'undefined' && widget.getType() == 'dockApp') {
+			_source = $('#' + _id);
+    } else if((typeof widget != 'undefined' && widgets.getType() == 'app')
+        || ev.dataTransfer.files.length != 0) {
+			if (typeof $('#insert')[0] == 'undefined') {
+				_source = $('<div>',{
+					'id': 'insert',
+				}).html("<img src='img/insert.gif'/>");
+			} else {
+         _source = $('#insert');
+      }
+		} else {
+      return ;
+    }
+		// 
+		var _new_div = null,
+		    _divList = $('#dock div');
+		for(var i = 0; i < _divList.length + 1; i++) {
+			if(i == _divList.length) {
+				_new_div = null;
+				break;
+			}
+			if(_divList[i].id == _source[0].id) continue;
+			var _div = $(_divList[i]);
+			if(ev.clientX < _div.position().left + _div.width() / 2) {
+				_new_div = _div;
+				break;
+			};
+		};
+		if(_new_div == null) 
+			$('#dock').append(_source);
+		else if(null != _new_div) 
+			_new_div.before(_source);
+	},
+
+	dragleave: function(ev) {
+		if(ev.clientY < $('#dock').position().top) {
+			if (typeof $('#insert')[0] != 'undefined') 
+				$('#insert').remove();
+		}
+	},
+
+	drop: function(ev) {
+		ev.preventDefault();
+		ev.stopPropagation();
+		var _id = ev.dataTransfer.getData("ID"),
+		    _source = $('#'+_id),
+        desktop = _global.get('desktop'),
+        layout = desktop.getCOMById('layout'),
+        dock = desktop.getCOMById('dock'),
+        widget = layout.getWidgetById(_id);
+		if(typeof widget != 'undefined' && widget.getType == 'dockApp') {
+			var _divList = $('#dock div');
+			for (var i = 0; i < _divList.length; i++) {
+				dock.getCOMById(_divList[i]._id).setPosition({'x': i, 'y': 0});
+			};
+		} else {
+			var _divList = $('#dock div');
+			for (var i = 0; i < _divList.length; i++) {
+				if (_divList[i]._id == 'insert') {
+					$(_divList[i]).remove();
+					dock._index = i;
+					break ;
+				} 
+			}
+			if(typeof widget !== 'undefined' && widget.getType() == 'app' ){
+			if (typeof $('#'+_id + '-dock')[0] !== 'undefined') {
+				$('#insert').remove();
+				alert("The App has been registed in dock");
+				return ;
+			}
+			var _dentry = desktop._widgets[_id];
+			var _path = _dentry._path;
+			var _names = _path.split('/');
+			var _name = _names[_names.length -1];
+
+			var _fs = require('fs');
+			_fs.rename(_path, desktop._dock._dockWatch.getBaseDir()+'/'+_name, function() {});
+			} 
+			else if(ev.dataTransfer.files.length != 0){
+				var _files = ev.dataTransfer.files;
+				var _fs = require('fs');
+				for(var i = 0; i < _files.length; ++i) {
+					var dst = desktop._dock._dockWatch.getBaseDir() + '/' + _files[i].name;
+					if(_files[i].path == dst) continue;
+					_fs.rename(_files[i].path, dst, function() {});
+				}
+				return ;
+			}
+		}
+	}
+});
+
+var DockEntryView = View.extend({
+  init: function(model_, container_) {
+    this.callSuper(model_.getID(), model_);
+    this._container = container_;
+    this.registObservers();
+    this.$view = $('<div>', {
+      'id': this._id,
+			'draggable': 'true',
+			'onselectstart': 'return false'
+    }).append($('<img>', {
+      'id': this._id + '-img',
+			'draggable': 'false',
+			'onselectstart': 'return false'
+    }));
+    this.initAction(this.$view);
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this._model.on('imgPath', function(err_, imgPath_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      _this.$view.children('img').attr('src', imgPath_);
+    });
+  },
+
+  initAction: function($selector) {
+    var _this = this;
+    $selector.mousedown(function(e) {
+			e.stopPropagation();
+		}).mouseup(function(e) { 
+			e.stopPropagation();
+      var image = this.children('img');
+      if(image[0].style.borderStyle == "" || image[0].style.borderStyle == 'none') {
+        image.animate({width:"+=40px",height:"+=40px"}, 'fast')
+					.animate({width:"-=40px",height:"-=40px"}, 'fast')
+			  $('.tooltip').animate({top:"-=40px"}, 'fast')
+ 								.animate({top:"+=40px"}, 'fast')
+ 								.animate({top:"-=40px"}, 'fast')
+ 								.animate({top:"+=40px"}, 'fast')
+ 								.animate({top:"-=40px"}, 'fast')
+ 								.animate({top:"+=40px"}, 'fast')
+			  image.css("border", "outset");
+        // TODO: implement by using command
+        //
+				/* if(typeof require === 'function') { */
+          // console.log("run " + this._execCmd);
+          // var result = this._exec(this._execCmd,function(err, stdout, stderr) {
+            // console.log('stdout: ' + stdout);
+            // console.log('stderr: ' + stderr);
+            // image.css("border","none");
+          // });
+				// }	else {
+					// console.log('run in browser');
+					// 
+				/* } */
+        image.css("border", "none");
+		  }
+		}).on('mouseover', this.mouseOver)
+    .on('mouseout', this.mouseOut)
+    .on('mousemove', this.mouseMove)
+    .on('dragstart', this.drag)
+		.on('dragover', this.dragOver)
+		.on('drop', this.drop)
+		.on('dragenter', this.dragEnter)
+		.on('dragleave', this.dragLeave);
+  },
+
+  show: function($parent) {
+    var divList = $parent.children('div'),
+        inserted = false,
+        n_idx = this._model.getIdx();
+    for(var i = 0; i < divList.length; ++i) {
+      var model = this._container._c[divList[i].id]._model,
+          o_idx = model.getIdx();
+      if(n_idx.x <= o_idx.x && inserted == false) {
+        $(divList[i]).before(this.$view);
+        inserted = true;
+      }
+      if(o_idx.x < i) model.setIdx(i);
+    }
+    if(inserted == false) $parent.append(this.$view);
+  },
+
+	drag: function(ev) {
+		$(ev.currentTarget).children('img')[0].title = this._name; 
+		$('.tooltip').remove();
+		console.log("drag start");
+		ev.dataTransfer.setData("ID", ev.currentTarget.id);
+		console.log(ev.dataTransfer.getData("ID"));
+		ev.stopPropagation();
+	},
+
+	dragOver: function(ev) {
+		ev.preventDefault();
+	},
+
+	drop: function(ev){
+		ev.preventDefault();
+	},
+
+	mouseOver: function(ev){
+		ev.stopPropagation();
+		var isTitle = false;
+		if(this.noTitle) { 
+      isTitle = true;
+		} else { 
+			isTitle = $.trim(this._image[0].title) != '';
+		} 
+		if(isTitle) { 
+			this.myTitle = this._image[0].title; 
+			this._image[0].title = ""; 
+			var tooltip = "<div class='tooltip'> <div id='title-inner' class='tipsy-inner'>"
+        + this.myTitle + "</div> </div>"; 
+			$('body').append(tooltip); 
+			$('.tooltip').css({
+        "top" : ($(ev.target).offset().top-25) + "px", 
+        "left" : ($(ev.target).offset().left) + "px" 
+      }).show('fast');
+ 		}
+	},
+
+	mouseOut: function() {
+		if(this.myTitle != null) { 
+			this._image[0].title = this._name; 
+			$('.tooltip').remove();
+		}
+	},
+
+	mouseMove: function(ev) {
+		var t_width = $(ev.target).width();
+ 		var _width = $('#title-inner').width();
+ 		var left = $(ev.target).offset().left + (t_width - _width) / 2 - 5;
+ 		$('.tooltip').css({
+      "top" : ($(ev.target).offset().top - 25) + "px", 
+      "left" : left + "px" 
+    });
+	}
 });

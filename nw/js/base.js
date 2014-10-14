@@ -115,7 +115,7 @@ var Model = Event.extend({
 	add: function(component_) {
 		if(typeof component_ === 'undefined' || component_ == null) return ;
 		if(typeof this._c[component_.getID()] !== "undefined") {
-			this.emit('add', 'This component has already existed!!');
+			this.emit('add', 'This component[id: ' + component_.getID() + '] has already existed!!');
 			return ;
 		}
 		this._c[component_.getID()] = component_;
@@ -125,7 +125,7 @@ var Model = Event.extend({
 	remove: function(component_) {
 		if(typeof component_ === 'undefined' || component_ == null) return ;
 		if(typeof this._c[component_.getID()] === 'undefined') {
-			this.emit('remove', 'This component is not existed!!');
+			this.emit('remove', 'This component[id: ' + component_.getID() + '] is not existed!!');
 			return ;
 		}
 		this.emit('remove', null, component_);

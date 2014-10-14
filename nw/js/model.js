@@ -245,11 +245,8 @@ var DesktopModel = Model.extend({
 				// console.log(err);
 				// callback_.call(this, err);
 			// } else {
-				// _desktop._xdg_data_home = stdout.substr(0, stdout.length - 1);
 				// //add dock div to desktop
 				// _desktop._dock.bingEvent();
-				// theme.loadThemeEntry(_desktop);
-				// _desktop.loadWidgets();
 				// callback_.call(this, null);
 			// }
 		/* }); */
@@ -272,6 +269,7 @@ var DesktopModel = Model.extend({
 		this.add(LauncherModel.create());
 		this.initLayout();
 		this.add(DeviceListModel.create());
+    this.add(DockModel.create());
 		this.initDesktopWatcher();
 		var _this = this;
 		_global._fs.readFile(_global.$xdg_data_home + "/widget.conf"
@@ -290,9 +288,10 @@ var DesktopModel = Model.extend({
 	//
 	start: function(cb_) {
 		console.log('starting');
-		// TODO: Load contents to all components except Launcher and DeciceList
+		// TODO: Load contents to all components EXCEPT Launcher and DeciceList
     _global.get('theme').loadThemeEntry(this);
 		this.getCOMById('layout').load();
+    this.getCOMById('dock').load();
 		cb_(null);
 	},
 
@@ -390,6 +389,91 @@ var DesktopModel = Model.extend({
 	}
 });
 
+// Dock component of Desktop
+//
+var DockModel = Model.extend({
+  init: function() {
+    this.callSuper('dock');
+    this._index = 0;
+    this.initWatcher();
+  },
+
+  load: function() {
+    // TODO: load dock apps from configure file
+    _global._fs.readFile(this._DOCK_DIR + '/.info', 'utf-8', function(err, data) {
+      if(err) {
+        console.log(err);
+        return ;
+      }
+      var lines = data.split('\n'),
+          lastSave = [];
+      for(var i = 0; i < lines.length; ++i) {
+        if(lines[i].match('[\s,\t]*#+') != null) continue;
+        if(lines[i] == '') continue;
+        var attr = lines[i].split('$');
+        if(attr.length != 5) continue;
+        lastSave[attr[0]] = {
+          path: attr[1],
+          x: attr[2],
+          y: attr[3],
+          type: attr[4]
+        };
+      }
+      _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir()
+        , this._dockWatch, this);
+    });
+  },
+
+  release: function() {
+    this._dockWatch.close();
+  },
+
+  initWatcher: function() {
+    this._DOCK_DIR = _global.$xdg_data_home + '/dock';
+    this._dockWatch = Watcher.create(this._DOCK_DIR);
+		this._dockWatch.on('add', function(filename, stats) {
+			//console.log('add:', filename, stats);
+			var _filenames = filename.split('.');
+			var _Dock = undefined;
+			
+			if(_filenames[0] == '') {
+				return ;//ignore hidden files
+			}
+			if((!stats.isDirectory()) && _filenames[_filenames.length - 1] == 'desktop') {
+				_Dock = DockApp;
+			}
+			if (typeof _Dock != 'undefined') {
+        // TODO: get app model from launcher, if in launcher remmenber to set index
+				/* desktop.addAnAppToDock(_Dock.create('id-' + stats.ino.toString() */
+					// , desktop._dock._index
+					// , desktop._dock._dockWatch.getBaseDir() + '/' + filename
+				/* )); */
+			}
+		});
+		this._dockWatch.on('delete', function(filename) {
+			//console.log('delete:', filename);
+			//find entry object by path
+			var _path = desktop._dock._dockWatch.getBaseDir() + '/' + filename;
+			var _dockApp = desktop.getAWidgetByAttr('_path', _path);
+			if(_dockApp == null) {
+				console.log('Can not find this widget');
+				return ;
+			}
+			desktop.deleteAnAppFromDock(_dockApp);
+		});
+		this._dockWatch.on('rename', function(oldName, newName) {
+			console.log('rename:', oldName, '->', newName);
+		});
+  },
+
+  getIndex: function() {return this._index;},
+
+  setIndex: function(idx_) {
+    this._index = idx_;
+    this.emit('index', null, this._index);
+  }
+});
+
 // Base Class for all widget models
 //
 var WidgetModel = Model.extend({
@@ -439,7 +523,7 @@ var DPluginModel = WidgetModel.extend({
       this._col_num = parseInt(this._size.width / gridSize.gridWidth - 0.00001) + 1;
 		  this._row_num = parseInt(this._size.height / gridSize.gridHeight - 0.00001) + 1;
     }
-    this._emit('size', null, this._size);
+    this.emit('size', null, this._size);
   },
 
   zoomIn: function() {
@@ -506,14 +590,14 @@ var DPluginModel = WidgetModel.extend({
   }
 });
 
-var ClockPluginModel = DPluginModel.extend({
-  init: function(id_, position_, path_) {
-    this.callSuper(id_, position_);
-    this._type = 'ClockPlugin';
-		this._path = path_;
-		this._content = 'Content';
-  }
-});
+// var ClockPluginModel = DPluginModel.extend({
+  // init: function(id_, position_, path_) {
+    // this.callSuper(id_, position_);
+    // this._type = 'ClockPlugin';
+		// this._path = path_;
+		// this._content = 'Content';
+  // }
+// });
 
 // The model of Entry
 //
@@ -587,7 +671,7 @@ var EntryModel = WidgetModel.extend({
 
 // The model of App Entry
 // callback_: function(err)
-// events provided: {'position', 'name', 'path', 'imgPath', 'cmd', 'type'}
+// events provided: {'position', 'name', 'path', 'imgPath', 'cmd', 'type', 'index'}
 //
 var AppEntryModel = EntryModel.extend({
 	init: function(id_, path_, position_, callback_) {
@@ -595,6 +679,7 @@ var AppEntryModel = EntryModel.extend({
 		var cb_ = callback_ || function() {};
 		this._execCmd = null;
 		this._type = 'app';
+    this._idx = ((typeof position_ === 'undefined') ? 0 : position_.x);
 		this.realInit(cb_);
 	},
 
@@ -635,6 +720,13 @@ var AppEntryModel = EntryModel.extend({
 		this._execCmd = cmd_;
 		this.emit('cmd', null, this._execCmd);
 	},
+
+  getIdx: function() {return this._idx;},
+
+  setIdx: function(idx_) {
+    this._idx = idx_;
+    this.emit('index', null, this._idx);
+  },
 
 	// TODO: open a file by using this app
 	copyTo: function() {},
@@ -810,7 +902,6 @@ var LauncherModel = Model.extend({
 //
 var WidgetManager = Model.extend({
 	init: function() {
-		// this.loadWidgets();
 		this.callSuper('widgetmanager');
 	},
 
@@ -827,10 +918,7 @@ var WidgetManager = Model.extend({
 			var _plugin = null;
 			switch(attr[4]) {
 				case "ClockPlugin":
-					// _plugin = ClockPlugin;
-					// break;
 				case "ImagePlugin":
-					// _plugin = PicPlugin;
           _plugin = DPluginModel.create(attr[0], attr[1], attr[4]
               , {x: attr[2], y: attr[3]});
 					break;
@@ -844,95 +932,14 @@ var WidgetManager = Model.extend({
 			}
 			if (_plugin != null) {
 				this.add(_plugin);	
-				// _desktop.addAnDPlugin(_plugin.create(attr[0]
-					// ,{x: attr[2], y: attr[3]}
-					// ,attr[1]
-					// ), {x: attr[2], y: attr[3]});
 			} 
 		}
 		//handle destop entries
-		this.addWidgets(_lastSave, desktop._desktopWatch.getBaseDir()
-				, desktop._desktopWatch);
+		_global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()
+				, desktop._desktopWatch, this);
 		//handle dock entries
 	 /*  _desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir() */
 				/* ,_desktop._dock._dockWatch); */
-	},
-
-	//add entries by argv
-	//lastSave_: saved config argv, from <dentries> file
-	// dir_: full dir for watch ,such as: /home/user/桌面
-	// watch_: watch_ is _desktopWatch or _dockWatch
-	addWidgets: function(lastSave_, dir_, watch_) {
-		var _this = this,
-				desktop = _global.get('desktop'),
-				_newEntry = [];
-		_global._fs.readdir(dir_, function(err, files) {
-			_global.Series.series1(files, function(file_, cb_) {
-				_global._fs.stat(dir_ + '/' + file_, function(err, stats) {
-					var _id = 'id-' + stats.ino.toString();
-					if(typeof lastSave_[_id] != 'undefined'
-						&& lastSave_[_id].path.match(/[^\/]*$/) == file_) {
-						// var _EntryView = null;
-						var _DockAppView = null;
-						var _model = null;
-						switch(lastSave_[_id].type) {
-							case "dockApp":
-								// _DockApp = DockApp;
-							case "app":
-								_Entry = AppEntry;
-								try {
-									_model = desktop.getCOMById('launcher').get(_id);
-								} catch(e) {
-									_model = AppEntryModel.create(_id
-										, lastSave_[_id].path
-										, {x: lastSave_[_id].x, y: lastSave_[_id].y});
-									desktop.getCOMById('launcher').set(_model);
-								}
-								break;
-							case "dir":
-								// _Entry = DirEntry;
-								break;
-							default:
-								// _Entry = FileEntry;
-						}
-						if(_DockAppView) {
-							// TODO: get dock component of desktop and add this model to it
-						} else {
-							_this.add(_model);
-							/* desktop.addAnDEntry(EntryView.create(_id + '-entry-view', _model) */
-									/* , _model.getPosition()); */
-						}
-						/* if (_DockApp != null) { */
-							// desktop.addAnAppToDock(_DockApp.create(_id
-							// ,lastSave_[_id].x
-							// ,lastSave_[_id].path));
-						// } else if (_Entry != null) {
-						// desktop.addAnDEntry(_Entry.create(_id
-							// , 100 + desktop._tabIndex++
-							// , lastSave_[_id].path
-							// , {x: lastSave_[_id].x, y: lastSave_[_id].y}
-							// ), {x: lastSave_[_id].x, y: lastSave_[_id].y});
-						/* } */
-					} else {
-						_newEntry[_id] = {
-							'filename': file_,
-							'stats': stats
-						};
-					}
-					cb_(null);
-				});
-			}, function(err_, rets_) {
-				if(err_) {
-					console.log(err_);
-				} else {
-					for(var key in _newEntry) {
-						watch_.emit('add'
-							, _newEntry[key].filename
-							, _newEntry[key].stats);
-					}
-				}
-			});
-		});
 	},
 
 	saveWidgets: function() {
