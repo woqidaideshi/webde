@@ -46,10 +46,10 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
   然后：向这个图片元素建立一个tooltip
 <pre>
 <code>	
-  	Tooltip.create($('#test-img'),"top");
+  Tooltip.create($('#test-img'),"top");
 </code>
 </pre>
-	
+
 <strong>B.函数及参数说明</strong><br />
   本tooltip显示的是元素的title内容，如果没有title则不显示，
   方法有：
@@ -79,16 +79,16 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 	设置显示位置：
 <pre>
 <code>
-	Messenger.options = {
-		//设置为左上角显示;
-  		extraClasses: 'messenger-fixed messenger-on-left messenger-on-top';
-	}
+  Messenger.options = {
+    //设置为左上角显示;
+    extraClasses: 'messenger-fixed messenger-on-left messenger-on-top';
+  }
 </code>
 </pre>
-	更多使用方法参见messenger的官方网站：
-[messenger官方网站]: <http://github.hubspot.com/messenger/>
-	github网址：
-[github网址]: <https://github.com/HubSpot/messenger>
+  更多使用方法参见messenger的官方网站：
+[messenger官方网站] (http://github.hubspot.com/messenger)
+  github网址：
+[github网址](https://github.com/HubSpot/messenger)
 
 3、contextMenu：
 ============
@@ -138,112 +138,110 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 
 4、font-awesome图标库
 ==========
-	本UI库的图标使用的是font-awesome的图标库，其特点是将图标打包成字体文件，通过读取字体文件来载入各个图标。
-	使用方法：
-	在需要添加图标的位置写入
+  本UI库的图标使用的是font-awesome的图标库，其特点是将图标打包成字体文件，通过读取字体文件来载入各个图标。
+  使用方法：
+  在需要添加图标的位置写入
 <pre>
 <code>
-	<a href='http://www.bootcss.com/p/font-awesome/#icons-new'><i class='icon-user'><i> </a> //其中icon-user是要添加图标的种类。
+  a href='http://www.bootcss.com/p/font-awesome/#icons-new'>i class='icon-user'>i> /a> //其中icon-user是要添加图标的种类。
 </code>
 </pre>
 
-	详细的使用方法见：
-				[font-awesome使用方法]: <http://www.bootcss.com/p/font-awesome/#icons-new>
-	具体图标对应的class类可以查阅：
-			 	[图标对应编码查询]: < http://www.bootcss.com/p/font-awesome/design.html>
+  详细的使用方法见：
+[font-awesome使用方法] (http://www.bootcss.com/p/font-awesome/#icons-new)
+  具体图标对应的class类可以查阅：
+[图标对应编码查询](http://www.bootcss.com/p/font-awesome/design.html)
 
 5、modalBox-jquery插件
 ===========
-	modalBox是jquery的插件，用于生成模态对话框。使用方法如下：
+  modalBox是jquery的插件，用于生成模态对话框。使用方法如下：
 <strong>生成modalBox模态对话框</strong><br />
 <pre>
 <code>
-	$('.modalBox').modalBox({
+  $('.modalBox').modalBox({
     iconImg:'images/x.png',
         iconClose:true,
         keyClose:true,
         bodyClose:true
-	});
+  });
 </code>
 </pre>
-	更多设置（demo）：
-[demo]: <http://ignitersworld.com/lab/modalBox.html#demo> "demo"
-	github项目网址：
-[github网址]: <https://github.com/s-yadav/modalBox.js> "github网址"
+  更多设置（demo）：
+[demo] (http://ignitersworld.com/lab/modalBox.html#demo)
+  github项目网址：
+[github网址] (https://github.com/s-yadav/modalBox.js)
 
 6、tab库
 =========
-	tab库提供简单的建立tab的方法，使用方法如下：
-	1、首先创建一个tab对象：
+  tab库提供简单的建立tab的方法，使用方法如下：
+  1、首先创建一个tab对象：
 <pre>
 <code>
-	var tab = Tab.create('id',['tab1','tab2',...]，pos，size); 
-	//'id'为自己定义的tab的窗口的id，不可为空。
-	//tab1和tab2是tab标签的标签名。用于显示标签名，不可为空。
-	//pos位置选项，要有pos.left和pos.top项。可为空
-	//size大小选项，要有size.width和size.height选项，可为空
-	如：
-		_tab = Tab.create('property-tab',['basic', 'power']);
+  var tab = Tab.create('id',['tab1','tab2',...]，pos，size); 
+  //'id'为自己定义的tab的窗口的id，不可为空。
+  //tab1和tab2是tab标签的标签名。用于显示标签名，不可为空。
+  //pos位置选项，要有pos.left和pos.top项。可为空
+  //size大小选项，要有size.width和size.height选项，可为空
+  如：
+    _tab = Tab.create('property-tab',['basic', 'power']);
 </code>
 </pre> <br />
-	2、向tab对象中添加要显示的内容
+  2、向tab对象中添加要显示的内容
 <pre>
 <code>
-	_tab.addaddDivByTab($div_,'tab1');
-	//$div_ 是一个jquery元素对象用于append（$div_）
-	//tab1是一个tab的标签名
+  _tab.addaddDivByTab($div_,'tab1');
+  //$div_ 是一个jquery元素对象用于append（$div_）
+  //tab1是一个tab的标签名
 </code>
 </pre> <br />
-	3、将tab对象加入到父元素内
+  3、将tab对象加入到父元素内
 <pre>
 <code>
-	_tab.injectParent($parent_);
-	//$parent_是父元素的jquery对象。
+  _tab.injectParent($parent_);
+  //$parent_是父元素的jquery对象。
 </code>
 </pre> <br />
-	4、设置最初显示的tab。
+  4、设置最初显示的tab。
 <pre>
 <code>
-	_tab.setShowByTab('tab1');
-	//tab1为初始显示tab1指向的div的内容，如果tab1不存在初始不显示任何内容。
+  _tab.setShowByTab('tab1');
+  //tab1为初始显示tab1指向的div的内容，如果tab1不存在初始不显示任何内容。
 </code>
 </pre> <br />
-	<strong>注：可以自定义设置css，具体设置方法可以参看property.less内容。</strong>
+    <strong>注：可以自定义设置css，具体设置方法可以参看property.less内容。</strong>
 
 7、window库
 ==========
-	用于快速建立窗口的插件，使用方法为：
+  用于快速建立窗口的插件，使用方法为：
 <code>
 <pre>
-	Window.create('newWin','Test Window ', {
-		left:200,
-		top:100,
-		height: 300,
-		width: 800
-	});
+  Window.create('newWin','Test Window ', {
+    left:200,
+    top:100,
+    height: 300,
+    width: 800
+  });
 </pre>
 </code>
 
-	目前可设置的选项有：
+  目前可设置的选项有：
 <code>
 <pre> <br />
-	close: true，              //右上角关闭按钮，可点击
-	max: true,                //右上角最大化按钮，可点击
-	min: false,               //右上角最小化按钮，可点击
-	hide: true,               //右上角隐藏内容按钮，可点击
-	fadeSpeed: 100,           //打开窗口速度
-	hideWindow: false,        //是否直接显示窗口
-	width: 600,               //宽
-	height: 600,              //高
-	left: 0,                  //位置x坐标
-	top: 0,                   //位置y坐标
-	contentDiv: true,         //是否新建div窗口
-	resize: false,            //设置是否可重新调整窗口的大小
-	minWidth: 200,            //设置窗口的最小宽度
-	minHeight:200,            //设置窗口的最小高度
-	animate: true,            //动画效果
-	contentDiv: true          //包含放置内容的div
+  close: true，            //右上角关闭按钮，可点击
+  max: true,                   //右上角最大化按钮，可点击
+  min: false,                 //右上角最小化按钮，可点击
+  hide: true,                 //右上角隐藏内容按钮，可点击
+  fadeSpeed: 100,         //打开窗口速度
+  hideWindow: false, //是否直接显示窗口
+  width: 600,                  //宽
+  height: 600,                //高
+  left: 0,                        //位置x坐标
+  top: 0,                          //位置y坐标
+  contentDiv: true,   //是否新建div窗口
+  resize: false,          //设置是否可重新调整窗口的大小
+  minWidth: 200,           //设置窗口的最小宽度
+  minHeight:200,          //设置窗口的最小高度
+  animate: true,          //动画效果
+  contentDiv: true    //包含放置内容的div
 </code>
 </pre> <br />
-
-	
