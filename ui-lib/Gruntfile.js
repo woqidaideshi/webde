@@ -34,14 +34,11 @@ grunt.initConfig({
 		}
 	},
 	less: {
-		options: {
-		banner: '<%= banner %>'
-		},
 		compileCore: {
 			options: {
 			strictMath: false,
-			sourceMap: true,
-			outputSourceFiles: true,
+			sourceMap: false,
+			outputSourceFiles: false,
 			sourceMapURL: '<%= uiname %>.css.map',
 			sourceMapFilename: '<%= cssPath %><%= uiname %>.css.map'
 			},
@@ -59,7 +56,19 @@ grunt.initConfig({
 			}
 		}
 	},
-	
+
+	cssmin:{
+		options: {
+			banner: '<%= banner %>'
+		},
+		combine:{
+			files:{
+				'<%= cssPath %><%= uiname %>.min.css':['<%= cssPath %><%= uiname %>.css'
+				 	, '<%= cssPath %><%= uiname %>theme.css', '<%= cssPath %><%= uiname %>Font.css']
+			}
+		}
+	},
+
 	watch: {
 		lib_js: {
 			files: '<%= concat.dist.src %>',
@@ -126,7 +135,7 @@ grunt.initConfig({
 // These plugins provide necessary tasks.
 require('load-grunt-tasks')(grunt);
 // Default task.
-grunt.registerTask('default', ['concat', 'uglify', 'less', 'copy:fontFile', 'copy:imgFile']);
+grunt.registerTask('default', ['concat', 'uglify', 'less', 'copy:fontFile', 'copy:imgFile', 'init']);
 grunt.registerTask('init', ['copy:jsFileToWebde', 'copy:cssFileToWebde', 'copy:fontFileToWebde', 'copy:imgFileToWebde']);
 grunt.registerTask('webde', ['copy:jsFileToWebde', 'copy:cssFileToWebde']);
 grunt.registerTask('copyCss', ['copy:cssFile']);

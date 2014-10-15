@@ -39,6 +39,8 @@
 		grunt less
 	9、将库文件复制到nw项目中的相应位置，以供nw运行（dist目录下只复制js，css两个文件夹及相应文件）。
 		grunt webde	
+	10、生成css压缩文件（对css文件进行压缩，将8中生成的三个文件压缩成一个压缩文件：dist/css/demoUI.min.css）
+		grunt cssmin
 
 ##关于api##
 	请阅读doc/api.md

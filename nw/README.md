@@ -29,17 +29,19 @@ You can use commad like:
 
 ###配置环境###
 	1、请安装grunt客户端，使用如下命令进行安装：
-	 npm install -g grunt-cli
+	 sudo npm install -g grunt-cli
 	2、安装依赖
 	  进入nw目录下，执行：
 	 npm install （此时该目录下会生成node-modules文件夹）
 	3、执行grunt命令：
-	 grunt （用于生成dist目录下项目文件）
+	  在nw目录下，执行
+	 grunt 
 	4、初次配置时，载入ui库
 	  进入ui-lib目录，执行
-	 grunt 
-	 grunt init
+	 npm install （此时该目录下会生成node-modules文件夹）
+	 grunt    （用于生成dist目录下项目文件）
 	5、当再次打开并要使用最新ui-lib时，执行
+	 在ui-lib目录下，执行：
 	 grunt webde  或者
 	 grunt init
 
