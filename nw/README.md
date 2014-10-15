@@ -29,7 +29,7 @@ You can use commad like:
 
 ###配置环境###
 	1、请安装grunt客户端，使用如下命令进行安装：
-	 sudo npm install -g grunt-cli
+	 npm install -g grunt-cli
 	2、安装依赖
 	  进入nw目录下，执行：
 	 npm install （此时该目录下会生成node-modules文件夹）
