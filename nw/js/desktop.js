@@ -166,7 +166,7 @@ var Desktop = Class.extend({
           height: 500,
           width: 800,
           fadeSpeed: 500,
-          animate: false
+          animate: true
         });
       }},
       {text: 'app-plugin',icon: 'icon-plus', subMenu: [
