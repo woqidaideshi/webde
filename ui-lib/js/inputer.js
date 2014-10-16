@@ -70,6 +70,7 @@ var Inputer = Class.extend({
       e.stopPropagation();
     });
   },
+
   /**
    * [show show the Inputer follow options_]
    * @param  {[type]} options_ [options of textarea include: pos, size, oldtext, callback ]
@@ -93,6 +94,7 @@ var Inputer = Class.extend({
     this.$input[0].focus();
     this.$input[0].select();
   },
+  
   /**
    * [hide call the callback and hide the input]
    * @return {[type]} [description]
