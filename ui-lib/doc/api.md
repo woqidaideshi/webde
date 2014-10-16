@@ -228,7 +228,7 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 <code>
 <pre> <br />
   close: true，            //右上角关闭按钮，可点击
-  max: true,                   //右上角最大化按钮，可点击
+  max: true,               //右上角最大化按钮，可点击
   min: false,                 //右上角最小化按钮，可点击
   hide: true,                 //右上角隐藏内容按钮，可点击
   fadeSpeed: 100,         //打开窗口速度
@@ -245,3 +245,26 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
   contentDiv: true    //包含放置内容的div
 </code>
 </pre> <br />
+
+8、Inputer库
+===========
+  Inputer库用于桌面上右键-->rename显示的文本输入框，用于文件的重命名。
+  使用方法如下：
+<code>
+<pre>
+  var _inputer = Inputer.create('name');
+  _options = {
+  'left': 100,
+  'top' : 100,
+  'width': 100,
+  'height': 100,
+  'oldtext': 'text',                 //用于初始显示时，显示在输入框的文字。
+  'callback': function('newtext'){   //newtext输入框输入的文字，返回的文字。
+      ....
+    }
+  }
+  _inputer.show(_options);
+</pre>
+</code> <br />
+
+

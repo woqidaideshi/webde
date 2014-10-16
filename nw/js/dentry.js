@@ -99,6 +99,10 @@ var DEntry = Widget.extend({
 				}
 			}
 		});
+
+		window.addEventListener('blur',function(){
+			_entry.blur();
+		},false);
 	},
 
 	focus: function() {
