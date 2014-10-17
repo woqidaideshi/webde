@@ -211,7 +211,7 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
     <strong>注：可以自定义设置css，具体设置方法可以参看property.less内容。</strong>
 
 7、window库
-==========
+=========
   用于快速建立窗口的插件，使用方法为：
 <code>
 <pre>
@@ -247,7 +247,7 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 </pre> <br />
 
 8、Inputer库
-===========
+=========
   Inputer库用于桌面上右键-->rename显示的文本输入框，用于文件的重命名。
   使用方法如下：
 <code>
@@ -260,11 +260,39 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
   'height': 100,
   'oldtext': 'text',                 //用于初始显示时，显示在输入框的文字。
   'callback': function('newtext'){   //newtext输入框输入的文字，返回的文字。
-      ....
+          ....
     }
   }
   _inputer.show(_options);
 </pre>
 </code> <br />
 
-
+9、reflect图片倒影库
+=========
+  reflect可以在图片的下面产生一个图片倒影，用于提升界面效果，其原理是新建一个div代替原有的div，并在新的div中加入源图片和倒影canvas（在ie浏览器是一个倒影图片）。
+  使用方法如下：
+<code>
+<pre>
+  var _reflect = Reflection.create(<img>,options); //新建一个reflection对象，并传入图片对象，<img>为js对象，options为设置项。
+    _reflect.add();   //根据上边传入的图片和设置项，添加图片倒影
+    _reflect.remove(); //删除图片倒影
+</pre>
+</code> <br />
+  也可以自己实现删除倒影，其过程主要包含如下步骤：
+<code>
+<pre>
+  <img>.style.cssText = ''; //img csstext 重置
+  $(<div>).removeClass('reflect'); //图片的父div删除reflect class
+  $($(<div>).children('canvas')[0]).remove(); //删除倒影
+</pre>
+</code> <br />
+  上面的options只有<strong>三个</strong>设置项，分别为：
+<code>
+<pre>
+   this._options = {
+      height : 0.5,    //倒影的高度比率
+      opacity : 0.5，   //倒影的透明度渐变比率
+      hasParentDiv： false //是否使用图片的父div作为div容器，如果false则建立一个新的div代替原有的img。
+    };
+</pre>
+</code> <br />

@@ -253,6 +253,14 @@ var Desktop = Class.extend({
         desktop._ctxMenu.activeItem('add-plugin','clock',_eventAction);
         _widget.remove();
         e.preventDefault();
+      }},
+      {text:'show clock',action:function(){
+        $('#clock').modalBox({
+          iconImg:'img/close.png',
+          iconClose:true,
+          keyClose:true,
+          bodyClose:true
+        });
       }}
     ]);
     this._ctxMenu.addCtxMenu([
@@ -263,13 +271,11 @@ var Desktop = Class.extend({
         _property.showAppProperty();
         _property.show();
       }},
-      {text:'delete',action:function(){
-        $('#clock').modalBox({
-          iconImg:'img/close.png',
-          iconClose:true,
-          keyClose:true,
-          bodyClose:true
-        });
+      {text:'add reflect',action:function(){
+        desktop._dock.addReflect();
+      }},
+      {text:'remove reflect',action:function(){
+        desktop._dock.removeReflect();
       }}
     ]);
     this._ctxMenu.addCtxMenu([
