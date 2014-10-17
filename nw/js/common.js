@@ -501,7 +501,7 @@ var Global = Class.extend({
               callback_(err);
             } else {
               _this.$home = stdout.substr(0, stdout.length - 1);
-              _this.$xdg_data_home = _this.$home + '/.local/share/cdos';
+              _this.$xdg_data_home = _this.$home + '/.local/share/webde';
               _this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
                 if(err) {
                   console.log(err);
