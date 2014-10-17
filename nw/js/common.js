@@ -310,7 +310,8 @@ var Watcher = Event.extend({
           if(_this._prev < cur) {
             _global._fs.stat(_this._watchDir + '/' + filename
               , function(err, stats) {
-                _this.emit('add', filename, stats);
+                if(!err)
+                  _this.emit('add', filename, stats);
               });
             _this._prev++;
           } else if(_this._prev > cur) {
@@ -599,58 +600,41 @@ var EntryUtil = Event.extend({
     _global._fs.readdir(dir_, function(err, files) {
       _global.Series.series1(files, function(file_, cb_) {
         _global._fs.stat(dir_ + '/' + file_, function(err, stats) {
-          var _id = 'id-' + stats.ino.toString();
-          if(typeof lastSave_[_id] != 'undefined'
-            && lastSave_[_id].path.match(/[^\/]*$/) == file_) {
-            // var _EntryView = null;
-            var _DockAppView = false;
-            var _model = null;
-            switch(lastSave_[_id].type) {
-              /* case "dockApp": */
-                /* _DockAppView = true; */
-                // _DockApp = DockApp;
-              case "app":
-                try {
-                  _model = desktop.getCOMById('launcher').get(_id);
-                } catch(e) {
-                  _model = AppEntryModel.create(_id
-                    , lastSave_[_id].path
-                    , {x: lastSave_[_id].x, y: lastSave_[_id].y});
-                  desktop.getCOMById('launcher').set(_model);
-                }
-                break;
-              case "dir":
-                // _Entry = DirEntry;
-                break;
-              default:
-                // _Entry = FileEntry;
+          if(!err) {
+            var _id = 'id-' + stats.ino.toString();
+            if(typeof lastSave_[_id] != 'undefined'
+              && lastSave_[_id].path.match(/[^\/]*$/) == file_) {
+              // var _EntryView = null;
+              var _DockAppView = false;
+              var _model = null;
+              switch(lastSave_[_id].type) {
+                /* case "dockApp": */
+                  /* _DockAppView = true; */
+                  // _DockApp = DockApp;
+                case "app":
+                  try {
+                    _model = desktop.getCOMById('launcher').get(_id);
+                  } catch(e) {
+                    _model = AppEntryModel.create(_id
+                      , lastSave_[_id].path
+                      , {x: lastSave_[_id].x, y: lastSave_[_id].y});
+                    desktop.getCOMById('launcher').set(_model);
+                  }
+                  break;
+                case "dir":
+                  // _Entry = DirEntry;
+                  break;
+                default:
+                  // _Entry = FileEntry;
+              }
+              if(_model != null)
+                container_.add(_model);
+            } else {
+              _newEntry[_id] = {
+                'filename': file_,
+                'stats': stats
+              };
             }
-            if(_model != null)
-              container_.add(_model);
-            /* if(_DockAppView) { */
-              // // TODO: get dock component of desktop and add this model to it
-              // desktop.getCOMById('dock').add(_model);
-            // } else {
-              /* _this.add(_model); */
-              /* desktop.addAnDEntry(EntryView.create(_id + '-entry-view', _model) */
-                  /* , _model.getPosition()); */
-            // }
-            /* if (_DockApp != null) { */
-              // desktop.addAnAppToDock(_DockApp.create(_id
-              // ,lastSave_[_id].x
-              // ,lastSave_[_id].path));
-            // } else if (_Entry != null) {
-            // desktop.addAnDEntry(_Entry.create(_id
-              // , 100 + desktop._tabIndex++
-              // , lastSave_[_id].path
-              // , {x: lastSave_[_id].x, y: lastSave_[_id].y}
-              // ), {x: lastSave_[_id].x, y: lastSave_[_id].y});
-            /* } */
-          } else {
-            _newEntry[_id] = {
-              'filename': file_,
-              'stats': stats
-            };
           }
           cb_(null);
         });
