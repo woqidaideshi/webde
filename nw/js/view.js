@@ -274,46 +274,55 @@ var GridView = WidgetView.extend({
     ev.originalEvent.dataTransfer.dropEffect = 'copy';
   },
 
-  drop: function(ev) {
+  drop: function(e) {
     //t_* is target  others is source 
+    var ev = e.originalEvent;
     console.log('drop-grid');
     ev.stopPropagation();
     ev.preventDefault();
     $('#' + ev.currentTarget.id).removeClass('hovering');
+
+    var __id = ev.dataTransfer.getData("ID"),
+        _id = /([\w-_\s\.]+)-dock$/.exec(__id);
+    if(_id == null) _id = {'1': __id};
+    // if(this._id == _id[1]) return ;
+    //show insert position picture
+    var _source = null,
+        desktop = _global.get('desktop'),
+        model = desktop.getCOMById('layout'),
+        s_widget = model.getWidgetById(_id[1]),
+        dock = desktop.getCOMById('dock'),
+        dockApp = dock.getCOMById(_id[1]); 
     
     var _target_id = ev.target.id;
-    var _id = ev.originalEvent.dataTransfer.getData("ID");
-    var _target = $('#'+_target_id);
-    var desktop = _global.get('desktop'),
-        model = desktop.getCOMById('layout'),
-        s_widget = model.getWidgetById(_id);
-    $('#' + _id).parent().removeClass('norhover');
+    // var _id = ev.originalEvent.dataTransfer.getData("ID");
+    var _target = $('#' + _target_id);
+    $('#' + _id[1]).parent().removeClass('norhover');
 
     //get target position
     var _target_arr = _target_id.split('_');
     var _target_col = parseInt(_target_arr[1]);
     var _target_row = parseInt(_target_arr[2]);
-    desktop._position = {x:_target_col,y:_target_row};
+    desktop._position = {x: _target_col, y: _target_row};
 
-    if(typeof s_widget !== 'undefined' &&
-        s_widget.getType() == 'dockApp'){
-      var id = _id.split('-')[0];
-      if (typeof $('#'+id)[0] !== 'undefined') {
+    // handle event that drag a dockapp to desktop
+    //
+    if(typeof _id[0] !== 'undefined') {
+      if(typeof s_widget !== 'undefined') {
         alert("The app has been registed in desktop");
         return ;
-      };
-      var _tabIndex = desktop._tabIndex++;
-      var _path = desktop._widgets[_id]._path;
-      var _tmp = _path.split('/');
-      var _name = _tmp[_tmp.length -1];
-      var _dst = desktop._desktopWatch.getBaseDir() + '/' + _name;
-      var _fs = require('fs');
-      _fs.rename(_path, _dst, function() {});
+      }
+      var _name = dockApp.getFilename(),
+          _src = dock._dockWatch.getBaseDir() + '/' + _name,
+          _dst = desktop._desktopWatch.getBaseDir() + '/' + _name;
+      dockApp.setPosition({x: _target_col, y: _target_row});
+      _global._fs.rename(_src, _dst, function() {});
       return ;
     }
 
-    //handle file transfer
-    var _files = ev.originalEvent.dataTransfer.files;
+    // handle file transfer
+    //
+    var _files = ev.dataTransfer.files;
     if(_files.length != 0) {
       for(var i = 0; i < _files.length; ++i) {
         var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
@@ -324,7 +333,7 @@ var GridView = WidgetView.extend({
     }
 
     //handle item transfer (not support chinese) 
-    var _items = ev.originalEvent.dataTransfer.items;
+    var _items = ev.dataTransfer.items;
     if (_items.length != 0 && typeof s_widget == 'undefined') {
       var _fs = require('fs');
       _items[0].getAsString(function(data){
@@ -386,7 +395,7 @@ var GridView = WidgetView.extend({
     /* } */
 
     //get source grid
-    var parent_id = $('#'+_id).parent('.grid')[0].id;
+    var parent_id = $('#' + _id[1]).parent('.grid')[0].id;
     var arr = parent_id.split('_');
     var col = parseInt(arr[1]);
     var row = parseInt(arr[2]);
@@ -398,7 +407,7 @@ var GridView = WidgetView.extend({
     var pos_ = model.findIdleGrid(_target_col,_target_row,col_num,row_num);
     if (pos_ != null) {
       // $('#grid_'+pos_.x+'_'+pos_.y).append($('#'+_id));
-      console.log(_id + " ---> " + pos_.x + '  '  + pos_.y);
+      console.log(_id[1] + " ---> " + pos_.x + '  '  + pos_.y);
       s_widget.setPosition({x: pos_.x, y: pos_.y});
       model.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
       if(s_widget.getType().match(/\w*Plugin/) == null) {
@@ -952,7 +961,7 @@ var DockView = View.extend({
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]);
 
-    if(typeof dockApp != 'undefined') {
+    if(typeof dockApp !== 'undefined') {
       var _divList = $('#dock div');
       for (var i = 0; i < _divList.length; i++) {
         this._c[_divList[i].id]._model.setIdx(i);
@@ -968,15 +977,15 @@ var DockView = View.extend({
         }
       }
       if(typeof widget !== 'undefined' && widget.getType() == 'app') {
-        if(typeof dockApp !== 'undefined') {
-          alert("The App has been registed in dock");
-          return ;
-        }
-        var _path = widget.getPath(),
-            _name = _path.match(/[^\/]*$/);
-
+        /* if(typeof dockApp !== 'undefined') { */
+          // alert("The App has been registed in dock");
+          // return ;
+        /* } */
+        
+        var _filename = widget.getFilename();
         widget.setIdx(idx);
-        _global._fs.rename(_path, dock._dockWatch.getBaseDir() + '/' + _name[0]
+        _global._fs.rename(desktop._desktopWatch.getBaseDir() + '/' + _filename
+            , dock._dockWatch.getBaseDir() + '/' + _filename
             , function() {});
       } else if(ev.dataTransfer.files.length != 0) {
         var _files = ev.dataTransfer.files;
@@ -1135,13 +1144,13 @@ var DockEntryView = View.extend({
 
     if(typeof dockApp !== 'undefined') {
       // drag to change a dockApp entry's position in dock
-      _source = $('#' + _id);
+      _source = ((typeof _id[0] === 'undefined') ? $('#' + __id + '-dock') : $('#' + __id));
     } else if((typeof widget != 'undefined' && widget.getType() == 'app')
         || ev.dataTransfer.files.length != 0) {
       // drag a desktop entry to dock
       if (typeof $('#insert')[0] == 'undefined') {
-        _source = $('<div>',{
-          'id': 'insert',
+        _source = $('<div>', {
+          'id': 'insert'
         }).html("<img src='img/insert.gif'/>");
       } else {
          _source = $('#insert');

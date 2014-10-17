@@ -650,6 +650,8 @@ var EntryModel = WidgetModel.extend({
     this._focused = false;
   },
 
+  getFilename: function() {return this._filename;},
+
   getPath: function() {return this._path;},
 
   setPath: function(path_) {
