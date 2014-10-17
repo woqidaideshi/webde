@@ -12,10 +12,25 @@
   
   <body> 
     <script type="text/javascript">
+      var _ref; 
       function _window(){
         Window.create('new','text-window');
+      };
+      function _reflection(){
+        _ref = Reflection.create($('#reflection')[0],{height:0.5, opacity:0.5});
+        _ref.add();
+      }
+      function _remove_reflection(){
+        var _img = $('#reflection');
+        var _parent = _img.parent('div');
+        if (typeof _parent[0] !== 'undefined' && _parent.hasClass('reflect')) {
+            _ref.remove();
+        }; 
       }
     </script>
     <button onclick='_window()'>window</button>
+    <button onclick="_reflection()">Reflection</button>
+    <button onclick='_remove_reflection()'>remove Reflection</button>
+    <img id='reflection' src='img/cat.jpg'/>
   </body>
 </html>
