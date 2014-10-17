@@ -1,0 +1,80 @@
+.window{
+  height: auto;
+  width: auto;
+  display:none;
+  position:absolute;
+  z-index:100;
+  .border;
+  background-color:@windowBkgColor;
+  padding: 0 0 2px 0;
+  .radius;
+  .select(none);
+  
+  .window-top{
+    height: 34px;
+    background-color:@windowTitleBkgColor;
+    position:relative;
+    margin: 0 0 10px 0;
+    cursor: move;
+    .window-title{
+      color:@windowTitleTextColor;
+      height: auto;
+      text-align: center; 
+      padding-left: 15px;
+      margin:5px 0px 5px 0px;
+      overflow: hidden;
+       white-space: nowrap;
+      -webkit-text-overflow:ellipsis;
+      text-overflow:ellipsis;
+      float: left;
+    }
+    
+    .window-title-button{
+      height: auto;
+      width: 100px;
+      margin-top: 5px;
+      margin-right: 0px;
+      margin-left: auto;
+      margin-bottom: 5px;
+      text-align: right; 
+      float: right;
+      a{
+        margin: 5px;
+        font-weight: normal;
+        line-height: 20px;
+        white-space: pre;
+        text-decoration: none;
+        &.active{
+           color: @windowTitleActiveButtonColor;
+           &:hover{
+             color: @windowTitleHoverButtonColor;
+             text-shadow: 1px 1px 1px @windowTitleShadowButtonColor;
+           }
+         }
+
+         &.disable{
+          color: @windowTitleDisableButtonColor;
+         }
+      }
+    }
+    clear: both;
+  }
+
+  .window-content{
+    margin-top:5px; 
+    	margin-right:4px;
+    	margin-bottom: 2px;
+    	margin-left: 4px;
+    	background-color: @windowContentBkgColor;  
+  }
+
+  .lb-drag-div{
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    .border;
+    width:10px;
+    height: 10px;
+    cursor: se-resize;
+  }
+}

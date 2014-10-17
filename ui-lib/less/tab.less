@@ -1,0 +1,38 @@
+.tab-show{
+  margin: 10px;
+  .select(none);
+
+  .tab-div{
+    margin: 0px 5px -2px 5px;  
+    height: 24px;
+    a {  
+      text-decoration: none;  
+      color: @tabTextColor;  
+      padding: 5px 5px 1px 5px;  
+      .border;
+      .radius(6px,6px,0,0);
+      z-index: 999;
+      
+      &:hover {
+        background: @tabTextColor;  
+        color: @backgroundColor;  
+        padding-bottom: 2px; 
+      }
+
+      &.selected{
+        background: @backgroundColor;  
+        color: @tabTextColor;  
+        border-bottom:none;
+        padding-bottom: 2px; 
+      }
+    }
+  }
+
+  .tab-content{
+    margin: -4px 5px 0px 5px;  
+    z-index: 10;
+    .border;
+    background-color: @backgroundColor;
+    .select(none);
+  }
+}
