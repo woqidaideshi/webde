@@ -6,7 +6,7 @@
   "window": {
     "title": "test",
     "toolbar": true,
-    "show_in_taskbar": true,
+		"show_in_taskbar": false,
     "as_desktop": true,
     "frame": true
   },

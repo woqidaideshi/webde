@@ -1,7 +1,7 @@
 // API lib for remote, this file should be automated from api.js, so don't
 // change this file manually;
 console.log("head of api_remote.js.");
-var WDC= {};
+var WDC = {};
 WDC.isDebug = true;
 
 /* This function is for require api
