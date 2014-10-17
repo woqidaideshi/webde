@@ -1,0 +1,92 @@
+.animation-iteration-count(@count){
+  -webkit-animation-iteration-count: @count;
+  -moz-animation-iteration-count: @count;
+  -ms-animation-iteration-count: @count;
+  -o-animation-iteration-count: @count;
+  animation-iteration-count: @count;
+}
+
+.animation-timing-function(@timing){
+  -webkit-animation-timing-function: @timing;
+  -moz-animation-timing-function: @timing;
+  -ms-animation-timing-function: @timing;
+  -o-animation-timing-function: @timing;
+  animation-timing-function: @timing;
+}
+
+.animation-name(@name){
+  -webkit-animation-name: @name;
+  -moz-animation-name: @name;
+  -ms-animation-name: @name;
+  -o-animation-name: @name;
+  animation-name: @name;
+}
+
+.animation-duration(@duration){
+  -webkit-animation-duration: @duration;
+  -moz-animation-duration: @duration;
+  -ms-animation-duration: @duration;
+  -o-animation-duration: @duration;
+  animation-duration: @duration;
+}
+
+.transform-origin(@color, @origin){ 
+  -webkit-transform-origin: @arguments;
+  -moz-transform-origin: @arguments;
+  -ms-transform-origin: @arguments;
+  -o-transform-origin: @arguments;
+  transform-origin: @arguments;
+}
+
+.background-image(@startColor,@stopColor){
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, @startColor), color-stop(100%, @stopColor));
+  background-image: -webkit-linear-gradient(@startColor, @stopColor);
+  background-image: -moz-linear-gradient(@startColor, @stopColor);
+  background-image: -o-linear-gradient(@startColor, @stopColor);
+  background-image: linear-gradient(@startColor, @stopColor);
+  background-color: @startColor;
+}
+
+.background-image(@pos,@startColor,@stopColor){
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, @startColor), color-stop(100%, @stopColor));
+  background-image: -webkit-linear-gradient(@pos,@startColor, @stopColor);
+  background-image: -moz-linear-gradient(@pos,@startColor, @stopColor);
+  background-image: -o-linear-gradient(@pos,@startColor, @stopColor);
+  background-image: linear-gradient(@pos,@startColor, @stopColor);
+  background-color: @startColor;
+}
+
+.ui-spinner(
+  @holeColor: @messengerDefaultHoleColor,
+    @size: @messengerDefaultSize,
+    @bkgColorLight: @messengerDefaultBkgColorLight,
+    @bkgColorDark: @messengerDefaultBkgColorDark,
+    @opacity: @messengerDefaultOpacity,
+    @duration: @messengerDefaultDuration
+  ){
+  .messenger-spinner{
+    width: @size;
+    height: @size;
+    background: @bkgColorLight;
+
+    .messenger-spinner-side .messenger-spinner-fill{
+      background: @bkgColorDark;
+      .animation-duration(@duration * 2);
+      opacity: @opacity;
+    }
+
+    &.after{
+      @holeSize: round(@size*.8);
+      @holePosition: round(@size*.1);
+      content: "";
+      background: @holeColor;
+      position: absolute;
+      width: @holeSize;
+      height: @holeSize;
+      border-radius: 50%;
+      top: @holePosition;
+      left: @holePosition;
+      display: block;
+    }
+  }
+}

@@ -18,15 +18,14 @@ You can use commad like:
 	chmod +x $HOME/.local/share/dock/*
 
 ###运行说明###
-	运行前请安装grunt，使用grunt生成运行依赖的ui-lib，
-	目前生成的文件包括nw/css/demoUI.css & nw/css/demoUItheme.css，
-	以及在nw/dist/lib下的demoUI.js & demoUI.min.js。
+	运行前请安装grunt，并执行grunt命令，用于将less/*.less编译为css文件。
  
 ##环境依赖##
     git
     node(包括npm)
     grunt (npm install -g grunt-cli)
     demo-rio(branch data2)
+    ui-lib
 
 ###配置环境###
 	1、请安装grunt客户端，使用如下命令进行安装：
@@ -35,23 +34,25 @@ You can use commad like:
 	  进入nw目录下，执行：
 	 npm install （此时该目录下会生成node-modules文件夹）
 	3、执行grunt命令：
-	 grunt （用于生成dist目录下项目文件）
-	
+	  在nw目录下，执行
+	 grunt 
+	4、初次配置时，载入ui库
+	  进入ui-lib目录，执行
+	 npm install （此时该目录下会生成node-modules文件夹）
+	 grunt    （用于生成dist目录下项目文件）
+	5、当再次打开并要使用最新ui-lib时，执行
+	 在ui-lib目录下，执行：
+	 grunt webde  或者
+	 grunt init
+
 ###grunt 自动打包###
 	1、代码规范检查（目前尚未完善代码规范）
 		grunt jshint
-	3、生成UI库文件（js文件和css文件）
-		grunt
-	4、启动ui-lib代码自动集成（当UI-lib/js/*.js和UI-lib/less/**/*.less文件修改时自动编译生成库文件）
-		grunt watch
-	5、帮助
-		grunt --help
-	6、生成ui库的js文件（lib/demoUI.js）
-		grunt concat
-	7、压缩ui库的js文件（lib/demoUI.min.js）
-		grunt uglify
-	8、生成ui库的css文件（nw/css/demoUI.css & nw/css/demoUItheme.css）
+	2、编译less文件为css文件（js文件和css文件）
+		grunt 或者
 		grunt less
+	3、启动desktop代码自动集成（当less/**/*.less文件修改时自动编译生成css文件）
+		grunt watch
+	4、帮助
+		grunt --help
 
-##关于api##
-	请阅读lib/UI-lib/doc/api.md
