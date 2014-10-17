@@ -1004,6 +1004,7 @@ var DockEntryView = View.extend({
   init: function(id_, model_, container_) {
     this.callSuper(id_, model_);
     this._container = container_;
+    this._controller = DockEntryController.create(this);
     this.registObservers();
     this.$view = $('<div>', {
       'id': this._id,
@@ -1050,7 +1051,7 @@ var DockEntryView = View.extend({
       e.stopPropagation();
     }).mouseup(function(e) { 
       e.stopPropagation();
-      var image = this.children('img');
+      var image = _this.$view.children('img');
       if(image[0].style.borderStyle == "" || image[0].style.borderStyle == 'none') {
         image.animate({width:"+=40px",height:"+=40px"}, 'fast')
           .animate({width:"-=40px",height:"-=40px"}, 'fast');
@@ -1061,6 +1062,7 @@ var DockEntryView = View.extend({
           .animate({top:"-=40px"}, 'fast')
           .animate({top:"+=40px"}, 'fast');
         image.css("border", "outset");
+        _this._controller.onClick();
         // TODO: implement by using command
         //
         /* if(typeof require === 'function') { */
