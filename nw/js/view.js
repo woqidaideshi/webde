@@ -8,8 +8,9 @@ var DesktopView = View.extend({
     this.callSuper('desktop-view', model_);
     this.controller = DesktopController.create(this);
     this.registObservers();
-    this.$view = $('body');
+    this.$view = $('body')/* .attr({id: this.getID()}) */;
     this._c = [];
+    this.initCtxMenu();
     this.initAction();
   }, 
   
@@ -57,11 +58,332 @@ var DesktopView = View.extend({
     }
   },
 
+  initCtxMenu: function() {
+    var desktop = this._model,
+        ctxMenu = _global.get('ctxMenu');
+    ctxMenu.addCtxMenu([
+      {header: 'desktop'},
+      {text: 'create Dir', icon: 'icon-folder-close-alt', action: function(e) {
+        e.preventDefault();
+        for (var i = 0; ; i++) {
+          if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) {
+            continue;
+          } else {
+            _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
+            return;
+          }
+        }
+      }},
+      {text: 'create Text', icon: 'icon-file', action: function(e){
+        e.preventDefault();
+        for (var i = 0; ; i++) {
+          if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
+            continue;
+          } else {
+            _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt', ''
+              , {encoding:'utf8'}, function(err) {
+                if (err) console.log(err);
+              });
+            return;
+          }
+        }
+      }},
+      {text: 'script', subMenu: [
+        {header: 'script'}
+      ]},
+      {divider: true},
+      {text: 'terminal', icon: 'icon-terminal', action: function(e) {
+        e.preventDefault();
+        _global._exec("gnome-terminal", function(err, stdout, stderr) {
+          console.log('stdout: ' + stdout);
+          console.log('stderr: ' + stderr);
+        });
+      }},
+      {text:'gedit', icon: 'icon-edit', action:function(e){
+        e.preventDefault();
+        _global._exec("gedit", function(err, stdout, stderr) {
+          console.log('stdout: ' + stdout);
+          console.log('stderr: ' + stderr);
+        });
+      }},
+      {divider: true},
+      {text: 'refresh', icon: 'icon-refresh icon-spin', action: function(e) {
+        // TODO: only reload views
+        location.reload();
+      }},
+      {text: 'refresh (F5)', icon: 'icon-refresh icon-spin', action: function(e) {
+        location.reload(true);
+      }},
+      {divider: true},
+      {text: 'window', action: function() {
+        Window.create('newWin','Test Window ', {
+          left:200,
+          top:100,
+          height: 400,
+          width: 700,
+          fadeSpeed: 500,
+          animate: false
+        });
+      }},
+      {text: 'window2', action: function() {
+        Window.create('newWin','Test Window2!', {
+          left:400,
+          top:300,
+          height: 500,
+          width: 800,
+          fadeSpeed: 500,
+          animate: true
+        });
+      }},
+      {text: 'app-plugin', icon: 'icon-plus', subMenu: [
+        {header: 'add-plugin'},
+        {text: 'clock', icon: 'icon-time', action: function(e) {
+          e.preventDefault();
+          if (typeof $('#clock')[0] == 'undefined') {
+            desktop.getCOMById('layout')
+              .add(DPluginModel.create('clock', 'img/clock.png', 'ClockPlugin'));
+            ctxMenu.disableItem('add-plugin', 'clock');
+          }
+        }}
+      ]},
+      {text:'messenger set',icon: 'icon-cog', subMenu:[
+        {header: 'messenger set'},
+        {text:'position',subMenu:[
+          {header:'messenger-pos'},
+          {text:'left-bottom', action:function(e){
+            Messenger.options = {
+              extraClasses: "messenger-fixed messenger-on-left messenger-on-bottom"
+            };
+          }},
+          {text:'left-top', action:function(e){
+            Messenger.options = {
+              extraClasses: "messenger-fixed messenger-on-left messenger-on-top"
+            };
+          }},
+          {text:'top', action:function(e){
+            Messenger.options = {
+              extraClasses: "messenger-fixed messenger-on-top"
+            };
+          }},
+          {text:'right-top', action:function(e){
+            Messenger.options = {
+              extraClasses: "messenger-fixed messenger-on-right messenger-on-top"
+            };
+          }},
+          {text:'right-bottom', action:function(e){
+            Messenger.options = {
+              extraClasses: "messenger-fixed messenger-on-right messenger-on-bottom"
+            };
+          }},
+          {text:'bottom', action:function(e){
+            Messenger.options = {
+              extraClasses: "messenger-fixed messenger-on-bottom"
+            };
+          }},
+
+        ]},
+        {text:'maxMessages',subMenu:[
+          {text:'one',action:function(){
+            Messenger.options={
+              maxMessages: '1'
+            }
+          }},
+          {text:'three',action:function(){
+            Messenger.options={
+              maxMessages: '3'
+            }
+          }},
+          {text:'five',action:function(){
+            Messenger.options={
+              maxMessages: '5'
+            }
+          }}
+        ]}
+      ]}
+    ]);
+    ctxMenu.addCtxMenu([
+      {header: 'plugin'},
+      {text: 'zoom in', action: function(e) {
+        e.preventDefault();
+        desktop.getCOMById('layout').getWidgetById(ctxMenu._rightObjId).zoomIn();
+      }},
+      {text: 'zoom out', action: function(e) {
+        e.preventDefault();
+        desktop.getCOMById('layout').getWidgetById(ctxMenu._rightObjId).zoomOut();
+      }},
+      {text:'remove', action:function(e) {
+        e.preventDefault();
+        var layout = desktop.getCOMById('layout'),
+            _widget = layout.getWidgetById(ctxMenu._rightObjId);
+        ctxMenu.activeItem('add-plugin', 'clock', function(e_) {
+          e_.preventDefault();
+          layout.add(DPluginModel.create('clock', 'img/clock.png', 'ClockPlugin'));
+        });
+        layout.remove(_widget);
+      }},
+      {text: 'show clock', action: function() {
+        $('#clock').modalBox({
+          iconImg: 'img/close.png',
+          iconClose: true,
+          keyClose: true,
+          bodyClose: true
+        });
+      }}
+    ]);
+    ctxMenu.addCtxMenu([
+      {header: 'dock'},
+      {text: 'property', action:function(e){
+        e.preventDefault();
+        var _property = Property.create(ctxMenu._rightObjId);
+        _property.showAppProperty();
+        _property.show();
+      }},
+      {text:'add reflect',action:function(){
+        desktop._dock.addReflect();
+      }},
+      {text:'remove reflect',action:function(){
+        desktop._dock.removeReflect();
+      }}
+    ]);
+    ctxMenu.addCtxMenu([
+      {header: 'app-entry'},
+      {text: 'Open', action: function(e) {
+        e.preventDefault();
+        desktop.getAWidgetById(ctxMenu._rightObjId).open();
+      }},
+      {text: 'Rename', action: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+      }},
+      {text:'delete' , icon: 'icon-remove-circle', action:function(e){
+        e.preventDefault();
+        var _path = desktop._widgets[ctxMenu._rightObjId]._path;
+        utilIns.entryUtil.removeFile(_path);
+      }},
+      {text:'property',action:function(e){
+        e.preventDefault();
+        var _property = Property.create(ctxMenu._rightObjId);
+        _property.showAppProperty();
+        _property.show();
+      }}
+    ]);
+    ctxMenu.addCtxMenu([
+      {header: 'file-entry'},
+      {text: 'Open', icon: 'icon-folder-open-alt', action: function(e) {
+        e.preventDefault();
+        desktop.getAWidgetById(ctxMenu._rightObjId).open();
+      }},
+      {text:'Open with...',icon: 'icon-folder-open', subMenu: [
+        {header: 'Open with'}]
+      },
+      {divider: true},
+      {text: 'Rename', action: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+      }},
+      {text:'Move to Trash' ,icon: 'icon-trash', action:function(e){
+        e.preventDefault();
+        utilIns.trashUtil.moveToTrash(ctxMenu._rightObjId);
+      }},
+      {text:'Delete' , icon: 'icon-remove-circle', action:function(e){
+        e.preventDefault();
+        var _msg;
+        _msg = Messenger().post({
+          message: 'If delete it , you can\'t recover it. \n Are you sure delete the file?',
+          type: 'info',
+          showCloseButton: true,
+          actions:{
+            sure:{
+              label: 'sure delete',
+              action:function(){
+                var _path = desktop._widgets[ctxMenu._rightObjId]._path;
+                utilIns.entryUtil.removeFile(_path);
+                _msg.update({
+                  message: 'Deleted file!',
+                  type: 'success',
+                  showCloseButton: true,
+                  actions: false
+                });
+              }
+            },
+            trash:{
+              label:'move to trash',
+              action:function(){
+                utilIns.trashUtil.moveToTrash(ctxMenu._rightObjId);
+                _msg.update({
+                  message: 'Moved file into trash!',
+                  type: 'success',
+                  showCloseButton: true,
+                  actions: false
+                });
+              }
+            },
+            cancel:{
+              label:'cancel',
+              action:function(){
+                _msg.update({
+                  message: 'Cancel delete file!',
+                  type: 'error',
+                  showCloseButton: true,
+                  actions: false
+                });
+              }
+            }
+          }
+        });
+        
+      }},
+    ]);
+    ctxMenu.addCtxMenu([
+      {header: 'theme-entry'},
+      {text: 'Open', action: function(e) {
+        e.preventDefault();
+        desktop.getAWidgetById(ctxMenu._rightObjId).open();
+      }},
+      {text: 'Rename', action: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+      }}
+    ]);
+  },
+
   initAction: function() {
     var _this = this;
     $(window).on('unload', function() {
       _this._model.release();
     });
+
+    var ctxMenu = _global.get('ctxMenu'),
+        desktop = this._model,
+        utilIns = _global.get('utilIns');
+    ctxMenu.attachToMenu('body'
+        , ctxMenu.getMenuByHeader('desktop')
+        , function() {
+          ctxMenu._rightObjId = undefined;
+          var _DIR = _global.$home + '/.gnome2/nemo-scripts';
+          console.log(_DIR);
+          var _menu = ctxMenu.getMenuByHeader('script');
+          if (typeof _menu !== 'undefined') {
+            var _items = _menu.children('li');
+            for (var i = 0; i < _items.length; i++) {
+            if(!$(_items[i]).hasClass('nav-header'))
+              $(_items[i]).remove();
+            };
+          }
+          _global._fs.readdir(_DIR, function(err_, files_) {
+            for (var i = 0; i < files_.length; i++) {
+              var _names = files_[i].split('.');
+              if (_names[_names.length - 1] == 'desktop') {
+                utilIns.entryUtil.getItemFromApp(_DIR + '/' + files_[i], function(err_, item_) {
+                  desktop._ctxMenu.addItem(_menu,item_);
+                });
+              };
+            };
+          });
+        });
   }
 });
 
@@ -92,7 +414,6 @@ var WidgetView = View.extend({
 
   drag: function(ev) {
     console.log("drag start");
-    // TODO: change to send this view object as the transfer data
     ev.originalEvent.dataTransfer.setData("ID", ev.originalEvent.currentTarget.id);
     console.log(ev.originalEvent.dataTransfer.getData("ID"));
     ev.stopPropagation();
@@ -171,8 +492,8 @@ var GridView = WidgetView.extend({
         }
         switch(widget_.getType()) {
           case 'ClockPlugin':
-            break;
           case 'ImagePlugin':
+            _this.deleteADPlugin(widget_)
             break;
           default:
             _this.deleteADEntry(widget_);
@@ -227,10 +548,20 @@ var GridView = WidgetView.extend({
     }
 
     plugin_.setPosition(pos_);
+    this._c[plugin_.getID()] = pluginView_;
     /* plugin_.show(); */
     /* plugin_.setPanel(path_); */
     //get number of occupy-grid col and row
     this._model.flagGridOccupy(pos_.x, pos_.y, plugin_.getColNum(), plugin_.getRowNum(), true);
+  },
+
+  deleteADPlugin: function(entry_) {
+    var _pos = entry_.getPosition();
+    this._model.flagGridOccupy(_pos.x
+        , _pos.y, this._model._col_num, this._model._row_num, false);
+    this._c[entry_.getID()].destroy();
+    this._c[entry_.getID()] = null;
+    delete this._c[entry_.getID()];
   },
 
   show: function($parent) {
@@ -456,10 +787,7 @@ var DPluginView = WidgetView.extend({
           console.log(err_);
           return ;
         }
-        _this.$view.width(size_.width).height(size_.height);/* .children('canvas').css({ */
-          // 'width': size_.width,
-          // 'height': size_.height
-        /* }) */;
+        _this.$view.width(size_.width).height(size_.height);
         _this._ctx.canvas.width = size_.width;
         _this._ctx.canvas.height = size_.height;
       },
@@ -486,6 +814,11 @@ var DPluginView = WidgetView.extend({
     }).on('mouseup', function(e) {
       e.stopPropagation();
     });
+
+    var ctxMenu = _global.get('ctxMenu');
+    ctxMenu.attachToMenu('#' + this.getID()
+        , ctxMenu.getMenuByHeader('plugin')
+        , function(id_) {ctxMenu._rightObjId = id_});
   },
 
   show: function($parent) {
@@ -518,9 +851,21 @@ var ClockPluginView = DPluginView.extend({
 
   show: function($parent) {
     this.callSuper($parent);
+    // init context menu
+    var ctxMenu = _global.get('ctxMenu'),
+        _size = this._model.getSize();
+    ctxMenu.disableItem('add-plugin', 'clock');
+    if(_size.width == 180) {
+      ctxMenu.disableItem('plugin', 'zoom in');
+    } else if(_size.width == 90) {
+      ctxMenu.disableItem('plugin', 'zoom out');
+    }
+    // init tooltip
+    Tooltip.create(this.$view, 'cursor');
+    // draw the clock
     var /* _target = $('#' + this._id + this._model._content), */
         _context = this._ctx/* _target[0].getContext('2d') */,
-        _size = this._model.getSize(),
+        _this = this;
         _img = new Image();
 
     _img.src = this._model._path;
@@ -529,35 +874,36 @@ var ClockPluginView = DPluginView.extend({
     }
 
     var run = function() {
-      var _type = [['#000',70,1],['#ccc',60,2],['red',50,3]];
-      function drwePointer(type_, angle_){
+      var _type = [['#000',70,1], ['#ccc',60,2], ['red',50,3]];
+      function drwePointer(type_, angle_) {
         type_ = _type[type_];
-        angle_ = angle_*Math.PI*2 - 90/180*Math.PI; 
-        var _length = type_[1] / (200 / _size.width);
+        angle_ = angle_ * Math.PI * 2 - 90 / 180 * Math.PI; 
+        var _length = type_[1] / (200 / _this._ctx.canvas.width);
         _context.beginPath();
         _context.lineWidth = type_[2];
         _context.strokeStyle = type_[0];
-        _context.moveTo( _size.width / 2, _size.height / 2); 
-        _context.lineTo( _size.width / 2 + _length*Math.cos(angle_), _size.height/2 
-            + _length*Math.sin(angle_)); 
+        _context.moveTo(_this._ctx.canvas.width / 2
+            , _this._ctx.canvas.height / 2); 
+        _context.lineTo(_this._ctx.canvas.width / 2 + _length * Math.cos(angle_)
+            , _this._ctx.canvas.height / 2 + _length * Math.sin(angle_)); 
         _context.stroke();
         _context.closePath();
       }
-      setInterval(function (){
-        _context.clearRect(0,0, _size.height, _size.width);
-        _context.drawImage(_img,0,0, _size.width, _size.height);
+      setInterval(function() {
+        _context.clearRect(0, 0, _this._ctx.canvas.width, _this._ctx.canvas.height);
+        _context.drawImage(_img, 0, 0, _this._ctx.canvas.width, _this._ctx.canvas.height);
         var _time = new Date();
         var _hour = _time.getHours();
         var _mimute = _time.getMinutes();
         var _second = _time.getSeconds(); 
         _hour = _hour > 12?_hour - 12: _hour;
         _hour = _hour+_mimute/60; 
-        _hour=_hour/12;
-        _mimute=_mimute/60;
-        _second=_second/60;
-        drwePointer(0,_second);
-        drwePointer(1,_mimute);
-        drwePointer(2,_hour); 
+        _hour = _hour/12;
+        _mimute = _mimute/60;
+        _second = _second/60;
+        drwePointer(0, _second);
+        drwePointer(1, _mimute);
+        drwePointer(2, _hour); 
       }, 100);
     };
     run();
@@ -668,6 +1014,13 @@ var DEntryView = WidgetView.extend({
         // }
       /* } */
     });
+
+    var ctxMenu = _global.get('ctxMenu'),
+        type = this._model.getType();
+    if(type == 'dir') type = 'file';
+    ctxMenu.attachToMenu('#' + this.getID()
+        , ctxMenu.getMenuByHeader(type + '-entry')
+        , function(id_) {ctxMenu._rightObjId = id_;});
   },
 
   show: function() {
@@ -1063,19 +1416,6 @@ var DockEntryView = View.extend({
           .animate({top:"+=40px"}, 'fast');
         image.css("border", "outset");
         _this._controller.onClick();
-        // TODO: implement by using command
-        //
-        /* if(typeof require === 'function') { */
-          // console.log("run " + this._execCmd);
-          // var result = this._exec(this._execCmd,function(err, stdout, stderr) {
-            // console.log('stdout: ' + stdout);
-            // console.log('stderr: ' + stderr);
-            // image.css("border","none");
-          // });
-        // }  else {
-          // console.log('run in browser');
-          // 
-        /* } */
         image.css("border", "none");
       }
     }).on('mouseover', function(ev) {
@@ -1090,6 +1430,11 @@ var DockEntryView = View.extend({
       _this.dragOver(ev);
     }).on('dragstart', this.drag)
       /* .on('drop', this.drop) */;
+
+    var ctxMenu = _global.get('ctxMenu');
+    ctxMenu.attachToMenu('#' + this.getID()
+        , ctxMenu.getMenuByHeader('dock')
+        , function(id_) {ctxMenu._rightObjId = id_});
   },
 
   show: function($parent) {
