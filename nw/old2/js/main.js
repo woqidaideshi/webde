@@ -20,10 +20,6 @@ $(document).ready(function() {
       'name': 'theCP',
       'class': CommandProcessor,
       'serialize': false
-    }, {
-      'name': 'ctxMenu',
-      'class': ContextMenu,
-      'serialize': false
     });
   });
 });
