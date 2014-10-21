@@ -561,14 +561,17 @@ var DPluginModel = WidgetModel.extend({
   },
 
   zoomIn: function() {
-    if(this._size.width >= 180) {
+    if(this._size.width == 180) {
       alert('the plugin has been max size!!');
     } else {
       this.setSize({
-        'width': _width + 20,
-        'height': _width + 20
+        'width': this._size.width + 15,
+        'height': this._size.width + 15
       });
-      var grid = _global.get('desktop').getGrid();
+
+      var grid = _global.get('desktop').getGrid(),
+          _this = this,
+          ctxMenu = _global.get('ctxMenu');
       if(grid != null)
         grid.flagGridOccupy(
             _this._position.x, 
@@ -576,23 +579,23 @@ var DPluginModel = WidgetModel.extend({
             _this._col_num, 
             _this._row_num, 
             true);
-
       if(this._size.width == 180) { 
-        desktop._ctxMenu.disableItem('plugin', 'zoom in');
-      } else if (this._size.width == 60) {
-        desktop._ctxMenu.activeItem('plugin', 'zoom out', function(e) {
+        ctxMenu.disableItem('plugin', 'zoom in');
+      } else if (this._size.width == 105) { 
+        ctxMenu.activeItem('plugin', 'zoom out', function(e) {
           e.preventDefault();
           _this.zoomOut();
         });
-      };
+      }; 
     }
   },
 
   zoomOut: function() {
-    if(this._size.width <= 60) {
+    if(this._size.width == 90) {
       alert('the plugin has been min size!!');
     } else {
-      var grid = _global.get('desktop').getGrid();
+      var grid = _global.get('desktop').getGrid(),
+          _this = this;
       if(grid != null)
         grid.flagGridOccupy(
             _this._position.x, 
@@ -601,9 +604,10 @@ var DPluginModel = WidgetModel.extend({
             _this._row_num, 
             false);
       this.setSize({
-        'width': _width * 1 - 20,
-        'height': _width * 1 - 20
+        'width': this._size.width * 1 - 15,
+        'height': this._size.width * 1 - 15
       });
+
       if(grid != null)
         grid.flagGridOccupy(
             _this._position.x, 
@@ -611,11 +615,11 @@ var DPluginModel = WidgetModel.extend({
             _this._col_num, 
             _this._row_num, 
             true);
-
-      if(this._size.width - 20 == 60) { 
-        desktop._ctxMenu.disableItem('plugin', 'zoom out');
-      } else if (this._size.width == 180) {
-        desktop._ctxMenu.activeItem('plugin', 'zoom in', function(e) {
+      var ctxMenu = _global.get('ctxMenu');
+      if(this._size.width == 90) { 
+        ctxMenu.disableItem('plugin', 'zoom out');
+      } else if (this._size.width == 165) {
+        ctxMenu.activeItem('plugin', 'zoom in', function(e) {
           e.preventDefault();
           _this.zoomIn();
         });
