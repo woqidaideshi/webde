@@ -2,35 +2,20 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>desktop</title>
-    <link rel="stylesheet" type="text/css" href="dist/css/demoUI.css"/>
-    <link rel="stylesheet" type="text/css" href="dist/css/demoUItheme.css"/>
-    <link rel="stylesheet" type="text/css" href="dist/css/demoUIFont.css"/>
-    <script type="text/javascript" src="jquery.js"></script>
-    <script type="text/javascript" src="dist/js/demoUI.js"></script>
+    <title>UI-lib</title>
   </head>
   
   <body> 
-    <script type="text/javascript">
-      var _ref; 
-      function _window(){
-        Window.create('new','text-window');
-      };
-      function _reflection(){
-        _ref = Reflection.create($('#reflection')[0],{height:0.5, opacity:0.5});
-        _ref.add();
-      }
-      function _remove_reflection(){
-        var _img = $('#reflection');
-        var _parent = _img.parent('div');
-        if (typeof _parent[0] !== 'undefined' && _parent.hasClass('reflect')) {
-            _ref.remove();
-        }; 
-      }
-    </script>
-    <button onclick='_window()'>window</button>
-    <button onclick="_reflection()">Reflection</button>
-    <button onclick='_remove_reflection()'>remove Reflection</button>
-    <img id='reflection' src='img/cat.jpg'/>
+    <h2>UI-lib</h2>
+    <p>此ui库的说明文档以及demo，采用jekyll工具生成。</p>
+    <p>Jekyll 是一个简单的博客形态的静态站点生产机器。它有一个模版目录，其中包含原始文本格式的文档，通过 Markdown （或者 Textile） 以及 Liquid 转化成一个完整的可发布的静态网站，你可以发布在任何你喜爱的服务器上。Jekyll 也可以运行在 GitHub Page 上，也就是说，你可以使用 GitHub 的服务来搭建你的项目页面、博客或者网站，而且是完全免费的。</p><br />
+    <h3>安装jekyll</h3>
+    <p>1、安装ruby： <code>sudo apt-get install ruby</code></p>
+    <p>2、安装ruby头文件库： <code>sudo apt-get install ruby1.9.1-dev</code></p>
+    <p>3、安装jekyll：<code>sudo gem install jekyll</code></p><br/>
+    <h3>在本程序中使用jekyll</h3>
+    <p>1、在ui-lib目录下执行<code>grunt</code>或<code>grunt doc</code>命令</p>
+    <p>2、进入到ui-lib/doc目录下，执行<code>jekyll serve</code>命令</p>
+    <p>3、打开浏览器（最好是chrome或opera），在地址栏输入：<code>localhost:4000</code>  浏览网页</p>
   </body>
 </html>
