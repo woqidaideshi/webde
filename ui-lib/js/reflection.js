@@ -60,7 +60,8 @@ var Reflection = Class.extend({
     	  }
     	  //put img's css into img's parentDiv
     	  //_parentDiv[0].style.cssText = _this._img[0].style.cssText;
-    	  _parentDiv[0].style.width = _this._img[0].style.width;
+        // ERROR: Will introduce a mouse move bug!!!
+        // _parentDiv[0].style.width = _this._img[0].style.width;
     	  //set vertical align
     	  _this._img[0].style.cssText = 'vertical-align: bottom';
     	  //set reflect height and reflect width
@@ -71,7 +72,8 @@ var Reflection = Class.extend({
     	    var _reflection = document.createElement('img');
     	    _reflection.src = _this._img[0].src;
     	    _reflection.style.width = _this._img.width() + 'px';
-    	    _reflection.style.display = 'inline-block';
+          // ERROR: Will introduce a mouse move bug!!!
+          // _reflection.style.display = 'inline-block';
     	    _reflection.style.height = _reflectHeight;
     	    _reflection.style.marginBottom = "-"+(p.height-reflectionHeight)+'px';
     	    _reflection.style.filter = 'flipv progid:DXImageTransform.Microsoft.Alpha(opacity='
@@ -87,7 +89,8 @@ var Reflection = Class.extend({
     	      _canvas.style.width = _this._img.width() + 'px';
     	      _canvas.height = _reflectHeight;
     	      _canvas.width = _this._img.width();
-    	      _parentDiv[0].style.width = _reflectWidth + 'px';
+            // ERROR: Will introduce a mouse move bug!!!
+            // _parentDiv[0].style.width = _reflectWidth + 'px';
     	      //_parentDiv[0].style.height = _this._img.height()+ _reflectHeight + 'px';
     	      _parentDiv.append(_canvas);
     	      _context.save();
