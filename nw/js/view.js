@@ -1542,50 +1542,50 @@ var PropertyView = View.extend({
   init: function(id_, model_) {
     this.callSuper(id_, model_);
     this._id = id_;
-		this._isMouseDown = false;  	//flag mouse is down or not  
-		this._offsetX = 0;						//record mouse-x relate property-div left 	
-		this._offsetY = 0;						//record mouse-y relate property-div top
-		this._imgPath = undefined;
+    this._isMouseDown = false;    //flag mouse is down or not  
+    this._offsetX = 0;            //record mouse-x relate property-div left   
+    this._offsetY = 0;            //record mouse-y relate property-div top
+    this._imgPath = undefined;
 
-		// main div
-		this.$view = $('<div>', {
-			'class': 'property',
-			'id': id_ + '-property',
-			'z-index': '10000'
-		});
-		
-		// title 
-		this.$view.append($('<h2>',{
-			'id': id_ + '-title',
-			'text': this._model.getName() + ' ' + '属性'
-		}));
+    // main div
+    this.$view = $('<div>', {
+      'class': 'property',
+      'id': id_ + '-property',
+      'z-index': '10000'
+    });
+    
+    // title 
+    this.$view.append($('<h2>',{
+      'id': id_ + '-title',
+      'text': this._model.getName() + ' ' + '属性'
+    }));
 
     // content
-		this._tab = Tab.create('property-tab',['basic', 'power']);
-		this._tab.injectParent(this.$view);
+    this._tab = Tab.create('property-tab',['basic', 'power']);
+    this._tab.injectParent(this.$view);
 
-		this._tab.addDivByTab($('<div>', {
-			'class': 'iconcontent',
-			'id': this._id + '-icon'
-		}).append($('<img>',{
-			'class':'imgcontent',
-			'id':this._id + '-imgproperty'
-		})), 'basic');
+    this._tab.addDivByTab($('<div>', {
+      'class': 'iconcontent',
+      'id': this._id + '-icon'
+    }).append($('<img>',{
+      'class':'imgcontent',
+      'id':this._id + '-imgproperty'
+    })), 'basic');
 
-		this._tab.addDivByTab($('<div>', {
-			'class': 'basicinfocontent',
-			'id': this._id + '-basicinfo'
-		}), 'basic');
-		
+    this._tab.addDivByTab($('<div>', {
+      'class': 'basicinfocontent',
+      'id': this._id + '-basicinfo'
+    }), 'basic');
+    
     // button 
-		this.$view.append($('<button>',{
-			'class': 'btn',
-			'id': this._id + '-close',
-			'text': 'CLOSE'
-		}).addClass('active'));
+    this.$view.append($('<button>',{
+      'class': 'btn',
+      'id': this._id + '-close',
+      'text': 'CLOSE'
+    }).addClass('active'));
 
     this.registObservers();
-		this.initAction();
+    this.initAction();
   },
 
   registObservers: function() {
@@ -1644,84 +1644,84 @@ var PropertyView = View.extend({
   initAction: function() {
     var _this = this;
 
-		//property animate and remove();
-		_this.$view.children('button').click(function(e) {
-			if (e.target.id.split('-')[0] !== 'event') {
-				var _pos = {top: 0, left: 0};
-				if (typeof $('#' + _this._id).offset() !== 'undefined') {
-					_pos = $('#' + _this._id).offset();
-				} else {
-					_pos = $('#' + _this._id + '-icon').offset();
-				}
-				_this.$view.animate({
+    //property animate and remove();
+    _this.$view.children('button').click(function(e) {
+      if (e.target.id.split('-')[0] !== 'event') {
+        var _pos = {top: 0, left: 0};
+        if (typeof $('#' + _this._id).offset() !== 'undefined') {
+          _pos = $('#' + _this._id).offset();
+        } else {
+          _pos = $('#' + _this._id + '-icon').offset();
+        }
+        _this.$view.animate({
           top: _pos.top,
           opacity: 'hide',
           width: 0,
           height: 0,
           left: _pos.left
         }, 500, function() {
-					_this.destroy();
-				});
-			}
-		});
+          _this.destroy();
+        });
+      }
+    });
 
-		//drag function 
-		_this.$view.children('h2').mouseover(function(ev) {
-			$(this).css('cursor','move');
-		}).mousedown(function(ev) {
-			ev.stopPropagation();
-			_this._isMouseDown = true;
-			_this._offsetX = ev.offsetX;
-			_this._offsetY = ev.offsetY;
-			console.log('x:' +_this._offsetX + '  y: ' + _this._offsetY );
-			_this.$view.fadeTo(20, 0.5);
-		}).mouseup(function(ev) {
-			ev.stopPropagation();
-			_this._isMouseDown = false;
-			_this.$view.fadeTo(20, 1);
-		});
+    //drag function 
+    _this.$view.children('h2').mouseover(function(ev) {
+      $(this).css('cursor','move');
+    }).mousedown(function(ev) {
+      ev.stopPropagation();
+      _this._isMouseDown = true;
+      _this._offsetX = ev.offsetX;
+      _this._offsetY = ev.offsetY;
+      console.log('x:' +_this._offsetX + '  y: ' + _this._offsetY );
+      _this.$view.fadeTo(20, 0.5);
+    }).mouseup(function(ev) {
+      ev.stopPropagation();
+      _this._isMouseDown = false;
+      _this.$view.fadeTo(20, 1);
+    });
 
-		_this.$view.mousedown(function(ev){
-			ev.stopPropagation();
-		}).mouseup(function(ev){
-			ev.stopPropagation;
-		});
+    _this.$view.mousedown(function(ev){
+      ev.stopPropagation();
+    }).mouseup(function(ev){
+      ev.stopPropagation;
+    });
 
-		$(document).mousemove(function(ev){
-		  if(!_this._isMouseDown) return ;
-		  var x = ev.clientX - _this._offsetX; 
-			// console.log('ev.x: '+ev.clientX + '   this:x '+_this._offsetX + '  x: ' + x);
-		  var y = ev.clientY - _this._offsetY; 
-			// console.log('ev.y: '+ev.clientY + '   this:y '+_this._offsetY + '  y: ' + y);
-		  _this.$view.css({
+    $(document).mousemove(function(ev){
+      if(!_this._isMouseDown) return ;
+      var x = ev.clientX - _this._offsetX; 
+      // console.log('ev.x: '+ev.clientX + '   this:x '+_this._offsetX + '  x: ' + x);
+      var y = ev.clientY - _this._offsetY; 
+      // console.log('ev.y: '+ev.clientY + '   this:y '+_this._offsetY + '  y: ' + y);
+      _this.$view.css({
         "left": x,
         "top": y
       }).children('h2').css('cursor', 'move');
-		});
+    });
   },
 
   show: function() {
-		$('body').append(this.$view);
+    $('body').append(this.$view);
 
     if(this.$view.is(":visible") == false) {
-			this.$view.css({
+      this.$view.css({
         'position': 'absolute',
         'width': '0px',
         'height': '0px'
       });
       var $tarObj = $('#' + this._id),
-			    left_ = $tarObj.offset().left + $tarObj.width() / 2,
-			    top_ = $tarObj.offset().top + $tarObj.height() / 2;
-			this.$view.css({
+          left_ = $tarObj.offset().left + $tarObj.width() / 2,
+          top_ = $tarObj.offset().top + $tarObj.height() / 2;
+      this.$view.css({
         'left': left_ + 'px',
         'top': top_+'px'
       }).show();
-			var box_width = $(window).width() / 4,
-			    box_height = $(".property .tab-show .tab-content").height() * 3 / 2.1,
-			    top_property = $(window).height() / 2 - box_height / 2,
-			    left_property = $(window).width() / 2 - box_width / 2,
+      var box_width = $(window).width() / 4,
+          box_height = $(".property .tab-show .tab-content").height() * 3 / 2.1,
+          top_property = $(window).height() / 2 - box_height / 2,
+          left_property = $(window).width() / 2 - box_width / 2,
           _this = this;
-			this.$view.animate({
+      this.$view.animate({
         top: top_property,
         opacity: 'show',
         width: box_width,
@@ -1733,7 +1733,7 @@ var PropertyView = View.extend({
         _this.setBasicProperty();
         _this._tab.setShowByTab('basic');
       });
-		}
+    }
   },
 
   hide: function() {
@@ -1752,60 +1752,60 @@ var PropertyView = View.extend({
 
   setBasicProperty: function() {
     var _this = this;
-		//get some basic inform and access inform
-		_global.get('utilIns').entryUtil.getProperty(_this._model.getPath(), function(err_, attr_) {
-			if(typeof attr_ == 'undefined') {
-				console.log('get Property err');
-				return ;
-			}
-			var fileType = null;
-			switch(attr_['access'][0]){
-				case '-': 
-					fileType = '普通文件';
-					break ;
-				case 'd':
-					fileType = '文件夹';
-					break ;
-				case 'b':
-					fileType = '块特殊文件';
-					break;
-				case 'c':
-					fileType = '字符特殊文件';
-					break ;
-				case 'l':
-					fileType = '连接';
-					break ;
-				case 'p':
-					fileType = '命名管道（FIFO）';
-					break ;
-				default:
-					break ;
-			}
+    //get some basic inform and access inform
+    _global.get('utilIns').entryUtil.getProperty(_this._model.getPath(), function(err_, attr_) {
+      if(typeof attr_ == 'undefined') {
+        console.log('get Property err');
+        return ;
+      }
+      var fileType = null;
+      switch(attr_['access'][0]){
+        case '-': 
+          fileType = '普通文件';
+          break ;
+        case 'd':
+          fileType = '文件夹';
+          break ;
+        case 'b':
+          fileType = '块特殊文件';
+          break;
+        case 'c':
+          fileType = '字符特殊文件';
+          break ;
+        case 'l':
+          fileType = '连接';
+          break ;
+        case 'p':
+          fileType = '命名管道（FIFO）';
+          break ;
+        default:
+          break ;
+      }
       _this.$view.find('.basicinfocontent')
-			  .append("<p><span>▪</span>文件大小:  " + attr_['size'] + "</p>")
-			  .append("<p><span>▪</span>文件类型:  " + fileType + "</p>")
-			  .append("<p><span>▪</span>访问时间:  " + attr_['access_time'] + "</p>")
-			  .append("<p><span>▪</span>修改时间:  " + attr_['modify_time'] + "</p>");
+        .append("<p><span>▪</span>文件大小:  " + attr_['size'] + "</p>")
+        .append("<p><span>▪</span>文件类型:  " + fileType + "</p>")
+        .append("<p><span>▪</span>访问时间:  " + attr_['access_time'] + "</p>")
+        .append("<p><span>▪</span>修改时间:  " + attr_['modify_time'] + "</p>");
 
-			var power = '',
+      var power = '',
           _access = attr_['access'],
-			    checkPower = function(power_) {
-				    power = '';
-				    if (power_[0] == 'r') {power += '读'}
-				    if (power_[1] == 'w') {power += '写'};
-				    if (power_[2] == 'x') {power += '执行'}
-				    else if (power_[2] == 's') {power += '超级执行'};
-				    if (power != '') {power += '权限'};
-			    };
-			checkPower(_access.substr(1, 3));
-			_this._tab.addDivByTab("<p><span>▪</span>所有者:  " + attr_['uid'] + "</p>",'power');
-			_this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
-			checkPower(_access.substr(4, 3));
-			_this._tab.addDivByTab("<p><span>▪</span>用户组:  " + attr_['gid'] + "</p>",'power');
-			_this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
-			checkPower(_access.substr(7, 3));
-			_this._tab.addDivByTab("<p><span>▪</span> 其他:  </p>", 'power');
-			_this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>", 'power');
-		});
+          checkPower = function(power_) {
+            power = '';
+            if (power_[0] == 'r') {power += '读'}
+            if (power_[1] == 'w') {power += '写'};
+            if (power_[2] == 'x') {power += '执行'}
+            else if (power_[2] == 's') {power += '超级执行'};
+            if (power != '') {power += '权限'};
+          };
+      checkPower(_access.substr(1, 3));
+      _this._tab.addDivByTab("<p><span>▪</span>所有者:  " + attr_['uid'] + "</p>",'power');
+      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
+      checkPower(_access.substr(4, 3));
+      _this._tab.addDivByTab("<p><span>▪</span>用户组:  " + attr_['gid'] + "</p>",'power');
+      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
+      checkPower(_access.substr(7, 3));
+      _this._tab.addDivByTab("<p><span>▪</span> 其他:  </p>", 'power');
+      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>", 'power');
+    });
   }
 });
