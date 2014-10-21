@@ -732,10 +732,10 @@ var AppEntryModel = EntryModel.extend({
         console.log(err_);
         callback_.call(this, err_);
       }
-      //get launch commad
+      // get launch commad
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
-      //get icon
+      // get icon
       // TODO: change to get icon path from cache
       utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
         if(err_) {
@@ -746,13 +746,35 @@ var AppEntryModel = EntryModel.extend({
           callback_.call(this, null);
         }
       });
-      //get name
+      // get name
       if(typeof file_['Name[zh_CN]'] !== "undefined") {
         _this.setName(file_['Name[zh_CN]']);
       } else {
         _this.setName(file_['Name']);
       }
+      // get comment
+      _this._comment = file_['Comment'];
+      // get genericName
+      if (typeof file_['GenericName[zh_CN]'] != 'undefined') {
+				_this._genericName = file_['GenericName[zh_CN]'];
+      } else {
+        _this._genericName = file_['GenericName'];
+      }
     });
+  },
+
+  getComment: function() {return this._comment;},
+
+  setComment: function(comment_) {
+    this._comment = comment_;
+    this.emit('comment', null, this._comment);
+  },
+
+  getGenericName: function() {return this._genericName;},
+
+  setGenericName: function(genericName_) {
+    this._genericName = genericName_;
+    this.emit('genericName', null, this._genericName);
   },
 
   getCmd: function() {return this._execCmd;},

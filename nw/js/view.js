@@ -231,21 +231,6 @@ var DesktopView = View.extend({
       }}
     ]);
     ctxMenu.addCtxMenu([
-      {header: 'dock'},
-      {text: 'property', action:function(e){
-        e.preventDefault();
-        var _property = Property.create(ctxMenu._rightObjId);
-        _property.showAppProperty();
-        _property.show();
-      }},
-      {text:'add reflect',action:function(){
-        desktop._dock.addReflect();
-      }},
-      {text:'remove reflect',action:function(){
-        desktop._dock.removeReflect();
-      }}
-    ]);
-    ctxMenu.addCtxMenu([
       {header: 'app-entry'},
       {text: 'Open', action: function(e) {
         e.preventDefault();
@@ -1176,6 +1161,7 @@ var DockView = View.extend({
       'onselectstart': 'return false'
     });
     this.initAction(this.$view);
+    this.initCtxMenu();
     this._c = [];
   },
 
@@ -1237,60 +1223,53 @@ var DockView = View.extend({
     .on('dragleave', this.dragLeave);
   },
 
+  initCtxMenu: function() {
+    var _this = this,
+        ctxMenu = _global.get('ctxMenu');
+    ctxMenu.addCtxMenu([
+      {header: 'dock'},
+      {text: 'property', action: function(e) {
+        e.preventDefault();
+        var id_ = /([\w-_\s\.]+)-dock$/.exec(ctxMenu._rightObjId);
+        PropertyView.create(id_[0], _this._model.getCOMById(id_[1])).show();
+      }},
+      {text: 'add reflect', action: function() {
+        _this.addReflect();
+      }},
+      {text: 'remove reflect', action: function() {
+        _this.removeReflect();
+      }}
+    ]);
+  },
+
   show: function($parent) {
     $parent.append(this.$view);
-  }/* , */
+  },
 
-  // dragOver: function(e) {
-    // var ev = e.originalEvent;
-    // ev.preventDefault();
-    // ev.stopPropagation();
-    // var __id = ev.dataTransfer.getData("ID"),
-        // _id = /([\w-_\s\.]+)-dock$/.exec(__id);
-    // if(_id == null) _id = {'0': __id};
-    // //show insert position picture
-    // var _source = null,
-        // desktop = _global.get('desktop'),
-        // layout = desktop.getCOMById('layout'),
-        // widget = layout.getWidgetById(_id[0]),
-        // dock = desktop.getCOMById('dock'),
-        // dockApp = dock.getCOMById(_id[1]);
+  addReflect: function() {
+    this.$view.find('img').each(function() {
+      Reflection.create(this, {hasParentDiv: true}).add();
+    });
+    var ctxMenu = _global.get('ctxMenu'),
+        _this = this;
+    ctxMenu.activeItem('dock', 'remove reflect', function() {
+      _this.removeReflect();
+    });
+    ctxMenu.disableItem('dock', 'add reflect');
+  },
 
-    // if(typeof dockApp !== 'undefined') {
-      // // drag to change a dockApp entry's position in dock
-      // _source = $('#' + _id);
-    // } else if(typeof widget != 'undefined' || ev.dataTransfer.files.length != 0) {
-      // // drag a desktop entry to dock
-      // if (typeof $('#insert')[0] == 'undefined') {
-        // _source = $('<div>',{
-          // 'id': 'insert',
-        // }).html("<img src='img/insert.gif'/>");
-      // } else {
-         // _source = $('#insert');
-      // }
-      // [> if(dock.add(widget)) { <]
-        // // layout.remove(widget);
-      // [> } <]
-    // } else {
-      // // TODO: handle launcher app entry!!
-      // return ;
-    // }
-    // // 
-    // var _new_div = null,
-        // _divList = $('#dock div');
-    // for(var i = 0; i < _divList.length + 1; i++) {
-      // if(_divList[i].id == _source[0].id) continue;
-      // var _div = $(_divList[i]);
-      // if(ev.clientX < _div.position().left + _div.width() / 2) {
-        // _new_div = _div;
-        // break;
-      // };
-    // };
-    // if(_new_div == null) 
-      // $('#dock').append(_source);
-    // else if(null != _new_div) 
-      // _new_div.before(_source);
-  /* } */,
+  removeReflect: function() {
+    this.$view.children('div').each(function() {
+      $(this).children('img')[0].style.cssText = '';
+      $(this).removeClass('reflect').children('canvas').remove();
+    });
+    var ctxMenu = _global.get('ctxMenu'),
+        _this = this;
+    ctxMenu.activeItem('dock', 'add reflect', function() {
+      _this.addReflect();
+    });
+    ctxMenu.disableItem('dock', 'remove reflect');
+  },
 
   dragLeave: function(ev) {
     if(ev.originalEvent.clientY < $('#dock').position().top) {
@@ -1556,5 +1535,277 @@ var DockEntryView = View.extend({
       "top" : ($(ev.target).offset().top - 25) + "px", 
       "left" : left + "px" 
     });
+  }
+});
+
+var PropertyView = View.extend({
+  init: function(id_, model_) {
+    this.callSuper(id_, model_);
+    this._id = id_;
+		this._isMouseDown = false;  	//flag mouse is down or not  
+		this._offsetX = 0;						//record mouse-x relate property-div left 	
+		this._offsetY = 0;						//record mouse-y relate property-div top
+		this._imgPath = undefined;
+
+		// main div
+		this.$view = $('<div>', {
+			'class': 'property',
+			'id': id_ + '-property',
+			'z-index': '10000'
+		});
+		
+		// title 
+		this.$view.append($('<h2>',{
+			'id': id_ + '-title',
+			'text': this._model.getName() + ' ' + '属性'
+		}));
+
+    // content
+		this._tab = Tab.create('property-tab',['basic', 'power']);
+		this._tab.injectParent(this.$view);
+
+		this._tab.addDivByTab($('<div>', {
+			'class': 'iconcontent',
+			'id': this._id + '-icon'
+		}).append($('<img>',{
+			'class':'imgcontent',
+			'id':this._id + '-imgproperty'
+		})), 'basic');
+
+		this._tab.addDivByTab($('<div>', {
+			'class': 'basicinfocontent',
+			'id': this._id + '-basicinfo'
+		}), 'basic');
+		
+    // button 
+		this.$view.append($('<button>',{
+			'class': 'btn',
+			'id': this._id + '-close',
+			'text': 'CLOSE'
+		}).addClass('active'));
+
+    this.registObservers();
+		this.initAction();
+  },
+
+  registObservers: function() {
+    var $bContent = this.$view.find('.basicinfocontent'),
+        _this = this;
+    _this.__handlers = {
+      'imgPath': function(err_, imgPath_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.$view.find('.imgcontent').attr('src', _this._model.getImgPath());
+      },
+      'name': function(err_, name_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        $bContent.find('#name').html(name_);
+      },
+      'cmd': function(err_, cmd_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        $bContent.find('#cmd').html(cmd_);
+      },
+      'comment': function(err_, comment_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        $bContent.find('#comment').html(comment_);
+      },
+      'genericName': function(err_, genericName_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        $bContent.find('#gname').html(genericName_);
+      },
+      'path': function(err_, path_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        $bContent.find('#path').html(path_);
+      }
+    };
+
+    for(var key in _this.__handlers) {
+      this._model.on(key, _this.__handlers[key]);
+    }
+  },
+
+  initAction: function() {
+    var _this = this;
+
+		//property animate and remove();
+		_this.$view.children('button').click(function(e) {
+			if (e.target.id.split('-')[0] !== 'event') {
+				var _pos = {top: 0, left: 0};
+				if (typeof $('#' + _this._id).offset() !== 'undefined') {
+					_pos = $('#' + _this._id).offset();
+				} else {
+					_pos = $('#' + _this._id + '-icon').offset();
+				}
+				_this.$view.animate({
+          top: _pos.top,
+          opacity: 'hide',
+          width: 0,
+          height: 0,
+          left: _pos.left
+        }, 500, function() {
+					_this.destroy();
+				});
+			}
+		});
+
+		//drag function 
+		_this.$view.children('h2').mouseover(function(ev) {
+			$(this).css('cursor','move');
+		}).mousedown(function(ev) {
+			ev.stopPropagation();
+			_this._isMouseDown = true;
+			_this._offsetX = ev.offsetX;
+			_this._offsetY = ev.offsetY;
+			console.log('x:' +_this._offsetX + '  y: ' + _this._offsetY );
+			_this.$view.fadeTo(20, 0.5);
+		}).mouseup(function(ev) {
+			ev.stopPropagation();
+			_this._isMouseDown = false;
+			_this.$view.fadeTo(20, 1);
+		});
+
+		_this.$view.mousedown(function(ev){
+			ev.stopPropagation();
+		}).mouseup(function(ev){
+			ev.stopPropagation;
+		});
+
+		$(document).mousemove(function(ev){
+		  if(!_this._isMouseDown) return ;
+		  var x = ev.clientX - _this._offsetX; 
+			// console.log('ev.x: '+ev.clientX + '   this:x '+_this._offsetX + '  x: ' + x);
+		  var y = ev.clientY - _this._offsetY; 
+			// console.log('ev.y: '+ev.clientY + '   this:y '+_this._offsetY + '  y: ' + y);
+		  _this.$view.css({
+        "left": x,
+        "top": y
+      }).children('h2').css('cursor', 'move');
+		});
+  },
+
+  show: function() {
+		$('body').append(this.$view);
+
+    if(this.$view.is(":visible") == false) {
+			this.$view.css({
+        'position': 'absolute',
+        'width': '0px',
+        'height': '0px'
+      });
+      var $tarObj = $('#' + this._id),
+			    left_ = $tarObj.offset().left + $tarObj.width() / 2,
+			    top_ = $tarObj.offset().top + $tarObj.height() / 2;
+			this.$view.css({
+        'left': left_ + 'px',
+        'top': top_+'px'
+      }).show();
+			var box_width = $(window).width() / 4,
+			    box_height = $(".property .tab-show .tab-content").height() * 3 / 2.1,
+			    top_property = $(window).height() / 2 - box_height / 2,
+			    left_property = $(window).width() / 2 - box_width / 2,
+          _this = this;
+			this.$view.animate({
+        top: top_property,
+        opacity: 'show',
+        width: box_width,
+        height: box_height,
+        left: left_property
+      }, 500, function() {
+        if(_this._model.getType() == 'app')
+          _this.setAppProperty();
+        _this.setBasicProperty();
+        _this._tab.setShowByTab('basic');
+      });
+		}
+  },
+
+  hide: function() {
+    this.$view.remove();
+  },
+
+  setAppProperty: function() {
+    this.$view.find('.basicinfocontent')
+      .append("<p>▪名称:  <span id='name'>" + this._model.getName() + "</span></p>")
+      .append("<p>▪命令:  <span id='cmd'>" + this._model.getCmd() + "</span></p>")
+      .append("<p>▪描述:  <span id='comment'>" + this._model.getComment() + "</span></p>")
+      .append("<p>▪备注:  <span id='gname'>" + this._model.getGenericName() + "</span></p>")
+      .append("<p>▪位置:  <span id='path'>" + this._model.getPath() + "</span></p>");
+    this.$view.find('.imgcontent').attr('src', this._model.getImgPath());
+  },
+
+  setBasicProperty: function() {
+    var _this = this;
+		//get some basic inform and access inform
+		_global.get('utilIns').entryUtil.getProperty(_this._model.getPath(), function(err_, attr_) {
+			if(typeof attr_ == 'undefined') {
+				console.log('get Property err');
+				return ;
+			}
+			var fileType = null;
+			switch(attr_['access'][0]){
+				case '-': 
+					fileType = '普通文件';
+					break ;
+				case 'd':
+					fileType = '文件夹';
+					break ;
+				case 'b':
+					fileType = '块特殊文件';
+					break;
+				case 'c':
+					fileType = '字符特殊文件';
+					break ;
+				case 'l':
+					fileType = '连接';
+					break ;
+				case 'p':
+					fileType = '命名管道（FIFO）';
+					break ;
+				default:
+					break ;
+			}
+      _this.$view.find('.basicinfocontent')
+			  .append("<p><span>▪</span>文件大小:  " + attr_['size'] + "</p>")
+			  .append("<p><span>▪</span>文件类型:  " + fileType + "</p>")
+			  .append("<p><span>▪</span>访问时间:  " + attr_['access_time'] + "</p>")
+			  .append("<p><span>▪</span>修改时间:  " + attr_['modify_time'] + "</p>");
+
+			var power = '',
+          _access = attr_['access'],
+			    checkPower = function(power_) {
+				    power = '';
+				    if (power_[0] == 'r') {power += '读'}
+				    if (power_[1] == 'w') {power += '写'};
+				    if (power_[2] == 'x') {power += '执行'}
+				    else if (power_[2] == 's') {power += '超级执行'};
+				    if (power != '') {power += '权限'};
+			    };
+			checkPower(_access.substr(1, 3));
+			_this._tab.addDivByTab("<p><span>▪</span>所有者:  " + attr_['uid'] + "</p>",'power');
+			_this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
+			checkPower(_access.substr(4, 3));
+			_this._tab.addDivByTab("<p><span>▪</span>用户组:  " + attr_['gid'] + "</p>",'power');
+			_this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
+			checkPower(_access.substr(7, 3));
+			_this._tab.addDivByTab("<p><span>▪</span> 其他:  </p>", 'power');
+			_this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>", 'power');
+		});
   }
 });
