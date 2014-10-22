@@ -1,0 +1,73 @@
+---
+layout: post
+title:  "reflection"
+date:   2014-10-20 11:09:12
+categories: ui
+---
+
+<h1 id="reflect">reflect图片倒影库</h1>
+<p>reflect可以在图片的下面产生一个图片倒影，用于提升界面效果，其原理是新建一个div代替原有的div，并在新的div中加入源图片和倒影canvas（在ie浏览器是一个倒影图片）。</p>
+<h2>使用方法</h2>
+<pre>
+<code>
+  var _reflect = Reflection.create((img),options); //新建一个reflection对象，并传入图片对象，(img)为js对象，options为设置项。
+    _reflect.add();   //根据上边传入的图片和设置项，添加图片倒影
+    _reflect.remove(); //删除图片倒影
+  </code>
+</pre>
+<p> 也可以自己实现删除倒影，其过程主要包含如下步骤：</p>
+<pre>
+<code>
+  $(img).style.cssText = '';                            //img csstext 重置
+  $(div).removeClass('reflect');                 //图片的父div删除reflect class
+  $($(div ).children('canvas')[0]).remove(); //删除倒影
+</code>
+</pre>
+<p> <br />
+  上面的options只有<strong>三个</strong>设置项，分别为：</p>
+<pre>
+<code>
+   this._options = {
+      height : 0.5,    //倒影的高度比率
+      opacity : 0.5，   //倒影的透明度渐变比率
+      hasParentDiv： false //是否使用图片的父div作为div容器，如果false则建立一个新的div代替原有的img。
+    };
+  </code>
+</pre>
+
+<h2>demo</h2>
+<p>倒影高度：<input type='text' id='reflect-h' value="0.5"></p>
+<p>倒影透明度：<input type='text' id='reflect-o' value="0.5"></p>
+<p>父div：<input type='checkbox' id='parent' checked="checked"></p>
+<button class="btn active" onclick="showPic1()">应用</button> <button class="btn active" onclick="removeReflect()"> remove</button><br />
+<div ><img id='img1' src='../../../../../assets/img/cat.jpg' width='150px'></div>
+<button class="btn active" onclick="showPic2()">应用</button> <button class="btn active" onclick="removeReflect()"> remove</button><br />
+<img id='img2' src='../../../../../assets/img/cat.jpg' width='150px'>
+
+<script type="text/javascript">
+  var _ref ;
+  var showReflect = function(id_){
+    var _height = $('#reflect-h')[0].value;
+    var _opacity = $('#reflect-o')[0].value;
+    var _parent = $('#parent')[0].checked;
+    _ref = Reflection.create($('#'+id_)[0], {
+      height:_height,
+      opacity:_opacity,
+      hasParentDiv: _parent
+    });
+    _ref.add();
+  } 
+	
+  var removeReflect = function(){
+     _ref.remove();
+  }
+
+  var showPic1 = function(){
+    showReflect('img1');
+  }
+
+  var showPic2 = function(){
+    showReflect('img2');
+  }
+</script>
+

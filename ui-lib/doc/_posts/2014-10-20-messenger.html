@@ -1,0 +1,130 @@
+---
+layout: post
+title:  "Messenger"
+date:   2014-10-20 11:09:12
+categories: ui
+---
+
+<h1 id="messenger">messenger：</h1>
+<p>消息提示工具栏，从hubspot/messenger移植过来，主要完成工作是将sass该写为less语法
+<h2>使用方法：</h2><br />
+  在坐下方显示一个提示：</p>
+<pre>
+<code>
+  Messenger().post("plugin zoom in");   //or
+
+  Messenger().post({
+    message: 'message',	          //显示的信息
+    type: 'info',	                       //信息类型
+    showCloseButton: true, //关闭按钮
+    actions: {                           //注册按钮
+      sure:{	                                //sure是自己命名的动作名
+        label:                              //按钮显示的文字	
+        action:function(){	     //动作
+        }
+      }
+    }
+  });
+</code>
+</pre>
+
+设置显示位置：
+
+<pre>
+<code>
+  Messenger.options = {
+    //设置为左上角显示;
+    extraClasses: 'messenger-fixed messenger-on-left messenger-on-top';
+  }
+</code>
+</pre>
+
+<h2>demo</h2>
+<button class='btn active' onclick="show()">show Messenger</button> 
+<button class='btn active' onclick="showInfo()">show Info</button> 
+<button class='btn active' onclick="showError()">show Error</button> 
+<button class='btn active' onclick="showSuccess()">show Success</button> 
+
+<br />
+<br />
+设置显示位置：
+<input type="radio" id="position" name="position" value="right bottom" onclick="check()" checked="checked" >右下
+<input type="radio" id="position" name="position" value="bottom" onclick="check()" >下
+<input type="radio" id="position" name="position" value="left bottom" onclick="check()" >左下
+<input type="radio" id="position" name="position" value="left top" onclick="check()" >左上
+<input type="radio" id="position" name="position" value="top" onclick="check()" >上
+<input type="radio" id="position" name="position" value="right top" onclick="check()" >右上
+
+<br />
+<h2>参考文献</h2>
+<p>更多使用方法参见messenger的官方网站：
+<a href="http://github.hubspot.com/messenger">messenger官方网站</a>
+  github网址：
+<a href="https://github.com/HubSpot/messenger">github网址</a></p>
+
+<script type="text/javascript">
+  var show = function(){
+    Messenger().post("Show Messenger!!");
+    var i;
+    i = 0;
+
+    Messenger().run({
+      errorMessage: 'Error destroying alien planet',
+      successMessage: 'Alien planet destroyed!',
+      action: function(opts) {
+        if (++i < 3) {
+          return opts.error({
+            status: 500,
+            readyState: 0,
+            responseText: 0
+          });
+        } else {
+          return opts.success();
+        }
+      }
+    });
+  }
+
+  var showInfo = function(){
+    Messenger().post({
+      message: 'show info message!',
+      type: 'info',
+      showCloseButton: true
+    })
+  }
+
+  var showSuccess = function(){
+    Messenger().post({
+      message: 'show success message!',
+      type: 'success',
+      showCloseButton: true
+    })
+  }
+
+  var showError = function(){
+    Messenger().post({
+      message: 'show error message!',
+      type: 'error',
+      showCloseButton: true,
+      actions: {
+        sure: {
+          label: '确定',
+          action: function(){
+            Messenger().hideAll()
+          }
+        }
+      }
+    })
+  }
+
+   var check = function(){
+   var pos = $('input[name="position"]:checked').val().split(' ');
+   var str = 'messenger-fixed messenger-on-' + pos[0];
+   if (pos.length === 2) {
+     str += ' messenger-on-' + pos[1];
+   };
+   Messenger.options = {
+     extraClasses: str
+   }
+   }
+</script>

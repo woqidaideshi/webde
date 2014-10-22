@@ -1,0 +1,45 @@
+---
+layout: post
+title:  "Inputer"
+date:   2014-10-20 11:09:12
+categories: ui
+---
+
+<h1 id="inputer">Inputer库</h1>
+<p>Inputer库用于桌面上右键–&gt;rename显示的文本输入框，用于文件的重命名。</p>
+  <h2>使用方法</h2>
+<pre>
+<code>
+  var _inputer = Inputer.create('name');
+  _options = {
+  'left': 100,
+  'top' : 100,
+  'width': 100,
+  'height': 100,
+  'oldtext': 'text',                 //用于初始显示时，显示在输入框的文字。
+  'callback': function(newtext){   //newtext输入框输入的文字，返回的文字。
+          ....
+    }
+  }
+  _inputer.show(_options);
+</code>
+</pre>
+
+<h2>demo</h2>
+<input type='button' id='inputer-b' class='btn active' onclick="newInput()" value='show Inputer'>
+<script type="text/javascript">
+  var newInput = function(){
+    var _inputer = Inputer.create('button-name');
+    var _options = {
+      'left': $('#inputer-b').position().left,
+      'top': $('#inputer-b').position().top,
+      'width': 100,
+      'height': 100,
+      'oldtext': $('#inputer-b')[0].value,
+      'callback': function(newtext){
+        $('#inputer-b')[0].value = newtext;
+      }
+    }
+    _inputer.show(_options);
+  }
+</script>
