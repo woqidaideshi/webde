@@ -653,7 +653,7 @@ var EntryUtil = Event.extend({
   //get property information of filename_
   //filename_: full file path;
   //callback_: callback function;
-  getProperty:function(filename_,callback_){
+  getProperty: function(filename_, callback_){
     var _this = this;
     if(typeof callback_ !== 'function')
       throw 'Bad type for callback';
@@ -665,10 +665,13 @@ var EntryUtil = Event.extend({
               attrs = stdout.split('\n');
 
           attr['size'] = /\d+/.exec(attrs[1])[0];
-          var attr_ = /([-,a-z]+)(\D*)([0-9]+)(\D*)([0-9]+)/.exec(attrs[3]);
+          // get uid/gid
+          // var attr_ = /([-,a-z]+)\D*([0-9]+)\D*([0-9]+)/.exec(attrs[3]);
+          // get name corrisponding to the uid/gid
+          var attr_ = /([-,a-z]+).*\/\s*([^\/,\)]+).*\/\s*([^\/,\)]+)/.exec(attrs[3]);
           attr['access'] = attr_[1];
-          attr['uid'] = attr_[3];
-          attr['gid'] = attr_[5];
+          attr['uid'] = attr_[2];
+          attr['gid'] = attr_[3];
           attr['access_time'] = /(\D*)([^\.]+)/.exec(attrs[4])[2];
           attr['modify_time'] = /(\D*)([^\.]+)/.exec(attrs[5])[2];
 
@@ -731,12 +734,12 @@ var NormalCommand = Command.extend({
 // NoUndoCommand which is not allowed to undo should be inited with only one handler
 //
 var NoUndoCommand = Command.extend({
-  init: function(ctx_, cType_, handler_/* , args_ */) {
+  init: function(ctx_, cType_, handler_/* [, args_] */) {
     this._ctx = ctx_;
     this._cType = cType_;
     this._handler = handler_;
     this._args = [];
-    for(var i = 2; i < arguments.length; ++i)
+    for(var i = 3; i < arguments.length; ++i)
       this._args.push(arguments[i]);
   },
 

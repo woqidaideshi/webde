@@ -1,0 +1,20 @@
+@devlstW: 120px;
+
+.device-list {
+  position: absolute;
+  left: 1 - @devlstW;
+  top: 0;
+  width: @devlstW;
+  height: 100%;
+  .box(vertical, start, center);
+  .select(none);
+  .box-shadow-mine(0px, 0px, 10px, black);
+  background-color: rgba(0, 0, 0, 0.5);
+
+  .title {
+    color: #fff;
+    text-align: center;
+    padding: 10px 0px;
+    cursor: default;
+  }
+}

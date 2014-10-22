@@ -201,6 +201,8 @@ var DesktopView = View.extend({
         ]}
       ]}
     ]);
+
+    var _this = this;
     ctxMenu.addCtxMenu([
       {header: 'plugin'},
       {text: 'zoom in', action: function(e) {
@@ -234,7 +236,7 @@ var DesktopView = View.extend({
       {header: 'app-entry'},
       {text: 'Open', action: function(e) {
         e.preventDefault();
-        desktop.getAWidgetById(ctxMenu._rightObjId).open();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text: 'Rename', action: function(e) {
         e.preventDefault();
@@ -257,7 +259,7 @@ var DesktopView = View.extend({
       {header: 'file-entry'},
       {text: 'Open', icon: 'icon-folder-open-alt', action: function(e) {
         e.preventDefault();
-        desktop.getAWidgetById(ctxMenu._rightObjId).open();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text:'Open with...',icon: 'icon-folder-open', subMenu: [
         {header: 'Open with'}]
@@ -325,7 +327,7 @@ var DesktopView = View.extend({
       {header: 'theme-entry'},
       {text: 'Open', action: function(e) {
         e.preventDefault();
-        desktop.getAWidgetById(ctxMenu._rightObjId).open();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text: 'Rename', action: function(e) {
         e.preventDefault();
@@ -1055,24 +1057,13 @@ var DeviceListView = View.extend({
     this.callSuper('device-list', model_);
     this.registObservers();
     this.$view = $('<div>', {
+      'class': 'device-list',
       'id': this._id
-    }).css({ 
-      'position': 'absolute',
-      'left': '0',
-      'top': '50%',
-      'background-color': '#000',
-      'opacity': '0.5',
-      'width': '100px',
-      'height': '50%',
-      'display': '-webkit-box',
-      '-webkit-box-orient': 'vertical',
-      '-webkit-box-pack': 'start',
-      '-webkit-box-align': 'start',
-      '-webkit-user-select': 'none',
-      '-moz-user-select': 'none',
-      'box-shadow': '0px 0px 10px black'
-    }) ;
+    }).append($('<p>', {
+      'class': 'title'
+    }).text('Online Devices'));
     this._c = [];
+    this.initAction();
   },
   
   registObservers: function() {
@@ -1103,8 +1094,32 @@ var DeviceListView = View.extend({
     }
   },
 
+  initAction: function() {
+    var _this = this;
+    var enter = function() {
+      _this.$view.animate({
+        'left': '0'
+      }, 300);
+    };
+    var leave = function() {
+      _this.$view.animate({
+        'left': _this._left
+      }, 300);
+    }
+    this.$view.on('mouseenter', function(e) {
+      enter();
+    }).on('mouseleave', function(e) {
+      leave();
+    }).on('dragenter', function(e) {
+      enter();
+    }).on('dragleave', function(e) {
+      // leave();
+    });
+  },
+
   show: function($parent) {
     $parent.append(this.$view);
+    this._left = this.$view.position().left;
   }
 });
 
@@ -1115,10 +1130,15 @@ var DevEntryView = View.extend({
     this.$view = $('<div>', {
       'class': 'icon',
       'id': this._id
-    }).html("<img draggable='false'/><p>" + this._model.getName() + "</p>").css({ 
-      'color': '#FFF'
-    }) ;
+    }).html("<img draggable='false' src='"
+      + this._model.getImgPath() + "'/><p>"
+      + this._model.getName()
+      + "</p>").css({
+      'color': '#FFF',
+      'opacity': '0.8'
+    });
     this.initAction();
+    this._controller = EntryController.create(this);
   },
 
   registObservers: function() {
@@ -1131,11 +1151,50 @@ var DevEntryView = View.extend({
         }
         _this.$view.children('p').text(name_);
         // $('#' + _this._id + ' p').text(name_);
+      },
+      'imgPath': function(err_, imgPath_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.$view.children('img').attr('src', imgPath_);
       }
     };
     for(var key in _this.__handlers) {
       this._model.on(key, _this.__handlers[key]);
     }
+  },
+
+  initAction: function() {
+    var _this = this;
+    this.$view.on('mouseenter', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this.$view.css('opacity', '1');
+    }).on('mouseleave', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this.$view.css('opacity', '0.8');
+    }).on('dragenter', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this.$view.css('opacity', '1');
+    }).on('dragleave', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this.$view.css('opacity', '0.8');
+    }).on('dragover', function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      ev.originalEvent.dataTransfer.dropEffect = 'copy';
+    }).on('drop', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this._controller.onDrop(e);
+    }).dblclick(function(e) {
+      e.stopPropagation();
+      _this._controller.onDblclick();
+    });
   },
 
   show: function($parent) {
@@ -1144,9 +1203,7 @@ var DevEntryView = View.extend({
 
   hide: function() {
     this.$view.remove();
-  },
-
-  initAction: function() {},
+  }
 });
 
 // View of Dock component
