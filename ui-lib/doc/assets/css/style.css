@@ -1244,3 +1244,18 @@ pre > code {
   color: #2aa198; }
 
 /* Literal.Number.Integer.Long */
+
+.demo{
+  padding: .5em 0 .5em 0;
+}
+
+.demo-p{
+  height: 250px;
+  background-color: #ffffff;
+  clear: both;
+}
+
+.demv{
+  float: left; 
+  padding: .5em 3em 0 0;
+}
