@@ -1,0 +1,251 @@
+---
+layout: post
+title:  "Gauge"
+date:   2014-10-22 11:09:12
+categories: ui
+---
+
+<h2>Gauge</h2>
+<p>Gauge库提供了简单的接口生成进度条控件，该进度条控件具有多种色彩以及多种功能，可以提供丰富的渲染效果，而且操作简单。具体使用方法见下文</p>
+<h3>使用方法</h3>
+<pre>
+<code>
+  var _gauge = Gauge.create(options);   //创建gauge对象
+  _gauge.add($('#parentID'));           //向parent中添加_gauge
+</code>
+</pre><br />
+<h3>提供的接口</h3>
+<p>此_gauge对象提供以下接口：</p>
+<pre>
+<code>
+  _gauge.add($('#parentID'));           //向parent中添加_gauge
+  _gauge.setOptions(options);           //设置新属性
+  _gauge.modify(self，options);         //设置进度条元素self新的属性并更新显示新属性。
+</code>
+</pre>
+<h3>option说明</h3>
+<p>本gauge提供了丰富的设置属性，下面对整个可设置属性进行详细说明。</p>
+<pre>
+<code>
+this._options = {
+  width: 400,        //宽度 取值范围（48～n）
+  height: 30,        //高度 取值范围（12～n）
+  reflex: 0.5,       //倒影的透明度 取值范围（0.001～1）
+  opacity: 0.25,     //空白区域的渐变属性 当limit：true时生效 取值范围（0.001～1）
+  pulse: 100,        //脉动速度，颜色渐变速度（毫秒级） （30-1000） 
+  limit: false,      //有最大值模式，values的最有一位数字是该进度条的最大值
+  noscale: false,    //是否没有刻度，
+  gradient: false,   //颜色渐变（左右渐变）limit:true 和 values只有两个数值时生效
+  vertical: false,   //横向和纵向 默认横向
+  busy: false,       //颜色脉动变色
+  radius: 1.0,       //边角的圆角度 取值范围（0.001~1）
+  scale: null,       //刻度格长 null为自动 取值范围（2～n）
+  empty: '#cccccc',  //空白区域颜色
+  name: null,        //名字，id
+  values: null,      //数值数组用于设置进度条的显示长度， 数组格式
+  colors: ['#3765d9','#9ede7c','#9e42ee','#ec7612','#00aaaa','#cc0000','#aaaa00','#008000'] //各个数值的颜色
+};
+</code>
+</pre>
+<h3>参考文档</h3>
+<p>本插件参考网址：
+<a href='http://www.netzgesta.de/gauge/'>gauge</a></p>
+<br />
+<h3>demo</h3>
+<p>在此示例多种不同的进度条</p>
+<pre>
+  <code>
+  {width:400, 
+  height:99, 
+  radius:0.5, 
+  values:[43.15,35,9.65,12.2], 
+  colors:['#316DC8','#DF7510','#64A8E5','#00aa00']}
+  </code>
+</pre>
+<div class="demo" id="stat"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  values:[12,30,23,45,12,30,23,45]}
+  </code>
+</pre>
+<div class="demo" id="g_1"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  reflex: 0.7, 
+  values:[12,30,23,45,12,30,23,45], 
+  colors:['#ff0000','#0000ff','#00ff00','#ff00ff','#ffff00','#00ffff']}
+  </code>
+</pre>
+<div class="demo" id="g_2"></div>
+<pre>
+  <code>
+   {width:48,  
+   height:12, 
+   values:[12,30,23,45]}
+  </code>
+</pre>
+<div class="demo" id="g_3"></div>
+<pre>
+  <code>
+   {width:600, 
+   height:60, 
+   values:[12,30,23,45]}
+  </code>
+</pre>
+<div class="demo" id="g_4"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  values:[1210,2095.74,6400,3545.2]};	
+  </code>
+</pre>
+<div class="demo" id="g_5"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  scale: 10, 
+  values:[1210,2095.74,6400,3545.2]});
+  </code>
+</pre>
+<div class="demo" id="g_6"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  radius:0.001, 
+  noscale: true, 
+  values:[1210,2095.74,6400,3545.2]});	
+  </code>
+</pre>
+<div class="demo" id="g_7"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  limit: true, 
+  scale: 10, 
+  colors:['#ff0000','#00ff00'], 
+  values:[0.4,0.2,1]});	
+  </code>
+</pre>
+<div class="demo" id="g_8"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  limit: true, 
+  scale: 10, 
+  empty: '#ff0000', 
+  opacity: 0.5, 
+  values:[0.6,1]});
+  </code>
+</pre>
+<div class="demo" id="g_9"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  name: 'test', 
+  limit: true, 
+  gradient: true, 
+  scale: 10, 
+  colors:['#ff0000','#00ff00'], 
+  values:[0.6,1]});
+  </code>
+</pre>
+<input id='value-1' type='text' value='66'>
+<button class='btn active' onclick="setValue()">set value</button>
+<div class="demo" id="g_0"></div>
+<pre>
+  <code>
+  {width:600, 
+  height:30, 
+  name: 'puls', 
+  busy: true, 
+  scale: 10, 
+  colors:['#ec7612','#f20000'], 
+  values:[100]});
+  </code>
+</pre>
+<button class="btn active" onclick="stopBusy()">stop</button>
+<button class="btn active" onclick="startBusy()">start</button>
+speed: <input id='value-2' type='text' value='100'>
+<button class='btn active' onclick="setSpeed()">set speed</button>
+<div class="demo" id="g_x"></div>
+<pre>
+  <code>
+  {vertical:true;
+  ...}
+  </code>
+</pre>
+<div class='demo-p' >
+<div class="demv" id="v_1"></div>
+<div class="demv" id="v_2"></div>
+<div class="demv" id="v_3"></div>
+<div class="demv" id="v_4"></div>
+<div class="demv" id="v_5"></div>
+<div class="demv" id="v_6"></div>
+<div class="demv" id="v_7"></div>
+<div class="demv" id="v_8"></div>
+<div class="demv" id="v_9"></div>
+<div class="demv" id="v_0"></div>
+</div>
+
+<script type="text/javascript">
+var _gauge;
+$(document).ready(function() {
+  _gauge = Gauge.create();
+  _gauge.add($("#stat"),{width:400, height:99, radius:0.5, values:[43.15,35,9.65,12.2], colors:['#316DC8','#DF7510','#64A8E5','#00aa00']});	
+  _gauge.add($("#g_1"), {width:600, height:30, values:[12,30,23,45,12,30,23,45]});	
+  _gauge.add($("#g_2"), {width:600, height:30, reflex: 0.7, values:[12,30,23,45,12,30,23,45], colors:['#ff0000','#0000ff','#00ff00','#ff00ff','#ffff00','#00ffff']});	
+  _gauge.add($("#g_3"), {width:48,  height:12, values:[12,30,23,45]});	
+  _gauge.add($("#g_4"), {width:600, height:60, values:[12,30,23,45]});	
+  _gauge.add($("#g_5"), {width:600, height:30, values:[1210,2095.74,6400,3545.2]});	
+  _gauge.add($("#g_6"), {width:600, height:30, scale: 10, values:[1210,2095.74,6400,3545.2]});	
+  _gauge.add($("#g_7"), {width:600, height:30, radius:0.001, noscale: true, values:[1210,2095.74,6400,3545.2]});	
+  _gauge.add($("#g_8"), {width:600, height:30, limit: true, scale: 10, colors:['#ff0000','#00ff00'], values:[0.4,0.2,1]});	
+  _gauge.add($("#g_9"), {width:600, height:30, limit: true, scale: 10, empty: '#ff0000', opacity: 0.5, values:[0.6,1]});	
+  _gauge.add($("#g_0"), {width:600, height:30, name: 'test', limit: true, gradient: true, scale: 10, colors:['#ff0000','#00ff00'], values:[0.6,1]});	
+  _gauge.add($("#g_x"), {width:600, height:30, name: 'puls', busy: true, scale: 10, colors:['#ec7612','#f20000'], values:[100]});	
+  _gauge.add($("#v_1"), {width:20, height:200, vertical:true, values:[12,30,23,45,12,30,23,45]});	
+  _gauge.add($("#v_2"), {width:20, height:200, vertical:true, reflex: 0.7, values:[12,30,23,45,12,30,23,45], colors:['#ff0000','#0000ff','#00ff00','#ff00ff','#ffff00','#00ffff']});	
+  _gauge.add($("#v_3"), {width:8, height:48, vertical:true, values:[12,30,23,45]});	
+  _gauge.add($("#v_4"), {width:48, height:200, vertical:true, values:[12,30,23,45]});	
+  _gauge.add($("#v_5"), {width:20, height:200, vertical:true, scale: 10, values:[1210,2095.74,6400,3545.2]});	
+  _gauge.add($("#v_6"), {width:20, height:200, vertical:true, radius:0.001, noscale: true, values:[1210,2095.74,6400,3545.2]});	
+  _gauge.add($("#v_7"), {width:20, height:200, vertical:true, limit: true, scale: 10, colors:['#ff0000','#00ff00'], values:[0.4,0.2,1]});	
+  _gauge.add($("#v_8"), {width:20, height:200, vertical:true, limit: true, scale: 10, empty: '#ff0000', opacity: 0.5, values:[0.6,1]});	
+  _gauge.add($("#v_9"), {width:20, height:200, vertical:true, name: 'tesv', limit: true, gradient: true, scale: 10, colors:['#ff0000','#00ff00'], values:[0.6,1]});	
+  _gauge.add($("#v_0"), {width:20, height:200, vertical:true, name: 'pulv', busy: true, scale: 10, colors:['#ec7612','#f20000'], values:[100]});
+});
+
+var setValue =function(){
+  var value = parseInt($('#value-1')[0].value);
+  _gauge.modify($('#test')[0],{values: [value,100]});
+  _gauge.modify($('#tesv')[0],{values: [value,100]});
+}
+
+var stopBusy = function(){
+  _gauge.modify($('#puls')[0], {busy: false});
+  _gauge.modify($('#pulv')[0], {busy: false});
+}
+
+var startBusy = function(){
+  _gauge.modify($('#puls')[0], {busy: true});
+  _gauge.modify($('#pulv')[0], {busy: true});
+}
+
+var setSpeed = function(){
+  var speed = parseInt($('#value-2')[0].value);
+  _gauge.modify($('#puls')[0], {pulse: speed});
+  _gauge.modify($('#pulv')[0], {pulse: speed});
+}
+
+</script>
+
