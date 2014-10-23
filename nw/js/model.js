@@ -1317,7 +1317,7 @@ var DeviceListModel = Model.extend({
         id_ = dev_.address + ':' + dev_.port;
     switch(ev_) {
       case 'ItemNew':
-        var device = DeviceEntryModel.create(id_, dev_.name);
+        var device = DeviceEntryModel.create(id_, dev_.host, dev_);
         _this.add(device);
         break;
       case 'ItemRemove':
@@ -1340,7 +1340,7 @@ var DeviceListModel = Model.extend({
     _global._device.addDeviceListener(this.__handler);
     _global._device.createServer(function() {
       _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
-    })
+    });
 
     /* this._timer = setInterval(function() { */
       // for(var id in _this._c) {
@@ -1370,11 +1370,13 @@ var DeviceListModel = Model.extend({
 var DeviceEntryModel = EntryModel.extend({
   // @id_ is address:port
   // @path_ is name
+  // @position_ is whole info object
   init: function(id_, path_, position_, callback_) {
     this.callSuper(id_, path_, position_);
     this._name = path_;
     this._offline = false;
     this._type = 'dev';
+    this._imgPath = 'img/pc.svg';
     this.realInit(callback_);
   },
 
@@ -1384,10 +1386,32 @@ var DeviceEntryModel = EntryModel.extend({
     cb(null);
   },
 
-  // TODO: show something of this device
-  open: function() {},
+  // TODO: show something about this device
+  open: function() {
+    console.log(this._position);
+    var msg = '';
+    for(var key in this._position) {
+      msg += key + ': ' + this._position[key] + '<br/>';
+    }
+    Messenger().post(msg);
+  },
 
-  // TODO: send a file to this device
-  copyTo: function() {}
+  copyTo: function(dataTransfer) {
+    if(dataTransfer.files.length != 0) {
+      for(var i = 0; i < dataTransfer.files.length; ++i) {
+        Messenger().post(dataTransfer.files[i].path);
+      }
+      // TODO: use api from lower layer
+      return ;
+    }
+
+    var id = dataTransfer.getData("ID"),
+        layout = _global.get('desktop').getCOMById('layout'),
+        item = layout.getWidgetById(id);
+    if(item.getType() == 'file') {
+      Messenger().post(item.getPath());
+      // TODO: use api from lower layer
+    }
+  }
 });
 
