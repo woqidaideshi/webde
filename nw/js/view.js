@@ -202,7 +202,8 @@ var DesktopView = View.extend({
       ]}
     ]);
 
-    var _this = this;
+    var layout = desktop.getCOMById('layout'),
+        _this = this;
     ctxMenu.addCtxMenu([
       {header: 'plugin'},
       {text: 'zoom in', action: function(e) {
@@ -215,8 +216,7 @@ var DesktopView = View.extend({
       }},
       {text:'remove', action:function(e) {
         e.preventDefault();
-        var layout = desktop.getCOMById('layout'),
-            _widget = layout.getWidgetById(ctxMenu._rightObjId);
+        var _widget = layout.getWidgetById(ctxMenu._rightObjId);
         ctxMenu.activeItem('add-plugin', 'clock', function(e_) {
           e_.preventDefault();
           layout.add(DPluginModel.create('clock', 'img/clock.png', 'ClockPlugin'));
@@ -241,7 +241,7 @@ var DesktopView = View.extend({
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
       }},
       {text:'delete' , icon: 'icon-remove-circle', action:function(e){
         e.preventDefault();
@@ -268,7 +268,7 @@ var DesktopView = View.extend({
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
       }},
       {text:'Move to Trash' ,icon: 'icon-trash', action:function(e){
         e.preventDefault();
@@ -332,7 +332,7 @@ var DesktopView = View.extend({
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
       }}
     ]);
   },
@@ -364,9 +364,10 @@ var DesktopView = View.extend({
             for (var i = 0; i < files_.length; i++) {
               var _names = files_[i].split('.');
               if (_names[_names.length - 1] == 'desktop') {
-                utilIns.entryUtil.getItemFromApp(_DIR + '/' + files_[i], function(err_, item_) {
-                  desktop._ctxMenu.addItem(_menu,item_);
-                });
+                _global.get('utilIns').entryUtil.getItemFromApp(_DIR + '/' + files_[i]
+                  , function(err_, item_) {
+                    desktop._ctxMenu.addItem(_menu,item_);
+                  });
               };
             };
           });
@@ -973,10 +974,17 @@ var DEntryView = WidgetView.extend({
     $selector.dblclick(function() {
       _this._controller.onDblclick();
     }).mouseenter(function() {
-      var $p = $('#' + _entry.getID() + ' p');
-      $p.css('height', $p[0].scrollHeight);
+      var $p = _this.$view.children('p');
+      _this.pHeight = $p.height();
+      $p.css({
+        'height': $p[0].scrollHeight,
+        'overflow': 'visible'
+      });
     }).mouseleave(function() {
-      $('#' + _entry.getID() + ' p').css('height', '32px');
+      $('#' + _entry.getID() + ' p').css({
+        'height': _this.pHeight,
+        'overflow': 'hidden'
+      });
     }).mousedown(function(e) {
       e.stopPropagation();
     }).mouseup(function(e) { 
@@ -1016,7 +1024,7 @@ var DEntryView = WidgetView.extend({
         break;
       default:
         break;
-    };
+    }
   },
 
   hide: function() {

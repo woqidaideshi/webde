@@ -722,12 +722,12 @@ var NormalCommand = Command.extend({
   },
 
   doIt: function() {
-    this._oldVal = this._get.apply(this._ctx);
-    this._set.apply(this._ctx, this._newVal);
+    this._oldVal = this._get.call(this._ctx);
+    this._set.call(this._ctx, this._newVal);
   },
 
   undo: function() {
-    this._set.apply(this._ctx, this._oldVal);
+    this._set.call(this._ctx, this._oldVal);
   }
 });
 
