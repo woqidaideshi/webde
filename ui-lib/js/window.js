@@ -193,7 +193,7 @@ var Window = Class.extend({
     //resize window
     this._dragDiv.mousedown(function(ev){
       ev.stopPropagation();
-      if (_this._isMax && _this._ishideDiv && !_this._options.resize) {
+      if (_this._isMax || _this._ishideDiv || !_this._options.resize) {
         return ;
       };
       _this._isMouseResizeDown = true;
@@ -256,7 +256,7 @@ var Window = Class.extend({
    */
   resizeWindowWithAnimate:function(size_, pos_){
     var _this = this;
-    _this._window.animate({left: pos_.left + 'px', top: pos_.top + 'px'});
+    _this._window.animate({left: pos_.left + 'px', top: pos_.top + 'px'},_this._options.fadeSpeed);
     var _tmp = size_.width-2;
     _this._titleDiv.animate({width: _tmp+'px'},_this._options.fadeSpeed);
     _tmp = size_.width-130;
@@ -264,7 +264,7 @@ var Window = Class.extend({
     if (this._options.contentDiv) {
       _tmp = size_.width -10;
       var _tmp1 = size_.height - 50;
-      _this._windowContent.animate({width:_tmp+'px', height: _tmp1+'px'});
+      _this._windowContent.animate({width:_tmp+'px', height: _tmp1+'px'},_this._options.fadeSpeed);
     }
   },
   /**
