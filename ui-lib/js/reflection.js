@@ -61,11 +61,11 @@ var Reflection = Class.extend({
     	  //put img's css into img's parentDiv
     	  //_parentDiv[0].style.cssText = _this._img[0].style.cssText;
         // ERROR: Will introduce a mouse move bug!!!
-        // _parentDiv[0].style.width = _this._img[0].style.width;
+        _parentDiv[0].style.width = _this._img[0].style.width;
     	  //set vertical align
     	  _this._img[0].style.cssText = 'vertical-align: bottom';
     	  //set reflect height and reflect width
-    	  var _reflectHeight = Math.floor(_this._img[0].height * _this._options['height']);
+    	  var _reflectHeight = Math.floor(_this._img.height() * _this._options['height']);
     	  var _reflectWidth = _this._img.width();
     	  //if ie 
     	  if (document.all && !window.opera) {
@@ -73,9 +73,9 @@ var Reflection = Class.extend({
     	    _reflection.src = _this._img[0].src;
     	    _reflection.style.width = _this._img.width() + 'px';
           // ERROR: Will introduce a mouse move bug!!!
-          // _reflection.style.display = 'inline-block';
+          _reflection.style.display = 'inline-block';
     	    _reflection.style.height = _reflectHeight;
-    	    _reflection.style.marginBottom = "-"+(p.height-reflectionHeight)+'px';
+    	    _reflection.style.marginBottom = "-"+(p.height-_reflectHeight)+'px';
     	    _reflection.style.filter = 'flipv progid:DXImageTransform.Microsoft.Alpha(opacity='
     	        + (options['opacity']*100)
     	        + ', style=1, finishOpacity=0, startx=0, starty=0, finishx=0, finishy='
@@ -90,7 +90,7 @@ var Reflection = Class.extend({
     	      _canvas.height = _reflectHeight;
     	      _canvas.width = _this._img.width();
             // ERROR: Will introduce a mouse move bug!!!
-            // _parentDiv[0].style.width = _reflectWidth + 'px';
+             _parentDiv[0].style.width = _reflectWidth + 'px';
     	      //_parentDiv[0].style.height = _this._img.height()+ _reflectHeight + 'px';
     	      _parentDiv.append(_canvas);
     	      _context.save();

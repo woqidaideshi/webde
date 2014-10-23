@@ -1260,3 +1260,12 @@ pre > code {
   float: left; 
   padding: .5em 3em 0 0;
 }
+
+.reflect{
+  border: 2px solid #cccccc;
+}
+
+.parent{
+  border: 1px solid #cc5599;
+  padding: 2px;
+}
