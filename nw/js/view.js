@@ -615,7 +615,6 @@ var GridView = WidgetView.extend({
     var _target_id = ev.target.id;
     // var _id = ev.originalEvent.dataTransfer.getData("ID");
     var _target = $('#' + _target_id);
-    $('#' + _id[1]).parent().removeClass('norhover');
 
     //get target position
     var _target_arr = _target_id.split('_');
@@ -974,11 +973,9 @@ var DEntryView = WidgetView.extend({
     $selector.dblclick(function() {
       _this._controller.onDblclick();
     }).mouseenter(function() {
-      $(this).parent().addClass('norhover');
       var $p = $('#' + _entry.getID() + ' p');
       $p.css('height', $p[0].scrollHeight);
     }).mouseleave(function() {
-      $(this).parent().removeClass('norhover');
       $('#' + _entry.getID() + ' p').css('height', '32px');
     }).mousedown(function(e) {
       e.stopPropagation();
@@ -1045,7 +1042,6 @@ var DEntryView = WidgetView.extend({
   drop: function(ev) {
     // TODO: send a command to processer
     this.$view.parent('.grid').removeClass('hovering');
-    this.$view.parent('.grid').removeClass('norhover');
     ev.preventDefault();
     ev.stopPropagation();
     this._controller.onDrop(ev);
@@ -1135,7 +1131,6 @@ var DevEntryView = View.extend({
       + this._model.getName()
       + "</p>").css({
       'color': '#FFF',
-      'opacity': '0.8'
     });
     this.initAction();
     this._controller = EntryController.create(this);
@@ -1170,19 +1165,15 @@ var DevEntryView = View.extend({
     this.$view.on('mouseenter', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.$view.css('opacity', '1');
     }).on('mouseleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.$view.css('opacity', '0.8');
     }).on('dragenter', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.$view.css('opacity', '1');
     }).on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.$view.css('opacity', '0.8');
     }).on('dragover', function(ev) {
       ev.stopPropagation();
       ev.preventDefault();
@@ -1464,8 +1455,9 @@ var DockEntryView = View.extend({
       ev.stopPropagation();
     }).on('dragover', function(ev) {
       _this.dragOver(ev);
-    }).on('dragstart', this.drag)
-      /* .on('drop', this.drop) */;
+    }).on('drop', function(ev) {
+      _this.drop(ev);
+    }).on('dragstart', this.drag);
 
     var ctxMenu = _global.get('ctxMenu');
     ctxMenu.attachToMenu('#' + this.getID()
@@ -1552,6 +1544,7 @@ var DockEntryView = View.extend({
 
   drop: function(ev) {
     ev.preventDefault();
+    this._controller.onDrop(ev);
   },
 
   mouseOver: function(ev) {

@@ -91,13 +91,12 @@ var EntryController = WidgetController.extend({
   }
 });
 
-var DockEntryController = Controller.extend({
+var DockEntryController = EntryController.extend({
   init: function(view_) {
     this.callSuper(view_);
   },
 
   onClick: function() {
-    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open);
-    _global.get('theCP').perform(cmd); 
+    this.onDblclick();
   }
 })

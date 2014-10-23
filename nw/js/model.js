@@ -791,11 +791,26 @@ var AppEntryModel = EntryModel.extend({
     this.emit('index', null, this._idx);
   },
 
-  // TODO: open a file by using this app
-  copyTo: function() {},
+  copyTo: function(clip_) {
+    if(clip_.files.length != 0) {
+      var fList = '';
+      for(var i = 0; i < clip_.files.length; ++i) {
+        fList += ' ' + clip_.files[i].path;
+      }
+      this.open(fList);
+    }
 
-  open: function() {
-    _global._exec(this._execCmd, function(err, stdout, stderr) {
+    var id = clip_.getData('ID'),
+        item = _global.get('desktop').getCOMById('layout').getWidgetById(id),
+        type = item.getType();
+    if(type != 'app' && type.match(/\w*Plugin/) != null)
+      this.open(item.getPath());
+  },
+
+  open: function(pera_) {
+    var p_ = pera_ || '';
+    // TODO: replace by API ourselves
+    _global._exec(this._execCmd + p_, function(err, stdout, stderr) {
       if(err !== null) {
         console.log(err);
       }
@@ -871,6 +886,7 @@ var FileEntryModel = EntryModel.extend({
   },
 
   open: function() {
+    // TODO: replace by API ourselves
     _global._exec('xdg-open ' + this._path.replace(/ /g, '\\ ')
         , function(err, stdout, stderr) {
           if(err) console.log(err);
@@ -888,7 +904,37 @@ var DirEntryModel = FileEntryModel.extend({
   copyTo: function() {},
 
   // TODO: move file to this dir
-  moveTo: function() {},
+  moveTo: function(clip_) {
+    if(clip_.files.length != 0) {
+      for(var i = 0; i < clip_.files.length; ++i) {
+        if(clip_.files[i].path == this._path) continue;
+        var filename = clip_.files[i].path.match(/[^\/]*$/)[0];
+        _global._fs.rename(clip_.files[i].path, this._path + '/' + filename, function(err) {
+          if(err) {
+            console.log(err);
+          }
+        });
+      }
+      return ;
+    }
+
+    var id = clip_.getData('ID'),
+        desktop = _global.get('desktop'),
+        item = desktop.getCOMById('layout').getWidgetById(id),
+        type = item.getType(),
+        srcP = null;
+    if(id == this._id || type.match(/\w*Plugin/) != null) return ;
+    if(item.getType() == 'app') {
+      srcP = desktop._desktopWatch.getBaseDir() + item.getFilename();
+    } else {
+      srcP = item.getPath();
+    }
+    _global._fs.rename(srcP, this._path + '/' + item.getFilename(), function(err) {
+      if(err) {
+        console.log(err);
+      }
+    });
+  },
 
   rename: function(name_) {
     if(name_ != this._name) {
@@ -1400,8 +1446,8 @@ var DeviceEntryModel = EntryModel.extend({
     if(dataTransfer.files.length != 0) {
       for(var i = 0; i < dataTransfer.files.length; ++i) {
         Messenger().post(dataTransfer.files[i].path);
+        // TODO: use api from lower layer
       }
-      // TODO: use api from lower layer
       return ;
     }
 
