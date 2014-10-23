@@ -76,9 +76,11 @@ var EntryController = WidgetController.extend({
   onDrop: function(ev) {
     var cmd;
     if(ev.ctrlKey || this._model.getType() == 'dev' || this._model.getType() == 'app') {
-      cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo, {});
+      cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo
+          , ev.originalEvent.dataTransfer);
     } else {
-      cmd = NoUndoCommand.create(this._model, 'exec', this._model.moveTo, {});
+      cmd = NoUndoCommand.create(this._model, 'exec', this._model.moveTo
+          , ev.originalEvent.dataTransfer);
     }
     _global.get('theCP').perform(cmd);
   },

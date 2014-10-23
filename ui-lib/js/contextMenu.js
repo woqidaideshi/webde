@@ -115,6 +115,11 @@ var ContextMenu = Class.extend({
   },
 
   addCtxMenu: function(data, subMenu) {
+    var _id = 'dropdown-' + data[0].header;
+    if(typeof this._menus[_id] !== 'undefined') {
+      console.log('the menu of this header already existed!');
+      return ;
+    }
     var subClass = '';
     var compressed = this._options.compress ? ' compressed-context' : '';
     if(subMenu) {
@@ -124,7 +129,6 @@ var ContextMenu = Class.extend({
         $('.dropdown-context').css({display:''}).find('.drop-left').removeClass('drop-left');
       });
     }
-    var _id = 'dropdown-' + data[0].header;
     var $menu = $('<ul class="dropdown-menu dropdown-context' 
         + subClass + compressed + '" id="' + _id + '"></ul>');
     for(var i = 0; i < data.length; ++i) {
