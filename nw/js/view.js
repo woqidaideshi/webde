@@ -1260,7 +1260,8 @@ var DockView = View.extend({
       _this.drop(ev);
     }).on('mousemove', function(ev) {
       var ev = ev || window.event,
-          divList = dock.children('div');
+          divList = dock.children('div'),
+          canvasList = $('#dock div canvas');
       ev.stopPropagation();
       for(var i = 0; i < divList.length; i++) {
         var jqImg = $(divList[i]).children('img'),
@@ -1272,6 +1273,10 @@ var DockView = View.extend({
         if(spex < 0.5) {
           spex = 0.5;
         }
+        if (typeof canvasList[i] !== 'undefined') {
+          canvasList[i].style.width = spex * (_imgMaxWidth) + 'px';
+        }
+        divList[i].style.width = spex * (_imgMaxWidth) + 'px';
         jqImg[0].style.width = spex * (_imgMaxWidth) + 'px';
         jqImg[0].style.height = spex * (_imgMaxHeight) + 'px';
       }
