@@ -1,0 +1,113 @@
+---
+layout: post
+title:  "Unslider"
+date:   2014-10-20 11:09:12
+categories: ui
+---
+
+<p>Unslider是一款图片轮播插件，该插件具有操作简单，使用方便的特点</p>
+<h2>使用方法</h2>
+<p>建立图片轮播的方法有两个步骤:<br />
+第一步：定义图片结构，<br />
+第二步：应用轮播 </p>
+<pre>
+  <code>
+  	第一步：定义图片结构，
+  &lt;div class="banner"&gt;
+    &lt;ul&gt;
+    &lt;li style="background-image: url('/assets/img/shop.jpg')"&gt;
+      这是一张在路上的照片
+    &lt;/li&gt;
+    &lt;li style="background-image: url('/assets/img/subway.jpg')"&gt;
+      这是一张地铁的照片
+    &lt;/li&gt;
+    &lt;li  style="background-image: url('/assets/img/sunset.jpg')"&gt;
+      这是一张太阳落山的照片
+    &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+	<br />
+	第二步：应用轮播，
+	$('.banner').unslider(options);  //设置内容将在下面介绍。
+  </code>
+</pre>
+<br />
+<h2>设置属性</h2>
+<pre>
+  <code>
+  $('.banner').unslider({
+	speed: 500,               // 轮播动画速度
+	delay: 3000,              // 轮播延时
+	complete: function() {},  // 完成轮播时的响应函数
+	keys: true,               // 支持左右按键转换图片
+	dots: true,               // 显示图片上第几个点
+	fluid: false              // 支持响应设计，屏幕变化
+});
+  </code>
+</pre>
+<br />
+<h2>操控unslider</h2>
+<p>可以在轮播时操控该轮播插件，见如下：</p>
+<pre>
+  <code>
+  var slidey = $('.banner').unslider(),
+    data = slidey.data('unslider');
+    data.play();                //开始轮播
+    data.stop();                //停止轮播
+    data.to(2, function() {});  //图片跳转到第2张，并执行函数，从0开始计数
+    data.keys();                //支持键盘
+    data.next();                //下一张图片
+    data.prev();                //上一张图片
+    data.dots();                //显示dot
+  </code>
+</pre>
+
+<h2>demo</h2>
+<p></p>
+<div class="banner">
+  <ul>
+    <li style="background-image: url('/assets/img/shop.jpg')">
+      这是一张在路上的照片
+    </li>
+    <li style="background-image: url('/assets/img/subway.jpg')">
+      这是一张地铁的照片
+    </li>
+    <li  style="background-image: url('/assets/img/sunset.jpg')">
+      这是一张太阳落山的照片
+    </li>
+  </ul>
+</div>
+<button class='btn active' onclick="prev()">prev</button>
+<button class='btn active' onclick="next()">next</button>
+<button class='btn active' onclick="modal()">modalBox</button>
+<script type="text/javascript">
+  var _unslider ;
+  $(function() {
+    _unslider = $('.banner').unslider({
+      speed:500,
+      delay:500,
+      keys: true,
+      dots: true,
+      fluid: true
+    });
+  });
+
+  var prev =function(){
+  	var data = _unslider.data('unslider');
+  	data.prev();
+  }
+
+  var next = function(){
+  	var data = _unslider.data('unslider');
+  	data.next();
+  }
+
+  var modal = function(){
+    $('.banner').modalBox({
+     iconImg: '../../../../../assets/img/close.png',
+     iconClose: true,
+     keyClose: true,
+     bodyClose:true
+   });
+  }
+</script>

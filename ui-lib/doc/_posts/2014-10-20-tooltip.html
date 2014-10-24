@@ -1,0 +1,58 @@
+---
+layout: post
+title:  "Tooltip"
+date:   2014-10-20 11:09:12
+categories: ui
+---
+<script type="text/javascript">
+  $(document).ready(function() {
+  Tooltip.create($('#right-tooltip'), 'right');
+  Tooltip.create($('#left-tooltip'), "left");
+  Tooltip.create($('#top-tooltip'), "top");
+  Tooltip.create($('#down-tooltip'), "bottom");
+  Tooltip.create($('#cursor-tooltip'), "cursor");  
+});
+</script>
+  
+
+  <h2 id="tooltip">tooltip:</h2>
+  <p>工具提示用于提示所选元素的title内容，具体使用方法如下：<br />
+<h3>A.用法：</h3><br />
+  在使用tooltip工具前请确认加载jquery.js和tooltip.js，以及项目中common.js，
+然后使用如下方式使用tooltip
+  首先：建立一个带有title的元素如图片：</p>
+<pre>
+<code>
+  img title='picture-title' id='test-img' src="/img/clock.png"/
+</code>
+</pre>
+<p><br />
+  然后：向这个图片元素建立一个tooltip</p>
+<pre>
+<code>	
+  Tooltip.create($('#test-img'),"top");
+</code>
+</pre>
+
+<h3>B.函数及参数说明</h3><br />
+  <p>本tooltip显示的是元素的title内容，如果没有title则不显示，
+  方法有：</p>
+<pre>
+<code>
+  Tooltip.create($target_, pos_);	//创建tooltip并绑定到$target_上，
+  $target_：待绑定tooltip的元素对象，为jquery对象，
+  pos_：显示tooltip的位置，此处提供5个位置供选择，
+    a."top":显示在元素的正上
+    b."bottom":显示在元素的正下方
+    c."left":显示在元素的左方
+    d."right":显示在元素的右方
+    e."cursor":跟随光标移动。
+</code>
+</pre>
+
+<h3>demo</h3>
+<img id='right-tooltip'  src='/assets/img/cat.jpg' width='150px' title='right-tooltip'/>
+<img id='top-tooltip'  src='/assets/img/cat.jpg' width='150px' title='top-tooltip'/>
+<img id='left-tooltip'  src='/assets/img/cat.jpg' width='150px' title='left-tooltip'/>
+<img id='down-tooltip'  src='/assets/img/cat.jpg' width='150px' title='bottom-tooltip'/>
+<img id='cursor-tooltip'  src='/assets/img/cat.jpg' width='150px' title='cursor-tooltip'/>

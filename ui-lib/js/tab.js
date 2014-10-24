@@ -36,7 +36,7 @@ var Tab = Class.extend({
       });
       this._tabShow.append(_div);
       _div.hide();
-      var _a = "<a href='#"+_id+"'>"+_tabs[i]+"</a>";
+      var _a = "<a tab='#"+_id+"'>"+_tabs[i]+"</a>";
       this._tabDiv.append(_a);
     };
     this.bindEvent();
@@ -77,19 +77,20 @@ var Tab = Class.extend({
     $(function() {  
       var tabhosts = $(_this._tabDiv.children('a')); 
       tabhosts.each(function() {
-        $($(this).attr("href")).slideUp();
+        $($(this).attr("tab")).slideUp();
         if ($(this).hasClass("selected")) {
-          $($(this).attr("href")).slideDown();  
+          $($(this).attr("tab")).slideDown();  
         }    
         $(this).mousedown(function(event) {  
           event.preventDefault();    
+          event.stopPropagation();
           if (!$(this).hasClass("selected")) {  
             tabhosts.each(function() {  
               $(this).removeClass("selected");  
-              $($(this).attr("href")).slideUp(500);  
+              $($(this).attr("tab")).slideUp(500);  
             });  
             $(this).addClass("selected");  
-            $($(this).attr("href")).slideDown(500);  
+            $($(this).attr("tab")).slideDown(500);  
           }  
         });  
       });  

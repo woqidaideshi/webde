@@ -1,0 +1,65 @@
+---
+layout: post
+title:  "tab"
+date:   2014-10-20 11:09:12
+categories: ui
+---
+
+<h1 id="tab">tab库</h1>
+<p>tab库提供简单的建立tab的方法</p>
+<br />
+<h2>使用方法</h2> 
+  <h3>1、首先创建一个tab对象：</h3>
+<pre>
+<code>
+  var tab = Tab.create('id',['tab1','tab2',...]，pos，size); 
+  //'id'为自己定义的tab的窗口的id，不可为空。
+  //tab1和tab2是tab标签的标签名。用于显示标签名，不可为空。
+  //pos位置选项，要有pos.left和pos.top项。可为空
+  //size大小选项，要有size.width和size.height选项，可为空
+  如：
+    _tab = Tab.create('property-tab',['basic', 'power']);
+</code>
+</pre>
+<br />
+ <h3> 2、向tab对象中添加要显示的内容</h3>
+<pre>
+<code>
+  _tab.addDivByTab($div_,'tab1');
+  //$div_ 是一个jquery元素对象用于append（$div_）
+  //tab1是一个tab的标签名
+</code>
+</pre>
+<br />
+ <h3>3、将tab对象加入到父元素内</h3> 
+<pre>
+<code>
+  _tab.injectParent($parent_);
+  //$parent_是父元素的jquery对象。
+</code>
+</pre>
+<br />
+  <h3>4、设置最初显示的tab。</h3>
+<pre>
+<code>
+  _tab.setShowByTab('tab1');
+  //tab1为初始显示tab1指向的div的内容，如果tab1不存在初始不显示任何内容。
+</code>
+</pre>
+<p><br />
+    注：可以自定义设置css，具体设置方法可以参看property.less内容.</p>
+
+<h2>demo</h2>
+<div id='tab-parent'></div>
+
+<script type="text/javascript">
+  var _tab = Tab.create('tab',['tab1','tab2','tab3']);
+  _tab.injectParent($('#tab-parent'));
+  _tab.addDivByTab('<p>这是tab1第一个标签啊<br />这是第一个标签</p>','tab1');
+  _tab.addDivByTab('<p>这是tab2第二个标签啊<br />这是第二个标签</p>','tab2');
+  _tab.addDivByTab('<p>这是tab3第三个标签啊<br />这是第三个标签</p>','tab3');
+  _tab.addDivByTab('<p>这是tab1第一个标签啊<br />这是第一个标签</p>','tab1');
+  _tab.addDivByTab('<p>这是tab2第二个标签啊<br />这是第二个标签</p>','tab2');
+  _tab.addDivByTab('<p>这是tab3第三个标签啊<br />这是第三个标签</p>','tab3');
+  _tab.setShowByTab('tab1');
+</script>

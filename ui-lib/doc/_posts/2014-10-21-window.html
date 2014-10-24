@@ -1,0 +1,89 @@
+---
+layout: post
+title:  "window"
+date:   2014-10-20 11:09:12
+categories: ui
+---
+
+<h1 id="window">window库</h1>
+<p>用于快速建立窗口的插件,该窗口是使用div模拟的窗口，用于在浏览器上显示类似桌面的应用的方法。</p>
+  <h2>使用方法</h2>
+  <p>可以直接使用create方法建立新窗口，并将相关参数传入window中。</p>
+<pre>
+<code>
+  Window.create('newWin'    //窗口的id
+  ,'Test Window '           //窗口的标题
+  , { left:200,             //窗口的配置信息
+    top:100,
+    height: 300,
+    width: 800
+  });
+</code>
+</pre>
+<p></p>
+
+<h2>配置选项</h2>
+<br / >
+<pre>
+<code>
+  close: true，       //右上角关闭按钮，可点击
+  max: true,         //右上角最大化按钮，可点击
+  min: false,        //右上角最小化按钮，可点击
+  hide: true,        //右上角隐藏内容按钮，可点击
+  fadeSpeed: 100,    //打开窗口速度
+  hideWindow: false, //是否直接显示窗口
+  width: 600,        //宽
+  height: 600,       //高
+  left: 0,           //位置x坐标
+  top: 0,            //位置y坐标
+  resize: false,     //设置是否可重新调整窗口的大小
+  minWidth: 200,     //设置窗口的最小宽度
+  minHeight:200,     //设置窗口的最小高度
+  animate: true,     //动画效果
+  contentDiv: true   //包含放置内容的div
+</code>
+</pre>
+<p><br /></p>
+
+
+<h2>demo</h2>
+<p>关闭按钮：<input type='checkbox' id='win-Close' checked="checked"></p>
+<p>最大化按钮：<input type='checkbox' id='win-Max' checked="checked"></p>
+<p>最小化按钮：<input type='checkbox' id='win-Min'></p>
+<p>收起内容按钮：<input type='checkbox' id='win-Hide' checked="checked"></p>
+<p>调整窗口大小：<input type='checkbox' id='win-Resize' checked="checked"></p>
+<p>初始隐藏窗口：<input type='checkbox' id='win-Hidewindow'></p>
+<p>动画：<input type='checkbox' id='win-Animate' checked="checked"></p>
+<p>内容Div：<input type='checkbox' id='win-Contentdiv' checked="checked"></p>
+<p>动画速度：<input type='text' id='win-FadeSpeed' value="100"></p>
+<p>窗口宽度<input type='text' id='win-Width' value="600"></p>
+<p>窗口高度：<input type='text' id='win-Height' value="600"></p>
+<p>窗口位置（左）：<input type='text' id='win-Left' value="100"></p>
+<p>窗口位置（上）：<input type='text' id='win-Top' value="100"></p>
+<p>最小窗口大小宽：<input type='text' id='win-Minwidth' value="200"></p>
+<p>最小窗口大小高：<input type='text' id='win-Minheight' value="200"></p>
+<p>窗口标题：<input type='text' id='win-Title' value="Test Window"></p>
+
+<button class='btn active' onclick="newWin()">New Window</button>
+<script type="text/javascript">
+  var newWin = function(){
+    var _options = {};
+    _options['close'] = $('#win-Close')[0].checked;
+    _options['max'] = $('#win-Max')[0].checked;
+    _options['min'] = $('#win-Min')[0].checked;
+    _options['hide'] = $('#win-Hide')[0].checked;
+    _options['resize'] = $('#win-Resize')[0].checked;
+    _options['hidewindow'] = $('#win-Hidewindow')[0].checked;
+    _options['animate'] = $('#win-Animate')[0].checked;
+    _options['contentDiv'] = $('#win-Contentdiv')[0].checked;
+    _options['fadeSpeed'] = parseInt($('#win-FadeSpeed')[0].value);
+    _options['width'] = $('#win-Width')[0].value;
+    _options['height'] = $('#win-Height')[0].value;
+    _options['left'] = $('#win-Left')[0].value;
+    _options['top'] = $('#win-Top')[0].value;
+    _options['minWidth'] = $('#win-Minwidth')[0].value;
+    _options['minHeight'] = $('#win-Minheight')[0].value;
+
+    Window.create('newWin', $('#win-Title')[0].value, _options);
+  }
+</script>

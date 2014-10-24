@@ -1,0 +1,92 @@
+---
+layout: post
+title:  "ContextMenu and font-awesome"
+date:   2014-10-20 11:09:12
+categories: ui
+---
+<h1>ContextMenu</h1>
+<p>右键菜单，可以在任意元素上设置右键菜单，设置方法是：</p>
+<pre>
+<code>
+  //新建一个对象
+  this._ctxMenu = ContextMenu.create();
+  //增加一个菜单项
+ this._ctxMenu.addCtxMenu([
+    {header: 'desktop'},	                                                                                                         //头标题
+    {text:'create Dir', icon:'icon-folder-close-alt' ,action:function(e){   //菜单一个条目，text 显示的文字， icon：图标，action::点击响应函数
+      ....
+    }},
+    {text:'messenger set',icon: 'icon-cog', subMenu:[    //子菜单，鼠标放上显示的菜单，与主菜单定义方法相同。
+    {header: 'messenger set'},
+      {...}...
+    }
+  ]);
+</code>
+</pre>
+
+<p>定义好菜单之后在绑定菜单项与元素：</p>
+<pre>
+<code>
+  this._ctxMenu.attachToMenu('#' + this._id     //this._id，绑定元素的id
+    , desktop._ctxMenu.getMenuByHeader('plugin')   //通过contextMenu提供的方法getMenuByHeader('plugin')获取相应的菜单
+    ,function(id_){ desktop._rightObjId = id_});   //右键点击元素时，响应函数
+</code>
+</pre>
+<br />
+<h2>contextMenu提供的接口</h2>
+<pre>
+<code>
+  contextMenu的api接口：
+    getMenuByHeader('header')                      //通过菜单的头标题获取菜单
+    addItem($menu_, item_, $index_)                //向菜单$menu_, 添加item_， 位置在$index_后边，没有$index_（为item对象）则添加到最后
+    addCtxMenu(data,subMenu)                       //向菜单subMenu添加数据data是上边定义的数组
+    removeMenuByHeader(header)                     //通过头文件删除菜单。
+    getItemByText($menu_, text_)                   //在$menu_中获取text_的item
+    hasItem($item_)                                //判断是否有这个item
+    attachToMenu(selector_, $menu_, function_)     //向元素selector_中注册右键菜单，菜单弹出时的响应函数为function_
+    activeItem(header_, text_，eventAction_)       //设置菜单header_的text_ item可点击 ，响应函数为eventAction_
+    disableItem(header_, text_)                    //设置菜单header_的text_ item不可点击
+    isDisabledItem(header_, text_)                 //判断菜单header_的text_ item是否不可点击，不可点击true，可点击false，没有这个item返回null;
+</code>
+</pre>
+<br />
+<br />
+<h2>demo</h2>
+<img id='contextMenu-cat'  src='/assets/img/cat.jpg' width='150px'/>
+
+<h2 id="font-awesome">font-awesome图标库</h2>
+<p>本UI库的图标使用的是font-awesome的图标库，其特点是将图标打包成字体文件，通过读取字体文件来载入各个图标。
+  使用方法：
+  在需要添加图标的位置写入</p>
+<pre>
+<code>
+  &lt;a href='http://www.bootcss.com/p/font-awesome/#icons-new'&gt; &lt;i class='icon-user'&gt;&lt;/i&gt; &lt;/a&gt; //其中icon-user是要添加图标的种类。
+</code>
+</pre>
+
+<p>详细的使用方法见：
+<a href="http://www.bootcss.com/p/font-awesome/#icons-new">font-awesome使用方法</a>
+  具体图标对应的class类可以查阅：
+<a href="http://www.bootcss.com/p/font-awesome/design.html">图标对应编码查询</a></p>
+
+<script type="text/javascript">
+  var contextMenu = ContextMenu.create();
+  contextMenu.addCtxMenu([
+    {header: 'contextMenu'},
+    {text: 'show pic', icon: 'icon-flag' ,action: function(){
+      alert('show picture');
+    }},
+    {text: 'loading', icon: 'icon-spinner icon-spin' ,subMenu: [
+      {header: 'loading'},
+      {text: 'picture', icon: 'icon-laptop',action:function(){
+      }}
+    ]},
+    {text: 'disabled', icon: 'icon-github' ,action: function(){
+    }}
+  ]);
+    
+  contextMenu.attachToMenu('#contextMenu-cat'
+    ,contextMenu.getMenuByHeader('contextMenu')
+    ,function(){});
+  contextMenu.disableItem('contextMenu','disabled');
+</script>

@@ -1,3 +1,8 @@
+---
+layout: index
+title: UI-lib
+---
+
 UI-lib-api
 ==========
 UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关插件调用api使用方法。
@@ -86,7 +91,7 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 </code>
 </pre>
   更多使用方法参见messenger的官方网站：
-[messenger官方网站] (http://github.hubspot.com/messenger)
+[messenger官方网站](http://github.hubspot.com/messenger)
   github网址：
 [github网址](https://github.com/HubSpot/messenger)
 
@@ -148,7 +153,7 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 </pre>
 
   详细的使用方法见：
-[font-awesome使用方法] (http://www.bootcss.com/p/font-awesome/#icons-new)
+[font-awesome使用方法](http://www.bootcss.com/p/font-awesome/#icons-new)
   具体图标对应的class类可以查阅：
 [图标对应编码查询](http://www.bootcss.com/p/font-awesome/design.html)
 
@@ -167,9 +172,9 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 </code>
 </pre>
   更多设置（demo）：
-[demo] (http://ignitersworld.com/lab/modalBox.html#demo)
+[demo](http://ignitersworld.com/lab/modalBox.html#demo)
   github项目网址：
-[github网址] (https://github.com/s-yadav/modalBox.js)
+[github网址](https://github.com/s-yadav/modalBox.js)
 
 6、tab库
 =========
@@ -213,20 +218,22 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 7、window库
 =========
   用于快速建立窗口的插件，使用方法为：
-<code>
 <pre>
+<code>
   Window.create('newWin','Test Window ', {
     left:200,
     top:100,
     height: 300,
     width: 800
   });
-</pre>
 </code>
+</pre>
+
 
   目前可设置的选项有：
-<code>
-<pre> <br />
+
+<pre>
+<code> <br />
   close: true，            //右上角关闭按钮，可点击
   max: true,               //右上角最大化按钮，可点击
   min: false,                 //右上角最小化按钮，可点击
@@ -250,8 +257,9 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
 =========
   Inputer库用于桌面上右键-->rename显示的文本输入框，用于文件的重命名。
   使用方法如下：
-<code>
+
 <pre>
+<code>
   var _inputer = Inputer.create('name');
   _options = {
   'left': 100,
@@ -264,31 +272,35 @@ UI-lib 是提供相关UI设计的库文件，其中包含样式表以及相关�
     }
   }
   _inputer.show(_options);
+</code>
 </pre>
-</code> <br />
+ <br />
 
 9、reflect图片倒影库
 =========
   reflect可以在图片的下面产生一个图片倒影，用于提升界面效果，其原理是新建一个div代替原有的div，并在新的div中加入源图片和倒影canvas（在ie浏览器是一个倒影图片）。
   使用方法如下：
-<code>
+
 <pre>
-  var _reflect = Reflection.create(<img>,options); //新建一个reflection对象，并传入图片对象，<img>为js对象，options为设置项。
+<code>
+  var _reflect = Reflection.create((img),options); //新建一个reflection对象，并传入图片对象，(img)为js对象，options为设置项。
     _reflect.add();   //根据上边传入的图片和设置项，添加图片倒影
     _reflect.remove(); //删除图片倒影
-</pre>
-</code> <br />
+</code>
+</pre> <br />
   也可以自己实现删除倒影，其过程主要包含如下步骤：
-<code>
+
 <pre>
-  <img>.style.cssText = ''; //img csstext 重置
-  $(<div>).removeClass('reflect'); //图片的父div删除reflect class
-  $($(<div>).children('canvas')[0]).remove(); //删除倒影
-</pre>
-</code> <br />
+<code>
+  (img).style.cssText = ''; //img csstext 重置
+  $((div)).removeClass('reflect'); //图片的父div删除reflect class
+  $($((div)).children('canvas')[0]).remove(); //删除倒影
+</code>
+</pre> <br />
   上面的options只有<strong>三个</strong>设置项，分别为：
-<code>
+
 <pre>
+<code>
    this._options = {
       height : 0.5,    //倒影的高度比率
       opacity : 0.5，   //倒影的透明度渐变比率
