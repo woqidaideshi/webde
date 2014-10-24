@@ -42,10 +42,12 @@ var EntryController = WidgetController.extend({
     this.callSuper(view_);
   },
 
-  rename: function() {
-    var desktop = _global.get('desktop');
-    desktop._ctxMenu.hide();
-    var $p = $('#' + this._view._id + ' p');
+  onRename: function() {
+    var desktop = _global.get('desktop'),
+        layout = desktop.getCOMById('layout'),
+        _entry = this._model,
+        $p = this._view.$view.children('p');
+    _global.get('ctxMenu').hide();
     desktop._inputer.show({
       'left': $p.parent().parent().offset().left,
       'top': $p.offset().top,
@@ -54,20 +56,23 @@ var EntryController = WidgetController.extend({
       'oldtext': $p.text(),
       'callback': function(newtext) {
         // entry's name is not changed
-        var _entry = desktop.getAWidgetById(desktop._rightObjId)._model;
         if(_entry.getName() == newtext) return ;
         // entry's name has already existed
-        var _entries = desktop._dEntrys._items;
+        var _entries = layout._dEntrys._items;
         for(var i = 0; i < _entries.length; ++i) {
           if(_entries[i]._name == newtext) {
-            /* var dialog = require('dialog');  */
-            /* dialog.warningBox(newtext + ' has already existed');  */
-            alert(newtext + ' has already existed');
+            Messenger.options = {
+              extraClasses: "messenger-fixed messenger-on-top"
+            };
+            Messenger().post({
+              message: '"' + newtext + '"' + ' has already existed',
+              type: 'info',
+              showCloseButton: true
+            });
             return ;
           }
         }
-        var cmd = NormalCommand.create(_entry._model
-          , _entry._model.getName, _entry._model.setName, newtext);
+        var cmd = NormalCommand.create(_entry, _entry.getName, _entry.rename, newtext);
         _global.get('theCP').perform(cmd);
       }
     });
@@ -91,13 +96,12 @@ var EntryController = WidgetController.extend({
   }
 });
 
-var DockEntryController = Controller.extend({
+var DockEntryController = EntryController.extend({
   init: function(view_) {
     this.callSuper(view_);
   },
 
   onClick: function() {
-    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open);
-    _global.get('theCP').perform(cmd); 
+    this.onDblclick();
   }
 })
