@@ -202,7 +202,8 @@ var DesktopView = View.extend({
       ]}
     ]);
 
-    var _this = this;
+    var layout = desktop.getCOMById('layout'),
+        _this = this;
     ctxMenu.addCtxMenu([
       {header: 'plugin'},
       {text: 'zoom in', action: function(e) {
@@ -215,8 +216,7 @@ var DesktopView = View.extend({
       }},
       {text:'remove', action:function(e) {
         e.preventDefault();
-        var layout = desktop.getCOMById('layout'),
-            _widget = layout.getWidgetById(ctxMenu._rightObjId);
+        var _widget = layout.getWidgetById(ctxMenu._rightObjId);
         ctxMenu.activeItem('add-plugin', 'clock', function(e_) {
           e_.preventDefault();
           layout.add(DPluginModel.create('clock', 'img/clock.png', 'ClockPlugin'));
@@ -241,7 +241,7 @@ var DesktopView = View.extend({
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
       }},
       {text:'delete' , icon: 'icon-remove-circle', action:function(e){
         e.preventDefault();
@@ -268,7 +268,7 @@ var DesktopView = View.extend({
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
       }},
       {text:'Move to Trash' ,icon: 'icon-trash', action:function(e){
         e.preventDefault();
@@ -332,7 +332,7 @@ var DesktopView = View.extend({
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        desktop.getAWidgetById(ctxMenu._rightObjId).rename();
+        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
       }}
     ]);
   },
@@ -364,9 +364,10 @@ var DesktopView = View.extend({
             for (var i = 0; i < files_.length; i++) {
               var _names = files_[i].split('.');
               if (_names[_names.length - 1] == 'desktop') {
-                utilIns.entryUtil.getItemFromApp(_DIR + '/' + files_[i], function(err_, item_) {
-                  desktop._ctxMenu.addItem(_menu,item_);
-                });
+                _global.get('utilIns').entryUtil.getItemFromApp(_DIR + '/' + files_[i]
+                  , function(err_, item_) {
+                    desktop._ctxMenu.addItem(_menu,item_);
+                  });
               };
             };
           });
@@ -615,7 +616,6 @@ var GridView = WidgetView.extend({
     var _target_id = ev.target.id;
     // var _id = ev.originalEvent.dataTransfer.getData("ID");
     var _target = $('#' + _target_id);
-    $('#' + _id[1]).parent().removeClass('norhover');
 
     //get target position
     var _target_arr = _target_id.split('_');
@@ -974,12 +974,17 @@ var DEntryView = WidgetView.extend({
     $selector.dblclick(function() {
       _this._controller.onDblclick();
     }).mouseenter(function() {
-      $(this).parent().addClass('norhover');
-      var $p = $('#' + _entry.getID() + ' p');
-      $p.css('height', $p[0].scrollHeight);
+      var $p = _this.$view.children('p');
+      _this.pHeight = $p.height();
+      $p.css({
+        'height': $p[0].scrollHeight,
+        'overflow': 'visible'
+      });
     }).mouseleave(function() {
-      $(this).parent().removeClass('norhover');
-      $('#' + _entry.getID() + ' p').css('height', '32px');
+      $('#' + _entry.getID() + ' p').css({
+        'height': _this.pHeight,
+        'overflow': 'hidden'
+      });
     }).mousedown(function(e) {
       e.stopPropagation();
     }).mouseup(function(e) { 
@@ -1019,7 +1024,7 @@ var DEntryView = WidgetView.extend({
         break;
       default:
         break;
-    };
+    }
   },
 
   hide: function() {
@@ -1045,7 +1050,6 @@ var DEntryView = WidgetView.extend({
   drop: function(ev) {
     // TODO: send a command to processer
     this.$view.parent('.grid').removeClass('hovering');
-    this.$view.parent('.grid').removeClass('norhover');
     ev.preventDefault();
     ev.stopPropagation();
     this._controller.onDrop(ev);
@@ -1135,7 +1139,6 @@ var DevEntryView = View.extend({
       + this._model.getName()
       + "</p>").css({
       'color': '#FFF',
-      'opacity': '0.8'
     });
     this.initAction();
     this._controller = EntryController.create(this);
@@ -1170,19 +1173,15 @@ var DevEntryView = View.extend({
     this.$view.on('mouseenter', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.$view.css('opacity', '1');
     }).on('mouseleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.$view.css('opacity', '0.8');
     }).on('dragenter', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.$view.css('opacity', '1');
     }).on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.$view.css('opacity', '0.8');
     }).on('dragover', function(ev) {
       ev.stopPropagation();
       ev.preventDefault();
@@ -1464,8 +1463,9 @@ var DockEntryView = View.extend({
       ev.stopPropagation();
     }).on('dragover', function(ev) {
       _this.dragOver(ev);
-    }).on('dragstart', this.drag)
-      /* .on('drop', this.drop) */;
+    }).on('drop', function(ev) {
+      _this.drop(ev);
+    }).on('dragstart', this.drag);
 
     var ctxMenu = _global.get('ctxMenu');
     ctxMenu.attachToMenu('#' + this.getID()
@@ -1552,6 +1552,7 @@ var DockEntryView = View.extend({
 
   drop: function(ev) {
     ev.preventDefault();
+    this._controller.onDrop(ev);
   },
 
   mouseOver: function(ev) {
