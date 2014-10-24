@@ -361,9 +361,9 @@ var DesktopView = View.extend({
             };
           }
           _global._fs.readdir(_DIR, function(err_, files_) {
-            for (var i = 0; i < files_.length; i++) {
+            for(var i = 0; i < files_.length; i++) {
               var _names = files_[i].split('.');
-              if (_names[_names.length - 1] == 'desktop') {
+              if(_names[_names.length - 1] == 'desktop') {
                 _global.get('utilIns').entryUtil.getItemFromApp(_DIR + '/' + files_[i]
                   , function(err_, item_) {
                     desktop._ctxMenu.addItem(_menu,item_);
@@ -1870,5 +1870,203 @@ var PropertyView = View.extend({
       _this._tab.addDivByTab("<p><span>▪</span> 其他:  </p>", 'power');
       _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>", 'power');
     });
+  }
+});
+
+var Selector = Class.extend({
+  init: function(container_) {
+    this.$view = $('<div>', {
+      'id': 'd-selector'
+    }).css({
+      'z-index': '9999',
+      'display': 'none',
+      'position': 'absolute',
+      'border': '2px solid black',
+      'border-radius': '5px',
+      'background-color': '#A9A9A9',
+      'opacity': '0.5',
+      'cursor': 'default'
+    });
+    $('body').append(this.$view);
+    this._c = container_;
+    this._selectedEntries = [];
+    this._selectedEntries['hasEntry'] = function(id_) {
+      for(var i = 0; i < this.length; ++i) {
+        if(this[i] != null && this[i]._id == id_) return true;
+      }
+      return false;
+    };
+    this._mouseDown = false;
+    this._s_X = 0;
+    this._s_Y = 0;
+
+    var _this = this;
+    $(document).on('mousedown', 'body', function(e) {
+      e.preventDefault();
+    }).on('mousedown', 'html', function(e) {
+      e.stopPropagation();
+      if(e.which == 1) {
+        if(!e.ctrlKey) {
+          desktop._tabIndex = -1;
+          _this.releaseSelectedEntries();
+        }
+        _this._mouseDown = true;
+        _this._s_X = e.pageX;
+        _this._s_Y = e.pageY;
+        _this.$view.css({
+          'left': e.pageX,
+          'top': e.pageY,
+        }).show();
+      }
+    }).on('mouseup', 'html', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if(e.which == 1) {
+        _this._mouseDown = false;
+        _this.$view.hide().css({
+          'width': '0px',
+          'height': '0px'
+        });
+      }
+    }).on('mousemove', 'html', function(e) {
+      /* e.preventDefault(); */
+      /* e.stopPropagation(); */
+      if(!_this._mouseDown) return ;
+      var _off = _this.$view.offset();
+      if(e.pageX < _this._s_X) 
+        _off.left = e.pageX;
+      if(e.pageY < _this._s_Y)
+        _off.top = e.pageY;
+      _this.$view.css({
+        'top': _off.top,
+        'left': _off.left,
+        'width': Math.abs(e.pageX - _this._s_X),
+        'height': Math.abs(e.pageY - _this._s_Y)
+      });
+      if(!e.ctrlKey)
+        desktop._selector.releaseSelectedEntries();
+      for(var i = 0; i < desktop._dEntrys._items.length; ++i) {
+        if(desktop._dEntrys._items[i] != null
+          && _this.isOverlap({
+            left: _off.left,
+            top: _off.top,
+            left_e: _off.left + _this.$view.width(),
+            top_e: _off.top + _this.$view.height()
+          }, desktop._dEntrys._items[i]._dEntry)) {
+          desktop._dEntrys._items[i].focus();
+        }
+      }
+    }).on('keydown', 'html', function(e) {
+      var upKey = function() {
+        desktop._tabIndex += desktop._dEntrys.length() - 1;
+        desktop._tabIndex %= desktop._dEntrys.length();
+        var _entry = desktop._dEntrys._items[desktop._tabIndex];
+        if(_entry == null) {
+          do{
+            desktop._tabIndex--;
+            _entry = desktop._dEntrys._items[0];
+          } while(_entry == null);
+        }
+        _entry.focus();
+      };
+      var downKey = function() {
+        desktop._tabIndex++;
+        desktop._tabIndex %= desktop._dEntrys.length();
+        var _entry = desktop._dEntrys._items[desktop._tabIndex];
+        if(_entry == null) {
+          desktop._tabIndex = 0;
+          _entry = desktop._dEntrys._items[0];
+        } 
+        _entry.focus();
+      };
+      switch(e.which) {
+        case 9:    // tab
+          if(!e.ctrlKey) {
+            _this.releaseSelectedEntries();
+          } else {
+            console.log('Combination Key: Ctrl + Tab');
+          }
+          if(e.shiftKey) {
+            upKey();
+          } else {
+            downKey();
+          }
+          /* if(e.shiftKey) { */
+            // desktop._tabIndex += desktop._dEntrys.length() - 1;
+          // } else {
+            // desktop._tabIndex++;
+          // }
+          // desktop._tabIndex %= desktop._dEntrys.length();
+          // var _entry = desktop._dEntrys._items[desktop._tabIndex];
+          /* if(_entry != null) _entry.focus(); */
+          break;
+        case 13:  // enter
+          if(desktop._tabIndex != -1 
+            && desktop._dEntrys._items[desktop._tabIndex] != null)
+            desktop._dEntrys._items[desktop._tabIndex].open();
+          break;
+        case 17:  // ctrl
+          desktop._ctrlKey = true;
+          break;
+        case 37:  // left
+          console.log('left');
+          break;
+        case 38:  // up
+          console.log('up');
+          if(!e.ctrlKey) 
+            _this.releaseSelectedEntries();
+          upKey();
+          break;
+        case 39:  // right
+          console.log('right');
+          break;
+        case 40:  // down
+          console.log('down');
+          if(!e.ctrlKey) 
+            _this.releaseSelectedEntries();
+          downKey();
+          break;
+        case 65:  // a/A
+          if(e.ctrlKey) {
+            console.log('Combination Key: Ctrl + a/A');
+            for(var i = 0; i < desktop._dEntrys._items.length; ++i) {
+              if(desktop._dEntrys._items[i] != null)
+                desktop._dEntrys._items[i].focus();
+            }
+          }
+          break;
+        default:
+      }
+    }).on('keyup', 'html', function(e) {
+      switch(e.which) {
+        case 17:  // ctrl
+          desktop._ctrlKey = false;
+          break;
+      }
+    });
+  },
+
+  isOverlap: function(selector_, $entry_) {
+    var _d_off = $entry_.offset(),
+      _d_off_e = {
+        left: _d_off.left + $entry_.width(),
+        top: _d_off.top + $entry_.height()
+      };
+    var isIn = function(pos) {
+      return (selector_.left < pos.left && selector_.top < pos.top
+        && selector_.left_e > pos.left && selector_.top_e > pos.top);
+    }
+    var topLeft = isIn({left: _d_off.left, top: _d_off.top});
+    var topRight = isIn({left: _d_off_e.left, top: _d_off.top});
+    var bottomLeft = isIn({left: _d_off.left, top: _d_off_e.top});
+    var bottomRigth = isIn({left: _d_off_e.left, top: _d_off_e.top});
+    return (topLeft || topRight || bottomLeft || bottomRigth);
+  },
+
+  releaseSelectedEntries: function() {
+    while(this._selectedEntries.length > 0) {
+      var _entry = this._selectedEntries.pop();
+      if(_entry) _entry.blur();
+    }
   }
 });
