@@ -839,20 +839,19 @@ var FileEntryModel = EntryModel.extend({
   rename: function(name_) {
     if(name_ != this._name) {
       var _match = /(.*[\/])([^\/].*)$/.exec(this._path),
-          oldPath = this._path;
+          oldPath = this._path,
+          _this = this;
       this.setPath(_match[1] + name_);
       _match = /(.*)[\.]([^\.].*)$/.exec(name_);
-      if(_match != null && _match[2] != this._type) {
-        this._type = _match[2];
-        // reparse the file type
-        this.realInit();
-        this.setName(name_);
-      } else {
-        this.setName(name_);
-      }
       this._filename = name_;
       _global._fs.rename(oldPath, this._path, function(err) {
         if(err) console.log(err);
+        if(_match != null && _match[2] != _this._type) {
+          _this._type = _match[2];
+          // reparse the file type
+          _this.realInit();
+        }
+        _this.setName(name_);
       });
     }
   },
@@ -1058,21 +1057,6 @@ var LayoutModel = WidgetModel.extend({
     this.callSuper(id_);
 
     this._wm = WidgetManager.create();
-    this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
-      var pos1 = entry1_.getPosition(),
-          pos2 = entry2_.getPosition();
-      if(pos1.x > pos2.x) {
-        return true;
-      } else if(pos1.x == pos2.x) {
-        if(pos1.y < pos2.y) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    });
     this._width = $(document).width() * 0.92;
     this._height = $(document).height() * 0.9;
     
@@ -1087,14 +1071,10 @@ var LayoutModel = WidgetModel.extend({
 
   add: function(widget_) {
     this._wm.add(widget_);
-    if(widget_.getType().match(/\w*Plugin/) == null)
-      this._dEntrys.push(widget_);
   },
 
   remove: function(widget_) {
     this._wm.remove(widget_);
-    if(widget_.getType().match(/\w*Plugin/) == null)
-      this._dEntrys.remove(widget_.getTabIdx());
   },
 
   getWidgetById: function(id_) {

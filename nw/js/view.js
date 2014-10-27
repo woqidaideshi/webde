@@ -346,9 +346,9 @@ var DesktopView = View.extend({
     var ctxMenu = _global.get('ctxMenu'),
         desktop = this._model,
         utilIns = _global.get('utilIns');
-    ctxMenu.attachToMenu('body'
-        , ctxMenu.getMenuByHeader('desktop')
+    ctxMenu.attachToMenu('body', ctxMenu.getMenuByHeader('desktop')
         , function() {
+          // TODO: change to get from launcher
           ctxMenu._rightObjId = undefined;
           var _DIR = _global.$home + '/.gnome2/nemo-scripts';
           console.log(_DIR);
@@ -366,7 +366,7 @@ var DesktopView = View.extend({
               if(_names[_names.length - 1] == 'desktop') {
                 _global.get('utilIns').entryUtil.getItemFromApp(_DIR + '/' + files_[i]
                   , function(err_, item_) {
-                    desktop._ctxMenu.addItem(_menu,item_);
+                    ctxMenu.addItem(_menu, item_);
                   });
               };
             };
@@ -444,7 +444,8 @@ var WidgetView = View.extend({
 var GridView = WidgetView.extend({
   init: function(id_, model_) {
     this.callSuper(id_, model_);
-    this.controller = GridController.create(this);
+    this._controller = GridController.create(this);
+    this._selector = Selector.create(this);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'gridcontainer', 
@@ -452,6 +453,21 @@ var GridView = WidgetView.extend({
       'onselectstart': 'return false'
     });
     this._c = [];
+    this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
+      var pos1 = entry1_._model.getPosition(),
+          pos2 = entry2_._model.getPosition();
+      if(pos1.x > pos2.x) {
+        return true;
+      } else if(pos1.x == pos2.x) {
+        if(pos1.y < pos2.y) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    });
   },
 
   registObservers: function() {
@@ -506,10 +522,9 @@ var GridView = WidgetView.extend({
       }
     }
 
-    this._c[entry_.getID()] = DEntryView.create(entry_.getID(), entry_);
+    this._c[entry_.getID()] = DEntryView.create(entry_.getID(), entry_, this);
     entry_.setPosition(pos_);
-    // this._c[entry_.getID()].show();
-    /* this._dEntrys.push(entry_); */
+    this._dEntrys.push(this._c[entry_.getID()]);
     /* this.resetDEntryTabIdx(); */
     this._model._grid[pos_.x][pos_.y].use = true;
   },
@@ -517,7 +532,7 @@ var GridView = WidgetView.extend({
   deleteADEntry: function(entry_) {
     var _pos = entry_.getPosition();
     this._model._grid[_pos.x][_pos.y].use = false;
-    // this._dEntrys.remove(entry_.getTabIdx() - 1);
+    this._dEntrys.remove(entry_.getTabIdx() - 1);
     // this.resetDEntryTabIdx();
     this._c[entry_.getID()].destroy();
     this._c[entry_.getID()] = null;
@@ -898,9 +913,10 @@ var ClockPluginView = DPluginView.extend({
 });
 
 var DEntryView = WidgetView.extend({
-  init: function(id_, model_) {
+  init: function(id_, model_, parent_) {
     this.callSuper(id_, model_);
     this.registObservers();
+    this._parent = parent_;
     this._controller = EntryController.create(this);
     this.$view = $('<div>', {
       'class': 'icon',
@@ -945,19 +961,17 @@ var DEntryView = WidgetView.extend({
           console.log(err_);
           return;
         }
-        var desktop = _global.get('desktop');
-        _this.$view/* .parent() */.addClass('focusing');
-        if(!desktop._selector._selectedEntries.hasEntry(_this._id))
-          desktop._selector._selectedEntries.push(_this);
-        // this._focused = true;
-        desktop._tabIndex = _this._tabIndex - 1;
+        _this.$view.addClass('focusing');
+        /* if(!desktop._selector._selectedEntries.hasEntry(_this._id)) */
+          // desktop._selector._selectedEntries.push(_this);
+        /* desktop._tabIndex = _this._tabIndex - 1; */
       },
       'blur': function(err_) {
         if(err_) {
           console.log(err_);
           return;
         }
-        _this.$view/* .parent() */.removeClass('focusing');
+        _this.$view.removeClass('focusing');
       }
     };
     for(var key in _this.__handlers) {
@@ -1009,7 +1023,7 @@ var DEntryView = WidgetView.extend({
 
     var ctxMenu = _global.get('ctxMenu'),
         type = this._model.getType();
-    if(type == 'dir') type = 'file';
+    if(type != 'app' && type != 'theme') type = 'file';
     ctxMenu.attachToMenu('#' + this.getID()
         , ctxMenu.getMenuByHeader(type + '-entry')
         , function(id_) {ctxMenu._rightObjId = id_;});
@@ -1053,6 +1067,19 @@ var DEntryView = WidgetView.extend({
     ev.preventDefault();
     ev.stopPropagation();
     this._controller.onDrop(ev);
+  },
+
+  focus: function() {
+    this.$view.addClass('focusing');
+    if(!this._parent._selector._selectedEntries.hasEntry(this._id)) 
+      this._parent._selector._selectedEntries.push(this);
+    // this._focused = true;
+    /* desktop._tabIndex = this._tabIndex - 1; */
+  },
+
+  blur: function() {
+    this.$view.removeClass('focusing');
+    this._focused = false;
   }
 });
 
@@ -1908,7 +1935,7 @@ var Selector = Class.extend({
       e.stopPropagation();
       if(e.which == 1) {
         if(!e.ctrlKey) {
-          desktop._tabIndex = -1;
+          _this._c._tabIndex = -1;
           _this.releaseSelectedEntries();
         }
         _this._mouseDown = true;
@@ -1945,40 +1972,40 @@ var Selector = Class.extend({
         'height': Math.abs(e.pageY - _this._s_Y)
       });
       if(!e.ctrlKey)
-        desktop._selector.releaseSelectedEntries();
-      for(var i = 0; i < desktop._dEntrys._items.length; ++i) {
-        if(desktop._dEntrys._items[i] != null
+        _this.releaseSelectedEntries();
+      for(var i = 0; i < _this._c._dEntrys.length(); ++i) {
+        if(_this._c._dEntrys._items[i] != null
           && _this.isOverlap({
             left: _off.left,
             top: _off.top,
             left_e: _off.left + _this.$view.width(),
             top_e: _off.top + _this.$view.height()
-          }, desktop._dEntrys._items[i]._dEntry)) {
-          desktop._dEntrys._items[i].focus();
+          }, _this._c._dEntrys._items[i].$view)) {
+          _this._c._dEntrys._items[i].focus();
         }
       }
     }).on('keydown', 'html', function(e) {
       var upKey = function() {
-        desktop._tabIndex += desktop._dEntrys.length() - 1;
-        desktop._tabIndex %= desktop._dEntrys.length();
-        var _entry = desktop._dEntrys._items[desktop._tabIndex];
-        if(_entry == null) {
-          do{
-            desktop._tabIndex--;
-            _entry = desktop._dEntrys._items[0];
-          } while(_entry == null);
-        }
-        _entry.focus();
+        /* desktop._tabIndex += desktop._dEntrys.length() - 1; */
+        // desktop._tabIndex %= desktop._dEntrys.length();
+        // var _entry = desktop._dEntrys._items[desktop._tabIndex];
+        // if(_entry == null) {
+          // do{
+            // desktop._tabIndex--;
+            // _entry = desktop._dEntrys._items[0];
+          // } while(_entry == null);
+        // }
+        /* _entry.focus(); */
       };
       var downKey = function() {
-        desktop._tabIndex++;
-        desktop._tabIndex %= desktop._dEntrys.length();
-        var _entry = desktop._dEntrys._items[desktop._tabIndex];
-        if(_entry == null) {
-          desktop._tabIndex = 0;
-          _entry = desktop._dEntrys._items[0];
-        } 
-        _entry.focus();
+        /* desktop._tabIndex++; */
+        // desktop._tabIndex %= desktop._dEntrys.length();
+        // var _entry = desktop._dEntrys._items[desktop._tabIndex];
+        // if(_entry == null) {
+          // desktop._tabIndex = 0;
+          // _entry = desktop._dEntrys._items[0];
+        // } 
+        /* _entry.focus(); */
       };
       switch(e.which) {
         case 9:    // tab
@@ -2049,10 +2076,10 @@ var Selector = Class.extend({
 
   isOverlap: function(selector_, $entry_) {
     var _d_off = $entry_.offset(),
-      _d_off_e = {
-        left: _d_off.left + $entry_.width(),
-        top: _d_off.top + $entry_.height()
-      };
+        _d_off_e = {
+          left: _d_off.left + $entry_.width(),
+          top: _d_off.top + $entry_.height()
+        };
     var isIn = function(pos) {
       return (selector_.left < pos.left && selector_.top < pos.top
         && selector_.left_e > pos.left && selector_.top_e > pos.top);
