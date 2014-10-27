@@ -179,8 +179,8 @@ var Window = Class.extend({
         return ;
       };
       _this._isMouseOnTitleDown = true;
-      _this._offsetX = ev.offsetX;
-      _this._offsetY = ev.offsetY;
+      _this._offsetX = ev.clientX - _this._window.position().left;
+      _this._offsetY = ev.clientY - _this._window.position().top;
       _this._window.fadeTo(20, 0.5);
     }).mouseup(function(ev){
       ev.stopPropagation();
@@ -213,7 +213,7 @@ var Window = Class.extend({
       if(_this._isMouseOnTitleDown){ 
         var x = ev.clientX - _this._offsetX; 
         var y = ev.clientY - _this._offsetY; 
-        _this.setWindowPos({left:x, top: y-1});
+        _this.setWindowPos({left:x, top: y});
         _this._titleDiv.css('cursor','move');
       }else if (_this._isMouseResizeDown) {
         var _width = ev.clientX - _this._window.position().left + 5;
