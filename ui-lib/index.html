@@ -3,8 +3,8 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>UI-lib</title>
+
   </head>
-  
   <body> 
     <h2>UI-lib</h2>
     <p>此ui库的说明文档以及demo，采用jekyll工具生成。</p>
@@ -17,5 +17,23 @@
     <p>1、在ui-lib目录下执行<code>grunt</code>或<code>grunt doc</code>命令</p>
     <p>2、进入到ui-lib/doc目录下，执行<code>jekyll serve</code>命令</p>
     <p>3、打开浏览器（最好是chrome或opera），在地址栏输入：<code>localhost:4000</code>  浏览网页</p>
+    <h3>点击下面按钮打开网站服务</h3>
+    <button onclick="openWeb()">开启网站服务</button>
+    <script type="text/javascript">
+    var _exec = require('child_process').exec;
+    var openWeb =function(){
+      _exec('jekyll serve -s doc/',function(err, stdout, stderr){
+        if (err) {
+          console.log(err);
+        }
+       console.log('open jwkyll!');
+      });
+      setTimeout('newWeb()',1000);
+    }
+
+    var newWeb = function(){
+      alert('请用浏览器打开localhost:4000');
+    }
+    </script>
   </body>
 </html>

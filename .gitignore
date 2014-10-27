@@ -1,9 +1,6 @@
 ui-lib/node_modules
 nw/node_modules
 *.map
-nw/css/*.css
-nw/css/*.map
-nw/lib/demoUI.js
 ui-lib/dist/
 ui-lib/doc/_site/
 ui-lib/doc/assets/css/demoUI*
