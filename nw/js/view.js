@@ -445,7 +445,6 @@ var GridView = WidgetView.extend({
   init: function(id_, model_) {
     this.callSuper(id_, model_);
     this._controller = GridController.create(this);
-    this._selector = Selector.create(this);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'gridcontainer', 
@@ -453,6 +452,7 @@ var GridView = WidgetView.extend({
       'onselectstart': 'return false'
     });
     this._c = [];
+    this._tabIdx = -1;
     this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
       var pos1 = entry1_._model.getPosition(),
           pos2 = entry2_._model.getPosition();
@@ -525,7 +525,7 @@ var GridView = WidgetView.extend({
     this._c[entry_.getID()] = DEntryView.create(entry_.getID(), entry_, this);
     entry_.setPosition(pos_);
     this._dEntrys.push(this._c[entry_.getID()]);
-    /* this.resetDEntryTabIdx(); */
+    this.resetDEntryTabIdx(); 
     this._model._grid[pos_.x][pos_.y].use = true;
   },
 
@@ -533,10 +533,17 @@ var GridView = WidgetView.extend({
     var _pos = entry_.getPosition();
     this._model._grid[_pos.x][_pos.y].use = false;
     this._dEntrys.remove(entry_.getTabIdx() - 1);
-    // this.resetDEntryTabIdx();
+    this.resetDEntryTabIdx();
     this._c[entry_.getID()].destroy();
     this._c[entry_.getID()] = null;
     delete this._c[entry_.getID()];
+  },
+
+  resetDEntryTabIdx: function() {
+    for(var i = 0; i < this._dEntrys.length(); ++i) {
+      if(this._dEntrys.get(i) != null)
+        this._dEntrys.get(i).setTabIndex(i + 1);
+    }
   },
 
   addAnDPlugin: function(pluginView_, plugin_) {
@@ -569,6 +576,38 @@ var GridView = WidgetView.extend({
 
   show: function($parent) {
     $parent.append(this.$view);
+    var _this = this;
+    this._selector = Selector.create(this, '#' + this._id, {
+      'enter': function() {
+        if(_this._tabIdx != -1 && _this._dEntrys._items[_this._tabIdx] != null)
+          _this._dEntrys._items[_this._tabIdx]._controller.onDblclick();
+      },
+      'up': function() {
+        _this._tabIdx += _this._dEntrys.length() - 1;
+        _this._tabIdx %= _this._dEntrys.length();
+        var _entry = _this._dEntrys._items[_this._tabIdx];
+        if(_entry == null) {
+          do{
+            _this._tabIdx--;
+            _entry = _this._dEntrys._items[0];
+          } while(_entry == null);
+        }
+        _entry.focus(); 
+      },
+      'down': function() {
+        _this._tabIdx++; 
+        _this._tabIdx %= _this._dEntrys.length();
+        var _entry = _this._dEntrys._items[_this._tabIdx];
+        if(_entry == null) {
+          _this._tabIdx = 0;
+          _entry = _this._dEntrys._items[0];
+        } 
+        _entry.focus(); 
+      },
+      'clear': function() {
+        _this._tabIdx = -1;
+      }
+    });
 
     for(var i = 0; i < this._model._col_num; ++i) {
       var col_ = $('<div>', {
@@ -764,6 +803,10 @@ var GridView = WidgetView.extend({
     ev.stopPropagation();
     ev.preventDefault();
     $('#' + ev.currentTarget.id).removeClass('hovering');
+  },
+
+  getSelectableItems: function() {
+    return this._dEntrys._items;
   }
 });
 
@@ -814,7 +857,7 @@ var DPluginView = WidgetView.extend({
     $selector.on('mousedown', function(e) {
       e.stopPropagation();
     }).on('mouseup', function(e) {
-      e.stopPropagation();
+      // e.stopPropagation();
     });
 
     var ctxMenu = _global.get('ctxMenu');
@@ -918,11 +961,12 @@ var DEntryView = WidgetView.extend({
     this.registObservers();
     this._parent = parent_;
     this._controller = EntryController.create(this);
+    this._tabIndex = -1;
     this.$view = $('<div>', {
       'class': 'icon',
       'id': this._id,
-      'draggable': 'true'/* , */
-      /* 'tabindex': this._tabIndex */
+      'draggable': 'true'/* ,  */
+      /* 'tabindex': this._tabIndex  */
     }).html("<img draggable='false' src='"
       + this._model.getImgPath() + "'/><p>" + this._model.getName() + "</p>");
     this.initAction(this.$view);
@@ -947,7 +991,6 @@ var DEntryView = WidgetView.extend({
           return;
         }
         _this.$view.children('img').attr('src', imgPath_);
-        // $('#' + _this._id + ' img').attr('src', imgPath_);
       },
       'tabIdx': function(err_, tabIdx_) {
         if(err_) {
@@ -1002,23 +1045,23 @@ var DEntryView = WidgetView.extend({
     }).mousedown(function(e) {
       e.stopPropagation();
     }).mouseup(function(e) { 
-      /* if(!e.ctrlKey) { */
-        // desktop._selector.releaseSelectedEntries();
-        // _this.focus();
-      // } else {
-        // if(_this._focused) {
-          // for(var i = 0; i < desktop._selector._selectedEntries.length; ++i) {
-            // if(desktop._selector._selectedEntries[i] != null
-              // && _entry._id == desktop._selector._selectedEntries[i]._id) {
-                // desktop._selector._selectedEntries[i] = null;
-                // _this.blur();
-                // break;
-              // }
-          // }
-        // } else {
-          // _this.focus();
-        // }
-      /* } */
+      if(!e.ctrlKey) { 
+        _this._parent._selector.releaseSelectedEntries();
+        _this.focus();
+      } else {
+        if(_this._focused) {
+          for(var i = 0; i < _this._parent._selector._selectedEntries.length; ++i) {
+            if(_this._parent._selector._selectedEntries[i] != null
+              && _entry._id == _this._parent._selector._selectedEntries[i]._id) {
+                _this._parent._selector._selectedEntries[i] = null;
+                _this.blur();
+                break;
+              }
+          }
+        } else {
+          _this.focus();
+        }
+      } 
     });
 
     var ctxMenu = _global.get('ctxMenu'),
@@ -1073,13 +1116,19 @@ var DEntryView = WidgetView.extend({
     this.$view.addClass('focusing');
     if(!this._parent._selector._selectedEntries.hasEntry(this._id)) 
       this._parent._selector._selectedEntries.push(this);
-    // this._focused = true;
-    /* desktop._tabIndex = this._tabIndex - 1; */
+    this._focused = true;
+    this._parent._tabIdx = this._tabIndex - 1; 
   },
 
   blur: function() {
     this.$view.removeClass('focusing');
     this._focused = false;
+    // this._parent._tabIdx = -1; 
+  },
+
+  setTabIndex: function(tabIdx_) {
+    this._tabIndex = tabIdx_;
+    // $('#' + _this._id).attr('tabindex', tabIdx_);
   }
 });
 
@@ -1771,7 +1820,7 @@ var PropertyView = View.extend({
       _this.$view.fadeTo(20, 1);
     });
 
-    _this.$view.mousedown(function(ev){
+    _this.$view.mousedown(function(ev) {
       ev.stopPropagation();
     }).mouseup(function(ev){
       ev.stopPropagation;
@@ -1901,7 +1950,15 @@ var PropertyView = View.extend({
 });
 
 var Selector = Class.extend({
-  init: function(container_) {
+  // @container_: which container object's items to be selected
+  // @selector_: which component should be response to mouse events and draw the selector
+  // @events_: which is an events object to binding to specific key include 'enter', 'up',
+  //            'down', 'left', 'right', 'clear'(for clear the state of 'tab-index')
+  // Note that: 1. Items of this container should have functions called 'focus' and 'blur', 
+  //              variable called '$view' which is a jquery object of item's view.
+  //            2. The container object should have a function called 'getSelectableItems'.
+  //
+  init: function(container_, selector_, events_) {
     this.$view = $('<div>', {
       'id': 'd-selector'
     }).css({
@@ -1916,6 +1973,9 @@ var Selector = Class.extend({
     });
     $('body').append(this.$view);
     this._c = container_;
+    this._items = container_.getSelectableItems();
+    this._selector = selector_ || 'html';
+    this._events = events_ || {};
     this._selectedEntries = [];
     this._selectedEntries['hasEntry'] = function(id_) {
       for(var i = 0; i < this.length; ++i) {
@@ -1927,14 +1987,22 @@ var Selector = Class.extend({
     this._s_X = 0;
     this._s_Y = 0;
 
+    var _pos = container_.$view.position(),
+        _width = container_.$view.width(),
+        _height = container_.$view.height();
+    this._c_SX = _pos.left;
+    this._c_SY = _pos.top;
+    this._c_EX = _pos.left + _width;
+    this._c_EY = _pos.top + _height;
+
     var _this = this;
-    $(document).on('mousedown', 'body', function(e) {
-      e.preventDefault();
-    }).on('mousedown', 'html', function(e) {
+    $(document).on('mousedown', this._selector, function(e) {
       e.stopPropagation();
+      e.preventDefault();
       if(e.which == 1) {
         if(!e.ctrlKey) {
-          _this._c._tabIndex = -1;
+          if(typeof _this._events['clear'] != 'undefined')
+              _this._events['clear'].call();
           _this.releaseSelectedEntries();
         }
         _this._mouseDown = true;
@@ -1944,44 +2012,6 @@ var Selector = Class.extend({
           'left': e.pageX,
           'top': e.pageY,
         }).show();
-      }
-    }).on('mouseup', 'html', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if(e.which == 1) {
-        _this._mouseDown = false;
-        _this.$view.hide().css({
-          'width': '0px',
-          'height': '0px'
-        });
-      }
-    }).on('mousemove', 'html', function(e) {
-      /* e.preventDefault(); */
-      /* e.stopPropagation(); */
-      if(!_this._mouseDown) return ;
-      var _off = _this.$view.offset();
-      if(e.pageX < _this._s_X) 
-        _off.left = e.pageX;
-      if(e.pageY < _this._s_Y)
-        _off.top = e.pageY;
-      _this.$view.css({
-        'top': _off.top,
-        'left': _off.left,
-        'width': Math.abs(e.pageX - _this._s_X),
-        'height': Math.abs(e.pageY - _this._s_Y)
-      });
-      if(!e.ctrlKey)
-        _this.releaseSelectedEntries();
-      for(var i = 0; i < _this._c._dEntrys.length(); ++i) {
-        if(_this._c._dEntrys._items[i] != null
-          && _this.isOverlap({
-            left: _off.left,
-            top: _off.top,
-            left_e: _off.left + _this.$view.width(),
-            top_e: _off.top + _this.$view.height()
-          }, _this._c._dEntrys._items[i].$view)) {
-          _this._c._dEntrys._items[i].focus();
-        }
       }
     }).on('keydown', 'html', function(e) {
       var upKey = function() {
@@ -2014,9 +2044,11 @@ var Selector = Class.extend({
             console.log('Combination Key: Ctrl + Tab');
           }
           if(e.shiftKey) {
-            upKey();
+            if(typeof _this._events['up'] != 'undefined')
+              _this._events['up'].call();
           } else {
-            downKey();
+            if(typeof _this._events['down'] != 'undefined')
+              _this._events['down'].call();
           }
           /* if(e.shiftKey) { */
             // desktop._tabIndex += desktop._dEntrys.length() - 1;
@@ -2028,37 +2060,42 @@ var Selector = Class.extend({
           /* if(_entry != null) _entry.focus(); */
           break;
         case 13:  // enter
-          if(desktop._tabIndex != -1 
-            && desktop._dEntrys._items[desktop._tabIndex] != null)
-            desktop._dEntrys._items[desktop._tabIndex].open();
+          if(typeof _this._events['enter'] != 'undefined')
+            _this._events['enter'].call();
           break;
         case 17:  // ctrl
-          desktop._ctrlKey = true;
+          _this._ctrlKey = true;
           break;
         case 37:  // left
           console.log('left');
+          if(typeof _this._events['left'] != 'undefined')
+            _this._events['left'].call();
           break;
         case 38:  // up
           console.log('up');
           if(!e.ctrlKey) 
             _this.releaseSelectedEntries();
-          upKey();
+          if(typeof _this._events['up'] != 'undefined')
+            _this._events['up'].call();
           break;
         case 39:  // right
           console.log('right');
+          if(typeof _this._events['right'] != 'undefined')
+            _this._events['right'].call();
           break;
         case 40:  // down
           console.log('down');
           if(!e.ctrlKey) 
             _this.releaseSelectedEntries();
-          downKey();
+          if(typeof _this._events['down'] != 'undefined')
+            _this._events['down'].call();
           break;
         case 65:  // a/A
           if(e.ctrlKey) {
             console.log('Combination Key: Ctrl + a/A');
-            for(var i = 0; i < desktop._dEntrys._items.length; ++i) {
-              if(desktop._dEntrys._items[i] != null)
-                desktop._dEntrys._items[i].focus();
+            for(var i = 0; i < _this._items.length; ++i) {
+              if(_this._items[i] != null)
+                _this._items[i].focus();
             }
           }
           break;
@@ -2067,10 +2104,53 @@ var Selector = Class.extend({
     }).on('keyup', 'html', function(e) {
       switch(e.which) {
         case 17:  // ctrl
-          desktop._ctrlKey = false;
+          _this._ctrlKey = false;
           break;
       }
     });
+    $(window).on('mouseup', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if(e.which == 1) {
+        _this._mouseDown = false;
+        _this.$view.hide().css({
+          'width': '0px',
+          'height': '0px'
+        });
+      }
+    }).on('mousemove', function(e) {
+      /* e.preventDefault(); */
+      /* e.stopPropagation(); */
+      if(!_this._mouseDown) return ;
+      var x, y, _off = _this.$view.offset();
+      x = (e.pageX < _this._c_SX) ? _this._c_SX : e.pageX;
+      x = (x > _this._c_EX) ? _this._c_EX : x;
+      y = (e.pageY < _this._c_SY) ? _this._c_SY : e.pageY;
+      y = (y > _this._c_EY) ? _this._c_EY : y;
+      if(x < _this._s_X) 
+        _off.left = x;
+      if(y < _this._s_Y)
+        _off.top = y;
+      _this.$view.css({
+        'top': _off.top,
+        'left': _off.left,
+        'width': Math.abs(x - _this._s_X),
+        'height': Math.abs(y - _this._s_Y)
+      });
+      if(!e.ctrlKey)
+        _this.releaseSelectedEntries();
+      for(var i = 0; i < _this._items.length; ++i) {
+        if(_this._items[i] != null
+          && _this.isOverlap({
+            left: _off.left,
+            top: _off.top,
+            left_e: _off.left + _this.$view.width(),
+            top_e: _off.top + _this.$view.height()
+          }, _this._items[i].$view)) {
+          _this._items[i].focus();
+        }
+      }
+    })
   },
 
   isOverlap: function(selector_, $entry_) {
@@ -2095,5 +2175,9 @@ var Selector = Class.extend({
       var _entry = this._selectedEntries.pop();
       if(_entry) _entry.blur();
     }
+  },
+
+  getSelectedItems: function() {
+    return this._selectedEntries;
   }
 });
