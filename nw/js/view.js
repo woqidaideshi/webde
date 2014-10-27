@@ -1334,7 +1334,8 @@ var DockView = View.extend({
 
     $selector.on('drop', function(ev) {
       _this.drop(ev);
-    }).on('mousemove', function(ev) {
+    })
+    $(document).on('mousemove', function(ev) {
       var ev = ev || window.event,
           divList = dock.children('div'),
           canvasList = $('#dock div canvas');
