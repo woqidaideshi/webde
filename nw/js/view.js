@@ -445,6 +445,7 @@ var GridView = WidgetView.extend({
   init: function(id_, model_) {
     this.callSuper(id_, model_);
     this._controller = GridController.create(this);
+    this._draw = false;
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'gridcontainer', 
@@ -502,6 +503,23 @@ var GridView = WidgetView.extend({
           default:
             _this.deleteADEntry(widget_);
             break;
+        }
+      },
+      'layout_size': function(err_, size_) {
+        // redraw the layout container's size
+        _this.$view.css({
+          'width': size_.width,
+          'height': size_.height
+        });
+      },
+      'grid_size': function(err_, size_) {
+        // TODO: redraw the grid_size
+      },
+      'col_row': function(err_, col_row_diff_) {
+        if(!_this._draw) {
+          _this.drawGrids();
+        } else {
+          // TODO: add or remove colume or row
         }
       }
     };
@@ -575,6 +593,55 @@ var GridView = WidgetView.extend({
     delete this._c[entry_.getID()];
   },
 
+  drawGrids: function() {
+    this._draw = true;
+    for(var i = 0; i < this._model._col_num; ++i) {
+      var col = this.drawCol(i);
+
+      this._model._grid[i] = new Array();
+      for(var j = 0; j < this._model._row_num; ++j) {
+        this.drawGrid(col, i, j);
+      }  
+    }
+    var $grid = $('.grid');
+    this._model.setGridSize({
+      'gridWidth': $grid.width(),
+      'gridHeight': $grid.height()
+    })
+  },
+
+  drawCol: function(i) {
+    var col_ = $('<div>', {
+      'class': 'gridcol',
+      'id': 'col' + i,
+      'onselectstart': 'return false'
+    });
+    this.$view.append(col_);
+    return col_;
+  },
+
+  drawGrid: function($col, i, j) {
+    var row_ = $('<div>', {
+      'class': 'grid',
+      'id': 'grid_' + i + '_' + j,
+      'draggable':'false',
+      'onselectstart': 'return false'
+    });
+    $col.append(row_);
+    this.initAction(row_);
+
+    this._model._grid[i][j] = {};
+    this._model._grid[i][j].use = false;
+  },
+
+  destroyGrids: function() {
+    this.$view.children('.gridcol').empty();
+  },
+
+  destroyCol: function($col) {
+    $col.remove();
+  },
+
   show: function($parent) {
     $parent.append(this.$view);
     var _this = this;
@@ -609,32 +676,10 @@ var GridView = WidgetView.extend({
         _this._tabIdx = -1;
       }
     });
-
-    for(var i = 0; i < this._model._col_num; ++i) {
-      var col_ = $('<div>', {
-        'class': 'gridcol',
-        'id': 'col' + i,
-        'onselectstart': 'return false'
-      });
-      this.$view.append(col_);
-
-      this._model._grid[i] = new Array();
-      for(var j = 0; j < this._model._row_num; ++j) {
-        var row_ = $('<div>', {
-          'class': 'grid',
-          'id': 'grid_' + i + '_' + j,
-          'draggable':'false',
-          'onselectstart': 'return false'
-        });
-        $('#col' + i).append(row_);
-
-        // var target = document.getElementById('grid_' + i + '_' + j);
-        this.initAction($('#grid_' + i + '_' + j));
-
-        this._model._grid[i][j] = {};
-        this._model._grid[i][j].use = false;
-      }
-    }
+    _this._model.setSize({
+      'width': _this.$view.width(),
+      'height': _this.$view.height()
+    });
   },
 
   drag: function(ev) {
@@ -2185,8 +2230,22 @@ var Selector = Class.extend({
   }
 });
 
-var ViewFlipper = View.extend({
+var FlipperView = View.extend({
   init: function(id_, model_) {
-    ddd
+    this.callSuper(model_.getID(), model_);
+    this.registObservers();
+    this.$view = $('<div>', {
+      'class': 'view-flipper',
+      'id': this._id,
+      'onselectstart': 'return false'
+    });
+    this.initAction(this.$view);
+    this._c = [];
   },
+
+  registObservers: function() {
+  },
+
+  initAction: function($selector) {
+  }
 });

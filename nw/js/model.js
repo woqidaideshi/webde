@@ -272,7 +272,7 @@ var DesktopModel = Model.extend({
   },
 
   initLayout: function() {
-    this.add(LayoutModel.create('layout'));
+    this.add(GridModel.create('layout'));
     // TODO: check config of layout
     this.setLayoutType('grid');
   },
@@ -1052,6 +1052,122 @@ var WidgetManager = Model.extend({
   }
 });
 
+var DeviceListModel = Model.extend({
+  init: function() {
+    this.callSuper('device-list');
+  },
+
+  release: function() {
+    // TODO: release device monitor server
+    _global._device.removeDeviceListener(this.__handler);
+    _global._device.entryGroupReset();
+  },
+
+  __handler: function(ev_, dev_) {
+    if(dev_ == null) return ;
+    var _this = _global.get('desktop').getCOMById('device-list'),
+        id_ = dev_.address + ':' + dev_.port;
+    switch(ev_) {
+      case 'ItemNew':
+        var device = DeviceEntryModel.create(id_, dev_.host, dev_);
+        _this.add(device);
+        break;
+      case 'ItemRemove':
+        var device = _this.getCOMById(id_);
+        _this.remove(device);
+        break;
+    }
+  },
+
+  start: function() {
+    //load devices
+    /* _global._device.showDeviceList(function(devs_) {   */
+      // for(var addr in devs_) {
+        // var id_ = addr + ':' + devs_[addr].port;
+        // var device = DeviceEntryModel.create(id_, devs_[addr].name);
+        // _this.add(device);
+      // }
+    /* }); */
+    var _this = this;
+    _global._device.addDeviceListener(this.__handler);
+    _global._device.createServer(function() {
+      _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
+    });
+
+    /* this._timer = setInterval(function() { */
+      // for(var id in _this._c) {
+        // _this._c[id]._offline = true;
+      // }
+      // // update device list
+      // _global._device.showDeviceList(function(devs_) { 
+        // for(var addr in devs_) {
+          // var id_ = addr + ':' + devs_[addr].port;
+          // if(typeof _this._c[id_] === 'undefined') {
+            // var device = DeviceEntryModel.create(id_, devs_[addr].name);
+            // _this.add(device);
+          // } else {
+            // _this._c[id_]._offline = false;
+          // }
+        // }
+        // for(var id in _this._c) {
+          // if(_this._c[id]._offline) {
+            // _this.remove(_this._c[id]);
+          // }
+        // }
+      // }); 
+    /* }, 5000); */
+  }
+});
+
+var DeviceEntryModel = EntryModel.extend({
+  // @id_ is address:port
+  // @path_ is name
+  // @position_ is whole info object
+  init: function(id_, path_, position_, callback_) {
+    this.callSuper(id_, path_, position_);
+    this._name = path_;
+    this._offline = false;
+    this._type = 'dev';
+    this._imgPath = 'img/pc.svg';
+    this.realInit(callback_);
+  },
+
+  realInit: function(cb_) {
+    var cb = cb_ || function() {};
+    // TODO: get icon from cache or fs, and call cb at last
+    cb(null);
+  },
+
+  // TODO: show something about this device
+  open: function() {
+    console.log(this._position);
+    var msg = '';
+    for(var key in this._position) {
+      msg += key + ': ' + this._position[key] + '<br/>';
+    }
+    Messenger().post(msg);
+  },
+
+  // send a file to remote device
+  copyTo: function(dataTransfer) {
+    if(dataTransfer.files.length != 0) {
+      for(var i = 0; i < dataTransfer.files.length; ++i) {
+        Messenger().post(dataTransfer.files[i].path);
+        // TODO: use api from lower layer
+      }
+      return ;
+    }
+
+    var id = dataTransfer.getData("ID"),
+        layout = _global.get('desktop').getCOMById('layout'),
+        item = layout.getWidgetById(id);
+    if(item.getType() == 'file') {
+      Messenger().post(item.getPath());
+      // TODO: use api from lower layer
+    }
+  }
+});
+
 // The model class of Layout
 //
 var LayoutModel = WidgetModel.extend({
@@ -1062,13 +1178,6 @@ var LayoutModel = WidgetModel.extend({
     // TODO: move to view
     this._width = $(document).width();
     this._height = $(document).height() * 0.9;
-    this._col = 80 + 20;
-    this._row = 80 + 20;
-
-    // remain
-    this._col_num = Math.floor(this._width / this._col);
-    this._row_num = Math.floor(this._height / this._row);
-    this._grid = [];
   },
 
   release: function() {},
@@ -1097,8 +1206,21 @@ var LayoutModel = WidgetModel.extend({
     return this._wm.off.apply(this._wm, arguments);
   },
 
+  emit: function() {
+    return this._wm.emit.apply(this._wm, arguments);
+  },
+
+  // load widgets from saved data
   load: function() {
     this._wm.loadWidgets();
+  },
+
+  // load widgets from an array in which widgets have been created.
+  // @widgetArr_: [{id1: widget1}, {id2: widget2}, ...]
+  loadEntities: function(widgetArr_) {
+    for(var key in widgetArr_) {
+      this.add(widgetArr_[key]);
+    }
   },
 
   save: function() {
@@ -1115,16 +1237,39 @@ var LayoutModel = WidgetModel.extend({
   setSize: function(size_) {
     this._width = size_.width || this._width;
     this._height = size_.height || this._height;
-    // TODO: check if the size is different, recalculate the col_num and row_num
-    //  and then notify to redraw the view of layout
-    this.emit('layout_size', {
+    this.emit('layout_size', null, {
       'width': this._width,
       'height': this._height
     });
+  },
+
+  // TODO: implement a funtion for PlaneView to judge whether two entries are overlap.
+  //        should be implemented in View
+  isOverlap: function(entry1_, entry2_) {}
+});
+
+var GridModel = LayoutModel.extend({
+  init: function(id_) {
+    this.callSuper(id_);
+
+    // TODO: get initialize data from saved data
+    this._col = 80 + 20;
+    this._row = 80 + 20;
+
+    // remain
+    this._col_num = 0; //Math.floor(this._width / this._col);
+    this._row_num = 0; //Math.floor(this._height / this._row);
+    this._grid = [];
+  },
+
+  release: function() {},
+
+  setSize: function(size_) {
+    this.callSuper(size_);
     if(typeof size_.width !== 'undefined' || typeof size_.height !== 'undefined')
       this.cal();
   },
-  
+
   getGridSize: function() {
     return {
       'gridWidth': this._col,
@@ -1137,7 +1282,7 @@ var LayoutModel = WidgetModel.extend({
     this._row = gridSize_.gridHeight || this._row;
     // TODO: check if the size is different, recalculate the col_num and row_num
     //  and then notify to redraw the view of layout
-    this.emit('grid_size', {
+    this.emit('grid_size', null, {
       'gridWidth': this._col,
       'gridHeight': this._row
     });
@@ -1153,11 +1298,13 @@ var LayoutModel = WidgetModel.extend({
     var cn = Math.floor(this._width / this._col);
     var rn = Math.floor(this._height / this._row);
     if(cn != this._col_num || rn != this._row_num) {
+      var _col_diff = cn - this._col_num,
+          _row_diff = rn - this._row_num;
       this._col_num = cn;
       this._row_num = rn;
       this.emit('col_row', {
-        'col': this._col_num,
-        'row': this._row_num
+        'col_diff': _col_diff,
+        'row_diff': _row_diff
       });
     }
   },
@@ -1322,124 +1469,5 @@ var LayoutModel = WidgetModel.extend({
       t_pos_.y = 0;
     }
     return null;
-  },
-
-  // TODO: implement a funtion for PlaneView to judge whether two entries are overlap.
-  isOverlap: function(entry1_, entry2_) {}
-});
-
-var DeviceListModel = Model.extend({
-  init: function() {
-    this.callSuper('device-list');
-  },
-
-  release: function() {
-    // TODO: release device monitor server
-    _global._device.removeDeviceListener(this.__handler);
-    _global._device.entryGroupReset();
-  },
-
-  __handler: function(ev_, dev_) {
-    if(dev_ == null) return ;
-    var _this = _global.get('desktop').getCOMById('device-list'),
-        id_ = dev_.address + ':' + dev_.port;
-    switch(ev_) {
-      case 'ItemNew':
-        var device = DeviceEntryModel.create(id_, dev_.host, dev_);
-        _this.add(device);
-        break;
-      case 'ItemRemove':
-        var device = _this.getCOMById(id_);
-        _this.remove(device);
-        break;
-    }
-  },
-
-  start: function() {
-    //load devices
-    /* _global._device.showDeviceList(function(devs_) {   */
-      // for(var addr in devs_) {
-        // var id_ = addr + ':' + devs_[addr].port;
-        // var device = DeviceEntryModel.create(id_, devs_[addr].name);
-        // _this.add(device);
-      // }
-    /* }); */
-    var _this = this;
-    _global._device.addDeviceListener(this.__handler);
-    _global._device.createServer(function() {
-      _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
-    });
-
-    /* this._timer = setInterval(function() { */
-      // for(var id in _this._c) {
-        // _this._c[id]._offline = true;
-      // }
-      // // update device list
-      // _global._device.showDeviceList(function(devs_) { 
-        // for(var addr in devs_) {
-          // var id_ = addr + ':' + devs_[addr].port;
-          // if(typeof _this._c[id_] === 'undefined') {
-            // var device = DeviceEntryModel.create(id_, devs_[addr].name);
-            // _this.add(device);
-          // } else {
-            // _this._c[id_]._offline = false;
-          // }
-        // }
-        // for(var id in _this._c) {
-          // if(_this._c[id]._offline) {
-            // _this.remove(_this._c[id]);
-          // }
-        // }
-      // }); 
-    /* }, 5000); */
   }
 });
-
-var DeviceEntryModel = EntryModel.extend({
-  // @id_ is address:port
-  // @path_ is name
-  // @position_ is whole info object
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
-    this._name = path_;
-    this._offline = false;
-    this._type = 'dev';
-    this._imgPath = 'img/pc.svg';
-    this.realInit(callback_);
-  },
-
-  realInit: function(cb_) {
-    var cb = cb_ || function() {};
-    // TODO: get icon from cache or fs, and call cb at last
-    cb(null);
-  },
-
-  // TODO: show something about this device
-  open: function() {
-    console.log(this._position);
-    var msg = '';
-    for(var key in this._position) {
-      msg += key + ': ' + this._position[key] + '<br/>';
-    }
-    Messenger().post(msg);
-  },
-
-  copyTo: function(dataTransfer) {
-    if(dataTransfer.files.length != 0) {
-      for(var i = 0; i < dataTransfer.files.length; ++i) {
-        Messenger().post(dataTransfer.files[i].path);
-        // TODO: use api from lower layer
-      }
-      return ;
-    }
-
-    var id = dataTransfer.getData("ID"),
-        layout = _global.get('desktop').getCOMById('layout'),
-        item = layout.getWidgetById(id);
-    if(item.getType() == 'file') {
-      Messenger().post(item.getPath());
-      // TODO: use api from lower layer
-    }
-  }
-});
-
