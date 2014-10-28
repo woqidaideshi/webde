@@ -530,13 +530,14 @@ var GridView = WidgetView.extend({
   },
 
   deleteADEntry: function(entry_) {
-    var _pos = entry_.getPosition();
+    var _pos = entry_.getPosition(),
+        _id = entry_.getID();
     this._model._grid[_pos.x][_pos.y].use = false;
-    this._dEntrys.remove(entry_.getTabIdx() - 1);
+    this._dEntrys.remove(this._c[_id].getTabIndex() - 1);
     this.resetDEntryTabIdx();
-    this._c[entry_.getID()].destroy();
-    this._c[entry_.getID()] = null;
-    delete this._c[entry_.getID()];
+    this._c[_id].destroy();
+    this._c[_id] = null;
+    delete this._c[_id];
   },
 
   resetDEntryTabIdx: function() {
@@ -740,31 +741,30 @@ var GridView = WidgetView.extend({
 
     //handle multi-entries move
     //
-    /* if(desktop._selector._selectedEntries.length > 1) { */
-      // for(var i = 0; i < desktop._selector._selectedEntries.length; ++i) {
-        // if(desktop._selector._selectedEntries[i] == null) continue;
-        // var _s_id = $('#' + desktop._selector._selectedEntries[i]._id).parent().attr('id');
-        // var _coor = /^.*[_]([0-9]+)[_]([0-9]+)$/.exec(_s_id);
-        // var _pos = desktopGrid.findALegalNearingIdleGrid({
-          // x: _target_col
-          // , y: _target_row
-        // });
-        // if(_pos == null) return ;
-        // $('#grid_' + _pos.x + '_' + _pos.y)
-          // .append($('#' + desktop._selector._selectedEntries[i]._id));
-        // console.log(desktop._selector._selectedEntries[i]._id 
-          // + " ---> " + _pos.x + '  '  + _pos.y);
-        // desktop._selector._selectedEntries[i].setPosition({x: _pos.x, y: _pos.y});
-        // desktopGrid.flagGridOccupy(_pos.x, _pos.y, 1, 1, true);
-        // _target_col = _pos.x;
-        // _target_row = _pos.y;
+    var entries = this._selector.getSelectedItems();
+    if(entries.length > 1) { 
+      for(var i = 0; i < entries.length; ++i) {
+        if(entries[i] == null) continue;
+        var _s_id = $('#' + entries[i]._id).parent().attr('id'),
+            _coor = /^.*[_]([0-9]+)[_]([0-9]+)$/.exec(_s_id),
+            _pos = model.findALegalNearingIdleGrid({
+              x: _target_col, 
+              y: _target_row
+            });
+        if(_pos == null) return ;
+        // $('#grid_' + _pos.x + '_' + _pos.y).append($('#' + entries[i]._id));
+        console.log(entries[i]._id + " ---> " + _pos.x + '  '  + _pos.y);
+        entries[i]._model.setPosition({x: _pos.x, y: _pos.y});
+        model.flagGridOccupy(_pos.x, _pos.y, 1, 1, true);
+        _target_col = _pos.x;
+        _target_row = _pos.y;
       
-        // desktopGrid.flagGridOccupy(_coor[1], _coor[2], 1, 1, false);
-      // }
-      // desktop.reOrderDEntry();
-      // desktop.resetDEntryTabIdx();
-      // return ;
-    /* } */
+        model.flagGridOccupy(_coor[1], _coor[2], 1, 1, false);
+      }
+      this._dEntrys.order();
+      this.resetDEntryTabIdx();
+      return ;
+    } 
 
     //get source grid
     var parent_id = $('#' + _id[1]).parent('.grid')[0].id;
@@ -783,8 +783,8 @@ var GridView = WidgetView.extend({
       s_widget.setPosition({x: pos_.x, y: pos_.y});
       model.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
       if(s_widget.getType().match(/\w*Plugin/) == null) {
-        desktop.reOrderDEntry();
-        desktop.resetDEntryTabIdx();
+        this._dEntrys.order();
+        this.resetDEntryTabIdx();
       }
       return ;
     }
@@ -1109,7 +1109,7 @@ var DEntryView = WidgetView.extend({
     this.$view.parent('.grid').removeClass('hovering');
     ev.preventDefault();
     ev.stopPropagation();
-    this._controller.onDrop(ev);
+    this._controller.onDrop(ev, this._parent._selector.getSelectedItems());
   },
 
   focus: function() {
@@ -1125,6 +1125,8 @@ var DEntryView = WidgetView.extend({
     this._focused = false;
     // this._parent._tabIdx = -1; 
   },
+
+  getTabIndex: function() {return this._tabIndex;},
 
   setTabIndex: function(tabIdx_) {
     this._tabIndex = tabIdx_;
@@ -2181,4 +2183,10 @@ var Selector = Class.extend({
   getSelectedItems: function() {
     return this._selectedEntries;
   }
+});
+
+var ViewFlipper = View.extend({
+  init: function(id_, model_) {
+    ddd
+  },
 });

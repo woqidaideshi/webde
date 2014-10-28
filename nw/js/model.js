@@ -874,7 +874,8 @@ var DirEntryModel = FileEntryModel.extend({
   copyTo: function() {},
 
   // TODO: move file to this dir
-  moveTo: function(clip_) {
+  moveTo: function(clip_, entryIds_) {
+    // handle file move
     if(clip_.files.length != 0) {
       for(var i = 0; i < clip_.files.length; ++i) {
         if(clip_.files[i].path == this._path) continue;
@@ -888,24 +889,26 @@ var DirEntryModel = FileEntryModel.extend({
       }
       return ;
     }
-
-    var id = clip_.getData('ID'),
-        desktop = _global.get('desktop'),
-        item = desktop.getCOMById('layout').getWidgetById(id),
-        type = item.getType(),
-        srcP = null;
-    if(id == this._id || type.match(/\w*Plugin/) != null) return ;
-    if(item.getType() == 'app') {
-      srcP = desktop._desktopWatch.getBaseDir() + item.getFilename();
-    } else {
-      srcP = item.getPath();
-    }
-    // TODO: replace this API
-    _global._fs.rename(srcP, this._path + '/' + item.getFilename(), function(err) {
-      if(err) {
-        console.log(err);
+    // handle entry move
+    entryIds_.push(clip_.getData('ID'));
+    for(var i = 0; i < entryIds_.length; ++i) {
+      var desktop = _global.get('desktop'),
+          item = desktop.getCOMById('layout').getWidgetById(entryIds_[i]),
+          type = item.getType(),
+          srcP = null;
+      if(entryIds_[i] == this._id || typeof item === 'undefined') return ;
+      if(item.getType() == 'app') {
+        srcP = desktop._desktopWatch.getBaseDir() + '/' + item.getFilename();
+      } else {
+        srcP = item.getPath();
       }
-    });
+      // TODO: replace this API
+      _global._fs.rename(srcP, this._path + '/' + item.getFilename(), function(err) {
+        if(err) {
+          console.log(err);
+        }
+      });
+    }
   },
 
   rename: function(name_) {

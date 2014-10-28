@@ -78,14 +78,18 @@ var EntryController = WidgetController.extend({
     });
   },
 
-  onDrop: function(ev) {
-    var cmd;
+  onDrop: function(ev, tarArr) {
+    var cmd, tarIdArr = [];
+    for(var i = 0; i < tarArr.length; ++i) {
+      if(tarArr[i] != null)
+        tarIdArr.push(tarArr[i].getID());
+    }
     if(ev.ctrlKey || this._model.getType() == 'dev' || this._model.getType() == 'app') {
       cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo
-          , ev.originalEvent.dataTransfer);
+          , ev.originalEvent.dataTransfer, tarIdArr);
     } else {
       cmd = NoUndoCommand.create(this._model, 'exec', this._model.moveTo
-          , ev.originalEvent.dataTransfer);
+          , ev.originalEvent.dataTransfer, tarIdArr);
     }
     _global.get('theCP').perform(cmd);
   },
