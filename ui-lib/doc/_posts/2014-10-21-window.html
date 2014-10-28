@@ -45,6 +45,19 @@ categories: ui
 </pre>
 <p><br /></p>
 
+<h2>向窗口中添加内容方法</h2>
+<p>如果窗口包含div内容，可以向窗口中添加内容，其添加方法为：</p>
+<pre>
+<code>
+  var window = Window.create('id','title');
+方法一：使用Window提供的添加方法。（封装的jquery方法）
+  window.append("&lt;img src='assets/img/cat.jpg' &gt;");
+方法二：获取窗口的内容div，并向其中添加内容。（jquery原生方法）
+  window._windowContent.append("&lt;img src='assets/img/cat.jpg' &gt;");
+</code>
+</pre>
+
+
 
 <h2>demo</h2>
 <p>关闭按钮：<input type='checkbox' id='win-Close' checked="checked"></p>
@@ -79,11 +92,12 @@ categories: ui
     _options['fadeSpeed'] = parseInt($('#win-FadeSpeed')[0].value);
     _options['width'] = $('#win-Width')[0].value;
     _options['height'] = $('#win-Height')[0].value;
-    _options['left'] = $('#win-Left')[0].value;
-    _options['top'] = $('#win-Top')[0].value;
+    _options['left'] = parseInt($('#win-Left')[0].value);
+    _options['top'] = parseInt($('#win-Top')[0].value);
     _options['minWidth'] = $('#win-Minwidth')[0].value;
     _options['minHeight'] = $('#win-Minheight')[0].value;
 
-    Window.create('newWin', $('#win-Title')[0].value, _options);
+    var win_ = Window.create('newWin', $('#win-Title')[0].value, _options);
+    win_.append("<img src='../../../../../assets/img/cat.jpg' width='190px'>");
   }
 </script>
