@@ -1339,7 +1339,7 @@ var DockView = View.extend({
       var ev = ev || window.event,
           divList = dock.children('div'),
           canvasList = $('#dock div canvas');
-      ev.stopPropagation();
+      // ev.stopPropagation();
       for(var i = 0; i < divList.length; i++) {
         var jqImg = $(divList[i]).children('img'),
             a = ev.clientX - (jqImg.position().left + jqImg.width() / 2),
