@@ -615,7 +615,6 @@ var EntryModel = WidgetModel.extend({
     this._filename = path_.match(/[^\/]*$/)[0];
     this._name = id_;
     this._imgPath = '';
-    this._tabIdx = 0;
     this._focused = false;
   },
 
@@ -642,12 +641,12 @@ var EntryModel = WidgetModel.extend({
     this.emit('imgPath', null, this._imgPath);
   },
 
-  getTabIdx: function() {return this._tabIdx;},
+  /* getTabIdx: function() {return this._tabIdx;}, */
 
-  setTabIdx: function(tabIdx_) {
-    this._tabIdx = tabIdx_;
-    this.emit('tabIdx', null, this._tabIdx);
-  },
+  // setTabIdx: function(tabIdx_) {
+    // this._tabIdx = tabIdx_;
+    // this.emit('tabIdx', null, this._tabIdx);
+  /* }, */
 
   getType: function() {return this._type;},
 
@@ -1057,11 +1056,13 @@ var LayoutModel = WidgetModel.extend({
     this.callSuper(id_);
 
     this._wm = WidgetManager.create();
-    this._width = $(document).width() * 0.92;
+    // TODO: move to view
+    this._width = $(document).width();
     this._height = $(document).height() * 0.9;
-    
     this._col = 80 + 20;
     this._row = 80 + 20;
+
+    // remain
     this._col_num = Math.floor(this._width / this._col);
     this._row_num = Math.floor(this._height / this._row);
     this._grid = [];

@@ -19,7 +19,7 @@ var ContextMenu = Class.extend({
     var _this = this;
     $(document).on('mouseup', 'html', function (e) {
       e.preventDefault();
-      e.stopPropagation();
+      // e.stopPropagation();
       if(e.which == 1)
         _this.hide();
     });
