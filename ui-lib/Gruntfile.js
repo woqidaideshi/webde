@@ -160,7 +160,7 @@ grunt.initConfig({
 // These plugins provide necessary tasks.
 require('load-grunt-tasks')(grunt);
 // Default task.
-grunt.registerTask('default', ['concat', 'uglify', 'less', 'copy:fontFile', 'copy:imgFile', 'webde', 'doc']);
+grunt.registerTask('default', ['concat', 'uglify', 'less', 'copy:fontFile', 'copy:imgFile', 'doc']);
 grunt.registerTask('webde', ['copy:jsFileToWebde', 'copy:cssFileToWebde', 'copy:fontFileToWebde', 'copy:imgFileToWebde']);
 grunt.registerTask('webde-new', ['copy:jsFileToWebde', 'copy:cssFileToWebde']);
 grunt.registerTask('doc',['copy:jsFileToDoc', 'copy:cssFileToDoc', 'copy:fontFileToDoc', 'copy:imgFileToDoc']);

@@ -7,7 +7,7 @@
     "title": "test",
     "toolbar": true,
     "show_in_taskbar": true,
-    "as_desktop": true,
+    "as_desktop": false,
     "frame": true
   },
   "devDependencies": {
