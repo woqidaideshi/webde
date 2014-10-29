@@ -6,6 +6,7 @@
 //
 var ThemeModel = Model.extend({
   init: function(callback_) {
+    this.callSuper('theme');
     this._theme = [];
     this._themePath = _global.$xdg_data_home + "/theme.conf";
     this.getCurThemeConfig(callback_);
@@ -89,6 +90,7 @@ var ThemeModel = Model.extend({
   addAThemeEntry: function(key_) {
     _global.get('desktop').getCOMById('layout').add(ThemeEntryModel.create(
       this._theme[key_]['id'],
+      this,
       this._theme[key_]['path'],
       this._theme[key_]['icon'],
       this._theme[key_]['name'],
@@ -210,11 +212,6 @@ var DesktopModel = Model.extend({
         }
       }
     ]);
-    
-    // this._selector = DesktopSelector.create();
-    // this._tabIndex = -1;
-    // this._ctrlKey = false;
-    // this._rightMenu = undefined;
   },
 
   release: function() {
@@ -229,12 +226,14 @@ var DesktopModel = Model.extend({
   //
   preStart: function(cb_) {
     console.log('pre start');
+    // TODO: move to Global
     this._view = DesktopView.create(this);
     // TODO: get user config data, create all components(Launcher, Layout, Dock, DeviceList)
-    this.add(LauncherModel.create());
-    this.initLayout();
-    this.add(DeviceListModel.create());
-    this.add(DockModel.create());
+    this.add(LauncherModel.create(this));
+    this.add(LayoutModel.create('layout', this, LayoutManager, 'view-flipper'));
+    // this.initLayout();
+    this.add(DeviceListModel.create(this));
+    this.add(DockModel.create(this));
     this.initDesktopWatcher();
     this._inputer = Inputer.create('d-inputer');
     var _this = this;
@@ -254,8 +253,7 @@ var DesktopModel = Model.extend({
   //
   start: function(cb_) {
     console.log('starting');
-    // TODO: Load contents to all components EXCEPT Launcher and DeciceList
-    _global.get('theme').loadThemeEntry(this);
+    // Load contents to all components EXCEPT Launcher and DeciceList
     this.getCOMById('layout').load();
     this.getCOMById('dock').load();
     cb_(null);
@@ -272,9 +270,7 @@ var DesktopModel = Model.extend({
   },
 
   initLayout: function() {
-    this.add(GridModel.create('layout'));
-    // TODO: check config of layout
-    this.setLayoutType('grid');
+    
   },
 
   getLayoutType: function() {return this._layoutType;},
@@ -308,6 +304,7 @@ var DesktopModel = Model.extend({
       }
       if(stats.isDirectory()) {
         _model = DirEntryModel.create(_id
+              , _desktop
               , _desktop._desktopWatch.getBaseDir() + '/' + filename
               , _desktop._position);
       } else {
@@ -330,12 +327,14 @@ var DesktopModel = Model.extend({
               // _desktop.getCOMById('layout').add(_model);
             /* }); */
             _model = AppEntryModel.create(_id
+                , _desktop
                 , linkPath
                 , _desktop._position);
             _desktop.getCOMById('launcher').set(_model);
           } 
         } else {
           _model = FileEntryModel.create(_id
+              , _desktop
               , _desktop._desktopWatch.getBaseDir() + '/' + filename
               , _desktop._position);
         }
@@ -372,8 +371,8 @@ var DesktopModel = Model.extend({
 // Dock component of Desktop
 //
 var DockModel = Model.extend({
-  init: function() {
-    this.callSuper('dock');
+  init: function(parent_) {
+    this.callSuper('dock', parent_);
     this._index = 0;
     this.initWatcher();
   },
@@ -441,7 +440,8 @@ var DockModel = Model.extend({
             // _desktop.getCOMById('launcher').set(_model);
             // _this.add(_model);
           /* }); */
-          _model = AppEntryModel.create(_id 
+          _model = AppEntryModel.create(_id
+            , _this 
             , _this._dockWatch.getBaseDir() + '/' + filename
             , _this._position);
           _desktop.getCOMById('launcher').set(_model); 
@@ -476,8 +476,8 @@ var DockModel = Model.extend({
 // Base Class for all widget models
 //
 var WidgetModel = Model.extend({
-  init: function(id_, position_) {
-    this.callSuper(id_);
+  init: function(id_, parent_, position_) {
+    this.callSuper(id_, parent_);
     this._position = position_;
   },
   
@@ -494,8 +494,8 @@ var WidgetModel = Model.extend({
 });
 
 var DPluginModel = WidgetModel.extend({
-  init: function(id_, path_, type_, position_) {
-    this.callSuper(id_, position_);
+  init: function(id_, parent_, path_, type_, position_) {
+    this.callSuper(id_, parent_, position_);
     this._path = path_;
     this._type = type_ || 'plugin';
     this._col_num = 0;
@@ -516,9 +516,8 @@ var DPluginModel = WidgetModel.extend({
   setSize: function(size_) {
     this._size = size_;
     // TODO: recal col_num and row_num;
-    var grid = _global.get('desktop').getGrid();
-    if(grid != null) {
-      var gridSize = grid.getGridSize();
+    if(this._parent.getType() == 'grid') {
+      var gridSize = this._parent.getGridSize();
       this._col_num = parseInt(this._size.width / gridSize.gridWidth - 0.00001) + 1;
       this._row_num = parseInt(this._size.height / gridSize.gridHeight - 0.00001) + 1;
     }
@@ -534,11 +533,10 @@ var DPluginModel = WidgetModel.extend({
         'height': this._size.width + 15
       });
 
-      var grid = _global.get('desktop').getGrid(),
-          _this = this,
+      var _this = this,
           ctxMenu = _global.get('ctxMenu');
-      if(grid != null)
-        grid.flagGridOccupy(
+      if(_this._parent.getType() == 'grid')
+        _this._parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -559,10 +557,9 @@ var DPluginModel = WidgetModel.extend({
     if(this._size.width == 90) {
       alert('the plugin has been min size!!');
     } else {
-      var grid = _global.get('desktop').getGrid(),
-          _this = this;
-      if(grid != null)
-        grid.flagGridOccupy(
+      var _this = this;
+      if(_this._parent.getType() == 'grid')
+        _this._parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -573,8 +570,8 @@ var DPluginModel = WidgetModel.extend({
         'height': this._size.width * 1 - 15
       });
 
-      if(grid != null)
-        grid.flagGridOccupy(
+      if(_this._parent.getType() == 'grid')
+        _this._parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -605,12 +602,12 @@ var DPluginModel = WidgetModel.extend({
 // The model of Entry
 //
 var EntryModel = WidgetModel.extend({
-  init: function(id_, path_, position_) {
+  init: function(id_, parent_, path_, position_) {
     if(typeof id_ === "undefined"
       || typeof path_ === "undefined") {
       throw "Not enough params!! Init failed!!";
     }
-    this.callSuper(id_, position_);
+    this.callSuper(id_, parent_, position_);
     this._path = path_;
     this._filename = path_.match(/[^\/]*$/)[0];
     this._name = id_;
@@ -679,8 +676,8 @@ var EntryModel = WidgetModel.extend({
 // events provided: {'position', 'name', 'path', 'imgPath', 'cmd', 'type', 'index'}
 //
 var AppEntryModel = EntryModel.extend({
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
     var cb_ = callback_ || function() {};
     this._execCmd = null;
     this._type = 'app';
@@ -791,8 +788,8 @@ var AppEntryModel = EntryModel.extend({
 });
 
 var FileEntryModel = EntryModel.extend({
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
     var  match = /^.*[\/]([^\/]*)$/.exec(path_);
     this._name = match[1];
     this._type = 'file';
@@ -865,8 +862,8 @@ var FileEntryModel = EntryModel.extend({
 });
 
 var DirEntryModel = FileEntryModel.extend({
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
     this._type = 'dir';
   },
 
@@ -926,8 +923,8 @@ var DirEntryModel = FileEntryModel.extend({
 });
 
 var ThemeEntryModel = EntryModel.extend({
-  init: function(id_, path_, iconName_, name_, position_, callback_) {
-    this.callSuper(id_, path_, position_, callback_);
+  init: function(id_, parent_, path_, iconName_, name_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_, callback_);
     this._iconName = iconName_;
     this._name = name_;
     this._type = 'theme';
@@ -965,8 +962,8 @@ var ThemeEntryModel = EntryModel.extend({
 // Use lazy stratagy
 //
 var LauncherModel = Model.extend({
-  init: function() {
-    this.callSuper('launcher');
+  init: function(parent_) {
+    this.callSuper('launcher', parent_);
     this._appCache = Cache.create(); // caches app models
   },
 
@@ -992,12 +989,13 @@ var LauncherModel = Model.extend({
 // The manager of Widgets
 //
 var WidgetManager = Model.extend({
-  init: function() {
-    this.callSuper('widgetmanager');
+  init: function(parent_) {
+    this.callSuper('widgetmanager', parent_);
   },
 
-  loadWidgets: function() {
-    // TODO: load theme entry
+  load: function() {
+    // load theme entry
+    _global.get('theme').loadThemeEntry(this);
     var _lastSave = [],
         desktop = _global.get('desktop'),
         lines = desktop._USER_CONFIG.split('\n');
@@ -1010,7 +1008,7 @@ var WidgetManager = Model.extend({
       switch(attr[4]) {
         case "ClockPlugin":
         case "ImagePlugin":
-          _plugin = DPluginModel.create(attr[0], attr[1], attr[4]
+          _plugin = DPluginModel.create(attr[0], this._parent, attr[1], attr[4]
               , {x: attr[2], y: attr[3]});
           break;
         default:
@@ -1033,7 +1031,7 @@ var WidgetManager = Model.extend({
         /* ,_desktop._dock._dockWatch); */
   },
 
-  saveWidgets: function() {
+  save: function() {
     var data = "";
     for(var key in this._c) {
       if(typeof theme._theme[key] !== 'undefined') continue;
@@ -1053,8 +1051,8 @@ var WidgetManager = Model.extend({
 });
 
 var DeviceListModel = Model.extend({
-  init: function() {
-    this.callSuper('device-list');
+  init: function(parent_) {
+    this.callSuper('device-list', parent_);
   },
 
   release: function() {
@@ -1069,7 +1067,7 @@ var DeviceListModel = Model.extend({
         id_ = dev_.address + ':' + dev_.port;
     switch(ev_) {
       case 'ItemNew':
-        var device = DeviceEntryModel.create(id_, dev_.host, dev_);
+        var device = DeviceEntryModel.create(id_, _this, dev_.host, dev_);
         _this.add(device);
         break;
       case 'ItemRemove':
@@ -1123,8 +1121,8 @@ var DeviceEntryModel = EntryModel.extend({
   // @id_ is address:port
   // @path_ is name
   // @position_ is whole info object
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
     this._name = path_;
     this._offline = false;
     this._type = 'dev';
@@ -1171,16 +1169,19 @@ var DeviceEntryModel = EntryModel.extend({
 // The model class of Layout
 //
 var LayoutModel = WidgetModel.extend({
-  init: function(id_) {
-    this.callSuper(id_);
+  init: function(id_, parent_, Manager_, type_) {
+    this.callSuper(id_, parent_);
 
-    this._wm = WidgetManager.create();
+    this._wm = Manager_.create(this);
+    this._type = type_;
     // TODO: move to view
-    this._width = $(document).width();
-    this._height = $(document).height() * 0.9;
+    this._width = 0;//$(document).width();
+    this._height = 0;//$(document).height() * 0.9;
   },
 
   release: function() {},
+
+  getType: function() {return this._type;},
 
   add: function(widget_) {
     this._wm.add(widget_);
@@ -1198,6 +1199,10 @@ var LayoutModel = WidgetModel.extend({
     return this._wm.getCOMByAttr(attr_, value_);
   },
 
+  getAllWidgets: function() {
+    return this._wm.getAllCOMs();
+  },
+
   on: function() {
     return this._wm.on.apply(this._wm, arguments);
   },
@@ -1212,7 +1217,7 @@ var LayoutModel = WidgetModel.extend({
 
   // load widgets from saved data
   load: function() {
-    this._wm.loadWidgets();
+    this._wm.load();
   },
 
   // load widgets from an array in which widgets have been created.
@@ -1224,7 +1229,7 @@ var LayoutModel = WidgetModel.extend({
   },
 
   save: function() {
-    this._wm.saveWidgets();
+    this._wm.save();
   },
 
   getSize: function() {
@@ -1248,9 +1253,25 @@ var LayoutModel = WidgetModel.extend({
   isOverlap: function(entry1_, entry2_) {}
 });
 
+var LayoutManager = Model.extend({
+  init: function(parent_) {
+    this.callSuper('layout-manager', parent_);
+  },
+
+  load: function() {
+    // TODO: check config of layout
+    _global.get('desktop').setLayoutType('grid');
+    var grid = GridModel.create('grid', this._parent, WidgetManager);
+    this.add(grid);
+    grid.load();
+  },
+
+  save: function() {}
+});
+
 var GridModel = LayoutModel.extend({
-  init: function(id_) {
-    this.callSuper(id_);
+  init: function(id_, parent_, Manager_) {
+    this.callSuper(id_, parent_, Manager_, 'grid');
 
     // TODO: get initialize data from saved data
     this._col = 80 + 20;
@@ -1374,14 +1395,14 @@ var GridModel = LayoutModel.extend({
       case 0:
       return {x:col,y:row};          
       case 8: 
-        if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};                 //left
+        if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};        //left
         else if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};    // top
-        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
+        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};  //left-top
         break;
       case 4 :
         if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};        //right
         else if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};    //top
-        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};    //right-top
+        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1}; //right-top
         break;
       case 2:
         if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};        //left 
@@ -1391,31 +1412,31 @@ var GridModel = LayoutModel.extend({
       case 1:
         if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};        //right
         else if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};    //down
-        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};    //right-down
+        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1}; //right-down
         break;
       case 3:
         if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};        //down
-        else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};  //left-down
-        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};    //right-down
+        else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1}; //left-down
+        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1}; //right-down
         break;
       case 12:
         if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};        //top
-        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
-        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};    //right-top
+        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};  //left-top
+        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};  //right-top
         break;
       case 10:
         if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};        //left
-        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
+        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};  //left-top
         else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};  //left-down
         break;
       case 5:
         if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};        //right
-        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};    //right-top
-        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};    //right-down
+        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};  //right-top
+        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};  //right-down
         break;
       case 6:
         if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
-        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};    //right-down
+        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};  //right-down
         break;
       case 14:
         if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top

@@ -27,6 +27,17 @@ var WidgetController = Controller.extend({
   }
 });
 
+var FlipperController = Controller.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onAdd: function() {
+    var desktop = _global.get('desktop'),
+        layout = desktop.getCOMById('layout');
+  }
+})
+
 // The Controller of Grid
 //
 var GridController = WidgetController.extend({
@@ -108,4 +119,5 @@ var DockEntryController = EntryController.extend({
   onClick: function() {
     this.onDblclick();
   }
-})
+});
+

@@ -4,8 +4,8 @@
 // The view of Desktop
 //
 var DesktopView = View.extend({
-  init: function(model_) {
-    this.callSuper('desktop-view', model_);
+  init: function(model_, parent_) {
+    this.callSuper('desktop-view', model_, parent_);
     this.controller = DesktopController.create(this);
     this.registObservers();
     this.$view = $('body')/* .attr({id: this.getID()}) */;
@@ -24,13 +24,15 @@ var DesktopView = View.extend({
             //  here just create a view object)
             break;
           case 'layout':
+            _this._c['layout'] = FlipperView.create(component_, _this);
+            _this._c['layout'].show(_this.$view);
             break;
           case 'device-list':
-            _this._c['device-list'] = DeviceListView.create(component_);
+            _this._c['device-list'] = DeviceListView.create(component_, _this);
             _this._c['device-list'].show(_this.$view);
             break;
           case 'dock':
-            _this._c[component_.getID()] = DockView.create(component_);
+            _this._c[component_.getID()] = DockView.create(component_, _this);
             _this._c[component_.getID()].show(_this.$view);
             break;
           default:
@@ -43,13 +45,7 @@ var DesktopView = View.extend({
       'layout': function(err_, viewType_, layoutModel_) {
         // TODO: 
         //  reset desktop layout
-        switch(viewType_) {
-          case 'grid':
-            _this._c['layout-view'] = GridView.create('grid-view', layoutModel_);
-            _this._c['layout-view'].show(_this.$view);
-            break;
-          default:
-            break;
+        if(_this._c['layout'].getCurView() != -1) {
         }
       }
     };
@@ -140,8 +136,8 @@ var DesktopView = View.extend({
         {text: 'clock', icon: 'icon-time', action: function(e) {
           e.preventDefault();
           if (typeof $('#clock')[0] == 'undefined') {
-            desktop.getCOMById('layout')
-              .add(DPluginModel.create('clock', 'img/clock.png', 'ClockPlugin'));
+            var layout = desktop.getCOMById('layout');
+            layout.add(DPluginModel.create('clock', layout, 'img/clock.png', 'ClockPlugin'));
             ctxMenu.disableItem('add-plugin', 'clock');
           }
         }}
@@ -219,7 +215,7 @@ var DesktopView = View.extend({
         var _widget = layout.getWidgetById(ctxMenu._rightObjId);
         ctxMenu.activeItem('add-plugin', 'clock', function(e_) {
           e_.preventDefault();
-          layout.add(DPluginModel.create('clock', 'img/clock.png', 'ClockPlugin'));
+          layout.add(DPluginModel.create('clock', layout, 'img/clock.png', 'ClockPlugin'));
         });
         layout.remove(_widget);
       }},
@@ -378,8 +374,8 @@ var DesktopView = View.extend({
 // Base class for all widget views 
 //
 var WidgetView = View.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
   },
   
   registObservers: function() {
@@ -442,8 +438,8 @@ var WidgetView = View.extend({
 // Grid view for Layout model
 //
 var GridView = WidgetView.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
     this._controller = GridController.create(this);
     this._draw = false;
     this.registObservers();
@@ -481,7 +477,7 @@ var GridView = WidgetView.extend({
         }
         switch(widget_.getType()) {
           case 'ClockPlugin':
-            _this.addAnDPlugin(ClockPluginView.create(widget_.getID(), widget_), widget_);
+            _this.addAnDPlugin(ClockPluginView.create(widget_.getID(), widget_, _this), widget_);
             break;
           case 'ImagePlugin':
             break;
@@ -856,8 +852,8 @@ var GridView = WidgetView.extend({
 });
 
 var DPluginView = WidgetView.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
     this.registObservers();
     // this._controller = null;
     this.$view = $('<div>', {
@@ -935,8 +931,8 @@ var DPluginView = WidgetView.extend({
 });
 
 var ClockPluginView = DPluginView.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
   },
 
   show: function($parent) {
@@ -1002,9 +998,9 @@ var ClockPluginView = DPluginView.extend({
 
 var DEntryView = WidgetView.extend({
   init: function(id_, model_, parent_) {
-    this.callSuper(id_, model_);
+    this.callSuper(id_, model_, parent_);
     this.registObservers();
-    this._parent = parent_;
+    // this._parent = parent_;
     this._controller = EntryController.create(this);
     this._tabIndex = -1;
     this.$view = $('<div>', {
@@ -1180,8 +1176,8 @@ var DEntryView = WidgetView.extend({
 });
 
 var DeviceListView = View.extend({
-  init: function(model_) {
-    this.callSuper('device-list', model_);
+  init: function(model_, parent_) {
+    this.callSuper('device-list', model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'device-list',
@@ -1202,7 +1198,7 @@ var DeviceListView = View.extend({
           console.log(err_);
           return ;
         }
-        _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_);
+        _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_, _this);
         _this._c[dev_.getID()].show(_this.$view);
       },
       'remove': function(err_, dev_){
@@ -1251,8 +1247,8 @@ var DeviceListView = View.extend({
 });
 
 var DevEntryView = View.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'icon',
@@ -1331,8 +1327,8 @@ var DevEntryView = View.extend({
 // View of Dock component
 //
 var DockView = View.extend({
-  init: function(model_) {
-    this.callSuper(model_.getID(), model_);
+  init: function(model_, parent_) {
+    this.callSuper(model_.getID(), model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'dock',
@@ -1518,9 +1514,9 @@ var DockView = View.extend({
 });
 
 var DockEntryView = View.extend({
-  init: function(id_, model_, container_) {
-    this.callSuper(id_, model_);
-    this._container = container_;
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    // this._container = container_;
     this._controller = DockEntryController.create(this);
     this.registObservers();
     this.$view = $('<div>', {
@@ -1612,7 +1608,7 @@ var DockEntryView = View.extend({
       this._model.setIdx(divList.length);
     }
     for(var i = 0; i < divList.length; ++i) {
-      var model = this._container._c[divList[i].id]._model,
+      var model = this._parent._c[divList[i].id]._model,
           o_idx = model.getIdx();
       if(n_idx == o_idx && !inserted) {
         $(divList[i]).before(this.$view);
@@ -1726,8 +1722,8 @@ var DockEntryView = View.extend({
 });
 
 var PropertyView = View.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
     this._id = id_;
     this._isMouseDown = false;    //flag mouse is down or not  
     this._offsetX = 0;            //record mouse-x relate property-div left   
@@ -2231,21 +2227,122 @@ var Selector = Class.extend({
 });
 
 var FlipperView = View.extend({
-  init: function(id_, model_) {
-    this.callSuper(model_.getID(), model_);
+  init: function(model_, parent_) {
+    this.callSuper(model_.getID(), model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'view-flipper',
       'id': this._id,
       'onselectstart': 'return false'
-    });
+    }).append($('<div>', {
+      'class': 'view-switch-bar',
+      'onselectstart': 'return false'
+    }).append($('<div>', {
+      'class': 'icon-plus-sign'
+    }).css({
+      'display': 'inline-block'
+    })));
     this.initAction(this.$view);
     this._c = [];
+    this._curMotion = 'normal';
+    this._main = 0;
+    this._cur = -1;
   },
 
   registObservers: function() {
+    var _this = this;
+    _this.__handlers = {
+      'add': function(err_, widget_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        switch(widget_.getType()) {
+          case 'grid':
+            _this._c['layout-view'] = GridView.create('grid-view', widget_, _this);
+            _this._c['layout-view'].show(_this.$view);
+            _this.addASwitcher(_this._c['layout-view'].getView());
+            break;
+          default:
+            break;
+        }
+      },
+      'remove': function(err_, widget_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+      },
+      'layout_size': function(err_, size_) {
+        // redraw the layout container's size
+        _this.$view.css({
+          'width': size_.width,
+          'height': size_.height
+        });
+      }
+    };
+    for(var key in _this.__handlers) {
+      this._model.on(key, _this.__handlers[key]);
+    }
   },
 
   initAction: function($selector) {
-  }
+    this._switchMotion = {
+      'normal': {
+        'showView': function() {},
+        'hideView': function() {}
+      }
+    };
+    var _this = this;
+    // $selector.on();
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+  },
+
+  addASwitcher: function($view) {
+    var _this = this,
+        $switcher = $('<div>', {
+          'class': 'view-switcher showing'
+        }).click(function() {
+          var ss = _this.$view.find('.view-switcher');
+          for(var i = 0; i < ss.length; ++i) {
+            if(this == ss[i]) {
+              _this.switchTo(i);
+            }
+          }
+        });
+    _this.$view.find('.icon-plus-sign').before($switcher);
+    if(_this._cur != -1) {
+      _this._switchMotion[_this._curMotion].hideView(_this._c[_this._cur].getView());
+      _this._switchMotion[_this._curMotion].showView($view);
+    }
+    _this._cur = _this.$view.find('.view-switcher').length - 1;
+  },
+
+  removeASwitcher: function(idx_) {
+  },
+
+  switchTo: function(idx_) {
+    if(this._cur != idx_) {
+      this._switchMotion[this._curMotion].hideView(this._c[this._cur].getView());
+      this._switchMotion[this._curMotion].showView(this._c[i].getView());
+      this._cur = i;
+    }
+  },
+
+  getCurSwitchMotion: function() {return this._curMotion;},
+
+  setCurSwitchMotion: function(motionName_) {
+    this._curMotion = motionName_;
+  },
+
+  getMainView: function() {return this._main;},
+
+  setMainView: function(main_) {
+    this._main = main_;
+  },
+
+  getCurView: function() {return this._cur;}
 });

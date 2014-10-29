@@ -102,9 +102,10 @@ var Event = Class.extend({
 //The base Class for Model classes
 //
 var Model = Event.extend({
-  init: function(id_) {
+  init: function(id_, parent_) {
     this.callSuper();
     this._id = id_;
+    this._parent = parent_;
     this._c = []; // model container
     // this._obList = [];
   },
@@ -112,6 +113,8 @@ var Model = Event.extend({
   release: function() {},
 
   getID: function() {return this._id;},
+
+  getParent: function() {return this._parent;},
 
   add: function(component_) {
     if(typeof component_ === 'undefined' || component_ == null) return ;
@@ -148,6 +151,10 @@ var Model = Event.extend({
       }
     }
     return null;
+  },
+
+  getAllCOMs: function() {
+    return this._c;
   }
 
   // addObserver: function(observer_) {
@@ -181,9 +188,11 @@ var Observer = Class.extend({
 //One kind of Observer
 //
 var View = Observer.extend({
-  init: function(id_, model_) {
+  init: function(id_, model_, parent_) {
     this.callSuper(id_);
     this._model = model_;
+    this._parent = parent_;
+    this.$view = null;
     this._controller = null; // created by subclasses
     // this._ops = []; // this array contains ops to update this view
 
@@ -199,6 +208,14 @@ var View = Observer.extend({
 
   getModel: function() {
     return this._model;
+  },
+
+  getParent: function() {
+    return this._parent;
+  },
+
+  getView: function() {
+    return this.$view;
   },
 
   getCtrlor: function() {
