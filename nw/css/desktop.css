@@ -235,6 +235,7 @@ html body {
   background-color: #eeeeee;
 }
 .property .tab-show .tab-content {
+  margin: -4px 5px 0px 5px;
   height: 315px;
   -webkit-user-select: none;
   -moz-user-select: none;
