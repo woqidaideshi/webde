@@ -89,7 +89,7 @@ var ThemeModel = Model.extend({
   },
 
   removeAThemeEntry: function(key_) {
-    var layout = _global.get('desktop').getCOMById('layout'),
+    var layout = _global.get('desktop').getCOMById('layout').getCurLayout(),
         entry = layout.getWidgetById(key_);
     layout.remove(entry);
   },
@@ -855,7 +855,7 @@ var DirEntryModel = FileEntryModel.extend({
     entryIds_.push(clip_.getData('ID'));
     for(var i = 0; i < entryIds_.length; ++i) {
       var desktop = _global.get('desktop'),
-          item = desktop.getCOMById('layout').getWidgetById(entryIds_[i]),
+          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]),
           type = item.getType(),
           srcP = null;
       if(entryIds_[i] == this._id || typeof item === 'undefined') return ;
@@ -1099,7 +1099,7 @@ var DeviceEntryModel = EntryModel.extend({
     }
 
     var id = dataTransfer.getData("ID"),
-        layout = _global.get('desktop').getCOMById('layout'),
+        layout = _global.get('desktop').getCOMById('layout').getCurLayout(),
         item = layout.getWidgetById(id);
     if(item.getType() == 'file') {
       Messenger().post(item.getPath());
