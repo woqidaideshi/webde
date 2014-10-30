@@ -1522,9 +1522,16 @@ var DockEntryView = View.extend({
     }).mouseup(function(e) { 
       e.stopPropagation();
       var image = _this.$view.children('img');
+      var _canvas = _this.$view.children('canvas');
       if(image[0].style.borderStyle == "" || image[0].style.borderStyle == 'none') {
         image.animate({width:"+=40px",height:"+=40px"}, 'fast')
           .animate({width:"-=40px",height:"-=40px"}, 'fast');
+        _this.$view.animate({width:"+=40px"}, 'fast')
+          .animate({width:"-=40px"}, 'fast');
+        if (_canvas.length != 0) {
+        _canvas.animate({width:"+=40px"}, 'fast')
+          .animate({width:"-=40px"}, 'fast');
+        };
         $('.tooltip').animate({top:"-=40px"}, 'fast')
           .animate({top:"+=40px"}, 'fast')
           .animate({top:"-=40px"}, 'fast')
@@ -1553,6 +1560,7 @@ var DockEntryView = View.extend({
     ctxMenu.attachToMenu('#' + this.getID()
         , ctxMenu.getMenuByHeader('dock')
         , function(id_) {ctxMenu._rightObjId = id_});
+    ctxMenu.disableItem('dock', 'remove reflect');
   },
 
   show: function($parent) {

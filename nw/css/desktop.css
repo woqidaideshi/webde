@@ -1,4 +1,4 @@
-/*! demo-webde - v0.0.1 - 2014-10-29
+/*! demo-webde - v0.0.1 - 2014-10-30
 * Copyright (c) 2014 */
 html {
   width: 100%;
@@ -191,6 +191,7 @@ html body {
   background-color: #eeeeee;
 }
 .property .tab-show .tab-content {
+  margin: -4px 5px 0px 5px;
   height: 315px;
   -webkit-user-select: none;
   -moz-user-select: none;

@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-10-28
+/*! ui-lib - v0.0.1 - 2014-10-30
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -816,7 +816,7 @@ var Inputer = Class.extend({
       _this.hide();
     },false);
 
-    _this.$input.keyup(function(e) {
+    _this.$input.keydown(function(e) {
       if(e.which == 13) {//enter
         if(_this.$input.val() == '\n')
           _this.$input.hide();
@@ -827,7 +827,7 @@ var Inputer = Class.extend({
           _this.$input.hide();
       }
       e.stopPropagation();
-    }).keydown(function(e){
+    }).keyup(function(e){
       e.stopPropagation();
     });
   },
@@ -2166,76 +2166,154 @@ window.Messenger.Events = (function() {
 
 }).call(this);
 
-;(function ($, window, document, undefined) {
-  $.fn.modalBox = function (method, option) {
-
-    if (methods[method]) {
-      methods[method].call(this, option);
-    } else if (typeof method === 'object' || !method) {
-      methods.open.call(this, method);
+var ModalBox = Class.extend({
+  init:function($obj_, options_){
+    this._options = {
+      width: 'auto',
+      height: 'auto',
+      left: 'auto',
+      top: 'auto',
+      overlay: true,
+      iconClose: false,
+      keyClose: true,
+      bodyClose: true,
+      iconImg: 'img/close.png',
+      //callback function
+      onOpen: function () {},
+      onClose: function () {}
     }
-    return this;
-  };
-  $.modalBox = {};
 
-  //default options
+    if (options_) {
+      for(var key in options_)
+      	  this._options[key] = options_[key];
+    }; 
 
-  $.modalBox.defaults = {
-    //all properties with unit like 10px
-    width: 'auto',
-    height: 'auto',
-    left: 'auto',
-    top: 'auto',
-    overlay: true,
-    iconClose: false,
-    keyClose: true,
-    bodyClose: true,
-    iconImg: 'img/close.png',
+    this._obj = $obj_;
+    this._width = this._obj.width();
+    this._height = this._obj.height();
+    this._widthOut = this._obj.outerWidth();
+    this._heightOut = this._obj.outerHeight();
+    this._winWidth = $(window).width();
+    this._winHeight = $(window).height();
+    this._setWidth = Math.min(this._widthOut, this._winWidth) - (this._widthOut - this._width);
+    this._setHeight = Math.min(this._heightOut, this._winHeight) - (this._heightOut - this._height);
 
-    //callback function
-    onOpen: function () {},
-    onClose: function () {}
-  };
+    this._obj.addClass('iw-modalBox');
+    this.setOptions();
+  },
 
-  //global methods
-
-  //to close all modal box
-  $.modalBox.close = function () {
-    $('.iw-modalBox').each(function () {
-      methods.close.call($(this));
-    });
-
-  };
-
-
-  //internal method
-  var keyEvent = function (e) {
-    var keyCode = e.keyCode;
-    //check for esc key is pressed.
-    if (keyCode == 27) {
-      $.modalBox.close();
-    }
-  };
-  var clickEvent = function (e) {
-    //check if modalbox is defined in data
-    if (e.data) {
-      methods.close.call(e.data.modalBox);
+  setOptions:function(){
+    var _this = this;
+    if (_this._options.width !== 'auto') {
+      _this._obj.css('width', _this._options.width);
     } else {
-      $.modalBox.close();
+      _this._obj.width(_this._setWidth);
     }
-  };
-  var resizeEvent = function (e) {
-    var img = e.data.img,
-      elm = e.data.elm;
-    img.css({
-      top: (elm.offset().top - $(window).scrollTop() - 8) + 'px',
-      left: (elm.offset().left - $(window).scrollLeft() + elm.width() - 8) + 'px',
+    if (_this._options.height !== 'auto') {
+      _this._obj.css('height',_this._options.height);
+    } else {
+      _this._obj.height(_this._setHeight);
+    }
+
+    var top = '50%',
+      left = '50%';
+      marginLeft = _this._widthOut / 2;
+      marginTop = _this._heightOut / 2;
+
+    if (_this._options.left !== 'auto') {
+    	left = _this._options.left;
+    	marginLeft = 0;
+    }
+    if (_this._options.top !== 'auto') {
+    	top = _this._options.top;
+    	marginTop = 0;
+    };
+
+    this._obj.css({
+      top: top,
+      left: left,
       position: 'fixed',
+      display: 'block',
+      'margin-left': -marginLeft,
+      'margin-top': -marginTop,
       'z-index': '99999'
     });
-  };
-  //to show overlay
-  var addOverlay = function () {
+
+    if (_this._options.overlay) {
+    	_this.addOverlay();
+    };
+
+    if (_this._options.iconClose) {
+      if ((_this._widthOut < (_this._winWidth)) && (_this._heightOut < _this._winHeight)){
+        var randId = Math.ceil(Math.random() * 1000) + 'close';
+        var img = $('<img src="' + _this._options.iconImg + '" class="iw-closeImg" id="' + randId + '"/>');
+        _this._obj.attr('closeImg',randId);
+        img.bind('click',function(){
+        	_this.close.call(_this);
+        });
+        $(window).bind('resize.iw-modalBox',{
+          img: img,
+          obj: _this._obj
+        }, _this.resizeEvent);
+        $(window).triggerHandler('resize.iw-modalBox');
+        $('body').append(img);
+      };
+    };
+
+    if (_this._options.keyClose) {
+      _this.keyEvent();
+    };
+
+    if (_this._options.bodyClose) {
+      var overlay = $('.iw-modalOverlay');
+      if (overlay.length === 0) {
+        addOverlay();
+        overlay = $('.iw-modalOverlay');
+        overlay.css({
+          'background':'none'
+        });
+      };
+      overlay.bind('mousedown',function(){
+      	  _this.close.call(_this);
+      });
+    };
+
+    _this._options.onOpen.call(this);
+  },
+
+  close:function(){
+    var _this = this;
+    if (_this._obj.hasClass('iw-modalBox')) {
+      var imgId = _this._obj.attr('closeImg');
+      if (imgId) {
+        _this._obj.removeAttr('closeImg');
+        $('#'+imgId).remove();
+      };
+      _this._obj.css({
+      	  'display': 'none'
+      })
+      _this._obj.width(_this._width);
+      _this._obj.height(_this._height);
+      _this._options.onClose.call(_this);
+      _this._obj.removeClass('iw-modalBox');
+      if ($('.iw-modalBox').length === 0) {
+      	  $('.iw-modalOverlay').remove();
+      	  $(document).unbind('resize.iw-modalBox');
+      };
+    };
+  },
+
+  keyEvent:function(){
+    var _this = this;
+    $(document).keydown(function(e){
+      var key = e.which;
+      if(key === 27){
+        _this.close();
+      }
+    });
+  },
+  
+  addOverlay:function(){
     $('body').append('<div class="iw-modalOverlay"></div>');
     $('.iw-modalOverlay').css({
       display: 'block',
@@ -2245,155 +2323,21 @@ window.Messenger.Events = (function() {
       top: 0,
       left: 0,
       'z-index': '1000'
-
     });
-  };
+  },
 
-  var methods = {
-    open: function (option) {
-      option = $.extend({}, $.modalBox.defaults, option);
+  resizeEvent:function(e){
+    var _img = e.data.img,
+      _obj = e.data.obj;
+    _img.css({
+      top: (_obj.offset().top - $(window).scrollTop() - 8) + 'px',
+      left: (_obj.offset().left - $(window).scrollTop() + _obj.width() - 8) + 'px',
+      position: 'fixed',
+      'z-index': '99999'
+    });
+  }
+});
 
-      var elm = this,
-        elmWidth = elm.width(),
-        elmHeight = elm.height(),
-        elmWidthO = elm.outerWidth(),
-        elmHeightO = elm.outerHeight(),
-        windowWidth = $(window).width(),
-        windowHeight = $(window).height(),
-        width = Math.min(elmWidthO, windowWidth) - (elmWidthO - elmWidth),
-        height = Math.min(elmHeightO, windowHeight) - (elmHeightO - elmHeight);
-
-      //to add modalBox class
-      elm.data('iw-size', {
-        'width': elmWidth,
-        'height': elmHeight
-      })
-        .addClass('iw-modalBox');
-			
-			//to maintian box-sizing property if a user define width and height use css method else use width/ height method.	
-      if(option.width != 'auto'){
-					elm.css('width',option.width);
-				}
-			else{
-					elm.width(width);	
-				}
-			
-      if(option.height != 'auto'){
-					elm.css('height',option.height);
-				}
-			else{
-					elm.height(height);	
-				}
-
-
-
-      var top = '50%',
-        left = '50%',
-        marginLeft = elm.outerWidth() / 2,
-        marginTop = elm.outerHeight() / 2;
-
-      if (option.left != 'auto') {
-        left = option.left;
-        marginLeft = '0';
-      }
-      if (option.top != 'auto') {
-        top = option.top;
-        marginTop = '0';
-      }
-
-      elm.css({
-        top: top,
-        left: left,
-        position: 'fixed',
-        display: 'block',
-        'margin-left': -marginLeft,
-        'margin-top': -marginTop,
-        'z-index': '99999'
-      });
-
-      if (option.overlay) {
-        addOverlay();
-      }
-
-      //to bind close event   
-      if (option.iconClose) {
-        if ((elm.outerWidth() < (windowWidth - 50)) && (elm.outerHeight() < (windowHeight - 50))) {
-          var randId = Math.ceil(Math.random() * 1000) + 'close';
-          var img = $('<img src="' + option.iconImg + '" class="iw-closeImg" id="' + randId + '"/>');
-          elm.attr('closeImg', randId);
-          img.bind('click', {
-            modalBox: elm
-          }, clickEvent);
-          //we will add resize event to retain the correct position of close button.
-          $(window).bind('resize.iw-modalBox', {
-            img: img,
-            elm: elm
-          }, resizeEvent);
-          $(window).triggerHandler('resize.iw-modalBox');
-          $('body').append(img);
-        }
-      }
-
-      if (option.keyClose) {
-        $(document).bind('keyup.iw-modalBox', keyEvent);
-      }
-
-      if (option.bodyClose) {
-        /*create a overlay(or use existing) in which we will give close event to overlay
-            and not in the body to come out of bubbling issue */
-        var overlay = $('.iw-modalOverlay');
-        if (overlay.length === 0) {
-          addOverlay();
-          overlay = $('.iw-modalOverlay');
-          overlay.css({
-            'background': 'none'
-          });
-        }
-        overlay.bind('mousedown', clickEvent);
-      }
-      //call callback function
-      option.onOpen.call(this);
-      elm.data('closeFun', option.onClose);
-
-    },
-    close: function () {
-      var elm = this;
-      if (elm.data('iw-size')) {
-        //close modal and unbind all event associated with it.
-        var imgId = elm.attr('closeImg');
-        if (imgId) {
-          elm.removeAttr('closeImg');
-          $('#' + imgId).remove();
-        }
-        elm.css({
-          'display': 'none'
-        });
-				
-				//to maintain box-sizing using width and height method instead css to set width or height
-				var orgSize=elm.data('iw-size');
-				elm.width(orgSize.width);
-				elm.height(orgSize.height);
-				
-        //call callback function
-        elm.data('closeFun').call(this);
-
-        //restore modal box
-        elm.removeData('iw-size')
-          .removeData('closeFun')
-        //remove class
-        .removeClass('iw-modalBox');
-
-        //if all modal box is closed unbinde all events.
-        if ($('.iw-modalBox').length === 0) {
-          $('.iw-modalOverlay').remove();
-          $(document).unbind('keyup.iw-modalBox');
-          $(window).unbind('resize.iw-modalBox');
-        }
-      }
-
-    }
-  };
-})(jQuery, window, document);
 //this ui is for reflection for img
 var Reflection = Class.extend({
   /**
@@ -2743,199 +2687,149 @@ var Tooltip = Class.extend({
     }); 
   }
 });
-//  Unslider by @idiot
- 
-(function($, f) {
-  //  If there's no jQuery, Unslider can't work, so kill the operation.
-  if(!$) return f;
-  
-  var Unslider = function() {
-    //  Set up our elements
-    this.el = f;
-    this.items = f;
-    
-    //  Dimensions
-    this.sizes = [];
-    this.max = [0,0];
-    
-    //  Current inded
-    this.current = 0;
-    
-    //  Start/stop timer
-    this.interval = f;
-        
-    //  Set some options
-    this.opts = {
+var Unslider = Class.extend({
+  init:function($obj_, options_){
+    this._obj = $obj_;
+    this._options = {
       speed: false,
-      delay: 3000, // f for no autoplay
-      complete: f, // when a slide's finished
-      keys: !f, // keyboard shortcuts - disable if it breaks things
-      dots: f, // display ••••o• pagination
-      fluid: f // is it a percentage width?,
+      delay: 3000,
+      complete: false,
+      keys: true,
+      dots: false,
+      fluid: false
     };
-    
-    //  Create a deep clone for methods where context changes
-    var _ = this;
+    this._sizes = [],
+    this._max = [this._obj.outerWidth(),this._obj.outerHeight()],
+    this._current = 0;
+    this._interval = false;
 
-    this.init = function(el, opts) {
-      this.el = el;
-      this.ul = el.children('ul');
-      this.max = [el.outerWidth(), el.outerHeight()];      
-      this.items = this.ul.children('li').each(this.calculate);
-      
-      //  Check whether we're passing any options in to Unslider
-      this.opts = $.extend(this.opts, opts);
-      
-      //  Set up the Unslider
-      this.setup();
-      
-      return this;
-    };
-    
-    //  Get the width for an element
-    //  Pass a jQuery element as the context with .call(), and the index as a parameter: Unslider.calculate.call($('li:first'), 0)
-    this.calculate = function(index) {
-      var me = $(this),
-        width = me.outerWidth(), height = me.outerHeight();
-      
-      //  Add it to the sizes list
-      _.sizes[index] = [width, height];
-      
-      //  Set the max values
-      if(width > _.max[0]) _.max[0] = width;
-      if(height > _.max[1]) _.max[1] = height;
-    };
-    
-    //  Work out what methods need calling
-    this.setup = function() {
-      //  Set the main element
-      this.el.css({
-        overflow: 'hidden',
-        width: _.max[0],
-        height: this.items.first().outerHeight()
-      });
-      
-      //  Set the relative widths
-      this.ul.css({width: (this.items.length * 100) + '%', position: 'relative'});
-      this.items.css('width', (100 / this.items.length) + '%');
-      
-      if(this.opts.delay !== f) {
-        this.start();
-        this.el.hover(this.stop, this.start);
-      }
-      
-      //  Custom keyboard support
-      this.opts.keys && $(document).keydown(this.keys);
-      
-      //  Dot pagination
-      this.opts.dots && this.dots();
-      
-      //  Little patch for fluid-width sliders. Screw those guys.
-      if(this.opts.fluid) {
-        var resize = function() {
-          _.el.css('width', Math.min(Math.round((_.el.outerWidth() / _.el.parent().outerWidth()) * 100), 100) + '%');
-        };
-        
-        resize();
-        $(window).resize(resize);
-      }
-      
-      if(this.opts.arrows) {
-        this.el.parent().append('<p class="arrows"><span class="prev">←</span><span class="next">→</span></p>')
-          .find('.arrows span').click(function() {
-            $.isFunction(_[this.className]) && _[this.className]();
-          });
-      };
-      
-      //  Swipe support
-      if($.event.swipe) {
-        this.el.on('swipeleft', _.prev).on('swiperight', _.next);
+    if (options_) {
+      for(var key in options_) {
+        this._options[key] = options_[key];
       }
     };
-    
-    //  Move Unslider to a slide index
-    this.move = function(index, cb) {
-      //  If it's out of bounds, go to the first slide
-      if(!this.items.eq(index).length) index = 0;
-      if(index < 0) index = (this.items.length - 1);
-      
-      var target = this.items.eq(index);
-      var obj = {height: target.outerHeight()};
-      var speed = cb ? 5 : this.opts.speed;
-      
-      if(!this.ul.is(':animated')) {      
-        //  Handle those pesky dots
-        _.el.find('.dot:eq(' + index + ')').addClass('active').siblings().removeClass('active');
+    this._ul = this._obj.children('ul');
+    this._items = this._ul.children('li');
+    this.calculate();
 
-        this.el.animate(obj, speed) && this.ul.animate($.extend({left: '-' + index + '00%'}, obj), speed, function(data) {
-          _.current = index;
-          $.isFunction(_.opts.complete) && !cb && _.opts.complete(_.el);
-        });
-      }
-    };
-    
-    //  Autoplay functionality
-    this.start = function() {
-      _.interval = setInterval(function() {
-        _.move(_.current + 1);
-      }, _.opts.delay);
-    };
-    
-    //  Stop autoplay
-    this.stop = function() {
-      _.interval = clearInterval(_.interval);
-      return _;
-    };
-    
-    //  Keypresses
-    this.keys = function(e) {
-      var key = e.which;
-      var map = {
-        //  Prev/next
-        37: _.prev,
-        39: _.next,
-        
-        //  Esc
-        27: _.stop
-      };
-      
-      if($.isFunction(map[key])) {
-        map[key]();
-      }
-    };
-    
-    //  Arrow navigation
-    this.next = function() { return _.stop().move(_.current + 1) };
-    this.prev = function() { return _.stop().move(_.current - 1) };
-    
-    this.dots = function() {
-      //  Create the HTML
-      var html = '<ol class="dots">';
-        $.each(this.items, function(index) { html += '<li class="dot' + (index < 1 ? ' active' : '') + '">' + (index + 1) + '</li>'; });
-        html += '</ol>';
-      
-      //  Add it to the Unslider
-      this.el.addClass('has-dots').append(html).find('.dot').click(function() {
-        _.move($(this).index());
-      });
-    };
-  };
-  
-  //  Create a jQuery plugin
-  $.fn.unslider = function(o) {
-    var len = this.length;
-    
-    //  Enable multiple-slider support
-    return this.each(function(index) {
-      //  Cache a copy of $(this), so it 
-      var me = $(this);
-      var instance = (new Unslider).init(me, o);
-      
-      //  Invoke an Unslider instance
-      me.data('unslider' + (len > 1 ? '-' + (index + 1) : ''), instance);
+    this.setup();
+  },
+
+  calculate: function(){
+    var _this = this;
+    for (var i = 0; i < _this._items.length; i++) {
+      var width = $(_this._items[i]).outerWidth();
+      var height = $(_this._items[i]).outerHeight();
+      _this._sizes[i] = [width,height];
+      if (width > _this._max[0]) {_this._max[0] = width};
+      if (height > _this._max[1]) {_this._max[1] = height};
+    }
+  },
+
+  setup:function(){
+    var _this = this;
+    this._obj.css({
+      overflow: 'hidden',
+      width: _this._max[0],
+      height: _this._items.first().outerHeight()
     });
-  };
-})(window.jQuery, false);
+
+    _this._ul.css({
+      width: (_this._items.length * 100) + '%',
+      position: 'relative'
+    });
+    _this._items.css({
+      width: (100 / _this._items.length)+'%'
+    })
+    if (this._options.delay !== false) {
+      _this.start();
+      _this._obj.hover(_this.stop,_this.start);
+    };
+    _this._options.keys && _this.keys();
+    _this._options.dots && _this.dots();
+
+    if (this._options.fluid) {
+      var resize = function(){
+        _this._obj.css('width',Math.min(Math.round((_this._obj.outerWidth() / _this._obj.parent().outerWidth()) * 100), 100) + '%');
+      };
+      resize();
+      $(window).resize(resize);
+    }
+
+    if (window.jQuery.event.swipe) {
+      _this._obj.on('swipeleft', _this.prev)
+        .on('swiperight',_this.next);
+    }
+  },
+
+  move:function(index_, cb_){
+    var _this = this;
+    if (!_this._items.eq(index_).length) {index_ = 0};
+    if (index_ < 0) { index_ = (_this._items.length -1 ) };
+    var _target = _this._items.eq(index_);
+    var _hobj = {height: _target.outerHeight()};
+    var speed = cb_ ? 5 :_this._options.speed;
+
+    if (!this._ul.is(':animated')) {
+      _this._obj.find('.dot:eq(' + index_ + ')').addClass('active').siblings().removeClass('active');
+      _this._obj.animate(_hobj, speed);
+      _this._ul.animate({left: '-' + index_ + '00%', height: _target.outerHeight()}, speed, function(data){
+        _this._current = index_;
+      });
+    };
+  },
+
+  start:function(){
+    var _this = this;
+    _this._interval = setInterval(function(){
+      _this.move(_this._current +1);
+    }, _this._options.delay);
+  },
+
+  stop:function(){
+    var _this = this;
+    _this._interval = clearInterval(_this._interval);
+  },
+
+  keys:function(){
+    var _this = this ;
+    $(document).keydown(function(e){
+      var key = e.which;
+      switch(key){
+        case 39: _this.next();
+            break;
+        case 37: _this.prev();
+            break;
+        case 27: _this.stop();
+            break; 
+      }
+    });
+  },
+
+  next:function(){
+    var _this = this;
+    _this.stop();
+    _this.move(_this._current +1);
+  },
+  prev:function(){
+    var _this = this;
+    _this.stop();
+    _this.move(_this._current -1);
+  },
+  dots:function(){
+    var _this = this;
+    var html = '<ol class="dots">'
+    for (var i = 0; i < _this._items.length; i++) {
+       html += '<li class="dot' + (i < 1 ? ' active' : '') + '">' + (i + 1) + '</li>'; 
+    };
+    html += '</ol>'
+    _this._obj.addClass('has-dots')
+      .append(html)
+      .find('.dot').click(function(){
+      	  _this.move($(this).index());
+      });
+  }
+});
 //windows lib for create window fastly
 //this is relaty font-awesome
 var Window = Class.extend({
@@ -3069,6 +2963,7 @@ var Window = Class.extend({
       ev.stopPropagation();
     }).mouseup(function(ev){
       eventAction_(windowObj_);
+      ev.stopPropagation();
     })
     .click(function(ev) {
       ev.preventDefault();
