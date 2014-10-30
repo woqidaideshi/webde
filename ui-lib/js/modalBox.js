@@ -1,79 +1,151 @@
-/*
-ModalBox.js v 1.0.2
-Author: sudhanshu yadav
-Copyright (c) 2013 Sudhanshu Yadav, released under the MIT license.
-s-yadav.github.com
-*/
-;(function ($, window, document, undefined) {
-  $.fn.modalBox = function (method, option) {
-
-    if (methods[method]) {
-      methods[method].call(this, option);
-    } else if (typeof method === 'object' || !method) {
-      methods.open.call(this, method);
+var ModalBox = Class.extend({
+  init:function($obj_, options_){
+    this._options = {
+      width: 'auto',
+      height: 'auto',
+      left: 'auto',
+      top: 'auto',
+      overlay: true,
+      iconClose: false,
+      keyClose: true,
+      bodyClose: true,
+      iconImg: 'img/close.png',
+      //callback function
+      onOpen: function () {},
+      onClose: function () {}
     }
-    return this;
-  };
-  $.modalBox = {};
 
-  //default options
+    if (options_) {
+      for(var key in options_)
+      	  this._options[key] = options_[key];
+    }; 
 
-  $.modalBox.defaults = {
-    //all properties with unit like 10px
-    width: 'auto',
-    height: 'auto',
-    left: 'auto',
-    top: 'auto',
-    overlay: true,
-    iconClose: false,
-    keyClose: true,
-    bodyClose: true,
-    iconImg: 'img/close.png',
+    this._obj = $obj_;
+    this._width = this._obj.width();
+    this._height = this._obj.height();
+    this._widthOut = this._obj.outerWidth();
+    this._heightOut = this._obj.outerHeight();
+    this._winWidth = $(window).width();
+    this._winHeight = $(window).height();
+    this._setWidth = Math.min(this._widthOut, this._winWidth) - (this._widthOut - this._width);
+    this._setHeight = Math.min(this._heightOut, this._winHeight) - (this._heightOut - this._height);
 
-    //callback function
-    onOpen: function () {},
-    onClose: function () {}
-  };
+    this._obj.addClass('iw-modalBox');
+    this.setOptions();
+  },
 
-  //global methods
-
-  //to close all modal box
-  $.modalBox.close = function () {
-    $('.iw-modalBox').each(function () {
-      methods.close.call($(this));
-    });
-
-  };
-
-
-  //internal method
-  var keyEvent = function (e) {
-    var keyCode = e.keyCode;
-    //check for esc key is pressed.
-    if (keyCode == 27) {
-      $.modalBox.close();
-    }
-  };
-  var clickEvent = function (e) {
-    //check if modalbox is defined in data
-    if (e.data) {
-      methods.close.call(e.data.modalBox);
+  setOptions:function(){
+    var _this = this;
+    if (_this._options.width !== 'auto') {
+      _this._obj.css('width', _this._options.width);
     } else {
-      $.modalBox.close();
+      _this._obj.width(_this._setWidth);
     }
-  };
-  var resizeEvent = function (e) {
-    var img = e.data.img,
-      elm = e.data.elm;
-    img.css({
-      top: (elm.offset().top - $(window).scrollTop() - 8) + 'px',
-      left: (elm.offset().left - $(window).scrollLeft() + elm.width() - 8) + 'px',
+    if (_this._options.height !== 'auto') {
+      _this._obj.css('height',_this._options.height);
+    } else {
+      _this._obj.height(_this._setHeight);
+    }
+
+    var top = '50%',
+      left = '50%';
+      marginLeft = _this._widthOut / 2;
+      marginTop = _this._heightOut / 2;
+
+    if (_this._options.left !== 'auto') {
+    	left = _this._options.left;
+    	marginLeft = 0;
+    }
+    if (_this._options.top !== 'auto') {
+    	top = _this._options.top;
+    	marginTop = 0;
+    };
+
+    this._obj.css({
+      top: top,
+      left: left,
       position: 'fixed',
+      display: 'block',
+      'margin-left': -marginLeft,
+      'margin-top': -marginTop,
       'z-index': '99999'
     });
-  };
-  //to show overlay
-  var addOverlay = function () {
+
+    if (_this._options.overlay) {
+    	_this.addOverlay();
+    };
+
+    if (_this._options.iconClose) {
+      if ((_this._widthOut < (_this._winWidth)) && (_this._heightOut < _this._winHeight)){
+        var randId = Math.ceil(Math.random() * 1000) + 'close';
+        var img = $('<img src="' + _this._options.iconImg + '" class="iw-closeImg" id="' + randId + '"/>');
+        _this._obj.attr('closeImg',randId);
+        img.bind('click',function(){
+        	_this.close.call(_this);
+        });
+        $(window).bind('resize.iw-modalBox',{
+          img: img,
+          obj: _this._obj
+        }, _this.resizeEvent);
+        $(window).triggerHandler('resize.iw-modalBox');
+        $('body').append(img);
+      };
+    };
+
+    if (_this._options.keyClose) {
+      _this.keyEvent();
+    };
+
+    if (_this._options.bodyClose) {
+      var overlay = $('.iw-modalOverlay');
+      if (overlay.length === 0) {
+        addOverlay();
+        overlay = $('.iw-modalOverlay');
+        overlay.css({
+          'background':'none'
+        });
+      };
+      overlay.bind('mousedown',function(){
+      	  _this.close.call(_this);
+      });
+    };
+
+    _this._options.onOpen.call(this);
+  },
+
+  close:function(){
+    var _this = this;
+    if (_this._obj.hasClass('iw-modalBox')) {
+      var imgId = _this._obj.attr('closeImg');
+      if (imgId) {
+        _this._obj.removeAttr('closeImg');
+        $('#'+imgId).remove();
+      };
+      _this._obj.css({
+      	  'display': 'none'
+      })
+      _this._obj.width(_this._width);
+      _this._obj.height(_this._height);
+      _this._options.onClose.call(_this);
+      _this._obj.removeClass('iw-modalBox');
+      if ($('.iw-modalBox').length === 0) {
+      	  $('.iw-modalOverlay').remove();
+      	  $(document).unbind('resize.iw-modalBox');
+      };
+    };
+  },
+
+  keyEvent:function(){
+    var _this = this;
+    $(document).keydown(function(e){
+      var key = e.which;
+      if(key === 27){
+        _this.close();
+      }
+    });
+  },
+  
+  addOverlay:function(){
     $('body').append('<div class="iw-modalOverlay"></div>');
     $('.iw-modalOverlay').css({
       display: 'block',
@@ -83,152 +155,17 @@ s-yadav.github.com
       top: 0,
       left: 0,
       'z-index': '1000'
-
     });
-  };
+  },
 
-  var methods = {
-    open: function (option) {
-      option = $.extend({}, $.modalBox.defaults, option);
-
-      var elm = this,
-        elmWidth = elm.width(),
-        elmHeight = elm.height(),
-        elmWidthO = elm.outerWidth(),
-        elmHeightO = elm.outerHeight(),
-        windowWidth = $(window).width(),
-        windowHeight = $(window).height(),
-        width = Math.min(elmWidthO, windowWidth) - (elmWidthO - elmWidth),
-        height = Math.min(elmHeightO, windowHeight) - (elmHeightO - elmHeight);
-
-      //to add modalBox class
-      elm.data('iw-size', {
-        'width': elmWidth,
-        'height': elmHeight
-      })
-        .addClass('iw-modalBox');
-			
-			//to maintian box-sizing property if a user define width and height use css method else use width/ height method.	
-      if(option.width != 'auto'){
-					elm.css('width',option.width);
-				}
-			else{
-					elm.width(width);	
-				}
-			
-      if(option.height != 'auto'){
-					elm.css('height',option.height);
-				}
-			else{
-					elm.height(height);	
-				}
-
-
-
-      var top = '50%',
-        left = '50%',
-        marginLeft = elm.outerWidth() / 2,
-        marginTop = elm.outerHeight() / 2;
-
-      if (option.left != 'auto') {
-        left = option.left;
-        marginLeft = '0';
-      }
-      if (option.top != 'auto') {
-        top = option.top;
-        marginTop = '0';
-      }
-
-      elm.css({
-        top: top,
-        left: left,
-        position: 'fixed',
-        display: 'block',
-        'margin-left': -marginLeft,
-        'margin-top': -marginTop,
-        'z-index': '99999'
-      });
-
-      if (option.overlay) {
-        addOverlay();
-      }
-
-      //to bind close event   
-      if (option.iconClose) {
-        if ((elm.outerWidth() < (windowWidth - 50)) && (elm.outerHeight() < (windowHeight - 50))) {
-          var randId = Math.ceil(Math.random() * 1000) + 'close';
-          var img = $('<img src="' + option.iconImg + '" class="iw-closeImg" id="' + randId + '"/>');
-          elm.attr('closeImg', randId);
-          img.bind('click', {
-            modalBox: elm
-          }, clickEvent);
-          //we will add resize event to retain the correct position of close button.
-          $(window).bind('resize.iw-modalBox', {
-            img: img,
-            elm: elm
-          }, resizeEvent);
-          $(window).triggerHandler('resize.iw-modalBox');
-          $('body').append(img);
-        }
-      }
-
-      if (option.keyClose) {
-        $(document).bind('keyup.iw-modalBox', keyEvent);
-      }
-
-      if (option.bodyClose) {
-        /*create a overlay(or use existing) in which we will give close event to overlay
-            and not in the body to come out of bubbling issue */
-        var overlay = $('.iw-modalOverlay');
-        if (overlay.length === 0) {
-          addOverlay();
-          overlay = $('.iw-modalOverlay');
-          overlay.css({
-            'background': 'none'
-          });
-        }
-        overlay.bind('mousedown', clickEvent);
-      }
-      //call callback function
-      option.onOpen.call(this);
-      elm.data('closeFun', option.onClose);
-
-    },
-    close: function () {
-      var elm = this;
-      if (elm.data('iw-size')) {
-        //close modal and unbind all event associated with it.
-        var imgId = elm.attr('closeImg');
-        if (imgId) {
-          elm.removeAttr('closeImg');
-          $('#' + imgId).remove();
-        }
-        elm.css({
-          'display': 'none'
-        });
-				
-				//to maintain box-sizing using width and height method instead css to set width or height
-				var orgSize=elm.data('iw-size');
-				elm.width(orgSize.width);
-				elm.height(orgSize.height);
-				
-        //call callback function
-        elm.data('closeFun').call(this);
-
-        //restore modal box
-        elm.removeData('iw-size')
-          .removeData('closeFun')
-        //remove class
-        .removeClass('iw-modalBox');
-
-        //if all modal box is closed unbinde all events.
-        if ($('.iw-modalBox').length === 0) {
-          $('.iw-modalOverlay').remove();
-          $(document).unbind('keyup.iw-modalBox');
-          $(window).unbind('resize.iw-modalBox');
-        }
-      }
-
-    }
-  };
-})(jQuery, window, document);
+  resizeEvent:function(e){
+    var _img = e.data.img,
+      _obj = e.data.obj;
+    _img.css({
+      top: (_obj.offset().top - $(window).scrollTop() - 8) + 'px',
+      left: (_obj.offset().left - $(window).scrollTop() + _obj.width() - 8) + 'px',
+      position: 'fixed',
+      'z-index': '99999'
+    });
+  }
+});

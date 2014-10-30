@@ -28,14 +28,14 @@ categories: ui
   &lt;/div&gt;
 	<br />
 	第二步：应用轮播，
-	$('.banner').unslider(options);  //设置内容将在下面介绍。
+	var unslider_ = Unslider.create($('.banner'),options);  //设置内容将在下面介绍。
   </code>
 </pre>
 <br />
 <h2>设置属性</h2>
 <pre>
   <code>
-  $('.banner').unslider({
+  var unslider_ = Unslider.create($('.banner'),{
 	speed: 500,               // 轮播动画速度
 	delay: 3000,              // 轮播延时
 	complete: function() {},  // 完成轮播时的响应函数
@@ -50,15 +50,14 @@ categories: ui
 <p>可以在轮播时操控该轮播插件，见如下：</p>
 <pre>
   <code>
-  var slidey = $('.banner').unslider(),
-    data = slidey.data('unslider');
-    data.play();                //开始轮播
-    data.stop();                //停止轮播
-    data.to(2, function() {});  //图片跳转到第2张，并执行函数，从0开始计数
-    data.keys();                //支持键盘
-    data.next();                //下一张图片
-    data.prev();                //上一张图片
-    data.dots();                //显示dot
+  var _unslider = Unslider.create($('.banner'),options);
+    _unslider.start();                //开始轮播
+    _unslider.stop();                //停止轮播
+    _unslider.move(index);  //图片跳转到第index张
+    _unslider.keys();                //支持键盘
+    _unslider.next();                //下一张图片
+    _unslider.prev();                //上一张图片
+    _unslider.dots();                //显示dot
   </code>
 </pre>
 
@@ -83,8 +82,8 @@ categories: ui
 <script type="text/javascript">
   var _unslider ;
   $(function() {
-    _unslider = $('.banner').unslider({
-      speed:500,
+    _unslider = Unslider.create($('.banner'),{
+      speed:1000,
       delay:500,
       keys: true,
       dots: true,
@@ -93,21 +92,25 @@ categories: ui
   });
 
   var prev =function(){
-  	var data = _unslider.data('unslider');
-  	data.prev();
+    _unslider.prev();
   }
 
   var next = function(){
-  	var data = _unslider.data('unslider');
-  	data.next();
+    _unslider.next();
   }
 
   var modal = function(){
-    $('.banner').modalBox({
-     iconImg: '../../../../../assets/img/close.png',
+    var parent = $('.banner').parent('article');
+    ModalBox.create($('.banner'),{
+     iconImg: '/assets/img/close.png',
      iconClose: true,
      keyClose: true,
-     bodyClose:true
+     bodyClose:true,
+     onClose:function(){
+        $(parent).append($('.banner'));
+        $('.banner')[0].style.cssText = '';
+        $('.banner').show();
+     }
    });
   }
 </script>

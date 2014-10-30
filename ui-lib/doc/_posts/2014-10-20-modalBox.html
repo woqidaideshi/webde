@@ -5,16 +5,16 @@ date:   2014-10-20 11:09:12
 categories: ui
 ---
 
-<h1 id="modalbox-jquery">modalBox-jquery插件</h1>
-<p>modalBox是jquery的插件，用于生成模态对话框。</p> <br />
+<h1 id="modalbox-jquery">modalBox</h1>
+<p>modalBox可用于生成模态对话框。</p> <br />
 <h2> 使用方法：</h2><br />
 <pre>
 <code>
-  $('.modalBox').modalBox({   //$('.modalBox'')是要放在modalbox的jquery对象
+  ModalBox.create($('.modalBox'),{   //$('.modalBox'')是要放在modalbox的jquery对象，可以是div，内部包含任意内容
     iconImg:'images/x.png',      //关闭按钮的图片
     iconClose:true,                     //是否使用图片关闭
-    keyClose:true,                       //是否使用键盘关闭
-    bodyClose:true                     //是否使用点击空白处关闭
+    keyClose:true,                      //是否使用键盘关闭
+    bodyClose:true                    //是否使用点击空白处关闭
   });
 </code>
 </pre>  <br />
@@ -22,7 +22,7 @@ categories: ui
 <p>下面是可配置的选项，配置配置选项，默认选项如下：</p>
 <pre>
 <code>
-  $.modalBox.defaults = {
+  ModalBox._options = {
     width: 'auto',                //宽度，默认为自动
     height: 'auto',              //高度，默认为自动
     left: 'auto',                   //位置左，默认位置居中
@@ -38,20 +38,19 @@ categories: ui
 </code>
 </pre>
 <h2>参考文档</h2>
-<p>更多设置（demo）：
-<a href="http://ignitersworld.com/lab/modalBox.html#demo">demo</a>
+<p>该控件参考modalBox项目的
   github项目网址：
 <a href="https://github.com/s-yadav/modalBox.js">github网址</a></p>
 
 <h2>demo</h2>
 <button class="btn active" onclick="modal()">ModalBox</button>
-<img  id='modalBox-pic' src="../../../../../assets/img/cat.jpg"/>
+<img  id='modalBox-pic' src="/assets/img/cat.jpg"/>
 <script type="text/javascript">
   var modal = function(){
     var pic_ = $('#modalBox-pic');
     var parent = pic_.parent('div');
    pic_.show();
-   pic_.modalBox({
+   ModalBox.create(pic_, {
      iconImg: '/assets/img/close.png',
      iconClose: true,
      keyClose: true,
