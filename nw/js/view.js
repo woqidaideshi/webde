@@ -216,7 +216,8 @@ var DesktopView = View.extend({
             _widget = layout.getWidgetById(ctxMenu._rightObjId);
         ctxMenu.activeItem('add-plugin', 'clock', function(e_) {
           e_.preventDefault();
-          layout.add(DPluginModel.create('clock', layout, 'img/clock.png', 'ClockPlugin'));
+          var curLayout = desktop.getCOMById('layout').getCurLayout();
+          curLayout.add(DPluginModel.create('clock', curLayout, 'img/clock.png', 'ClockPlugin'));
         });
         layout.remove(_widget);
       }},
@@ -2276,8 +2277,7 @@ var FlipperView = View.extend({
           console.log(err_);
           return ;
         }
-        _this._switchMotion[_this._curMotion].hideView(_this._c[from_].getView());
-        _this._switchMotion[_this._curMotion].showView(_this._c[to_].getView());
+        _this._switchMotion[_this._curMotion](_this._c[from_].getView(), _this._c[to_].getView());
       }
     };
     for(var key in _this.__handlers) {
@@ -2287,13 +2287,9 @@ var FlipperView = View.extend({
 
   initAction: function($selector) {
     this._switchMotion = {
-      'normal': {
-        'showView': function($view) {
-          $view.show();
-        },
-        'hideView': function($view) {
-          $view.hide();
-        }
+      'normal': function ($from, $to) {
+        $from.hide();
+        $to.show();
       }
     };
     var _this = this;
