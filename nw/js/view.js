@@ -529,7 +529,8 @@ var GridView = WidgetView.extend({
   addAnDEntry: function(entry_) {
     var pos_ = entry_.getPosition();
     if(typeof pos_ === 'undefined' || 
-      typeof $('#grid_' + pos_.x + '_' + pos_.y).children('div')[0] != 'undefined') {
+      // typeof $('#grid_' + pos_.x + '_' + pos_.y).children('div')[0] != 'undefined') {
+      this._model._grid[pos_.x][pos_.y].use) {
       pos_ = this._model.findAnIdleGrid();
       if(pos_ == null) {
         alert("No room");
@@ -701,7 +702,7 @@ var GridView = WidgetView.extend({
     console.log('drop-grid');
     ev.stopPropagation();
     ev.preventDefault();
-    $('#' + ev.currentTarget.id).removeClass('hovering');
+    this.$view.find('#' + ev.currentTarget.id).removeClass('hovering');
 
     var __id = ev.dataTransfer.getData("ID"),
         _id = /([\w-_\s\.]+)-dock$/.exec(__id);
@@ -717,7 +718,7 @@ var GridView = WidgetView.extend({
     
     var _target_id = ev.target.id;
     // var _id = ev.originalEvent.dataTransfer.getData("ID");
-    var _target = $('#' + _target_id);
+    var _target = this.$view.find('#' + _target_id);
 
     //get target position
     var _target_arr = _target_id.split('_');
@@ -799,7 +800,6 @@ var GridView = WidgetView.extend({
               y: _target_row
             });
         if(_pos == null) return ;
-        // $('#grid_' + _pos.x + '_' + _pos.y).append($('#' + entries[i]._id));
         console.log(entries[i]._id + " ---> " + _pos.x + '  '  + _pos.y);
         entries[i]._model.setPosition({x: _pos.x, y: _pos.y});
         model.flagGridOccupy(_pos.x, _pos.y, 1, 1, true);
@@ -825,7 +825,6 @@ var GridView = WidgetView.extend({
     //find Idle grids arround from the target grid
     var pos_ = model.findIdleGrid(_target_col,_target_row,col_num,row_num);
     if (pos_ != null) {
-      // $('#grid_'+pos_.x+'_'+pos_.y).append($('#'+_id));
       console.log(_id[1] + " ---> " + pos_.x + '  '  + pos_.y);
       s_widget.setPosition({x: pos_.x, y: pos_.y});
       model.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
@@ -843,13 +842,13 @@ var GridView = WidgetView.extend({
   dragEnter: function(ev) {
     ev.stopPropagation();
     ev.preventDefault();
-    $('#' + ev.currentTarget.id).addClass('hovering');
+    this.$view.find('#' + ev.currentTarget.id).addClass('hovering');
   },
 
   dragLeave: function(ev) {
     ev.stopPropagation();
     ev.preventDefault();
-    $('#' + ev.currentTarget.id).removeClass('hovering');
+    this.$view.find('#' + ev.currentTarget.id).removeClass('hovering');
   },
 
   getSelectableItems: function() {
@@ -887,7 +886,7 @@ var DPluginView = WidgetView.extend({
         var layoutType = _global.get('desktop').getLayoutType();
         switch(layoutType) {
           case 'grid':
-            _this.show($('#grid_' + pos_.x + '_' + pos_.y));
+            _this.show(_this._parent.$view.find('#grid_' + pos_.x + '_' + pos_.y));
             break;
           default:
             break;
@@ -1124,7 +1123,7 @@ var DEntryView = WidgetView.extend({
         layout = _global.get('desktop').getLayoutType();
     switch(layout) {
       case 'grid':
-        $('#grid_' + pos.x + '_' + pos.y).append(this.$view);
+        this._parent.$view.find('#grid_' + pos.x + '_' + pos.y).append(this.$view);
         break;
       default:
         break;
@@ -1136,7 +1135,7 @@ var DEntryView = WidgetView.extend({
         layout = _global.get('desktop').getLayoutType();
     switch(layout) {
       case 'grid':
-        $('#grid_' + pos.x + '_' + pos.y).empty();
+        this._parent.$view.find('#grid_' + pos.x + '_' + pos.y).empty();
         break;
       default:
         break;
@@ -1314,7 +1313,7 @@ var DevEntryView = View.extend({
     }).on('drop', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this._controller.onDrop(e);
+      _this._controller.onDrop(e, _this._parent._parent._c['layout']._selector.getSelectedItems());
     }).dblclick(function(e) {
       e.stopPropagation();
       _this._controller.onDblclick();
@@ -1570,6 +1569,7 @@ var DockEntryView = View.extend({
       e.stopPropagation();
     }).mouseup(function(e) { 
       e.stopPropagation();
+    }).click(function(e) {
       var image = _this.$view.children('img');
       if(image[0].style.borderStyle == "" || image[0].style.borderStyle == 'none') {
         image.animate({width:"+=40px",height:"+=40px"}, 'fast')
@@ -1683,7 +1683,7 @@ var DockEntryView = View.extend({
 
   drop: function(ev) {
     ev.preventDefault();
-    this._controller.onDrop(ev);
+    this._controller.onDrop(ev, this._parent._parent._c['layout']._selector.getSelectedItems());
   },
 
   mouseOver: function(ev) {
