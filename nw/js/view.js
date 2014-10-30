@@ -24,7 +24,7 @@ var DesktopView = View.extend({
             //  here just create a view object)
             break;
           case 'layout':
-            _this._c['layout'] = FlipperView.create(component_, _this);
+            _this._c['layout'] = FlipperView.create(component_, _this, true);
             _this._c['layout'].show(_this.$view);
             break;
           case 'device-list':
@@ -136,7 +136,7 @@ var DesktopView = View.extend({
         {text: 'clock', icon: 'icon-time', action: function(e) {
           e.preventDefault();
           if (typeof $('#clock')[0] == 'undefined') {
-            var layout = desktop.getCOMById('layout');
+            var layout = desktop.getCOMById('layout').getCurLayout();
             layout.add(DPluginModel.create('clock', layout, 'img/clock.png', 'ClockPlugin'));
             ctxMenu.disableItem('add-plugin', 'clock');
           }
@@ -198,21 +198,22 @@ var DesktopView = View.extend({
       ]}
     ]);
 
-    var layout = desktop.getCOMById('layout'),
+    var /* layout = desktop.getCOMById('layout').getCurLayout(), */
         _this = this;
     ctxMenu.addCtxMenu([
       {header: 'plugin'},
       {text: 'zoom in', action: function(e) {
         e.preventDefault();
-        desktop.getCOMById('layout').getWidgetById(ctxMenu._rightObjId).zoomIn();
+        desktop.getCOMById('layout').getCurLayout().getWidgetById(ctxMenu._rightObjId).zoomIn();
       }},
       {text: 'zoom out', action: function(e) {
         e.preventDefault();
-        desktop.getCOMById('layout').getWidgetById(ctxMenu._rightObjId).zoomOut();
+        desktop.getCOMById('layout').getCurLayout().getWidgetById(ctxMenu._rightObjId).zoomOut();
       }},
       {text:'remove', action:function(e) {
         e.preventDefault();
-        var _widget = layout.getWidgetById(ctxMenu._rightObjId);
+        var layout = desktop.getCOMById('layout').getCurLayout(),
+            _widget = layout.getWidgetById(ctxMenu._rightObjId);
         ctxMenu.activeItem('add-plugin', 'clock', function(e_) {
           e_.preventDefault();
           layout.add(DPluginModel.create('clock', layout, 'img/clock.png', 'ClockPlugin'));
@@ -232,12 +233,12 @@ var DesktopView = View.extend({
       {header: 'app-entry'},
       {text: 'Open', action: function(e) {
         e.preventDefault();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
       {text:'delete' , icon: 'icon-remove-circle', action:function(e){
         e.preventDefault();
@@ -255,7 +256,7 @@ var DesktopView = View.extend({
       {header: 'file-entry'},
       {text: 'Open', icon: 'icon-folder-open-alt', action: function(e) {
         e.preventDefault();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text:'Open with...',icon: 'icon-folder-open', subMenu: [
         {header: 'Open with'}]
@@ -264,7 +265,7 @@ var DesktopView = View.extend({
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
       {text:'Move to Trash' ,icon: 'icon-trash', action:function(e){
         e.preventDefault();
@@ -323,12 +324,12 @@ var DesktopView = View.extend({
       {header: 'theme-entry'},
       {text: 'Open', action: function(e) {
         e.preventDefault();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }}
     ]);
   },
@@ -438,7 +439,7 @@ var WidgetView = View.extend({
 // Grid view for Layout model
 //
 var GridView = WidgetView.extend({
-  init: function(id_, model_, parent_) {
+  init: function(id_, model_, parent_, needSelector_) {
     this.callSuper(id_, model_, parent_);
     this._controller = GridController.create(this);
     this._draw = false;
@@ -450,6 +451,7 @@ var GridView = WidgetView.extend({
     });
     this._c = [];
     this._tabIdx = -1;
+    this._needSelector = needSelector_ || false;
     this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
       var pos1 = entry1_._model.getPosition(),
           pos2 = entry2_._model.getPosition();
@@ -641,37 +643,41 @@ var GridView = WidgetView.extend({
   show: function($parent) {
     $parent.append(this.$view);
     var _this = this;
-    this._selector = Selector.create(this, '#' + this._id, {
-      'enter': function() {
-        if(_this._tabIdx != -1 && _this._dEntrys._items[_this._tabIdx] != null)
-          _this._dEntrys._items[_this._tabIdx]._controller.onDblclick();
-      },
-      'up': function() {
-        _this._tabIdx += _this._dEntrys.length() - 1;
-        _this._tabIdx %= _this._dEntrys.length();
-        var _entry = _this._dEntrys._items[_this._tabIdx];
-        if(_entry == null) {
-          do{
-            _this._tabIdx--;
+    if(this._needSelector) {
+      this._selector = Selector.create(this, '#' + this._id, {
+        'enter': function() {
+          if(_this._tabIdx != -1 && _this._dEntrys._items[_this._tabIdx] != null)
+            _this._dEntrys._items[_this._tabIdx]._controller.onDblclick();
+        },
+        'up': function() {
+          _this._tabIdx += _this._dEntrys.length() - 1;
+          _this._tabIdx %= _this._dEntrys.length();
+          var _entry = _this._dEntrys._items[_this._tabIdx];
+          if(_entry == null) {
+            do{
+              _this._tabIdx--;
+              _entry = _this._dEntrys._items[0];
+            } while(_entry == null);
+          }
+          _entry.focus(); 
+        },
+        'down': function() {
+          _this._tabIdx++; 
+          _this._tabIdx %= _this._dEntrys.length();
+          var _entry = _this._dEntrys._items[_this._tabIdx];
+          if(_entry == null) {
+            _this._tabIdx = 0;
             _entry = _this._dEntrys._items[0];
-          } while(_entry == null);
+          } 
+          _entry.focus(); 
+        },
+        'clear': function() {
+          _this._tabIdx = -1;
         }
-        _entry.focus(); 
-      },
-      'down': function() {
-        _this._tabIdx++; 
-        _this._tabIdx %= _this._dEntrys.length();
-        var _entry = _this._dEntrys._items[_this._tabIdx];
-        if(_entry == null) {
-          _this._tabIdx = 0;
-          _entry = _this._dEntrys._items[0];
-        } 
-        _entry.focus(); 
-      },
-      'clear': function() {
-        _this._tabIdx = -1;
-      }
-    });
+      });
+    } else {
+      this._selector = this._parent._selector;
+    }
     _this._model.setSize({
       'width': _this.$view.width(),
       'height': _this.$view.height()
@@ -704,7 +710,7 @@ var GridView = WidgetView.extend({
     //show insert position picture
     var _source = null,
         desktop = _global.get('desktop'),
-        model = desktop.getCOMById('layout'),
+        model = this._model,
         s_widget = model.getWidgetById(_id[1]),
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]); 
@@ -1469,7 +1475,7 @@ var DockView = View.extend({
     if(_id == null) _id = {'1': __id};
     var  _source = $('#' + _id[1]),
         desktop = _global.get('desktop'),
-        layout = desktop.getCOMById('layout'),
+        layout = desktop.getCOMById('layout').getCurLayout(),
         widget = layout.getWidgetById(_id[1]),
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]);
@@ -1645,7 +1651,7 @@ var DockEntryView = View.extend({
     //show insert position picture
     var _source = null,
         desktop = _global.get('desktop'),
-        layout = desktop.getCOMById('layout'),
+        layout = desktop.getCOMById('layout').getCurLayout(),
         widget = layout.getWidgetById(_id[1]),
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]);
@@ -1864,11 +1870,11 @@ var PropertyView = View.extend({
       _this.$view.fadeTo(20, 1);
     });
 
-    _this.$view.mousedown(function(ev) {
-      ev.stopPropagation();
-    }).mouseup(function(ev){
-      ev.stopPropagation;
-    });
+    /* _this.$view.mousedown(function(ev) { */
+      // ev.stopPropagation();
+    // }).mouseup(function(ev){
+      // ev.stopPropagation;
+    /* }); */
 
     $(document).mousemove(function(ev){
       if(!_this._isMouseDown) return ;
@@ -1998,8 +2004,8 @@ var Selector = Class.extend({
   // @selector_: which component should be response to mouse events and draw the selector
   // @events_: which is an events object to binding to specific key include 'enter', 'up',
   //            'down', 'left', 'right', 'clear'(for clear the state of 'tab-index')
-  // Note that: 1. Items of this container should have functions called 'focus' and 'blur', 
-  //              variable called '$view' which is a jquery object of item's view.
+  // Note that: 1. Items of this container should have functions called 'focus', 'blur' and 
+  //              'getView' which is for getting the jquery object of item's view.
   //            2. The container object should have a function called 'getSelectableItems'.
   //
   init: function(container_, selector_, events_) {
@@ -2017,7 +2023,7 @@ var Selector = Class.extend({
     });
     $('body').append(this.$view);
     this._c = container_;
-    this._items = container_.getSelectableItems();
+    // this._items = container_.getSelectableItems();
     this._selector = selector_ || 'html';
     this._events = events_ || {};
     this._selectedEntries = [];
@@ -2031,9 +2037,10 @@ var Selector = Class.extend({
     this._s_X = 0;
     this._s_Y = 0;
 
-    var _pos = container_.$view.position(),
-        _width = container_.$view.width(),
-        _height = container_.$view.height();
+    var _view = container_.getView(),
+        _pos = _view.position(),
+        _width = _view.width(),
+        _height = _view.height();
     this._c_SX = _pos.left;
     this._c_SY = _pos.top;
     this._c_EX = _pos.left + _width;
@@ -2041,7 +2048,7 @@ var Selector = Class.extend({
 
     var _this = this;
     $(document).on('mousedown', this._selector, function(e) {
-      e.stopPropagation();
+      // e.stopPropagation();
       e.preventDefault();
       if(e.which == 1) {
         if(!e.ctrlKey) {
@@ -2058,28 +2065,7 @@ var Selector = Class.extend({
         }).show();
       }
     }).on('keydown', 'html', function(e) {
-      var upKey = function() {
-        /* desktop._tabIndex += desktop._dEntrys.length() - 1; */
-        // desktop._tabIndex %= desktop._dEntrys.length();
-        // var _entry = desktop._dEntrys._items[desktop._tabIndex];
-        // if(_entry == null) {
-          // do{
-            // desktop._tabIndex--;
-            // _entry = desktop._dEntrys._items[0];
-          // } while(_entry == null);
-        // }
-        /* _entry.focus(); */
-      };
-      var downKey = function() {
-        /* desktop._tabIndex++; */
-        // desktop._tabIndex %= desktop._dEntrys.length();
-        // var _entry = desktop._dEntrys._items[desktop._tabIndex];
-        // if(_entry == null) {
-          // desktop._tabIndex = 0;
-          // _entry = desktop._dEntrys._items[0];
-        // } 
-        /* _entry.focus(); */
-      };
+      var _items = container_.getSelectableItems();
       switch(e.which) {
         case 9:    // tab
           if(!e.ctrlKey) {
@@ -2137,9 +2123,9 @@ var Selector = Class.extend({
         case 65:  // a/A
           if(e.ctrlKey) {
             console.log('Combination Key: Ctrl + a/A');
-            for(var i = 0; i < _this._items.length; ++i) {
-              if(_this._items[i] != null)
-                _this._items[i].focus();
+            for(var i = 0; i < _items.length; ++i) {
+              if(_items[i] != null)
+                _items[i].focus();
             }
           }
           break;
@@ -2166,7 +2152,8 @@ var Selector = Class.extend({
       /* e.preventDefault(); */
       /* e.stopPropagation(); */
       if(!_this._mouseDown) return ;
-      var x, y, _off = _this.$view.offset();
+      var x, y, _off = _this.$view.offset(),
+          _items = container_.getSelectableItems();
       x = (e.pageX < _this._c_SX) ? _this._c_SX : e.pageX;
       x = (x > _this._c_EX) ? _this._c_EX : x;
       y = (e.pageY < _this._c_SY) ? _this._c_SY : e.pageY;
@@ -2183,15 +2170,15 @@ var Selector = Class.extend({
       });
       if(!e.ctrlKey)
         _this.releaseSelectedEntries();
-      for(var i = 0; i < _this._items.length; ++i) {
-        if(_this._items[i] != null
+      for(var i = 0; i < _items.length; ++i) {
+        if(_items[i] != null
           && _this.isOverlap({
             left: _off.left,
             top: _off.top,
             left_e: _off.left + _this.$view.width(),
             top_e: _off.top + _this.$view.height()
-          }, _this._items[i].$view)) {
-          _this._items[i].focus();
+          }, _items[i].getView())) {
+          _items[i].focus();
         }
       }
     })
@@ -2227,12 +2214,13 @@ var Selector = Class.extend({
 });
 
 var FlipperView = View.extend({
-  init: function(model_, parent_) {
+  init: function(model_, parent_, needSelector_) {
     this.callSuper(model_.getID(), model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'view-flipper',
       'id': this._id,
+      'draggable': 'false',
       'onselectstart': 'return false'
     }).append($('<div>', {
       'class': 'view-switch-bar',
@@ -2240,13 +2228,16 @@ var FlipperView = View.extend({
     }).append($('<div>', {
       'class': 'icon-plus-sign'
     }).css({
-      'display': 'inline-block'
+      'display': 'inline-block',
+      'cursor': 'pointer'
     })));
     this.initAction(this.$view);
     this._c = [];
+    this._tabIdx = -1;
+    this._needSelector = needSelector_ || false;
+    this._controller = FlipperController.create(this);
     this._curMotion = 'normal';
     this._main = 0;
-    this._cur = -1;
   },
 
   registObservers: function() {
@@ -2259,9 +2250,9 @@ var FlipperView = View.extend({
         }
         switch(widget_.getType()) {
           case 'grid':
-            _this._c['layout-view'] = GridView.create('grid-view', widget_, _this);
-            _this._c['layout-view'].show(_this.$view);
-            _this.addASwitcher(_this._c['layout-view'].getView());
+            var l = _this._c.push(GridView.create('grid-view', widget_, _this));
+            _this._c[l - 1].show(_this.$view);
+            _this.addASwitcher(_this._c[l - 1].getView());
             break;
           default:
             break;
@@ -2279,6 +2270,14 @@ var FlipperView = View.extend({
           'width': size_.width,
           'height': size_.height
         });
+      },
+      'cur': function(err_, from_, to_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this._switchMotion[_this._curMotion].hideView(_this._c[from_].getView());
+        _this._switchMotion[_this._curMotion].showView(_this._c[to_].getView());
       }
     };
     for(var key in _this.__handlers) {
@@ -2289,47 +2288,89 @@ var FlipperView = View.extend({
   initAction: function($selector) {
     this._switchMotion = {
       'normal': {
-        'showView': function() {},
-        'hideView': function() {}
+        'showView': function($view) {
+          $view.show();
+        },
+        'hideView': function($view) {
+          $view.hide();
+        }
       }
     };
     var _this = this;
-    // $selector.on();
+    $selector.on('drag', function(e) {
+      e.stopPropagation();
+    }).find('.icon-plus-sign').on('mousedown', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this._controller.onAdd();
+    });
   },
 
   show: function($parent) {
     $parent.append(this.$view);
+    var _this = this;
+    if(this._needSelector) {
+      this._selector = Selector.create(this, '#' + this._id, {
+        'enter': function() {
+          var _items = this.getSelectableItems();
+          if(_this._tabIdx != -1 && _items[_this._tabIdx] != null)
+            _items[_this._tabIdx]._controller.onDblclick();
+        },
+        'up': function() {
+          var _items = this.getSelectableItems();
+          _this._tabIdx += _this._dEntrys.length() - 1;
+          _this._tabIdx %= _this._dEntrys.length();
+          var _entry = _items[_this._tabIdx];
+          if(_entry == null) {
+            do{
+              _this._tabIdx--;
+              _entry = _items[0];
+            } while(_entry == null);
+          }
+          _entry.focus(); 
+        },
+        'down': function() {
+          var _items = this.getSelectableItems();
+          _this._tabIdx++; 
+          _this._tabIdx %= _this._dEntrys.length();
+          var _entry = _items[_this._tabIdx];
+          if(_entry == null) {
+            _this._tabIdx = 0;
+            _entry = _items[0];
+          } 
+          _entry.focus(); 
+        },
+        'clear': function() {
+          _this._tabIdx = -1;
+        }
+      });
+    } else {
+      this._selector = this._parent._selector;
+    }
   },
 
   addASwitcher: function($view) {
     var _this = this,
         $switcher = $('<div>', {
           'class': 'view-switcher showing'
-        }).click(function() {
+        }).on('mousedown', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
           var ss = _this.$view.find('.view-switcher');
+          $(ss[_this._model.getCur()]).removeClass('showing');
           for(var i = 0; i < ss.length; ++i) {
             if(this == ss[i]) {
-              _this.switchTo(i);
+              $(this).addClass('showing');
+              _this._model.setCur(i);
             }
           }
         });
+    _this.$view.find('.showing').removeClass('showing');
     _this.$view.find('.icon-plus-sign').before($switcher);
-    if(_this._cur != -1) {
-      _this._switchMotion[_this._curMotion].hideView(_this._c[_this._cur].getView());
-      _this._switchMotion[_this._curMotion].showView($view);
-    }
-    _this._cur = _this.$view.find('.view-switcher').length - 1;
+    _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
   },
 
   removeASwitcher: function(idx_) {
-  },
-
-  switchTo: function(idx_) {
-    if(this._cur != idx_) {
-      this._switchMotion[this._curMotion].hideView(this._c[this._cur].getView());
-      this._switchMotion[this._curMotion].showView(this._c[i].getView());
-      this._cur = i;
-    }
   },
 
   getCurSwitchMotion: function() {return this._curMotion;},
@@ -2344,5 +2385,12 @@ var FlipperView = View.extend({
     this._main = main_;
   },
 
-  getCurView: function() {return this._cur;}
+  getCurView: function() {
+    return this._c[this._model.getCur()];
+  },
+
+  getSelectableItems: function() {
+    return this._c[this._model.getCur()].getSelectableItems();
+  }
 });
+

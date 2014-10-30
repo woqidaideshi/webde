@@ -66,31 +66,19 @@ var ThemeModel = Model.extend({
   },
 
   loadThemeEntry: function(desktop_) {
-    /* if(!this.inited) { */
-      // this.req = desktop_;
-      // this.once('inited', this.loadThemeEntry);
-      // return ;
-    /* } */
     for(var key in this._theme) {
       if(key == 'icontheme') continue;
       if(this._theme[key]['active'] == 'false') continue;
       this.addAThemeEntry(key);
-      /* desktop_.addAnDEntry(ThemeEntry.create( */
-            // this._theme[key]['id'],
-            // desktop_._tabIndex++,
-            // this._theme[key]['path'],
-            // this._theme[key]['icon'],
-            // this._theme[key]['name']
-            // ), ((typeof this._theme[key]['pos'].x === 'undefined' 
-                  // || typeof this._theme[key]['pos'].y === 'undefined')
-                  /* ? undefined : this._theme[key]['pos'])); */
     }
   },
 
   addAThemeEntry: function(key_) {
-    _global.get('desktop').getCOMById('layout').add(ThemeEntryModel.create(
+    var layout = _global.get('desktop').getCOMById('layout'),
+        parent = layout.getAllWidgets()[layout.getCur()];
+    parent.add(ThemeEntryModel.create(
       this._theme[key_]['id'],
-      this,
+      parent,
       this._theme[key_]['path'],
       this._theme[key_]['icon'],
       this._theme[key_]['name'],
@@ -230,7 +218,7 @@ var DesktopModel = Model.extend({
     this._view = DesktopView.create(this);
     // TODO: get user config data, create all components(Launcher, Layout, Dock, DeviceList)
     this.add(LauncherModel.create(this));
-    this.add(LayoutModel.create('layout', this, LayoutManager, 'view-flipper'));
+    this.add(FlipperModel.create('layout', this, LayoutManager));
     // this.initLayout();
     this.add(DeviceListModel.create(this));
     this.add(DockModel.create(this));
@@ -283,9 +271,9 @@ var DesktopModel = Model.extend({
   },
 
   getGrid: function() {
-    if(this._layoutType == 'grid') {
-      return this.getCOMById('layout');
-    }
+    /* if(this._layoutType == 'grid') { */
+      // return this.getCOMById('layout');
+    /* } */
     return null;
   },
 
@@ -297,14 +285,16 @@ var DesktopModel = Model.extend({
       //console.log('add:', filename, stats);
       var _filenames = filename.split('.'),
           _model = null,
-          _id = 'id-' + stats.ino.toString();
+          _id = 'id-' + stats.ino.toString(),
+          _layout = _desktop.getCOMById('layout'),
+          _parent = _layout.getAllWidgets()[_layout.getCur()];
       
       if(_filenames[0] == '') {
         return ;//ignore hidden files
       }
       if(stats.isDirectory()) {
         _model = DirEntryModel.create(_id
-              , _desktop
+              , _parent
               , _desktop._desktopWatch.getBaseDir() + '/' + filename
               , _desktop._position);
       } else {
@@ -313,57 +303,47 @@ var DesktopModel = Model.extend({
             _model = _desktop.getCOMById('launcher').get(_id);
           } catch(e) {
             var linkPath = _desktop._desktopWatch.getBaseDir() + '/' + filename;
-            /* _global._fs.readlink(linkPath, function(err_, path_) { */
-              // if(err_) {
-                // _model = AppEntryModel.create(_id
-                  // , linkPath
-                  // , _desktop._position);
-              // } else {
-                // _model = AppEntryModel.create(_id
-                  // , path_
-                  // , _desktop._position);
-              // }
-              // _desktop.getCOMById('launcher').set(_model);
-              // _desktop.getCOMById('layout').add(_model);
-            /* }); */
             _model = AppEntryModel.create(_id
-                , _desktop
+                , _parent
                 , linkPath
                 , _desktop._position);
             _desktop.getCOMById('launcher').set(_model);
           } 
         } else {
           _model = FileEntryModel.create(_id
-              , _desktop
+              , _parent
               , _desktop._desktopWatch.getBaseDir() + '/' + filename
               , _desktop._position);
         }
       }
 
       if(_model != null)
-        _desktop.getCOMById('layout').add(_model);
-      // _desktop.addAnDEntry(EntryView.create(_id + '-entry-view', _model), _model.getPosition());
+        _parent.add(_model);
     });
     this._desktopWatch.on('delete', function(filename) {
       //console.log('delete:', filename);
-      //find entry object by path
       var /* _path = _desktop._desktopWatch.getBaseDir() + '/' + filename, */
-          _layout = _desktop.getCOMById('layout'),
-          _entry = _layout.getWidgetByAttr('_filename', filename);
-      if(_entry == null) {
-        console.log('Can not find this widget');
-        return ;
+          _layout = _desktop.getCOMById('layout').getAllWidgets();
+      for(var i = 0; i < _layout.length; ++i) {
+        var _entry = _layout[i].getWidgetByAttr('_filename', filename);
+        if(_entry == null) {
+          console.log('Can not find this widget');
+          return ;
+        }
+        _layout[i].remove(_entry);
       }
-      _layout.remove(_entry);
     });
     this._desktopWatch.on('rename', function(oldName, newName) {
       console.log('rename:', oldName, '->', newName);
-      var _entry = _desktop.getCOMById('layout').getWidgetByAttr('_filename', oldName);
-      if(_entry == null) {
-        console.log('Can not find this widget');
-        return ;
+      var _layout = _desktop.getCOMById('layout').getAllWidgets();
+      for(var i = 0; i < _layout.length; ++i) {
+        var _entry = _layout[i].getWidgetByAttr('_filename', oldName);
+        if(_entry == null) {
+          console.log('Can not find this widget');
+          return ;
+        }
+        _entry.rename(newName);
       }
-      _entry.rename(newName);
     });
   }
 });
@@ -426,20 +406,6 @@ var DockModel = Model.extend({
         try {
           _model = _desktop.getCOMById('launcher').get(_id);
         } catch(e) {
-          /* var linkPath = _this._dockWatch.getBaseDir() + '/' + filename; */
-          // _global._fs.readlink(linkPath, function(err_, path_) {
-            // if(err_) {
-              // _model = AppEntryModel.create(_id
-                // , linkPath
-                // , _desktop._position);
-            // } else {
-              // _model = AppEntryModel.create(_id
-                // , path_
-                // , _desktop._position);
-            // }
-            // _desktop.getCOMById('launcher').set(_model);
-            // _this.add(_model);
-          /* }); */
           _model = AppEntryModel.create(_id
             , _this 
             , _this._dockWatch.getBaseDir() + '/' + filename
@@ -451,7 +417,6 @@ var DockModel = Model.extend({
     });
     this._dockWatch.on('delete', function(filename) {
       //console.log('delete:', filename);
-      //find entry object by path
       // var _path = _this._dockWatch.getBaseDir() + '/' + filename;
       var _dockApp = _this.getCOMByAttr('_filename', filename);
       if(_dockApp == null) {
@@ -762,7 +727,7 @@ var AppEntryModel = EntryModel.extend({
     }
 
     var id = clip_.getData('ID'),
-        item = _global.get('desktop').getCOMById('layout').getWidgetById(id),
+        item = _global.get('desktop').getCOMById('layout').getCurLayout().getWidgetById(id),
         type = item.getType();
     if(type != 'app' && type.match(/\w*Plugin/) != null)
       this.open(item.getPath());
@@ -1025,7 +990,7 @@ var WidgetManager = Model.extend({
     }
     //handle destop entries
     _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()
-        , desktop._desktopWatch, this);
+        , desktop._desktopWatch, this._parent);
     //handle dock entries
    /*  _desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir() */
         /* ,_desktop._dock._dockWatch); */
@@ -1091,29 +1056,6 @@ var DeviceListModel = Model.extend({
     _global._device.createServer(function() {
       _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     });
-
-    /* this._timer = setInterval(function() { */
-      // for(var id in _this._c) {
-        // _this._c[id]._offline = true;
-      // }
-      // // update device list
-      // _global._device.showDeviceList(function(devs_) { 
-        // for(var addr in devs_) {
-          // var id_ = addr + ':' + devs_[addr].port;
-          // if(typeof _this._c[id_] === 'undefined') {
-            // var device = DeviceEntryModel.create(id_, devs_[addr].name);
-            // _this.add(device);
-          // } else {
-            // _this._c[id_]._offline = false;
-          // }
-        // }
-        // for(var id in _this._c) {
-          // if(_this._c[id]._offline) {
-            // _this.remove(_this._c[id]);
-          // }
-        // }
-      // }); 
-    /* }, 5000); */
   }
 });
 
@@ -1266,7 +1208,16 @@ var LayoutManager = Model.extend({
     grid.load();
   },
 
-  save: function() {}
+  save: function() {},
+
+  add: function(layout_) {
+    this._c.push(layout_);
+    this.emit('add', null, layout_);
+  },
+
+  remove: function(idx_) {
+    this._c.splice(idx_, 1);
+  }
 });
 
 var GridModel = LayoutModel.extend({
@@ -1492,3 +1443,31 @@ var GridModel = LayoutModel.extend({
     return null;
   }
 });
+
+var FlipperModel = LayoutModel.extend({
+  init: function(id_, parent_, Manager_) {
+    this.callSuper(id_, parent_, Manager_, 'flipper');
+    this._cur = -1;
+  },
+
+  getCur: function() {return this._cur;},
+
+  setCur: function(cur_) {
+    if(this._cur != -1 && this._cur != cur_)
+      this.emit('cur', null, this._cur, cur_);
+    this._cur = cur_;
+  },
+
+  getCurLayout: function() {
+    return this._wm._c[this._cur];
+  },
+
+  getIndex: function(layout_) {
+    var layouts = this.getAllWidgets();
+    for(var i = 0; i < layouts.length; ++i) {
+      if(layouts[i] == layout_)
+        return i;
+    }
+  }
+});
+

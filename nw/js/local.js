@@ -33,8 +33,14 @@ var FlipperController = Controller.extend({
   },
 
   onAdd: function() {
-    var desktop = _global.get('desktop'),
-        layout = desktop.getCOMById('layout');
+    var desktop = _global.get('desktop');
+    switch(desktop.getLayoutType()) {
+      case 'grid':
+        this._model.add(GridModel.create('grid', this._model, WidgetManager));
+        break;
+      default:
+        break;
+    }
   }
 })
 
@@ -55,7 +61,7 @@ var EntryController = WidgetController.extend({
 
   onRename: function() {
     var desktop = _global.get('desktop'),
-        layout = desktop.getCOMById('layout'),
+        layout = this._view._parent,
         _entry = this._model,
         $p = this._view.$view.children('p');
     _global.get('ctxMenu').hide();
@@ -71,7 +77,7 @@ var EntryController = WidgetController.extend({
         // entry's name has already existed
         var _entries = layout._dEntrys._items;
         for(var i = 0; i < _entries.length; ++i) {
-          if(_entries[i]._name == newtext) {
+          if(_entries[i]._model.getName() == newtext) {
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-top"
             };
