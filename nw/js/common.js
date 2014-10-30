@@ -422,6 +422,7 @@ var EntryUtil = Event.extend({
                     _model = desktop.getCOMById('launcher').get(_id);
                   } catch(e) {
                     _model = AppEntryModel.create(_id
+                      , _container
                       , lastSave_[_id].path
                       , {x: lastSave_[_id].x, y: lastSave_[_id].y});
                     desktop.getCOMById('launcher').set(_model);
@@ -434,7 +435,7 @@ var EntryUtil = Event.extend({
                   // _Entry = FileEntry;
               }
               if(_model != null)
-                container_.add(_model);
+                _container.add(_model);
             } else {
               _newEntry[_id] = {
                 'filename': file_,

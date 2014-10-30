@@ -27,6 +27,23 @@ var WidgetController = Controller.extend({
   }
 });
 
+var FlipperController = Controller.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onAdd: function() {
+    var desktop = _global.get('desktop');
+    switch(desktop.getLayoutType()) {
+      case 'grid':
+        this._model.add(GridModel.create('grid', this._model, WidgetManager));
+        break;
+      default:
+        break;
+    }
+  }
+})
+
 // The Controller of Grid
 //
 var GridController = WidgetController.extend({
@@ -44,7 +61,7 @@ var EntryController = WidgetController.extend({
 
   onRename: function() {
     var desktop = _global.get('desktop'),
-        layout = desktop.getCOMById('layout'),
+        layout = this._view._parent,
         _entry = this._model,
         $p = this._view.$view.children('p');
     _global.get('ctxMenu').hide();
@@ -60,7 +77,7 @@ var EntryController = WidgetController.extend({
         // entry's name has already existed
         var _entries = layout._dEntrys._items;
         for(var i = 0; i < _entries.length; ++i) {
-          if(_entries[i]._name == newtext) {
+          if(_entries[i]._model.getName() == newtext) {
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-top"
             };
@@ -78,14 +95,18 @@ var EntryController = WidgetController.extend({
     });
   },
 
-  onDrop: function(ev) {
-    var cmd;
+  onDrop: function(ev, tarArr) {
+    var cmd, tarIdArr = [];
+    for(var i = 0; i < tarArr.length; ++i) {
+      if(tarArr[i] != null)
+        tarIdArr.push(tarArr[i].getID());
+    }
     if(ev.ctrlKey || this._model.getType() == 'dev' || this._model.getType() == 'app') {
       cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo
-          , ev.originalEvent.dataTransfer);
+          , ev.originalEvent.dataTransfer, tarIdArr);
     } else {
       cmd = NoUndoCommand.create(this._model, 'exec', this._model.moveTo
-          , ev.originalEvent.dataTransfer);
+          , ev.originalEvent.dataTransfer, tarIdArr);
     }
     _global.get('theCP').perform(cmd);
   },
@@ -104,4 +125,5 @@ var DockEntryController = EntryController.extend({
   onClick: function() {
     this.onDblclick();
   }
-})
+});
+

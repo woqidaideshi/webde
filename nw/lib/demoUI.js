@@ -3352,5 +3352,4 @@ var Window = Class.extend({
       this._windowContent.append(content_);
     }
   }
-
 });
