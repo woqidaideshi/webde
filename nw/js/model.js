@@ -6,6 +6,7 @@
 //
 var ThemeModel = Model.extend({
   init: function(callback_) {
+    this.callSuper('theme');
     this._theme = [];
     this._themePath = _global.$xdg_data_home + "/theme.conf";
     this.getCurThemeConfig(callback_);
@@ -65,30 +66,19 @@ var ThemeModel = Model.extend({
   },
 
   loadThemeEntry: function(desktop_) {
-    /* if(!this.inited) { */
-      // this.req = desktop_;
-      // this.once('inited', this.loadThemeEntry);
-      // return ;
-    /* } */
     for(var key in this._theme) {
       if(key == 'icontheme') continue;
       if(this._theme[key]['active'] == 'false') continue;
       this.addAThemeEntry(key);
-      /* desktop_.addAnDEntry(ThemeEntry.create( */
-            // this._theme[key]['id'],
-            // desktop_._tabIndex++,
-            // this._theme[key]['path'],
-            // this._theme[key]['icon'],
-            // this._theme[key]['name']
-            // ), ((typeof this._theme[key]['pos'].x === 'undefined' 
-                  // || typeof this._theme[key]['pos'].y === 'undefined')
-                  /* ? undefined : this._theme[key]['pos'])); */
     }
   },
 
   addAThemeEntry: function(key_) {
-    _global.get('desktop').getCOMById('layout').add(ThemeEntryModel.create(
+    var layout = _global.get('desktop').getCOMById('layout'),
+        parent = layout.getAllWidgets()[layout.getCur()];
+    parent.add(ThemeEntryModel.create(
       this._theme[key_]['id'],
+      parent,
       this._theme[key_]['path'],
       this._theme[key_]['icon'],
       this._theme[key_]['name'],
@@ -99,7 +89,7 @@ var ThemeModel = Model.extend({
   },
 
   removeAThemeEntry: function(key_) {
-    var layout = _global.get('desktop').getCOMById('layout'),
+    var layout = _global.get('desktop').getCOMById('layout').getCurLayout(),
         entry = layout.getWidgetById(key_);
     layout.remove(entry);
   },
@@ -210,11 +200,6 @@ var DesktopModel = Model.extend({
         }
       }
     ]);
-    
-    // this._selector = DesktopSelector.create();
-    // this._tabIndex = -1;
-    // this._ctrlKey = false;
-    // this._rightMenu = undefined;
   },
 
   release: function() {
@@ -229,12 +214,14 @@ var DesktopModel = Model.extend({
   //
   preStart: function(cb_) {
     console.log('pre start');
+    // TODO: move to Global
     this._view = DesktopView.create(this);
     // TODO: get user config data, create all components(Launcher, Layout, Dock, DeviceList)
-    this.add(LauncherModel.create());
-    this.initLayout();
-    this.add(DeviceListModel.create());
-    this.add(DockModel.create());
+    this.add(LauncherModel.create(this));
+    this.add(FlipperModel.create('layout', this, LayoutManager));
+    // this.initLayout();
+    this.add(DeviceListModel.create(this));
+    this.add(DockModel.create(this));
     this.initDesktopWatcher();
     this._inputer = Inputer.create('d-inputer');
     var _this = this;
@@ -254,8 +241,7 @@ var DesktopModel = Model.extend({
   //
   start: function(cb_) {
     console.log('starting');
-    // TODO: Load contents to all components EXCEPT Launcher and DeciceList
-    _global.get('theme').loadThemeEntry(this);
+    // Load contents to all components EXCEPT Launcher and DeciceList
     this.getCOMById('layout').load();
     this.getCOMById('dock').load();
     cb_(null);
@@ -272,9 +258,7 @@ var DesktopModel = Model.extend({
   },
 
   initLayout: function() {
-    this.add(LayoutModel.create('layout'));
-    // TODO: check config of layout
-    this.setLayoutType('grid');
+    
   },
 
   getLayoutType: function() {return this._layoutType;},
@@ -287,9 +271,9 @@ var DesktopModel = Model.extend({
   },
 
   getGrid: function() {
-    if(this._layoutType == 'grid') {
-      return this.getCOMById('layout');
-    }
+    /* if(this._layoutType == 'grid') { */
+      // return this.getCOMById('layout');
+    /* } */
     return null;
   },
 
@@ -301,13 +285,16 @@ var DesktopModel = Model.extend({
       //console.log('add:', filename, stats);
       var _filenames = filename.split('.'),
           _model = null,
-          _id = 'id-' + stats.ino.toString();
+          _id = 'id-' + stats.ino.toString(),
+          _layout = _desktop.getCOMById('layout'),
+          _parent = _layout.getAllWidgets()[_layout.getCur()];
       
       if(_filenames[0] == '') {
         return ;//ignore hidden files
       }
       if(stats.isDirectory()) {
         _model = DirEntryModel.create(_id
+              , _parent
               , _desktop._desktopWatch.getBaseDir() + '/' + filename
               , _desktop._position);
       } else {
@@ -316,55 +303,47 @@ var DesktopModel = Model.extend({
             _model = _desktop.getCOMById('launcher').get(_id);
           } catch(e) {
             var linkPath = _desktop._desktopWatch.getBaseDir() + '/' + filename;
-            /* _global._fs.readlink(linkPath, function(err_, path_) { */
-              // if(err_) {
-                // _model = AppEntryModel.create(_id
-                  // , linkPath
-                  // , _desktop._position);
-              // } else {
-                // _model = AppEntryModel.create(_id
-                  // , path_
-                  // , _desktop._position);
-              // }
-              // _desktop.getCOMById('launcher').set(_model);
-              // _desktop.getCOMById('layout').add(_model);
-            /* }); */
             _model = AppEntryModel.create(_id
+                , _parent
                 , linkPath
                 , _desktop._position);
             _desktop.getCOMById('launcher').set(_model);
           } 
         } else {
           _model = FileEntryModel.create(_id
+              , _parent
               , _desktop._desktopWatch.getBaseDir() + '/' + filename
               , _desktop._position);
         }
       }
 
       if(_model != null)
-        _desktop.getCOMById('layout').add(_model);
-      // _desktop.addAnDEntry(EntryView.create(_id + '-entry-view', _model), _model.getPosition());
+        _parent.add(_model);
     });
     this._desktopWatch.on('delete', function(filename) {
       //console.log('delete:', filename);
-      //find entry object by path
       var /* _path = _desktop._desktopWatch.getBaseDir() + '/' + filename, */
-          _layout = _desktop.getCOMById('layout'),
-          _entry = _layout.getWidgetByAttr('_filename', filename);
-      if(_entry == null) {
-        console.log('Can not find this widget');
-        return ;
+          _layout = _desktop.getCOMById('layout').getAllWidgets();
+      for(var i = 0; i < _layout.length; ++i) {
+        var _entry = _layout[i].getWidgetByAttr('_filename', filename);
+        if(_entry == null) {
+          console.log('Can not find this widget');
+          return ;
+        }
+        _layout[i].remove(_entry);
       }
-      _layout.remove(_entry);
     });
     this._desktopWatch.on('rename', function(oldName, newName) {
       console.log('rename:', oldName, '->', newName);
-      var _entry = _desktop.getCOMById('layout').getWidgetByAttr('_filename', oldName);
-      if(_entry == null) {
-        console.log('Can not find this widget');
-        return ;
+      var _layout = _desktop.getCOMById('layout').getAllWidgets();
+      for(var i = 0; i < _layout.length; ++i) {
+        var _entry = _layout[i].getWidgetByAttr('_filename', oldName);
+        if(_entry == null) {
+          console.log('Can not find this widget');
+          return ;
+        }
+        _entry.rename(newName);
       }
-      _entry.rename(newName);
     });
   }
 });
@@ -372,8 +351,8 @@ var DesktopModel = Model.extend({
 // Dock component of Desktop
 //
 var DockModel = Model.extend({
-  init: function() {
-    this.callSuper('dock');
+  init: function(parent_) {
+    this.callSuper('dock', parent_);
     this._index = 0;
     this.initWatcher();
   },
@@ -427,21 +406,8 @@ var DockModel = Model.extend({
         try {
           _model = _desktop.getCOMById('launcher').get(_id);
         } catch(e) {
-          /* var linkPath = _this._dockWatch.getBaseDir() + '/' + filename; */
-          // _global._fs.readlink(linkPath, function(err_, path_) {
-            // if(err_) {
-              // _model = AppEntryModel.create(_id
-                // , linkPath
-                // , _desktop._position);
-            // } else {
-              // _model = AppEntryModel.create(_id
-                // , path_
-                // , _desktop._position);
-            // }
-            // _desktop.getCOMById('launcher').set(_model);
-            // _this.add(_model);
-          /* }); */
-          _model = AppEntryModel.create(_id 
+          _model = AppEntryModel.create(_id
+            , _this 
             , _this._dockWatch.getBaseDir() + '/' + filename
             , _this._position);
           _desktop.getCOMById('launcher').set(_model); 
@@ -451,7 +417,6 @@ var DockModel = Model.extend({
     });
     this._dockWatch.on('delete', function(filename) {
       //console.log('delete:', filename);
-      //find entry object by path
       // var _path = _this._dockWatch.getBaseDir() + '/' + filename;
       var _dockApp = _this.getCOMByAttr('_filename', filename);
       if(_dockApp == null) {
@@ -476,8 +441,8 @@ var DockModel = Model.extend({
 // Base Class for all widget models
 //
 var WidgetModel = Model.extend({
-  init: function(id_, position_) {
-    this.callSuper(id_);
+  init: function(id_, parent_, position_) {
+    this.callSuper(id_, parent_);
     this._position = position_;
   },
   
@@ -494,8 +459,8 @@ var WidgetModel = Model.extend({
 });
 
 var DPluginModel = WidgetModel.extend({
-  init: function(id_, path_, type_, position_) {
-    this.callSuper(id_, position_);
+  init: function(id_, parent_, path_, type_, position_) {
+    this.callSuper(id_, parent_, position_);
     this._path = path_;
     this._type = type_ || 'plugin';
     this._col_num = 0;
@@ -516,9 +481,8 @@ var DPluginModel = WidgetModel.extend({
   setSize: function(size_) {
     this._size = size_;
     // TODO: recal col_num and row_num;
-    var grid = _global.get('desktop').getGrid();
-    if(grid != null) {
-      var gridSize = grid.getGridSize();
+    if(this._parent.getType() == 'grid') {
+      var gridSize = this._parent.getGridSize();
       this._col_num = parseInt(this._size.width / gridSize.gridWidth - 0.00001) + 1;
       this._row_num = parseInt(this._size.height / gridSize.gridHeight - 0.00001) + 1;
     }
@@ -534,11 +498,10 @@ var DPluginModel = WidgetModel.extend({
         'height': this._size.width + 15
       });
 
-      var grid = _global.get('desktop').getGrid(),
-          _this = this,
+      var _this = this,
           ctxMenu = _global.get('ctxMenu');
-      if(grid != null)
-        grid.flagGridOccupy(
+      if(_this._parent.getType() == 'grid')
+        _this._parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -559,10 +522,9 @@ var DPluginModel = WidgetModel.extend({
     if(this._size.width == 90) {
       alert('the plugin has been min size!!');
     } else {
-      var grid = _global.get('desktop').getGrid(),
-          _this = this;
-      if(grid != null)
-        grid.flagGridOccupy(
+      var _this = this;
+      if(_this._parent.getType() == 'grid')
+        _this._parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -573,8 +535,8 @@ var DPluginModel = WidgetModel.extend({
         'height': this._size.width * 1 - 15
       });
 
-      if(grid != null)
-        grid.flagGridOccupy(
+      if(_this._parent.getType() == 'grid')
+        _this._parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -605,12 +567,12 @@ var DPluginModel = WidgetModel.extend({
 // The model of Entry
 //
 var EntryModel = WidgetModel.extend({
-  init: function(id_, path_, position_) {
+  init: function(id_, parent_, path_, position_) {
     if(typeof id_ === "undefined"
       || typeof path_ === "undefined") {
       throw "Not enough params!! Init failed!!";
     }
-    this.callSuper(id_, position_);
+    this.callSuper(id_, parent_, position_);
     this._path = path_;
     this._filename = path_.match(/[^\/]*$/)[0];
     this._name = id_;
@@ -679,8 +641,8 @@ var EntryModel = WidgetModel.extend({
 // events provided: {'position', 'name', 'path', 'imgPath', 'cmd', 'type', 'index'}
 //
 var AppEntryModel = EntryModel.extend({
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
     var cb_ = callback_ || function() {};
     this._execCmd = null;
     this._type = 'app';
@@ -765,7 +727,7 @@ var AppEntryModel = EntryModel.extend({
     }
 
     var id = clip_.getData('ID'),
-        item = _global.get('desktop').getCOMById('layout').getWidgetById(id),
+        item = _global.get('desktop').getCOMById('layout').getCurLayout().getWidgetById(id),
         type = item.getType();
     if(type != 'app' && type.match(/\w*Plugin/) != null)
       this.open(item.getPath());
@@ -791,8 +753,8 @@ var AppEntryModel = EntryModel.extend({
 });
 
 var FileEntryModel = EntryModel.extend({
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
     var  match = /^.*[\/]([^\/]*)$/.exec(path_);
     this._name = match[1];
     this._type = 'file';
@@ -865,8 +827,8 @@ var FileEntryModel = EntryModel.extend({
 });
 
 var DirEntryModel = FileEntryModel.extend({
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
     this._type = 'dir';
   },
 
@@ -874,7 +836,8 @@ var DirEntryModel = FileEntryModel.extend({
   copyTo: function() {},
 
   // TODO: move file to this dir
-  moveTo: function(clip_) {
+  moveTo: function(clip_, entryIds_) {
+    // handle file move
     if(clip_.files.length != 0) {
       for(var i = 0; i < clip_.files.length; ++i) {
         if(clip_.files[i].path == this._path) continue;
@@ -888,24 +851,26 @@ var DirEntryModel = FileEntryModel.extend({
       }
       return ;
     }
-
-    var id = clip_.getData('ID'),
-        desktop = _global.get('desktop'),
-        item = desktop.getCOMById('layout').getWidgetById(id),
-        type = item.getType(),
-        srcP = null;
-    if(id == this._id || type.match(/\w*Plugin/) != null) return ;
-    if(item.getType() == 'app') {
-      srcP = desktop._desktopWatch.getBaseDir() + item.getFilename();
-    } else {
-      srcP = item.getPath();
-    }
-    // TODO: replace this API
-    _global._fs.rename(srcP, this._path + '/' + item.getFilename(), function(err) {
-      if(err) {
-        console.log(err);
+    // handle entry move
+    entryIds_.push(clip_.getData('ID'));
+    for(var i = 0; i < entryIds_.length; ++i) {
+      var desktop = _global.get('desktop'),
+          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]),
+          type = item.getType(),
+          srcP = null;
+      if(entryIds_[i] == this._id || typeof item === 'undefined') return ;
+      if(item.getType() == 'app') {
+        srcP = desktop._desktopWatch.getBaseDir() + '/' + item.getFilename();
+      } else {
+        srcP = item.getPath();
       }
-    });
+      // TODO: replace this API
+      _global._fs.rename(srcP, this._path + '/' + item.getFilename(), function(err) {
+        if(err) {
+          console.log(err);
+        }
+      });
+    }
   },
 
   rename: function(name_) {
@@ -923,8 +888,8 @@ var DirEntryModel = FileEntryModel.extend({
 });
 
 var ThemeEntryModel = EntryModel.extend({
-  init: function(id_, path_, iconName_, name_, position_, callback_) {
-    this.callSuper(id_, path_, position_, callback_);
+  init: function(id_, parent_, path_, iconName_, name_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_, callback_);
     this._iconName = iconName_;
     this._name = name_;
     this._type = 'theme';
@@ -962,8 +927,8 @@ var ThemeEntryModel = EntryModel.extend({
 // Use lazy stratagy
 //
 var LauncherModel = Model.extend({
-  init: function() {
-    this.callSuper('launcher');
+  init: function(parent_) {
+    this.callSuper('launcher', parent_);
     this._appCache = Cache.create(); // caches app models
   },
 
@@ -989,12 +954,13 @@ var LauncherModel = Model.extend({
 // The manager of Widgets
 //
 var WidgetManager = Model.extend({
-  init: function() {
-    this.callSuper('widgetmanager');
+  init: function(parent_) {
+    this.callSuper('widgetmanager', parent_);
   },
 
-  loadWidgets: function() {
-    // TODO: load theme entry
+  load: function() {
+    // load theme entry
+    _global.get('theme').loadThemeEntry(this);
     var _lastSave = [],
         desktop = _global.get('desktop'),
         lines = desktop._USER_CONFIG.split('\n');
@@ -1007,7 +973,7 @@ var WidgetManager = Model.extend({
       switch(attr[4]) {
         case "ClockPlugin":
         case "ImagePlugin":
-          _plugin = DPluginModel.create(attr[0], attr[1], attr[4]
+          _plugin = DPluginModel.create(attr[0], this._parent, attr[1], attr[4]
               , {x: attr[2], y: attr[3]});
           break;
         default:
@@ -1024,13 +990,13 @@ var WidgetManager = Model.extend({
     }
     //handle destop entries
     _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()
-        , desktop._desktopWatch, this);
+        , desktop._desktopWatch, this._parent);
     //handle dock entries
    /*  _desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir() */
         /* ,_desktop._dock._dockWatch); */
   },
 
-  saveWidgets: function() {
+  save: function() {
     var data = "";
     for(var key in this._c) {
       if(typeof theme._theme[key] !== 'undefined') continue;
@@ -1049,26 +1015,115 @@ var WidgetManager = Model.extend({
   }
 });
 
+var DeviceListModel = Model.extend({
+  init: function(parent_) {
+    this.callSuper('device-list', parent_);
+  },
+
+  release: function() {
+    // TODO: release device monitor server
+    _global._device.removeDeviceListener(this.__handler);
+    _global._device.entryGroupReset();
+  },
+
+  __handler: function(ev_, dev_) {
+    if(dev_ == null) return ;
+    var _this = _global.get('desktop').getCOMById('device-list'),
+        id_ = dev_.address + ':' + dev_.port;
+    switch(ev_) {
+      case 'ItemNew':
+        var device = DeviceEntryModel.create(id_, _this, dev_.host, dev_);
+        _this.add(device);
+        break;
+      case 'ItemRemove':
+        var device = _this.getCOMById(id_);
+        _this.remove(device);
+        break;
+    }
+  },
+
+  start: function() {
+    //load devices
+    /* _global._device.showDeviceList(function(devs_) {   */
+      // for(var addr in devs_) {
+        // var id_ = addr + ':' + devs_[addr].port;
+        // var device = DeviceEntryModel.create(id_, devs_[addr].name);
+        // _this.add(device);
+      // }
+    /* }); */
+    var _this = this;
+    _global._device.addDeviceListener(this.__handler);
+    _global._device.createServer(function() {
+      _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
+    });
+  }
+});
+
+var DeviceEntryModel = EntryModel.extend({
+  // @id_ is address:port
+  // @path_ is name
+  // @position_ is whole info object
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
+    this._name = path_;
+    this._offline = false;
+    this._type = 'dev';
+    this._imgPath = 'img/pc.svg';
+    this.realInit(callback_);
+  },
+
+  realInit: function(cb_) {
+    var cb = cb_ || function() {};
+    // TODO: get icon from cache or fs, and call cb at last
+    cb(null);
+  },
+
+  // TODO: show something about this device
+  open: function() {
+    console.log(this._position);
+    var msg = '';
+    for(var key in this._position) {
+      msg += key + ': ' + this._position[key] + '<br/>';
+    }
+    Messenger().post(msg);
+  },
+
+  // send a file to remote device
+  copyTo: function(dataTransfer) {
+    if(dataTransfer.files.length != 0) {
+      for(var i = 0; i < dataTransfer.files.length; ++i) {
+        Messenger().post(dataTransfer.files[i].path);
+        // TODO: use api from lower layer
+      }
+      return ;
+    }
+
+    var id = dataTransfer.getData("ID"),
+        layout = _global.get('desktop').getCOMById('layout').getCurLayout(),
+        item = layout.getWidgetById(id);
+    if(item.getType() == 'file') {
+      Messenger().post(item.getPath());
+      // TODO: use api from lower layer
+    }
+  }
+});
+
 // The model class of Layout
 //
 var LayoutModel = WidgetModel.extend({
-  init: function(id_) {
-    this.callSuper(id_);
+  init: function(id_, parent_, Manager_, type_) {
+    this.callSuper(id_, parent_);
 
-    this._wm = WidgetManager.create();
+    this._wm = Manager_.create(this);
+    this._type = type_;
     // TODO: move to view
-    this._width = $(document).width();
-    this._height = $(document).height() * 0.9;
-    this._col = 80 + 20;
-    this._row = 80 + 20;
-
-    // remain
-    this._col_num = Math.floor(this._width / this._col);
-    this._row_num = Math.floor(this._height / this._row);
-    this._grid = [];
+    this._width = 0;//$(document).width();
+    this._height = 0;//$(document).height() * 0.9;
   },
 
   release: function() {},
+
+  getType: function() {return this._type;},
 
   add: function(widget_) {
     this._wm.add(widget_);
@@ -1086,6 +1141,10 @@ var LayoutModel = WidgetModel.extend({
     return this._wm.getCOMByAttr(attr_, value_);
   },
 
+  getAllWidgets: function() {
+    return this._wm.getAllCOMs();
+  },
+
   on: function() {
     return this._wm.on.apply(this._wm, arguments);
   },
@@ -1094,12 +1153,25 @@ var LayoutModel = WidgetModel.extend({
     return this._wm.off.apply(this._wm, arguments);
   },
 
+  emit: function() {
+    return this._wm.emit.apply(this._wm, arguments);
+  },
+
+  // load widgets from saved data
   load: function() {
-    this._wm.loadWidgets();
+    this._wm.load();
+  },
+
+  // load widgets from an array in which widgets have been created.
+  // @widgetArr_: [{id1: widget1}, {id2: widget2}, ...]
+  loadEntities: function(widgetArr_) {
+    for(var key in widgetArr_) {
+      this.add(widgetArr_[key]);
+    }
   },
 
   save: function() {
-    this._wm.saveWidgets();
+    this._wm.save();
   },
 
   getSize: function() {
@@ -1112,16 +1184,64 @@ var LayoutModel = WidgetModel.extend({
   setSize: function(size_) {
     this._width = size_.width || this._width;
     this._height = size_.height || this._height;
-    // TODO: check if the size is different, recalculate the col_num and row_num
-    //  and then notify to redraw the view of layout
-    this.emit('layout_size', {
+    this.emit('layout_size', null, {
       'width': this._width,
       'height': this._height
     });
+  },
+
+  // TODO: implement a funtion for PlaneView to judge whether two entries are overlap.
+  //        should be implemented in View
+  isOverlap: function(entry1_, entry2_) {}
+});
+
+var LayoutManager = Model.extend({
+  init: function(parent_) {
+    this.callSuper('layout-manager', parent_);
+  },
+
+  load: function() {
+    // TODO: check config of layout
+    _global.get('desktop').setLayoutType('grid');
+    var grid = GridModel.create('grid', this._parent, WidgetManager);
+    this.add(grid);
+    grid.load();
+  },
+
+  save: function() {},
+
+  add: function(layout_) {
+    this._c.push(layout_);
+    this.emit('add', null, layout_);
+  },
+
+  remove: function(idx_) {
+    this._c.splice(idx_, 1);
+  }
+});
+
+var GridModel = LayoutModel.extend({
+  init: function(id_, parent_, Manager_) {
+    this.callSuper(id_, parent_, Manager_, 'grid');
+
+    // TODO: get initialize data from saved data
+    this._col = 80 + 20;
+    this._row = 80 + 20;
+
+    // remain
+    this._col_num = 0; //Math.floor(this._width / this._col);
+    this._row_num = 0; //Math.floor(this._height / this._row);
+    this._grid = [];
+  },
+
+  release: function() {},
+
+  setSize: function(size_) {
+    this.callSuper(size_);
     if(typeof size_.width !== 'undefined' || typeof size_.height !== 'undefined')
       this.cal();
   },
-  
+
   getGridSize: function() {
     return {
       'gridWidth': this._col,
@@ -1134,7 +1254,7 @@ var LayoutModel = WidgetModel.extend({
     this._row = gridSize_.gridHeight || this._row;
     // TODO: check if the size is different, recalculate the col_num and row_num
     //  and then notify to redraw the view of layout
-    this.emit('grid_size', {
+    this.emit('grid_size', null, {
       'gridWidth': this._col,
       'gridHeight': this._row
     });
@@ -1150,11 +1270,13 @@ var LayoutModel = WidgetModel.extend({
     var cn = Math.floor(this._width / this._col);
     var rn = Math.floor(this._height / this._row);
     if(cn != this._col_num || rn != this._row_num) {
+      var _col_diff = cn - this._col_num,
+          _row_diff = rn - this._row_num;
       this._col_num = cn;
       this._row_num = rn;
       this.emit('col_row', {
-        'col': this._col_num,
-        'row': this._row_num
+        'col_diff': _col_diff,
+        'row_diff': _row_diff
       });
     }
   },
@@ -1224,14 +1346,14 @@ var LayoutModel = WidgetModel.extend({
       case 0:
       return {x:col,y:row};          
       case 8: 
-        if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};                 //left
+        if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};        //left
         else if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};    // top
-        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
+        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};  //left-top
         break;
       case 4 :
         if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};        //right
         else if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};    //top
-        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};    //right-top
+        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1}; //right-top
         break;
       case 2:
         if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};        //left 
@@ -1241,31 +1363,31 @@ var LayoutModel = WidgetModel.extend({
       case 1:
         if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};        //right
         else if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};    //down
-        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};    //right-down
+        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1}; //right-down
         break;
       case 3:
         if (this.isIdleGrid(col, row+1, col_l,row_l)) return {x:col,y:row+1};        //down
-        else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};  //left-down
-        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};    //right-down
+        else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1}; //left-down
+        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1}; //right-down
         break;
       case 12:
         if (this.isIdleGrid(col, row-1, col_l,row_l)) return {x:col,y:row-1};        //top
-        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
-        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};    //right-top
+        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};  //left-top
+        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};  //right-top
         break;
       case 10:
         if (this.isIdleGrid(col+1, row, col_l,row_l)) return {x:col+1,y:row};        //left
-        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
+        else if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};  //left-top
         else if (this.isIdleGrid(col+1, row+1, col_l,row_l)) return {x:col+1,y:row+1};  //left-down
         break;
       case 5:
         if (this.isIdleGrid(col-1, row, col_l,row_l)) return {x:col-1,y:row};        //right
-        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};    //right-top
-        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};    //right-down
+        else if (this.isIdleGrid(col-1, row-1, col_l,row_l)) return {x:col-1,y:row-1};  //right-top
+        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};  //right-down
         break;
       case 6:
         if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
-        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};    //right-down
+        else if (this.isIdleGrid(col-1, row+1, col_l,row_l)) return {x:col-1,y:row+1};  //right-down
         break;
       case 14:
         if (this.isIdleGrid(col+1, row-1, col_l,row_l)) return {x:col+1,y:row-1};    //left-top
@@ -1319,123 +1441,32 @@ var LayoutModel = WidgetModel.extend({
       t_pos_.y = 0;
     }
     return null;
-  },
-
-  // TODO: implement a funtion for PlaneView to judge whether two entries are overlap.
-  isOverlap: function(entry1_, entry2_) {}
-});
-
-var DeviceListModel = Model.extend({
-  init: function() {
-    this.callSuper('device-list');
-  },
-
-  release: function() {
-    // TODO: release device monitor server
-    _global._device.removeDeviceListener(this.__handler);
-    _global._device.entryGroupReset();
-  },
-
-  __handler: function(ev_, dev_) {
-    if(dev_ == null) return ;
-    var _this = _global.get('desktop').getCOMById('device-list'),
-        id_ = dev_.address + ':' + dev_.port;
-    switch(ev_) {
-      case 'ItemNew':
-        var device = DeviceEntryModel.create(id_, dev_.host, dev_);
-        _this.add(device);
-        break;
-      case 'ItemRemove':
-        var device = _this.getCOMById(id_);
-        _this.remove(device);
-        break;
-    }
-  },
-
-  start: function() {
-    //load devices
-    /* _global._device.showDeviceList(function(devs_) {   */
-      // for(var addr in devs_) {
-        // var id_ = addr + ':' + devs_[addr].port;
-        // var device = DeviceEntryModel.create(id_, devs_[addr].name);
-        // _this.add(device);
-      // }
-    /* }); */
-    var _this = this;
-    _global._device.addDeviceListener(this.__handler);
-    _global._device.createServer(function() {
-      _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
-    });
-
-    /* this._timer = setInterval(function() { */
-      // for(var id in _this._c) {
-        // _this._c[id]._offline = true;
-      // }
-      // // update device list
-      // _global._device.showDeviceList(function(devs_) { 
-        // for(var addr in devs_) {
-          // var id_ = addr + ':' + devs_[addr].port;
-          // if(typeof _this._c[id_] === 'undefined') {
-            // var device = DeviceEntryModel.create(id_, devs_[addr].name);
-            // _this.add(device);
-          // } else {
-            // _this._c[id_]._offline = false;
-          // }
-        // }
-        // for(var id in _this._c) {
-          // if(_this._c[id]._offline) {
-            // _this.remove(_this._c[id]);
-          // }
-        // }
-      // }); 
-    /* }, 5000); */
   }
 });
 
-var DeviceEntryModel = EntryModel.extend({
-  // @id_ is address:port
-  // @path_ is name
-  // @position_ is whole info object
-  init: function(id_, path_, position_, callback_) {
-    this.callSuper(id_, path_, position_);
-    this._name = path_;
-    this._offline = false;
-    this._type = 'dev';
-    this._imgPath = 'img/pc.svg';
-    this.realInit(callback_);
+var FlipperModel = LayoutModel.extend({
+  init: function(id_, parent_, Manager_) {
+    this.callSuper(id_, parent_, Manager_, 'flipper');
+    this._cur = -1;
   },
 
-  realInit: function(cb_) {
-    var cb = cb_ || function() {};
-    // TODO: get icon from cache or fs, and call cb at last
-    cb(null);
+  getCur: function() {return this._cur;},
+
+  setCur: function(cur_) {
+    if(this._cur != -1 && this._cur != cur_)
+      this.emit('cur', null, this._cur, cur_);
+    this._cur = cur_;
   },
 
-  // TODO: show something about this device
-  open: function() {
-    console.log(this._position);
-    var msg = '';
-    for(var key in this._position) {
-      msg += key + ': ' + this._position[key] + '<br/>';
-    }
-    Messenger().post(msg);
+  getCurLayout: function() {
+    return this._wm._c[this._cur];
   },
 
-  copyTo: function(dataTransfer) {
-    if(dataTransfer.files.length != 0) {
-      for(var i = 0; i < dataTransfer.files.length; ++i) {
-        Messenger().post(dataTransfer.files[i].path);
-        // TODO: use api from lower layer
-      }
-      return ;
-    }
-
-    var id = dataTransfer.getData("ID"),
-        layout = _global.get('desktop').getCOMById('layout'),
-        item = layout.getWidgetById(id);
-    if(item.getType() == 'file') {
-      Messenger().post(item.getPath());
-      // TODO: use api from lower layer
+  getIndex: function(layout_) {
+    var layouts = this.getAllWidgets();
+    for(var i = 0; i < layouts.length; ++i) {
+      if(layouts[i] == layout_)
+        return i;
     }
   }
 });

@@ -4,8 +4,8 @@
 // The view of Desktop
 //
 var DesktopView = View.extend({
-  init: function(model_) {
-    this.callSuper('desktop-view', model_);
+  init: function(model_, parent_) {
+    this.callSuper('desktop-view', model_, parent_);
     this.controller = DesktopController.create(this);
     this.registObservers();
     this.$view = $('body')/* .attr({id: this.getID()}) */;
@@ -24,13 +24,15 @@ var DesktopView = View.extend({
             //  here just create a view object)
             break;
           case 'layout':
+            _this._c['layout'] = FlipperView.create(component_, _this, true);
+            _this._c['layout'].show(_this.$view);
             break;
           case 'device-list':
-            _this._c['device-list'] = DeviceListView.create(component_);
+            _this._c['device-list'] = DeviceListView.create(component_, _this);
             _this._c['device-list'].show(_this.$view);
             break;
           case 'dock':
-            _this._c[component_.getID()] = DockView.create(component_);
+            _this._c[component_.getID()] = DockView.create(component_, _this);
             _this._c[component_.getID()].show(_this.$view);
             break;
           default:
@@ -43,13 +45,7 @@ var DesktopView = View.extend({
       'layout': function(err_, viewType_, layoutModel_) {
         // TODO: 
         //  reset desktop layout
-        switch(viewType_) {
-          case 'grid':
-            _this._c['layout-view'] = GridView.create('grid-view', layoutModel_);
-            _this._c['layout-view'].show(_this.$view);
-            break;
-          default:
-            break;
+        if(_this._c['layout'].getCurView() != -1) {
         }
       }
     };
@@ -140,8 +136,8 @@ var DesktopView = View.extend({
         {text: 'clock', icon: 'icon-time', action: function(e) {
           e.preventDefault();
           if (typeof $('#clock')[0] == 'undefined') {
-            desktop.getCOMById('layout')
-              .add(DPluginModel.create('clock', 'img/clock.png', 'ClockPlugin'));
+            var layout = desktop.getCOMById('layout').getCurLayout();
+            layout.add(DPluginModel.create('clock', layout, 'img/clock.png', 'ClockPlugin'));
             ctxMenu.disableItem('add-plugin', 'clock');
           }
         }}
@@ -202,24 +198,25 @@ var DesktopView = View.extend({
       ]}
     ]);
 
-    var layout = desktop.getCOMById('layout'),
+    var /* layout = desktop.getCOMById('layout').getCurLayout(), */
         _this = this;
     ctxMenu.addCtxMenu([
       {header: 'plugin'},
       {text: 'zoom in', action: function(e) {
         e.preventDefault();
-        desktop.getCOMById('layout').getWidgetById(ctxMenu._rightObjId).zoomIn();
+        desktop.getCOMById('layout').getCurLayout().getWidgetById(ctxMenu._rightObjId).zoomIn();
       }},
       {text: 'zoom out', action: function(e) {
         e.preventDefault();
-        desktop.getCOMById('layout').getWidgetById(ctxMenu._rightObjId).zoomOut();
+        desktop.getCOMById('layout').getCurLayout().getWidgetById(ctxMenu._rightObjId).zoomOut();
       }},
       {text:'remove', action:function(e) {
         e.preventDefault();
-        var _widget = layout.getWidgetById(ctxMenu._rightObjId);
+        var layout = desktop.getCOMById('layout').getCurLayout(),
+            _widget = layout.getWidgetById(ctxMenu._rightObjId);
         ctxMenu.activeItem('add-plugin', 'clock', function(e_) {
           e_.preventDefault();
-          layout.add(DPluginModel.create('clock', 'img/clock.png', 'ClockPlugin'));
+          layout.add(DPluginModel.create('clock', layout, 'img/clock.png', 'ClockPlugin'));
         });
         layout.remove(_widget);
       }},
@@ -236,12 +233,12 @@ var DesktopView = View.extend({
       {header: 'app-entry'},
       {text: 'Open', action: function(e) {
         e.preventDefault();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
       {text:'delete' , icon: 'icon-remove-circle', action:function(e){
         e.preventDefault();
@@ -259,7 +256,7 @@ var DesktopView = View.extend({
       {header: 'file-entry'},
       {text: 'Open', icon: 'icon-folder-open-alt', action: function(e) {
         e.preventDefault();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text:'Open with...',icon: 'icon-folder-open', subMenu: [
         {header: 'Open with'}]
@@ -268,7 +265,7 @@ var DesktopView = View.extend({
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
       {text:'Move to Trash' ,icon: 'icon-trash', action:function(e){
         e.preventDefault();
@@ -327,12 +324,12 @@ var DesktopView = View.extend({
       {header: 'theme-entry'},
       {text: 'Open', action: function(e) {
         e.preventDefault();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onDblclick();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
       {text: 'Rename', action: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        _this._c['layout-view']._c[ctxMenu._rightObjId]._controller.onRename();
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }}
     ]);
   },
@@ -378,8 +375,8 @@ var DesktopView = View.extend({
 // Base class for all widget views 
 //
 var WidgetView = View.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
   },
   
   registObservers: function() {
@@ -442,9 +439,10 @@ var WidgetView = View.extend({
 // Grid view for Layout model
 //
 var GridView = WidgetView.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_, needSelector_) {
+    this.callSuper(id_, model_, parent_);
     this._controller = GridController.create(this);
+    this._draw = false;
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'gridcontainer', 
@@ -453,6 +451,7 @@ var GridView = WidgetView.extend({
     });
     this._c = [];
     this._tabIdx = -1;
+    this._needSelector = needSelector_ || false;
     this._dEntrys = OrderedQueue.create(function(entry1_, entry2_) {
       var pos1 = entry1_._model.getPosition(),
           pos2 = entry2_._model.getPosition();
@@ -480,7 +479,7 @@ var GridView = WidgetView.extend({
         }
         switch(widget_.getType()) {
           case 'ClockPlugin':
-            _this.addAnDPlugin(ClockPluginView.create(widget_.getID(), widget_), widget_);
+            _this.addAnDPlugin(ClockPluginView.create(widget_.getID(), widget_, _this), widget_);
             break;
           case 'ImagePlugin':
             break;
@@ -502,6 +501,23 @@ var GridView = WidgetView.extend({
           default:
             _this.deleteADEntry(widget_);
             break;
+        }
+      },
+      'layout_size': function(err_, size_) {
+        // redraw the layout container's size
+        _this.$view.css({
+          'width': size_.width,
+          'height': size_.height
+        });
+      },
+      'grid_size': function(err_, size_) {
+        // TODO: redraw the grid_size
+      },
+      'col_row': function(err_, col_row_diff_) {
+        if(!_this._draw) {
+          _this.drawGrids();
+        } else {
+          // TODO: add or remove colume or row
         }
       }
     };
@@ -530,13 +546,14 @@ var GridView = WidgetView.extend({
   },
 
   deleteADEntry: function(entry_) {
-    var _pos = entry_.getPosition();
+    var _pos = entry_.getPosition(),
+        _id = entry_.getID();
     this._model._grid[_pos.x][_pos.y].use = false;
-    this._dEntrys.remove(entry_.getTabIdx() - 1);
+    this._dEntrys.remove(this._c[_id].getTabIndex() - 1);
     this.resetDEntryTabIdx();
-    this._c[entry_.getID()].destroy();
-    this._c[entry_.getID()] = null;
-    delete this._c[entry_.getID()];
+    this._c[_id].destroy();
+    this._c[_id] = null;
+    delete this._c[_id];
   },
 
   resetDEntryTabIdx: function() {
@@ -574,66 +591,97 @@ var GridView = WidgetView.extend({
     delete this._c[entry_.getID()];
   },
 
-  show: function($parent) {
-    $parent.append(this.$view);
-    var _this = this;
-    this._selector = Selector.create(this, '#' + this._id, {
-      'enter': function() {
-        if(_this._tabIdx != -1 && _this._dEntrys._items[_this._tabIdx] != null)
-          _this._dEntrys._items[_this._tabIdx]._controller.onDblclick();
-      },
-      'up': function() {
-        _this._tabIdx += _this._dEntrys.length() - 1;
-        _this._tabIdx %= _this._dEntrys.length();
-        var _entry = _this._dEntrys._items[_this._tabIdx];
-        if(_entry == null) {
-          do{
-            _this._tabIdx--;
-            _entry = _this._dEntrys._items[0];
-          } while(_entry == null);
-        }
-        _entry.focus(); 
-      },
-      'down': function() {
-        _this._tabIdx++; 
-        _this._tabIdx %= _this._dEntrys.length();
-        var _entry = _this._dEntrys._items[_this._tabIdx];
-        if(_entry == null) {
-          _this._tabIdx = 0;
-          _entry = _this._dEntrys._items[0];
-        } 
-        _entry.focus(); 
-      },
-      'clear': function() {
-        _this._tabIdx = -1;
-      }
-    });
-
+  drawGrids: function() {
+    this._draw = true;
     for(var i = 0; i < this._model._col_num; ++i) {
-      var col_ = $('<div>', {
-        'class': 'gridcol',
-        'id': 'col' + i,
-        'onselectstart': 'return false'
-      });
-      this.$view.append(col_);
+      var col = this.drawCol(i);
 
       this._model._grid[i] = new Array();
       for(var j = 0; j < this._model._row_num; ++j) {
-        var row_ = $('<div>', {
-          'class': 'grid',
-          'id': 'grid_' + i + '_' + j,
-          'draggable':'false',
-          'onselectstart': 'return false'
-        });
-        $('#col' + i).append(row_);
-
-        // var target = document.getElementById('grid_' + i + '_' + j);
-        this.initAction($('#grid_' + i + '_' + j));
-
-        this._model._grid[i][j] = {};
-        this._model._grid[i][j].use = false;
-      }
+        this.drawGrid(col, i, j);
+      }  
     }
+    var $grid = $('.grid');
+    this._model.setGridSize({
+      'gridWidth': $grid.width(),
+      'gridHeight': $grid.height()
+    })
+  },
+
+  drawCol: function(i) {
+    var col_ = $('<div>', {
+      'class': 'gridcol',
+      'id': 'col' + i,
+      'onselectstart': 'return false'
+    });
+    this.$view.append(col_);
+    return col_;
+  },
+
+  drawGrid: function($col, i, j) {
+    var row_ = $('<div>', {
+      'class': 'grid',
+      'id': 'grid_' + i + '_' + j,
+      'draggable':'false',
+      'onselectstart': 'return false'
+    });
+    $col.append(row_);
+    this.initAction(row_);
+
+    this._model._grid[i][j] = {};
+    this._model._grid[i][j].use = false;
+  },
+
+  destroyGrids: function() {
+    this.$view.children('.gridcol').empty();
+  },
+
+  destroyCol: function($col) {
+    $col.remove();
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+    var _this = this;
+    if(this._needSelector) {
+      this._selector = Selector.create(this, '#' + this._id, {
+        'enter': function() {
+          if(_this._tabIdx != -1 && _this._dEntrys._items[_this._tabIdx] != null)
+            _this._dEntrys._items[_this._tabIdx]._controller.onDblclick();
+        },
+        'up': function() {
+          _this._tabIdx += _this._dEntrys.length() - 1;
+          _this._tabIdx %= _this._dEntrys.length();
+          var _entry = _this._dEntrys._items[_this._tabIdx];
+          if(_entry == null) {
+            do{
+              _this._tabIdx--;
+              _entry = _this._dEntrys._items[0];
+            } while(_entry == null);
+          }
+          _entry.focus(); 
+        },
+        'down': function() {
+          _this._tabIdx++; 
+          _this._tabIdx %= _this._dEntrys.length();
+          var _entry = _this._dEntrys._items[_this._tabIdx];
+          if(_entry == null) {
+            _this._tabIdx = 0;
+            _entry = _this._dEntrys._items[0];
+          } 
+          _entry.focus(); 
+        },
+        'clear': function() {
+          _this._tabIdx = -1;
+        }
+      });
+    } else {
+      this._selector = this._parent._selector;
+    }
+    _this._model.setSize({
+      'width': _this.$view.width(),
+      'height': _this.$view.height()
+    });
   },
 
   drag: function(ev) {
@@ -662,7 +710,7 @@ var GridView = WidgetView.extend({
     //show insert position picture
     var _source = null,
         desktop = _global.get('desktop'),
-        model = desktop.getCOMById('layout'),
+        model = this._model,
         s_widget = model.getWidgetById(_id[1]),
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]); 
@@ -740,31 +788,30 @@ var GridView = WidgetView.extend({
 
     //handle multi-entries move
     //
-    /* if(desktop._selector._selectedEntries.length > 1) { */
-      // for(var i = 0; i < desktop._selector._selectedEntries.length; ++i) {
-        // if(desktop._selector._selectedEntries[i] == null) continue;
-        // var _s_id = $('#' + desktop._selector._selectedEntries[i]._id).parent().attr('id');
-        // var _coor = /^.*[_]([0-9]+)[_]([0-9]+)$/.exec(_s_id);
-        // var _pos = desktopGrid.findALegalNearingIdleGrid({
-          // x: _target_col
-          // , y: _target_row
-        // });
-        // if(_pos == null) return ;
-        // $('#grid_' + _pos.x + '_' + _pos.y)
-          // .append($('#' + desktop._selector._selectedEntries[i]._id));
-        // console.log(desktop._selector._selectedEntries[i]._id 
-          // + " ---> " + _pos.x + '  '  + _pos.y);
-        // desktop._selector._selectedEntries[i].setPosition({x: _pos.x, y: _pos.y});
-        // desktopGrid.flagGridOccupy(_pos.x, _pos.y, 1, 1, true);
-        // _target_col = _pos.x;
-        // _target_row = _pos.y;
+    var entries = this._selector.getSelectedItems();
+    if(entries.length > 1) { 
+      for(var i = 0; i < entries.length; ++i) {
+        if(entries[i] == null) continue;
+        var _s_id = $('#' + entries[i]._id).parent().attr('id'),
+            _coor = /^.*[_]([0-9]+)[_]([0-9]+)$/.exec(_s_id),
+            _pos = model.findALegalNearingIdleGrid({
+              x: _target_col, 
+              y: _target_row
+            });
+        if(_pos == null) return ;
+        // $('#grid_' + _pos.x + '_' + _pos.y).append($('#' + entries[i]._id));
+        console.log(entries[i]._id + " ---> " + _pos.x + '  '  + _pos.y);
+        entries[i]._model.setPosition({x: _pos.x, y: _pos.y});
+        model.flagGridOccupy(_pos.x, _pos.y, 1, 1, true);
+        _target_col = _pos.x;
+        _target_row = _pos.y;
       
-        // desktopGrid.flagGridOccupy(_coor[1], _coor[2], 1, 1, false);
-      // }
-      // desktop.reOrderDEntry();
-      // desktop.resetDEntryTabIdx();
-      // return ;
-    /* } */
+        model.flagGridOccupy(_coor[1], _coor[2], 1, 1, false);
+      }
+      this._dEntrys.order();
+      this.resetDEntryTabIdx();
+      return ;
+    } 
 
     //get source grid
     var parent_id = $('#' + _id[1]).parent('.grid')[0].id;
@@ -783,8 +830,8 @@ var GridView = WidgetView.extend({
       s_widget.setPosition({x: pos_.x, y: pos_.y});
       model.flagGridOccupy(pos_.x, pos_.y, col_num, row_num, true);
       if(s_widget.getType().match(/\w*Plugin/) == null) {
-        desktop.reOrderDEntry();
-        desktop.resetDEntryTabIdx();
+        this._dEntrys.order();
+        this.resetDEntryTabIdx();
       }
       return ;
     }
@@ -811,8 +858,8 @@ var GridView = WidgetView.extend({
 });
 
 var DPluginView = WidgetView.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
     this.registObservers();
     // this._controller = null;
     this.$view = $('<div>', {
@@ -890,8 +937,8 @@ var DPluginView = WidgetView.extend({
 });
 
 var ClockPluginView = DPluginView.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
   },
 
   show: function($parent) {
@@ -957,9 +1004,9 @@ var ClockPluginView = DPluginView.extend({
 
 var DEntryView = WidgetView.extend({
   init: function(id_, model_, parent_) {
-    this.callSuper(id_, model_);
+    this.callSuper(id_, model_, parent_);
     this.registObservers();
-    this._parent = parent_;
+    // this._parent = parent_;
     this._controller = EntryController.create(this);
     this._tabIndex = -1;
     this.$view = $('<div>', {
@@ -1109,7 +1156,7 @@ var DEntryView = WidgetView.extend({
     this.$view.parent('.grid').removeClass('hovering');
     ev.preventDefault();
     ev.stopPropagation();
-    this._controller.onDrop(ev);
+    this._controller.onDrop(ev, this._parent._selector.getSelectedItems());
   },
 
   focus: function() {
@@ -1126,6 +1173,8 @@ var DEntryView = WidgetView.extend({
     // this._parent._tabIdx = -1; 
   },
 
+  getTabIndex: function() {return this._tabIndex;},
+
   setTabIndex: function(tabIdx_) {
     this._tabIndex = tabIdx_;
     // $('#' + _this._id).attr('tabindex', tabIdx_);
@@ -1133,8 +1182,8 @@ var DEntryView = WidgetView.extend({
 });
 
 var DeviceListView = View.extend({
-  init: function(model_) {
-    this.callSuper('device-list', model_);
+  init: function(model_, parent_) {
+    this.callSuper('device-list', model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'device-list',
@@ -1155,7 +1204,7 @@ var DeviceListView = View.extend({
           console.log(err_);
           return ;
         }
-        _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_);
+        _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_, _this);
         _this._c[dev_.getID()].show(_this.$view);
       },
       'remove': function(err_, dev_){
@@ -1204,8 +1253,8 @@ var DeviceListView = View.extend({
 });
 
 var DevEntryView = View.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'icon',
@@ -1284,8 +1333,8 @@ var DevEntryView = View.extend({
 // View of Dock component
 //
 var DockView = View.extend({
-  init: function(model_) {
-    this.callSuper(model_.getID(), model_);
+  init: function(model_, parent_) {
+    this.callSuper(model_.getID(), model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'dock',
@@ -1426,7 +1475,7 @@ var DockView = View.extend({
     if(_id == null) _id = {'1': __id};
     var  _source = $('#' + _id[1]),
         desktop = _global.get('desktop'),
-        layout = desktop.getCOMById('layout'),
+        layout = desktop.getCOMById('layout').getCurLayout(),
         widget = layout.getWidgetById(_id[1]),
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]);
@@ -1471,9 +1520,9 @@ var DockView = View.extend({
 });
 
 var DockEntryView = View.extend({
-  init: function(id_, model_, container_) {
-    this.callSuper(id_, model_);
-    this._container = container_;
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    // this._container = container_;
     this._controller = DockEntryController.create(this);
     this.registObservers();
     this.$view = $('<div>', {
@@ -1574,7 +1623,7 @@ var DockEntryView = View.extend({
       this._model.setIdx(divList.length);
     }
     for(var i = 0; i < divList.length; ++i) {
-      var model = this._container._c[divList[i].id]._model,
+      var model = this._parent._c[divList[i].id]._model,
           o_idx = model.getIdx();
       if(n_idx == o_idx && !inserted) {
         $(divList[i]).before(this.$view);
@@ -1611,7 +1660,7 @@ var DockEntryView = View.extend({
     //show insert position picture
     var _source = null,
         desktop = _global.get('desktop'),
-        layout = desktop.getCOMById('layout'),
+        layout = desktop.getCOMById('layout').getCurLayout(),
         widget = layout.getWidgetById(_id[1]),
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]);
@@ -1688,8 +1737,8 @@ var DockEntryView = View.extend({
 });
 
 var PropertyView = View.extend({
-  init: function(id_, model_) {
-    this.callSuper(id_, model_);
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
     this._id = id_;
     this._isMouseDown = false;    //flag mouse is down or not  
     this._offsetX = 0;            //record mouse-x relate property-div left   
@@ -1830,11 +1879,11 @@ var PropertyView = View.extend({
       _this.$view.fadeTo(20, 1);
     });
 
-    _this.$view.mousedown(function(ev) {
-      ev.stopPropagation();
-    }).mouseup(function(ev){
-      ev.stopPropagation;
-    });
+    /* _this.$view.mousedown(function(ev) { */
+      // ev.stopPropagation();
+    // }).mouseup(function(ev){
+      // ev.stopPropagation;
+    /* }); */
 
     $(document).mousemove(function(ev){
       if(!_this._isMouseDown) return ;
@@ -1964,8 +2013,8 @@ var Selector = Class.extend({
   // @selector_: which component should be response to mouse events and draw the selector
   // @events_: which is an events object to binding to specific key include 'enter', 'up',
   //            'down', 'left', 'right', 'clear'(for clear the state of 'tab-index')
-  // Note that: 1. Items of this container should have functions called 'focus' and 'blur', 
-  //              variable called '$view' which is a jquery object of item's view.
+  // Note that: 1. Items of this container should have functions called 'focus', 'blur' and 
+  //              'getView' which is for getting the jquery object of item's view.
   //            2. The container object should have a function called 'getSelectableItems'.
   //
   init: function(container_, selector_, events_) {
@@ -1983,7 +2032,7 @@ var Selector = Class.extend({
     });
     $('body').append(this.$view);
     this._c = container_;
-    this._items = container_.getSelectableItems();
+    // this._items = container_.getSelectableItems();
     this._selector = selector_ || 'html';
     this._events = events_ || {};
     this._selectedEntries = [];
@@ -1997,9 +2046,10 @@ var Selector = Class.extend({
     this._s_X = 0;
     this._s_Y = 0;
 
-    var _pos = container_.$view.position(),
-        _width = container_.$view.width(),
-        _height = container_.$view.height();
+    var _view = container_.getView(),
+        _pos = _view.position(),
+        _width = _view.width(),
+        _height = _view.height();
     this._c_SX = _pos.left;
     this._c_SY = _pos.top;
     this._c_EX = _pos.left + _width;
@@ -2007,7 +2057,7 @@ var Selector = Class.extend({
 
     var _this = this;
     $(document).on('mousedown', this._selector, function(e) {
-      e.stopPropagation();
+      // e.stopPropagation();
       e.preventDefault();
       if(e.which == 1) {
         if(!e.ctrlKey) {
@@ -2024,28 +2074,7 @@ var Selector = Class.extend({
         }).show();
       }
     }).on('keydown', 'html', function(e) {
-      var upKey = function() {
-        /* desktop._tabIndex += desktop._dEntrys.length() - 1; */
-        // desktop._tabIndex %= desktop._dEntrys.length();
-        // var _entry = desktop._dEntrys._items[desktop._tabIndex];
-        // if(_entry == null) {
-          // do{
-            // desktop._tabIndex--;
-            // _entry = desktop._dEntrys._items[0];
-          // } while(_entry == null);
-        // }
-        /* _entry.focus(); */
-      };
-      var downKey = function() {
-        /* desktop._tabIndex++; */
-        // desktop._tabIndex %= desktop._dEntrys.length();
-        // var _entry = desktop._dEntrys._items[desktop._tabIndex];
-        // if(_entry == null) {
-          // desktop._tabIndex = 0;
-          // _entry = desktop._dEntrys._items[0];
-        // } 
-        /* _entry.focus(); */
-      };
+      var _items = container_.getSelectableItems();
       switch(e.which) {
         case 9:    // tab
           if(!e.ctrlKey) {
@@ -2103,9 +2132,9 @@ var Selector = Class.extend({
         case 65:  // a/A
           if(e.ctrlKey) {
             console.log('Combination Key: Ctrl + a/A');
-            for(var i = 0; i < _this._items.length; ++i) {
-              if(_this._items[i] != null)
-                _this._items[i].focus();
+            for(var i = 0; i < _items.length; ++i) {
+              if(_items[i] != null)
+                _items[i].focus();
             }
           }
           break;
@@ -2132,7 +2161,8 @@ var Selector = Class.extend({
       /* e.preventDefault(); */
       /* e.stopPropagation(); */
       if(!_this._mouseDown) return ;
-      var x, y, _off = _this.$view.offset();
+      var x, y, _off = _this.$view.offset(),
+          _items = container_.getSelectableItems();
       x = (e.pageX < _this._c_SX) ? _this._c_SX : e.pageX;
       x = (x > _this._c_EX) ? _this._c_EX : x;
       y = (e.pageY < _this._c_SY) ? _this._c_SY : e.pageY;
@@ -2149,15 +2179,15 @@ var Selector = Class.extend({
       });
       if(!e.ctrlKey)
         _this.releaseSelectedEntries();
-      for(var i = 0; i < _this._items.length; ++i) {
-        if(_this._items[i] != null
+      for(var i = 0; i < _items.length; ++i) {
+        if(_items[i] != null
           && _this.isOverlap({
             left: _off.left,
             top: _off.top,
             left_e: _off.left + _this.$view.width(),
             top_e: _off.top + _this.$view.height()
-          }, _this._items[i].$view)) {
-          _this._items[i].focus();
+          }, _items[i].getView())) {
+          _items[i].focus();
         }
       }
     })
@@ -2191,3 +2221,185 @@ var Selector = Class.extend({
     return this._selectedEntries;
   }
 });
+
+var FlipperView = View.extend({
+  init: function(model_, parent_, needSelector_) {
+    this.callSuper(model_.getID(), model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>', {
+      'class': 'view-flipper',
+      'id': this._id,
+      'draggable': 'false',
+      'onselectstart': 'return false'
+    }).append($('<div>', {
+      'class': 'view-switch-bar',
+      'onselectstart': 'return false'
+    }).append($('<div>', {
+      'class': 'icon-plus-sign'
+    }).css({
+      'display': 'inline-block',
+      'cursor': 'pointer'
+    })));
+    this.initAction(this.$view);
+    this._c = [];
+    this._tabIdx = -1;
+    this._needSelector = needSelector_ || false;
+    this._controller = FlipperController.create(this);
+    this._curMotion = 'normal';
+    this._main = 0;
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this.__handlers = {
+      'add': function(err_, widget_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        switch(widget_.getType()) {
+          case 'grid':
+            var l = _this._c.push(GridView.create('grid-view', widget_, _this));
+            _this._c[l - 1].show(_this.$view);
+            _this.addASwitcher(_this._c[l - 1].getView());
+            break;
+          default:
+            break;
+        }
+      },
+      'remove': function(err_, widget_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+      },
+      'layout_size': function(err_, size_) {
+        // redraw the layout container's size
+        _this.$view.css({
+          'width': size_.width,
+          'height': size_.height
+        });
+      },
+      'cur': function(err_, from_, to_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this._switchMotion[_this._curMotion].hideView(_this._c[from_].getView());
+        _this._switchMotion[_this._curMotion].showView(_this._c[to_].getView());
+      }
+    };
+    for(var key in _this.__handlers) {
+      this._model.on(key, _this.__handlers[key]);
+    }
+  },
+
+  initAction: function($selector) {
+    this._switchMotion = {
+      'normal': {
+        'showView': function($view) {
+          $view.show();
+        },
+        'hideView': function($view) {
+          $view.hide();
+        }
+      }
+    };
+    var _this = this;
+    $selector.on('drag', function(e) {
+      e.stopPropagation();
+    }).find('.icon-plus-sign').on('mousedown', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this._controller.onAdd();
+    });
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+    var _this = this;
+    if(this._needSelector) {
+      this._selector = Selector.create(this, '#' + this._id, {
+        'enter': function() {
+          var _items = this.getSelectableItems();
+          if(_this._tabIdx != -1 && _items[_this._tabIdx] != null)
+            _items[_this._tabIdx]._controller.onDblclick();
+        },
+        'up': function() {
+          var _items = this.getSelectableItems();
+          _this._tabIdx += _this._dEntrys.length() - 1;
+          _this._tabIdx %= _this._dEntrys.length();
+          var _entry = _items[_this._tabIdx];
+          if(_entry == null) {
+            do{
+              _this._tabIdx--;
+              _entry = _items[0];
+            } while(_entry == null);
+          }
+          _entry.focus(); 
+        },
+        'down': function() {
+          var _items = this.getSelectableItems();
+          _this._tabIdx++; 
+          _this._tabIdx %= _this._dEntrys.length();
+          var _entry = _items[_this._tabIdx];
+          if(_entry == null) {
+            _this._tabIdx = 0;
+            _entry = _items[0];
+          } 
+          _entry.focus(); 
+        },
+        'clear': function() {
+          _this._tabIdx = -1;
+        }
+      });
+    } else {
+      this._selector = this._parent._selector;
+    }
+  },
+
+  addASwitcher: function($view) {
+    var _this = this,
+        $switcher = $('<div>', {
+          'class': 'view-switcher showing'
+        }).on('mousedown', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          var ss = _this.$view.find('.view-switcher');
+          $(ss[_this._model.getCur()]).removeClass('showing');
+          for(var i = 0; i < ss.length; ++i) {
+            if(this == ss[i]) {
+              $(this).addClass('showing');
+              _this._model.setCur(i);
+            }
+          }
+        });
+    _this.$view.find('.showing').removeClass('showing');
+    _this.$view.find('.icon-plus-sign').before($switcher);
+    _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
+  },
+
+  removeASwitcher: function(idx_) {
+  },
+
+  getCurSwitchMotion: function() {return this._curMotion;},
+
+  setCurSwitchMotion: function(motionName_) {
+    this._curMotion = motionName_;
+  },
+
+  getMainView: function() {return this._main;},
+
+  setMainView: function(main_) {
+    this._main = main_;
+  },
+
+  getCurView: function() {
+    return this._c[this._model.getCur()];
+  },
+
+  getSelectableItems: function() {
+    return this._c[this._model.getCur()].getSelectableItems();
+  }
+});
+
