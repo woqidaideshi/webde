@@ -1,7 +1,7 @@
 ui-lib/node_modules
 nw/node_modules
 *.map
-nw/css/desktop.less
+nw/css/desktop.css
 ui-lib/dist/
 ui-lib/doc/_site/
 ui-lib/_site/

@@ -1521,6 +1521,7 @@ var DockEntryView = View.extend({
       e.stopPropagation();
     }).mouseup(function(e) { 
       e.stopPropagation();
+    }).click(function(e){
       var image = _this.$view.children('img');
       var _canvas = _this.$view.children('canvas');
       if(image[0].style.borderStyle == "" || image[0].style.borderStyle == 'none') {
