@@ -63,11 +63,14 @@ var Window = Class.extend({
       this._window.append(this._windowContent);
     }
 
-    this._dragDiv = $('<div>', {
-      'class': 'lb-drag-div'
-    });
-    this._window.append(this._dragDiv);
-    $('body').append(this._window);
+    if (this._options.resize == true) {
+      this._dragDiv = $('<div>', {
+        'class': 'rb-drag-div'
+      });
+      this._window.append(this._dragDiv);
+    }
+    $('body').
+    append(this._window);
     
     this.setOptions();
     if (this._options.hideWindow === false){
@@ -160,11 +163,6 @@ var Window = Class.extend({
   bindEvent:function(){
     var _this = this;
 
-    this._titleButton.mousedown(function(ev){
-      ev.preventDefault();
-      ev.stopPropagation();
-    });
-
     //forbid context menu
     $(document).on('contextmenu','#'+_this._window[0].id, function(ev){
       ev.stopPropagation();
@@ -179,43 +177,44 @@ var Window = Class.extend({
         return ;
       };
       _this._isMouseOnTitleDown = true;
-      _this._offsetX = ev.offsetX;
-      _this._offsetY = ev.offsetY;
+      _this._offsetX = ev.clientX - _this._window.position().left;
+      _this._offsetY = ev.clientY - _this._window.position().top;
       _this._window.fadeTo(20, 0.5);
     }).mouseup(function(ev){
       ev.stopPropagation();
       _this._isMouseOnTitleDown = false;
-      _this._options.top = _this._window.position().top;
-      _this._options.left = _this._window.position().left;
       _this._window.fadeTo(20, 1);
     });
 
     //resize window
-    this._dragDiv.mousedown(function(ev){
-      ev.stopPropagation();
-      if (_this._isMax || _this._ishideDiv || !_this._options.resize) {
-        return ;
-      };
-      _this._isMouseResizeDown = true;
-      _this._window.fadeTo(20, 0.9);
-    }).mouseup(function(ev){
-      ev.stopPropagation();
-      if (!_this._isMouseResizeDown) {
-        return ;
-      }
-      _this._isMouseResizeDown = false;
-      _this._options.width = _this._window.width();
-      _this._options.height = _this._window.height();
-      _this._window.fadeTo(20, 1);
-    });
-
+    if (typeof this._dragDiv !== 'undefined') {
+      this._dragDiv.mousedown(function(ev){
+        ev.stopPropagation();
+        if (_this._isMax || _this._ishideDiv || !_this._options.resize) {
+          return ;
+        };
+        _this._isMouseResizeDown = true;
+        _this._window.fadeTo(20, 0.9);
+      }).mouseup(function(ev){
+        ev.stopPropagation();
+        if (!_this._isMouseResizeDown) {
+          return ;
+        }
+        _this._isMouseResizeDown = false;
+        _this._options.width = _this._window.width();
+        _this._options.height = _this._window.height();
+        _this._window.fadeTo(20, 1);
+      });
+    }
     $(document).mousemove(function(ev){
       if(_this._isMouseOnTitleDown){ 
         var x = ev.clientX - _this._offsetX; 
         var y = ev.clientY - _this._offsetY; 
-        _this.setWindowPos({left:x, top: y-1});
+        _this.setWindowPos({left:x, top: y});
+        _this._options.top = y;
+        _this._options.left = x;
         _this._titleDiv.css('cursor','move');
-      }else if (_this._isMouseResizeDown) {
+      }else if (_this._isMouseResizeDown && _this._options.resize) {
         var _width = ev.clientX - _this._window.position().left + 5;
         var _height = ev.clientY - _this._window.position().top + 5;
         if (_width < _this._options.minWidth){
@@ -390,8 +389,10 @@ var Window = Class.extend({
   setWindowPos:function(pos_){
     this._window.css('left', pos_['left'] + 'px');
     this._window.css('top', pos_['top'] + 'px');
-    this._dragDiv.css('left',pos_['left']+this._options._winWidth -10 + 'px');
-    this._dragDiv.css('top', pos_['left']+this._options._winHeight-10 + 'px');
+    if (typeof this._dragDiv !== 'undefined') {
+      this._dragDiv.css('left',pos_['left']+this._options._winWidth -10 + 'px');
+      this._dragDiv.css('top', pos_['pos']+this._options._winHeight-10 + 'px');
+    }
   },
   /**
    * [showWindow show Window]
@@ -403,5 +404,16 @@ var Window = Class.extend({
     } else {
       this._window.show();
     }
+  },
+  /**
+   * [append appent content]
+   * @param  {[type]} content_ [append content]
+   * @return {[type]}          [description]
+   */
+  append:function(content_){
+    if (content_) {
+      this._windowContent.append(content_);
+    }
   }
+
 });

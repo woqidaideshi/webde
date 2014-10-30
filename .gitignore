@@ -1,8 +1,10 @@
 ui-lib/node_modules
 nw/node_modules
 *.map
+nw/css/desktop.less
 ui-lib/dist/
 ui-lib/doc/_site/
+ui-lib/_site/
 ui-lib/doc/assets/css/demoUI*
 ui-lib/doc/assets/js/demoUI.js
 ui-lib/doc/assets/img/close.png

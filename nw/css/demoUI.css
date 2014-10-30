@@ -433,11 +433,10 @@ ul.messenger .messenger-spinner {
   margin-left: 4px;
   background-color: #ffffff;
 }
-.window .lb-drag-div {
+.window .rb-drag-div {
   position: absolute;
   bottom: 0px;
   right: 0px;
-  border: 1px solid #cccccc;
   width: 10px;
   height: 10px;
   cursor: se-resize;
