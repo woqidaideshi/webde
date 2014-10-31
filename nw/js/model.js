@@ -286,8 +286,7 @@ var DesktopModel = Model.extend({
       var _filenames = filename.split('.'),
           _model = null,
           _id = 'id-' + stats.ino.toString(),
-          _layout = _desktop.getCOMById('layout'),
-          _parent = _layout.getAllWidgets()[_layout.getCur()];
+          _parent = _desktop.getCOMById('layout').getCurLayout();
       
       if(_filenames[0] == '') {
         return ;//ignore hidden files
@@ -328,9 +327,10 @@ var DesktopModel = Model.extend({
         var _entry = _layout[i].getWidgetByAttr('_filename', filename);
         if(_entry == null) {
           console.log('Can not find this widget');
-          return ;
+          continue;
+        } else {
+          _layout[i].remove(_entry);
         }
-        _layout[i].remove(_entry);
       }
     });
     this._desktopWatch.on('rename', function(oldName, newName) {
@@ -340,9 +340,10 @@ var DesktopModel = Model.extend({
         var _entry = _layout[i].getWidgetByAttr('_filename', oldName);
         if(_entry == null) {
           console.log('Can not find this widget');
-          return ;
+          continue;
+        } else {
+          _entry.rename(newName);
         }
-        _entry.rename(newName);
       }
     });
   }
@@ -717,20 +718,27 @@ var AppEntryModel = EntryModel.extend({
     this.emit('index', null, this._idx);
   },
 
-  copyTo: function(clip_) {
+  copyTo: function(clip_, entryIds_) {
     if(clip_.files.length != 0) {
       var fList = '';
       for(var i = 0; i < clip_.files.length; ++i) {
         fList += ' ' + clip_.files[i].path;
       }
       this.open(fList);
+      return ;
     }
 
-    var id = clip_.getData('ID'),
-        item = _global.get('desktop').getCOMById('layout').getCurLayout().getWidgetById(id),
-        type = item.getType();
-    if(type != 'app' && type.match(/\w*Plugin/) != null)
-      this.open(item.getPath());
+    var paths = '';
+    if(entryIds_.length == 0)
+      entryIds_.push(clip_.getData('ID'));
+    for(var i = 0; i < entryIds_.length; ++i) {
+      var desktop = _global.get('desktop'),
+          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]),
+          type = item.getType();
+      if(type != 'app' && type.match(/\w*Plugin/) == null)
+        paths += item.getPath() + ' ';
+    }
+    this.open(paths);
   },
 
   open: function(pera_) {
@@ -852,13 +860,14 @@ var DirEntryModel = FileEntryModel.extend({
       return ;
     }
     // handle entry move
-    entryIds_.push(clip_.getData('ID'));
+    if(entryIds_.length == 0)
+      entryIds_.push(clip_.getData('ID'));
     for(var i = 0; i < entryIds_.length; ++i) {
       var desktop = _global.get('desktop'),
           item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]),
           type = item.getType(),
           srcP = null;
-      if(entryIds_[i] == this._id || typeof item === 'undefined') return ;
+      if(entryIds_[i] == this._id/*  || typeof item === 'undefined' */) return ;
       if(item.getType() == 'app') {
         srcP = desktop._desktopWatch.getBaseDir() + '/' + item.getFilename();
       } else {
@@ -1089,7 +1098,7 @@ var DeviceEntryModel = EntryModel.extend({
   },
 
   // send a file to remote device
-  copyTo: function(dataTransfer) {
+  copyTo: function(dataTransfer, entryIds_) {
     if(dataTransfer.files.length != 0) {
       for(var i = 0; i < dataTransfer.files.length; ++i) {
         Messenger().post(dataTransfer.files[i].path);
@@ -1097,11 +1106,12 @@ var DeviceEntryModel = EntryModel.extend({
       }
       return ;
     }
-
-    var id = dataTransfer.getData("ID"),
-        layout = _global.get('desktop').getCOMById('layout').getCurLayout(),
-        item = layout.getWidgetById(id);
-    if(item.getType() == 'file') {
+   
+    if(entryIds_.length == 0) 
+      entryIds_.push(dataTransfer.getData('ID'));
+    for(var i = 0; i < entryIds_.length; ++i) {
+      var desktop = _global.get('desktop'),
+          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
       Messenger().post(item.getPath());
       // TODO: use api from lower layer
     }
