@@ -77,6 +77,7 @@ var EntryController = WidgetController.extend({
         // entry's name has already existed
         var _entries = layout._dEntrys._items;
         for(var i = 0; i < _entries.length; ++i) {
+          if(_entries[i] == null) break;
           if(_entries[i]._model.getName() == newtext) {
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-top"
@@ -95,8 +96,8 @@ var EntryController = WidgetController.extend({
     });
   },
 
-  onDrop: function(ev, tarArr) {
-    var cmd, tarIdArr = [];
+  onDrop: function(ev, tArr) {
+    var cmd, tarIdArr = [], tarArr = tArr || [];
     for(var i = 0; i < tarArr.length; ++i) {
       if(tarArr[i] != null)
         tarIdArr.push(tarArr[i].getID());
