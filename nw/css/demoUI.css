@@ -496,12 +496,16 @@ ul.messenger .messenger-spinner {
   opacity: 1;
 }
 .textarea { 
+  align: left;
   border:solid 1px #ddd;
   margin:0px;       
   margin-top: 5px;
-  margin-right: 4px;
+  margin-right: 1%;
   margin-bottom: 2px;
-  margin-left: 4px;
+  margin-left: 1%;
   background-color: #ffffff;
   color:black; 
+  overflow:auto;
+  width:98%;/*自动适应父布局宽度*/
+  height:45%;
 }

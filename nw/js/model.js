@@ -1030,9 +1030,9 @@ var DeviceListModel = Model.extend({
               action: function() {
                 Messenger().hideAll();
                 var imWindow = Window.create('imChat_' + toAccount, toAccount);
-                message = '<div ><textarea id="disp_text_' + toAccount + '" readOnly="true" rows="20" cols="70" class="textarea"></textarea></div> \
+                message = '<div ><textarea id="disp_text_' + toAccount + '" readOnly="true" class="textarea" ></textarea></div> \
                 <p></p> \
-                <div> <textarea id="send_text_' + toAccount + '"   rows="10" cols="70" class="textarea"></textarea> </div> \
+                <div> <textarea id="send_text_' + toAccount + '"  class="textarea" ></textarea> </div> \
                 <p></p> \
                 <div align="right"> \
                 <button type="button"  id="close_button_' + toAccount + '">关闭</button> \
