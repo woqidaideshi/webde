@@ -1,4 +1,4 @@
-/*! demo-webde - v0.0.1 - 2014-10-31
+/*! demo-webde - v0.0.1 - 2014-11-02
 * Copyright (c) 2014 */
 html {
   width: 100%;
@@ -321,6 +321,7 @@ html body {
   -o-box-shadow: 0px 0px 10px #000000;
   box-shadow: 0px 0px 10px #000000;
   background-color: rgba(0, 0, 0, 0.5);
+  overflow: auto;
 }
 .device-list .title {
   color: #fff;
