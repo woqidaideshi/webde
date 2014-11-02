@@ -5,41 +5,87 @@ date:   2014-10-20 11:09:12
 categories: ui
 ---
 
-<h1 id="messenger">messenger：</h1>
-<p>消息提示工具栏，从hubspot/messenger移植过来，主要完成工作是将sass该写为less语法
-<h2>使用方法：</h2><br />
-  在坐下方显示一个提示：</p>
+<h2 id="messenger">messenger：</h2>
+<p>消息提示工具栏，从hubspot/messenger移植过来，主要完成工作是将sass该写为less语法，接口的封装
+<h3>使用方法：</h3><br />
+建议使用create方法进行开发，为了统一接口。为了以前ui的兼容性，暂时也提供原来的接口，之后可能考虑去掉原来的接口。
+<br />
+  在左下方显示一个提示：</p>
 <pre>
 <code>
+原方法：
   Messenger().post("plugin zoom in");   //or
 
   Messenger().post({
-    message: 'message',	          //显示的信息
-    type: 'info',	                       //信息类型
-    showCloseButton: true, //关闭按钮
-    actions: {                           //注册按钮
-      sure:{	                                //sure是自己命名的动作名
-        label:                              //按钮显示的文字	
-        action:function(){	     //动作
+    message: 'message',   //显示的信息
+    type: 'info',   //信息类型
+    showCloseButton: true,    //关闭按钮
+    actions: {   //注册按钮
+      sure: {    //sure是自己命名的动作名
+        label:   //按钮显示的文字	
+        action: function() {    //动作
+        }
+      }
+    }
+  });
+封装的接口方法
+  Messenge.create().post("plugin zoom in");   //or
+
+    Messenge.create().post({
+    message: 'message',    //显示的信息
+    type: 'info',    //信息类型
+    showCloseButton: true,    //关闭按钮
+    actions: {   //注册按钮
+      sure:{   //sure是自己命名的动作名
+        label:    //按钮显示的文字	
+        action:function(){   //动作
         }
       }
     }
   });
 </code>
-</pre>
-
-设置显示位置：
-
+</pre> <br />
+<h3>设置</h3>
+默认设置
 <pre>
 <code>
-  Messenger.options = {
-    //设置为左上角显示;
-    extraClasses: 'messenger-fixed messenger-on-left messenger-on-top';
-  }
+  defaultOpts = {
+      extraClasses: 'messenger-fixed messenger-on-bottom messenger-on-right',  //位置
+      theme: 'future',    //主题，目前只提供一种
+      maxMessages: 9,   // 最大同时显示数
+      parentLocations: ['body']   //显示的父窗口
+    };
 </code>
 </pre>
 
-<h2>demo</h2>
+设置属性（位置）：
+<pre>
+<code>
+  Messenger.options = {
+    extraClasses: 'messenger-fixed messenger-on-left messenger-on-top';
+  }
+或
+ Messenge.create().setOptions({
+	extraClasses: 'messenger-fixed messenger-on-left messenger-on-top';
+});
+</code>
+</pre> <br />
+<h3>提供的接口</h3>
+<pre>
+<code>
+   var messenge = Messenge.create();
+  messenge.post(opts);	//opts 可为显示字符串也可以为对象
+  messenge.run(args);  //args参数可为1,2,3个
+  messenge.update(opts); //opts为设置
+  messenge.setOptions(options)  //options 为设置的对象，参见上面defaultOpts
+  messenge.cancel()   // 见hide()
+  messenge.hide()   // 隐藏本个messenge
+  messenge.hideAll()  // 隐藏所有的
+
+</code>
+</pre> <br />
+
+<h3>demo</h3>
 <button class='btn active' onclick="show()">show Messenger</button> 
 <button class='btn active' onclick="showInfo()">show Info</button> 
 <button class='btn active' onclick="showError()">show Error</button> 
@@ -56,7 +102,7 @@ categories: ui
 <input type="radio" id="position" name="position" value="right top" onclick="check()" >右上
 
 <br />
-<h2>参考文献</h2>
+<h3>参考文献</h3>
 <p>更多使用方法参见messenger的官方网站：
 <a href="http://github.hubspot.com/messenger">messenger官方网站</a>
   github网址：
@@ -64,11 +110,11 @@ categories: ui
 
 <script type="text/javascript">
   var show = function(){
-    Messenger().post("Show Messenger!!");
+    Messenge.create().post("Show Messenger!!");
     var i;
     i = 0;
 
-    Messenger().run({
+    Messenge.create().run({
       errorMessage: 'Error destroying alien planet',
       successMessage: 'Alien planet destroyed!',
       action: function(opts) {
@@ -86,15 +132,16 @@ categories: ui
   }
 
   var showInfo = function(){
-    Messenger().post({
+    var newMess = Messenge.create();
+    newMess.post({
       message: 'show info message!',
       type: 'info',
       showCloseButton: true
-    })
+    });
   }
 
   var showSuccess = function(){
-    Messenger().post({
+    Messenge.create().post({
       message: 'show success message!',
       type: 'success',
       showCloseButton: true
@@ -102,7 +149,7 @@ categories: ui
   }
 
   var showError = function(){
-    Messenger().post({
+    Messenge.create().post({
       message: 'show error message!',
       type: 'error',
       showCloseButton: true,
@@ -110,7 +157,7 @@ categories: ui
         sure: {
           label: '确定',
           action: function(){
-            Messenger().hideAll()
+            Messenge.create().hideAll()
           }
         }
       }
@@ -123,8 +170,9 @@ categories: ui
    if (pos.length === 2) {
      str += ' messenger-on-' + pos[1];
    };
-   Messenger.options = {
+   var newMessenge = Messenge.create()
+   newMessenge.setOptions({
      extraClasses: str
-   }
+   });
    }
 </script>
