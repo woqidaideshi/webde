@@ -960,70 +960,6 @@ var LauncherModel = Model.extend({
   release: function() {}
 });
 
-// The manager of Widgets
-//
-var WidgetManager = Model.extend({
-  init: function(parent_) {
-    this.callSuper('widgetmanager', parent_);
-  },
-
-  load: function() {
-    // load theme entry
-    _global.get('theme').loadThemeEntry(this);
-    var _lastSave = [],
-        desktop = _global.get('desktop'),
-        lines = desktop._USER_CONFIG.split('\n');
-    for(var i = 0; i < lines.length; ++i) {
-      if(lines[i].match('[\s,\t]*#+') != null) continue;
-      if(lines[i] == "") continue;
-      var attr = lines[i].split('$');
-      if(attr.length != 5) continue;
-      var _plugin = null;
-      switch(attr[4]) {
-        case "ClockPlugin":
-        case "ImagePlugin":
-          _plugin = DPluginModel.create(attr[0], this._parent, attr[1], attr[4]
-              , {x: attr[2], y: attr[3]});
-          break;
-        default:
-          _lastSave[attr[0]] = {
-            path: attr[1],
-            x: attr[2],
-            y: attr[3],
-            type: attr[4]
-          };  
-      }
-      if (_plugin != null) {
-        this.add(_plugin);  
-      } 
-    }
-    //handle destop entries
-    _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()
-        , desktop._desktopWatch, this._parent);
-    //handle dock entries
-   /*  _desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir() */
-        /* ,_desktop._dock._dockWatch); */
-  },
-
-  save: function() {
-    var data = "";
-    for(var key in this._c) {
-      if(typeof theme._theme[key] !== 'undefined') continue;
-      data += key + "$" + this._c[key]._path + "$"
-         + this._c[key]._position.x + "$"
-         + this._c[key]._position.y + "$"
-        + this._c[key]._type + '\n';
-    }
-    //console.log(data);
-    this._fs.writeFile(_global.$xdg_data_home + "/widget.conf"
-        , data, function(err) {
-      if(err) {
-        console.log(err);
-      }
-    });
-  }
-});
-
 var DeviceListModel = Model.extend({
   init: function(parent_) {
     this.callSuper('device-list', parent_);
@@ -1205,28 +1141,67 @@ var LayoutModel = WidgetModel.extend({
   isOverlap: function(entry1_, entry2_) {}
 });
 
-var LayoutManager = Model.extend({
+// The manager of Widgets
+//
+var WidgetManager = Model.extend({
   init: function(parent_) {
-    this.callSuper('layout-manager', parent_);
+    this.callSuper('widgetmanager', parent_);
   },
 
   load: function() {
-    // TODO: check config of layout
-    _global.get('desktop').setLayoutType('grid');
-    var grid = GridModel.create('grid', this._parent, WidgetManager);
-    this.add(grid);
-    grid.load();
+    // load theme entry
+    _global.get('theme').loadThemeEntry(this);
+    var _lastSave = [],
+        desktop = _global.get('desktop'),
+        lines = desktop._USER_CONFIG.split('\n');
+    for(var i = 0; i < lines.length; ++i) {
+      if(lines[i].match('[\s,\t]*#+') != null) continue;
+      if(lines[i] == "") continue;
+      var attr = lines[i].split('$');
+      if(attr.length != 5) continue;
+      var _plugin = null;
+      switch(attr[4]) {
+        case "ClockPlugin":
+        case "ImagePlugin":
+          _plugin = DPluginModel.create(attr[0], this._parent, attr[1], attr[4]
+              , {x: attr[2], y: attr[3]});
+          break;
+        default:
+          _lastSave[attr[0]] = {
+            path: attr[1],
+            x: attr[2],
+            y: attr[3],
+            type: attr[4]
+          };  
+      }
+      if (_plugin != null) {
+        this.add(_plugin);  
+      } 
+    }
+    //handle destop entries
+    _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()
+        , desktop._desktopWatch, this._parent);
+    //handle dock entries
+   /*  _desktop.addWidgets(_lastSave,_desktop._dock._dockWatch.getBaseDir() */
+        /* ,_desktop._dock._dockWatch); */
   },
 
-  save: function() {},
-
-  add: function(layout_) {
-    this._c.push(layout_);
-    this.emit('add', null, layout_);
-  },
-
-  remove: function(idx_) {
-    this._c.splice(idx_, 1);
+  save: function() {
+    var data = "";
+    for(var key in this._c) {
+      if(typeof theme._theme[key] !== 'undefined') continue;
+      data += key + "$" + this._c[key]._path + "$"
+         + this._c[key]._position.x + "$"
+         + this._c[key]._position.y + "$"
+        + this._c[key]._type + '\n';
+    }
+    //console.log(data);
+    this._fs.writeFile(_global.$xdg_data_home + "/widget.conf"
+        , data, function(err) {
+      if(err) {
+        console.log(err);
+      }
+    });
   }
 });
 
@@ -1454,6 +1429,31 @@ var GridModel = LayoutModel.extend({
   }
 });
 
+var LayoutManager = Model.extend({
+  init: function(parent_) {
+    this.callSuper('layout-manager', parent_);
+  },
+
+  load: function() {
+    // TODO: check config of layout
+    _global.get('desktop').setLayoutType('grid');
+    var grid = GridModel.create('grid', this._parent, WidgetManager);
+    this.add(grid);
+    grid.load();
+  },
+
+  save: function() {},
+
+  add: function(layout_) {
+    this._c.push(layout_);
+    this.emit('add', null, layout_);
+  },
+
+  remove: function(idx_) {
+    this._c.splice(idx_, 1);
+  }
+});
+
 var FlipperModel = LayoutModel.extend({
   init: function(id_, parent_, Manager_) {
     this.callSuper(id_, parent_, Manager_, 'flipper');
@@ -1463,6 +1463,7 @@ var FlipperModel = LayoutModel.extend({
   getCur: function() {return this._cur;},
 
   setCur: function(cur_) {
+    if(cur_ >= this._wm._c.length || cur_ == this._cur) return ;
     if(this._cur != -1 && this._cur != cur_)
       this.emit('cur', null, this._cur, cur_);
     this._cur = cur_;
