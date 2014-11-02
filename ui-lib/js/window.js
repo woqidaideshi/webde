@@ -38,7 +38,7 @@ var Window = Class.extend({
     this._isMax = false;                                    // record window is maxsize or not
 
     this._window = $('<div>',{
-      'id': 'window-'+this._id,
+      'id': this._id,
       'class': 'window'
     });
 
@@ -74,7 +74,9 @@ var Window = Class.extend({
     
     this.setOptions();
     if (this._options.hideWindow === false){
-      this.showWindow();
+      this.show();
+    }else {
+      this.hide();
     }
     this.bindEvent();
   },
@@ -89,14 +91,14 @@ var Window = Class.extend({
         case 'close':
           if (_this._options[key] == true) {
             _this._titleButton.append("<a id='window-"+_this._id+"-close' class='window-button-close' href='#'><i class='icon-remove'></i></a>");
-            _this.setTitleButton($(_this._titleButton.children('.window-button-close')[0]),_this.closeWindow, _this);
+            _this.bindButton($(_this._titleButton.children('.window-button-close')[0]),_this.closeWindow, _this);
             $('.window-button-'+key).addClass('active');
           }
           break;
         case 'max':
           if (_this._options[key] == true) {
             _this._titleButton.append("<a id='window-"+_this._id+"-max' class='window-button-max' href='#'><i class='icon-resize-full'></i></a>");
-            _this.setTitleButton($(_this._titleButton.children('.window-button-max')[0]),_this.maxWindow, _this);
+            _this.bindButton($(_this._titleButton.children('.window-button-max')[0]),_this.maxWindow, _this);
             $('.window-button-'+key).addClass('active');
           }
           break;
@@ -109,7 +111,7 @@ var Window = Class.extend({
         case 'hide':
           if (_this._options[key] == true) {
             _this._titleButton.append("<a id='window-"+_this._id+"-hide' class='window-button-hide' href='#'><i class='icon-double-angle-up'></i></a>");
-            _this.setTitleButton($(_this._titleButton.children('.window-button-hide')[0]),_this.hideDiv, _this);
+            _this.bindButton($(_this._titleButton.children('.window-button-hide')[0]),_this.hideDiv, _this);
             $('.window-button-'+key).addClass('active');
           }
           break;
@@ -125,7 +127,7 @@ var Window = Class.extend({
    * @param {[event]} eventAction_ [event when click the target]
    * @param {[this]} windowObj_   [this ]
    */
-  setTitleButton:function($target_, eventAction_, windowObj_){
+  bindButton:function($target_, eventAction_, windowObj_){
     $target_.mousedown(function(ev) {
       ev.preventDefault();
       ev.stopPropagation();
@@ -153,7 +155,7 @@ var Window = Class.extend({
     _icon.removeClass(oldIcon_);
     _icon.addClass(newIcon_);
     _a.unbind();
-    this.setTitleButton(_a, newAction_, this);
+    this.bindButton(_a, newAction_, this);
   },
 
   /**
@@ -395,10 +397,10 @@ var Window = Class.extend({
     }
   },
   /**
-   * [showWindow show Window]
+   * [show show Window]
    * @return {[type]} [description]
    */
-  showWindow:function(){
+  show:function(){
     if (this._options.animate) {
       this._window.fadeIn(this._options.fadeSpeed);
     } else {
@@ -413,6 +415,21 @@ var Window = Class.extend({
   append:function(content_){
     if (content_) {
       this._windowContent.append(content_);
+    }
+  },
+
+  close:function(){
+    var _this = this ;
+    if (typeof this._window !== 'undefined'){
+      this.closeWindow(_this);
+    } 
+  },
+
+  hide:function(){
+    if (this._options.animate) {
+      this._window.fadeOut(this._options.fadeSpeed);
+    } else {
+      this._window.hide();
     }
   }
 
