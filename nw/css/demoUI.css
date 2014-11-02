@@ -495,3 +495,13 @@ ul.messenger .messenger-spinner {
   background: #fff;
   opacity: 1;
 }
+.textarea { 
+  border:solid 1px #ddd;
+  margin:0px;       
+  margin-top: 5px;
+  margin-right: 4px;
+  margin-bottom: 2px;
+  margin-left: 4px;
+  background-color: #ffffff;
+  color:black; 
+}
