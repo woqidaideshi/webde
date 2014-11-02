@@ -195,6 +195,9 @@ var DesktopView = View.extend({
             }
           }}
         ]}
+      ]},
+      {text: 'Layout', subMenu: [
+        {header: 'switch motion'}
       ]}
     ]);
 
@@ -369,6 +372,21 @@ var DesktopView = View.extend({
               };
             };
           });
+
+          // get layout switch motion
+          var motions = _this._c['layout'].getMotions(),
+              sMenu = ctxMenu.getMenuByHeader('switch motion');
+          for(var key in motions) {
+            var item = {
+              text: key,
+              action: function(e) {
+                e.preventDefault();
+                _this._c['layout'].setCurSwitchMotion(this.text);
+              }
+            };
+            if(!ctxMenu.hasItem(sMenu, item))
+              ctxMenu.addItem(sMenu, item);
+          }
         });
   }
 });
@@ -2285,7 +2303,9 @@ var FlipperView = View.extend({
           console.log(err_);
           return ;
         }
-        _this._switchMotion[_this._curMotion](_this._c[from_].getView(), _this._c[to_].getView());
+        _this._switchMotion[_this._curMotion](_this._c[from_].getView()
+            , _this._c[to_].getView()
+            , from_ - to_);
       }
     };
     for(var key in _this.__handlers) {
@@ -2294,12 +2314,60 @@ var FlipperView = View.extend({
   },
 
   initAction: function($selector) {
+    // switch motions
+    // @$from: the jquary object of view shown now
+    // @$to: the jquary object of view to be shown
+    // @direction_: < 0 means left to right and > 0 means right to left
+    //
     this._switchMotion = {
-      'normal': function ($from, $to) {
-        $from.hide();
-        $to.show();
+      'normal': function($from, $to, direction_, effect_) {
+        var eff = effect_ || 'slide'
+        $from.append($('<div>', {
+          'class': 'addon-border'
+        })).hide(eff, {}, 1000, function() {
+          $from.remove('.addon-border');
+          $to.append($('<div>', {
+            'class': 'addon-border'
+          })).show(eff, {}, 1000, function() {
+            $to.children('.addon-border').fadeOut(function() {
+              $to.remove('.addon-border');
+            });
+          });
+        });
+      },
+      'puff': function($from, $to, direction_) {
+        this.normal($from, $to, direction_, 'puff');
+      },
+      'fold': function($from, $to, direction_) {
+        this.normal($from, $to, direction_, 'fold');
+      },
+      'shake': function($from, $to, direction_) {
+        this.normal($from, $to, direction_, 'shake');
+      },
+      'smooth': function($from, $to, direction_, easing_) {
+        var ease = easing_ || 'swing';
+        $from.append($('<div>', {
+          'class': 'addon-border'
+        })).animate({
+          'left': ((direction_ > 0) ? $from.width() : -$from.width())
+        }, 1000, ease, function() {
+          $from.removeAttr('style').hide().children('.addon-border').remove();
+        });
+        $to.append($('<div>', {
+          'class': 'addon-border'
+        })).css('left', ((direction_ > 0) ? -$to.width() : $from.width())).show().animate({
+          'left': '0'
+        }, 1000, ease, function() {
+          $to.children('.addon-border').fadeOut(function() {
+            $to.remove('.addon-border');
+          });
+        });
+      },
+      'bounce': function($from, $to, direction_) {
+        this.smooth($from, $to, direction_, 'easeOutBounce');
       }
     };
+
     var _this = this;
     $selector.on('drag', function(e) {
       e.stopPropagation();
@@ -2307,6 +2375,72 @@ var FlipperView = View.extend({
       e.stopPropagation();
       e.preventDefault();
       _this._controller.onAdd();
+    });
+
+    $(document).on('keydown', 'html', function(e) {
+      var switchTo = function(i) {
+        if(i >= _this._c.length) return ;
+        var $switchers = _this.$view.find('.view-switcher');
+        $($switchers[_this._model.getCur()]).removeClass('showing');
+        $($switchers[i]).addClass('showing');
+        _this._model.setCur(i);
+      };
+      switch(e.which) {
+        case 37: // left
+          if(!e.altKey) return ;
+          switchTo((_this._model.getCur() + _this._c.length - 1) % _this._c.length);
+          break;
+        case 39: // right
+          if(!e.altKey) return ;
+          switchTo((_this._model.getCur() + _this._c.length + 1) % _this._c.length);
+          break;
+        case 48: // 0
+          if(!e.altKey) return ;
+          switchTo(_this._c.length - 1);
+          break;
+        case 49: // 1
+          if(!e.altKey) return ;
+          switchTo(0);
+          break;
+        case 50: // 2
+          if(!e.altKey) return ;
+          switchTo(1);
+          break;
+        case 51: // 3
+          if(!e.altKey) return ;
+          switchTo(2);
+          break;
+        case 52: // 4
+          if(!e.altKey) return ;
+          switchTo(3);
+          break;
+        case 53: // 5
+          if(!e.altKey) return ;
+          switchTo(4);
+          break;
+        case 54: // 6
+          if(!e.altKey) return ;
+          switchTo(5);
+          break;
+        case 55: // 7
+          if(!e.altKey) return ;
+          switchTo(6);
+          break;
+        case 56: // 8
+          if(!e.altKey) return ;
+          switchTo(7);
+          break;
+        case 57: // 9
+          if(!e.altKey) return ;
+          switchTo(8);
+          break;
+        case 84: // T/t
+          if(!e.altKey) return ;
+          _this._controller.onAdd();
+          break;
+        default:
+          break;
+      }
     });
   },
 
@@ -2316,14 +2450,14 @@ var FlipperView = View.extend({
     if(this._needSelector) {
       this._selector = Selector.create(this, '#' + this._id, {
         'enter': function() {
-          var _items = this.getSelectableItems();
+          var _items = _this.getSelectableItems();
           if(_this._tabIdx != -1 && _items[_this._tabIdx] != null)
             _items[_this._tabIdx]._controller.onDblclick();
         },
         'up': function() {
-          var _items = this.getSelectableItems();
-          _this._tabIdx += _this._dEntrys.length() - 1;
-          _this._tabIdx %= _this._dEntrys.length();
+          var _items = _this.getSelectableItems();
+          _this._tabIdx += _items.length - 1;
+          _this._tabIdx %= _items.length;
           var _entry = _items[_this._tabIdx];
           if(_entry == null) {
             do{
@@ -2334,9 +2468,9 @@ var FlipperView = View.extend({
           _entry.focus(); 
         },
         'down': function() {
-          var _items = this.getSelectableItems();
+          var _items = _this.getSelectableItems();
           _this._tabIdx++; 
-          _this._tabIdx %= _this._dEntrys.length();
+          _this._tabIdx %= _items.length;
           var _entry = _items[_this._tabIdx];
           if(_entry == null) {
             _this._tabIdx = 0;
@@ -2376,6 +2510,8 @@ var FlipperView = View.extend({
 
   removeASwitcher: function(idx_) {
   },
+
+  getMotions: function() {return this._switchMotion;},
 
   getCurSwitchMotion: function() {return this._curMotion;},
 
