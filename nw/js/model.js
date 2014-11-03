@@ -972,7 +972,8 @@ var LauncherModel = Model.extend({
 
 var DeviceListModel = Model.extend({
   init: function(parent_) {
-    this.callSuper('device-list', parent_);
+    this.callSuper('device-list', parent_);  
+    this._imChatWinList = {}; 
   },
 
   release: function() {
@@ -1013,9 +1014,9 @@ var DeviceListModel = Model.extend({
     });
     _global._imV.startIMChatServer(function(msgobj) {
       var toAccount = msgobj.MsgObj.from;
-      var imChatWinLen = $('#window-imChat_' + toAccount).length;
-      if (imChatWinLen === 0) {
-        Messenger().create().post({
+      var curEditBox = _this._imChatWinList['imChatWin_'+toAccount];
+      if(curEditBox===undefined){
+        Messenger().post({
           message: toAccount + '给你发新消息啦！',
           type: 'info',
           actions: {
@@ -1029,61 +1030,19 @@ var DeviceListModel = Model.extend({
               label: '查看',
               action: function() {
                 Messenger().hideAll();
-                var imWindow = Window.create('imChat_' + toAccount, toAccount);
-                message = '<div ><textarea id="disp_text_' + toAccount + '" readOnly="true" class="textarea" ></textarea></div> \
-                <p></p> \
-                <div> <textarea id="send_text_' + toAccount + '"  class="textarea" ></textarea> </div> \
-                <p></p> \
-                <div align="right"> \
-                <button type="button"  id="close_button_' + toAccount + '">关闭</button> \
-                <button type="button"  id="send_button_' + toAccount + '">发送</button> \
-                </div> ';
-
-                imWindow.append(message);
-
-                var localAccount;
-                var localUID;
-                var toIP = msgobj.IP;
-                var toUID = msgobj.MsgObj.uuid;
-                var sendTime;
-                var msgtime = new Date();
-                sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                $('#disp_text_' + toAccount).val($('#disp_text_' + toAccount).val() + msgobj.MsgObj.from + '   ' + sendTime + '  :\n' + msgobj.MsgObj.message + '\n\n');
-                $('#close_button_' + toAccount).on('click', function() {
-                  imWindow.closeWindow(imWindow);
-                });
-                $('#send_button_' + toAccount).on('click', function() {
-                  if ($('#send_text_' + toAccount).val().length !== 0) {
-                    var msg = $('#send_text_' + toAccount).val();
-
-                    function sendIMMsgCb() {
-                      $('#disp_text_' + toAccount).val($('#disp_text_' + toAccount).val() + localAccount + '   ' + sendTime + '  :\n' + msg + '\n\n');
-                      $('#send_text_' + toAccount).val('');
-                    }
-                    _global._imV.getLocalData(function(localData) {
-                      localAccount = localData.account;
-                      localUID = localData.UID;
-                      var ipset = {};
-                      ipset["IP"] = toIP;
-                      ipset["UID"] = toUID;
-                      msgtime = new Date();
-                      sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                      _global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
-                    });
-                  } else {}
-                });
+                var toAccountInfo = {};
+                toAccountInfo['toAccount'] = toAccount;
+                toAccountInfo['toIP'] = msgobj.IP;
+                toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
+                toAccountInfo['msg'] = msgobj.MsgObj.message;
+                curEditBox = EditBox.create(toAccountInfo,_this._imChatWinList);
+                _this._imChatWinList['imChatWin_'+toAccount] = curEditBox;
               }
             }
           }
         });
       } else {
-        var imWindow = $('#window-imChat_' + toAccount);
-        $('#close_button_' + toAccount).on('click', function() {
-          imWindow.closeWindow(imWindow);
-        });
-        var msgtime = new Date();
-        var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-        $('#disp_text_' + toAccount).val($('#disp_text_' + toAccount).val() + toAccount + '   ' + sendTime + '  :\n' + msgobj.MsgObj.message + '\n\n');
+        curEditBox.showRec(toAccount,msgobj.MsgObj.message);
       }
     });
   }
@@ -1111,44 +1070,12 @@ var DeviceEntryModel = EntryModel.extend({
   // TODO: show something about this device
   open: function() {
     var toAccount = this._position['txt'][5];
-    var toIP = this._position['txt'][4];
-    var toUID = this._position['txt'][1];
-    var imWindow = Window.create('imChat_' + toAccount, toAccount);
-    message = '<div  ><textarea id="disp_text_' + toAccount + '" readOnly="true" rows="20" cols="70" class="textarea"></textarea></div> \
-    <p></p> \
-    <div> <textarea id="send_text_' + toAccount + '"   rows="10" cols="70" class="textarea"></textarea> </div> \
-    <p></p> \
-    <div align="right"> \
-    <button type="button"  id="close_button_' + toAccount + '">关闭</button> \
-    <button type="button"  id="send_button_' + toAccount + '">发送</button> \
-    </div> ';
-    imWindow.append(message);
-    var localAccount;
-    var localUID;
-    var sendTime;
-    $('#close_button_' + toAccount).on('click', function() {
-      imWindow.closeWindow(imWindow);
-    });
-    $('#send_button_' + toAccount).on('click', function() {
-      if ($('#send_text_' + toAccount).val().length !== 0) {
-        var msg = $('#send_text_' + toAccount).val();
-
-        function sendIMMsgCb() {
-          $('#disp_text_' + toAccount).val($('#disp_text_' + toAccount).val() + localAccount + '   ' + sendTime + '  :\n' + msg + '\n\n');
-          $('#send_text_' + toAccount).val('');
-        }
-        _global._imV.getLocalData(function(localData) {
-          localAccount = localData.account;
-          localUID = localData.UID;
-          var ipset = {};
-          ipset["IP"] = toIP;
-          ipset["UID"] = toUID;
-          var msgtime = new Date();
-          sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          _global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
-        });
-      } else {}
-    });
+    var toAccountInfo = {};
+    toAccountInfo['toAccount'] = this._position['txt'][5];;
+    toAccountInfo['toIP'] = this._position['txt'][4];
+    toAccountInfo['toUID'] = this._position['txt'][1];
+    var curEditBox = EditBox.create( toAccountInfo,this._parent._imChatWinList);
+    this._parent._imChatWinList['imChatWin_'+toAccount] = curEditBox;
   },
 
   // send a file to remote device
