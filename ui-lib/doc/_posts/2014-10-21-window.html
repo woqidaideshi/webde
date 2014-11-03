@@ -20,7 +20,6 @@ categories: ui
   });
 </code>
 </pre>
-<p></p>
 
 <h2>配置选项</h2>
 <br / >
@@ -55,8 +54,21 @@ categories: ui
 方法二：获取窗口的内容div，并向其中添加内容。（jquery原生方法）
   window._windowContent.append("&lt;img src='assets/img/cat.jpg' &gt;");
 </code>
-</pre>
+</pre> <br />
 
+<h2>窗口提供的可用的api</h2>
+<p>下面列出了基本的提供窗口的api</p>
+<pre>
+<code>
+1、hide()   //隐藏窗口
+2、show()   //现实窗口
+3、append(content_)   //向content内添加内容
+4、close()   //关闭当前窗口
+5、create(options_)   //创建新窗口
+6、closeWindow(windowobj_)    //关闭windowobj_窗口对象， windowobj_ = Window.create(options);
+7、bindButton($target_, eventAction_, argument)    //绑定鼠标点击$target的事件eventAction_,argument是传给eventAction的参数。
+</code>
+</pre>
 
 
 <h2>demo</h2>
@@ -78,7 +90,12 @@ categories: ui
 <p>窗口标题：<input type='text' id='win-Title' value="Test Window"></p>
 
 <button class='btn active' onclick="newWin()">New Window</button>
+<button class='btn active' onclick="appendContent()">Append </button>
+<button class='btn active' onclick="closeWin()">Close Window</button>
+<button class='btn active' onclick="hideWin()">hide Window</button>
+<button class='btn active' onclick="showWin()">show Window</button>
 <script type="text/javascript">
+  var myNewWin;
   var newWin = function(){
     var _options = {};
     _options['close'] = $('#win-Close')[0].checked;
@@ -86,7 +103,7 @@ categories: ui
     _options['min'] = $('#win-Min')[0].checked;
     _options['hide'] = $('#win-Hide')[0].checked;
     _options['resize'] = $('#win-Resize')[0].checked;
-    _options['hidewindow'] = $('#win-Hidewindow')[0].checked;
+    _options['hideWindow'] = $('#win-Hidewindow')[0].checked;
     _options['animate'] = $('#win-Animate')[0].checked;
     _options['contentDiv'] = $('#win-Contentdiv')[0].checked;
     _options['fadeSpeed'] = parseInt($('#win-FadeSpeed')[0].value);
@@ -97,7 +114,22 @@ categories: ui
     _options['minWidth'] = $('#win-Minwidth')[0].value;
     _options['minHeight'] = $('#win-Minheight')[0].value;
 
-    var win_ = Window.create('newWin', $('#win-Title')[0].value, _options);
-    win_.append("<img src='../../../../../assets/img/cat.jpg' width='190px'>");
+    myNewWin = Window.create('newWin', $('#win-Title')[0].value, _options);
   }
+
+  var appendContent = function(){
+    myNewWin.append("<img src='/assets/img/cat.jpg' width='190px'>");
+  }
+
+  var closeWin = function(){
+    myNewWin.close();
+  }
+ 
+  var hideWin = function(){
+    myNewWin.hide();
+}
+
+  var showWin = function(){
+    myNewWin.show();
+}
 </script>
