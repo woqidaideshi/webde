@@ -1,22 +1,59 @@
 .btn{
   padding: 4px;
-  font-size: @btnFrontSize;
+  font-size: @btnFontSize;
   .border;
-  .radius(4px);
+  .radius(@btnRadius);
+  color: @btnFontColor;
   background-color: @backgroundColor;
+  .border;
   &.disabled,
   &.disable{
+    .select(none);
     .disableMixins;
+    &:hover{
+    }
   }
 
   &.active{
     cursor: default;
     background-color: @btnActiveBgColor;
-    color:@btnActiveFrontColor;
+    color:@btnActiveFontColor;
     border-color: @btnActiveBorderColor;
     &:hover{
-      .border(2px,solid,@btnHoverBorderColor);
+      .border(1px,solid,@btnHoverBorderColor);
       .setBackgroundColor(@btnHoverBgColor,@btnActiveBgColor);
     }
+    &:focus{
+      .setBackgroundColor(@btnActiveBgColor,@btnActiveBgColor);
+    }
   }
+
+  &.error-btn{
+    cursor: default;
+    background-color: @btnErrorBgColor;
+    color: @btnErrorFontColor;
+    border-color: @btnErrorBorderColor;
+    &:hover{
+      .border(1px,solid,@btnHoverBorderColor);
+      .setBackgroundColor(@btnHoverBgColor, @btnErrorBgColor);
+    }
+    &:focus{
+      .setBackgroundColor(@btnErrorBgColor,@btnErrorBgColor);
+    }
+  }
+
+  &.success-btn{
+    cursor: default;
+    background-color: @btnSuccessBgColor;
+    color: @btnSuccessFontColor;
+    border-color: @btnSuccessBorderColor;
+    &:hover{
+      .border(1px,solid,@btnHoverBorderColor);
+      .setBackgroundColor(@btnHoverBgColor, @btnSuccessBgColor);
+    }
+    &:focus{
+      .setBackgroundColor(@btnSuccessBgColor,@btnSuccessBgColor);
+    }
+  }
+
 }
