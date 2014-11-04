@@ -23,7 +23,7 @@
       .border(1px,solid,@btnHoverBorderColor);
       .setBackgroundColor(@btnHoverBgColor,@btnActiveBgColor);
     }
-    &:focus{
+    &:active{
       .setBackgroundColor(@btnActiveBgColor,@btnActiveBgColor);
     }
   }
@@ -37,7 +37,7 @@
       .border(1px,solid,@btnHoverBorderColor);
       .setBackgroundColor(@btnHoverBgColor, @btnErrorBgColor);
     }
-    &:focus{
+    &:active{
       .setBackgroundColor(@btnErrorBgColor,@btnErrorBgColor);
     }
   }
@@ -51,7 +51,7 @@
       .border(1px,solid,@btnHoverBorderColor);
       .setBackgroundColor(@btnHoverBgColor, @btnSuccessBgColor);
     }
-    &:focus{
+    &:active{
       .setBackgroundColor(@btnSuccessBgColor,@btnSuccessBgColor);
     }
   }
