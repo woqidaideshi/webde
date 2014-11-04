@@ -217,11 +217,10 @@ var DesktopModel = Model.extend({
     // TODO: move to Global
     this._view = DesktopView.create(this);
     // TODO: get user config data, create all components(Launcher, Layout, Dock, DeviceList)
-    this.add(LauncherModel.create(this));
     this.add(FlipperModel.create('layout', this, LayoutManager));
-    // this.initLayout();
     this.add(DeviceListModel.create(this));
     this.add(DockModel.create(this));
+    this.add(LauncherModel.create(this));
     this.initDesktopWatcher();
     this._inputer = Inputer.create('d-inputer');
     var _this = this;
@@ -687,8 +686,18 @@ var AppEntryModel = EntryModel.extend({
       } else {
         _this._genericName = file_['GenericName'];
       }
+      // get category
+      var cgs = file_['Categories'].split(';');
+      for(var i = 0; i < cgs.length; ++i) {
+        if(_global._App_Cate[cgs[i]]) {
+          _this._category = cgs[i];
+          break;
+        }
+      }
     });
   },
+
+  getCategory: function() {return this._category;},
 
   getComment: function() {return this._comment;},
 
@@ -1001,6 +1010,7 @@ var DeviceListModel = Model.extend({
     _global._device.createServer(function() {
       _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     });
+    // TODO: for IM, emit 'message' event when recive a message
   }
 });
 

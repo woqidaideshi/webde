@@ -8,7 +8,9 @@ var DesktopView = View.extend({
     this.callSuper('desktop-view', model_, parent_);
     this.controller = DesktopController.create(this);
     this.registObservers();
-    this.$view = $('body')/* .attr({id: this.getID()}) */;
+    this.$view = $('body').append($('<img>', {
+      'src': 'img/bgp.jpg'
+    }));
     this._c = [];
     this.initCtxMenu();
     this.initAction();
@@ -18,10 +20,13 @@ var DesktopView = View.extend({
     var _this = this;
     _this.__handlers = {
       'add': function(err_, component_) {
-        switch(component_.getID()) {
+        var id = component_.getID();
+        switch(id) {
           case 'launcher':
             // TODO: create a launcher view(split create and init into two functions, and
             //  here just create a view object)
+            _this._c[id] = LauncherView.create(component_, _this);
+            _this._c[id].show(_this.$view);
             break;
           case 'layout':
             _this._c['layout'] = FlipperView.create(component_, _this, true);
@@ -32,8 +37,8 @@ var DesktopView = View.extend({
             _this._c['device-list'].show(_this.$view);
             break;
           case 'dock':
-            _this._c[component_.getID()] = DockView.create(component_, _this);
-            _this._c[component_.getID()].show(_this.$view);
+            _this._c[id] = DockView.create(component_, _this);
+            _this._c[id].show(_this.$view);
             break;
           default:
             console.log('unknown type of component');
@@ -1199,6 +1204,154 @@ var DEntryView = WidgetView.extend({
   }
 });
 
+var LauncherView = View.extend({
+  init: function(model_, parent_) {
+    this.callSuper(model_.getID(), model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>', {
+      'class': 'launcher',
+      'id': this._id,
+      'onselectstart': 'return false'
+    }).append($('<div>', {
+      'class': 'subject'
+    })).append($('<div>', {
+      'class': 'content'
+    }));
+    this.initAction();
+    this._c = [];
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this._model.on('new', function(err_, app_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      var cg = app_.getCategory();
+      
+    });
+  },
+
+  initAction: function() {
+    var _this = this;
+    _this.$view.on('mousemove', function(e) {
+      e.stopPropagation();
+    }).on('mousedown', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    $(document).on('keydown', 'html', function(e) {
+      switch(e.which) {
+        case 81:
+          if(!e.altKey) return;
+          _this.toggle();
+          break;
+        default:
+          break;
+      }
+    });
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+    this.$view.hide();
+    this._shown = false;
+
+    for(var cg in _global._App_Cate) {
+      if(cg == 'Audio' || cg == 'Video') continue;
+      this.showInCategory(cg);
+    }
+    this.showInCategory('Other');
+  },
+
+  showInCategory: function(category_, entry_) {
+    var cg = category_, icon;
+    switch(category_) {
+      case 'AudioVideo':
+      case 'Audio':
+      case 'Video':
+        cg = 'AudioVideo';
+        icon = 'icon-video';
+        break;
+      case 'Development':
+        icon = 'icon-wrench-1';
+        break;
+      case 'Education':
+        icon = 'icon-college';
+        break;
+      case 'Game':
+        icon = 'icon-reddit';
+        break;
+      case 'Graphics':
+        icon = 'icon-art-gallery';
+        break;
+      case 'Network':
+        icon = 'icon-globe';
+        break;
+      case 'Office':
+        icon = 'icon-newspaper';
+        break;
+      case 'Science':
+        icon = 'icon-lightbulb';
+        break;
+      case 'Settings':
+        icon = 'icon-cogs';
+        break;
+      case 'System':
+        icon = 'icon-wrench-outline';
+        break;
+      case 'Utility':
+        icon = 'icon-calendar';
+        break;
+      default:
+        cg = 'Other';
+        icon = 'icon-briefcase';
+        break;
+    }
+    // TODO: add entry_ to category_
+    if(typeof this._c[cg] === 'undefined') {
+      this._c[cg] = {
+        'subject': $('<div>', {
+          'class': icon + ' sub-entry',
+          'title': cg
+        }),
+        'content': $('<div>')
+      };
+      this.$view.children('.subject').append(this._c[cg].subject);
+      this.$view.children('.content').append(this._c[cg].content);
+    }
+    if(typeof entry_ !== 'undefined') {
+      this._c[cg].content.append(entry_);
+    }
+  },
+
+  toggle: function() {
+    if(this._shown) {
+      this.$view.hide().children('canvas').remove();
+      this._shown = false;
+    } else {
+      var _this = this;
+      html2canvas($('body'), {
+        onrendered: function(canvas) {
+          _this.$view.append(canvas).children('canvas').attr({
+            'class': 'blurcanvas',
+            'id': 'blurcanvas'
+          });
+          stackBlurCanvasRGB('blurcanvas', 0, 0, canvas.width, canvas.height, 20);
+          _this.$view.show();
+          _this._shown = true;
+        }
+      });
+    }
+  }
+});
+
+var LauncherEntryView = View.extend({
+  init: function(id_, model_, parent_) {
+  }
+});
+
 var DeviceListView = View.extend({
   init: function(model_, parent_) {
     this.callSuper('device-list', model_, parent_);
@@ -1464,6 +1617,14 @@ var DockView = View.extend({
 
   show: function($parent) {
     $parent.append(this.$view);
+  },
+
+  toggle: function(show_) {
+    if(!show_) {
+      this.$view.hide();
+    } else {
+      this.$view.show();
+    }
   },
 
   addReflect: function() {

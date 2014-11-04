@@ -94,3 +94,17 @@
   background-color: @color;
   opacity: @opacity;
 }
+
+.blur(@arg) {
+  -webkit-filter: blur(@arg);
+  -moz-filter: blur(@arg);
+  -ms-filter: blur(@arg);
+  filter: blur(@arg);
+}
+
+.brightness(@arg) {
+  -webkit-filter: brightness(@arg);
+  -moz-filter: brightness(@arg);
+  -ms-filter: brightness(@arg);
+  filter: brightness(@arg);
+}
