@@ -40,6 +40,8 @@ categories: ui
   minHeight:200,     //设置窗口的最小高度
   animate: true,     //动画效果
   contentDiv: true   //包含放置内容的div
+  iframe: true       //iframe内容框，如果contentDiv为false时生效。
+  maxWindow: false   //初始最大化窗口
 </code>
 </pre>
 <p><br /></p>
@@ -62,11 +64,12 @@ categories: ui
 <code>
 1、hide()   //隐藏窗口
 2、show()   //现实窗口
-3、append(content_)   //向content内添加内容
+3、append(content_)   //向content内添加内容，必须加入的是div内容页
 4、close()   //关闭当前窗口
 5、create(options_)   //创建新窗口
 6、closeWindow(windowobj_)    //关闭windowobj_窗口对象， windowobj_ = Window.create(options);
 7、bindButton($target_, eventAction_, argument)    //绑定鼠标点击$target的事件eventAction_,argument是传给eventAction的参数。
+8、appendHtml(src)   //向iframe中加入网页，src为html文件的地址。必须加入的是iframe内容页。
 </code>
 </pre>
 
@@ -78,8 +81,10 @@ categories: ui
 <p>收起内容按钮：<input type='checkbox' id='win-Hide' checked="checked"></p>
 <p>调整窗口大小：<input type='checkbox' id='win-Resize' checked="checked"></p>
 <p>初始隐藏窗口：<input type='checkbox' id='win-Hidewindow'></p>
+<p>初始最大化窗口：<input type='checkbox' id='win-Maxwindow'></p>
 <p>动画：<input type='checkbox' id='win-Animate' checked="checked"></p>
 <p>内容Div：<input type='checkbox' id='win-Contentdiv' checked="checked"></p>
+<p>Iframe：<input type='checkbox' id='win-Iframe' checked="checked"></p>
 <p>动画速度：<input type='text' id='win-FadeSpeed' value="100"></p>
 <p>窗口宽度<input type='text' id='win-Width' value="600"></p>
 <p>窗口高度：<input type='text' id='win-Height' value="600"></p>
@@ -94,6 +99,7 @@ categories: ui
 <button class='btn active' onclick="closeWin()">Close Window</button>
 <button class='btn active' onclick="hideWin()">hide Window</button>
 <button class='btn active' onclick="showWin()">show Window</button>
+<button class='btn active' onclick="appendHtml()">append Html</button>
 <script type="text/javascript">
   var myNewWin;
   var newWin = function(){
@@ -104,8 +110,10 @@ categories: ui
     _options['hide'] = $('#win-Hide')[0].checked;
     _options['resize'] = $('#win-Resize')[0].checked;
     _options['hideWindow'] = $('#win-Hidewindow')[0].checked;
+    _options['maxWindow'] = $('#win-Maxwindow')[0].checked;
     _options['animate'] = $('#win-Animate')[0].checked;
     _options['contentDiv'] = $('#win-Contentdiv')[0].checked;
+    _options['iframe'] = $('#win-Iframe')[0].checked;
     _options['fadeSpeed'] = parseInt($('#win-FadeSpeed')[0].value);
     _options['width'] = $('#win-Width')[0].value;
     _options['height'] = $('#win-Height')[0].value;
@@ -128,6 +136,10 @@ categories: ui
   var hideWin = function(){
     myNewWin.hide();
 }
+
+  var appendHtml = function(){
+    myNewWin.appendHtml('/../saved_resource.html');
+  }
 
   var showWin = function(){
     myNewWin.show();
