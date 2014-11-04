@@ -16,6 +16,8 @@ var Window = Class.extend({
       left: 0,                         //位置x坐标
       top: 0,                           //位置y坐标
       contentDiv: true,    //是否新建div窗口
+      iframe:false,            //是否使用ifram作为内容框口
+      maxWindow: false,  //是否初始最大化
       resize: false,           //设置是否可重新调整窗口的大小
       minWidth: 200,            //设置窗口的最小宽度
       minHeight:200            //设置窗口的最小高度
@@ -61,7 +63,12 @@ var Window = Class.extend({
         'class':'window-content'
       });
       this._window.append(this._windowContent);
-    }
+    } else if (this._options.iframe) {
+      this._windowContent = $('<iframe>',{
+        'class':'window-content',
+      })
+      this._window.append(this._windowContent);
+    };
 
     if (this._options.resize == true) {
       this._dragDiv = $('<div>', {
@@ -69,6 +76,7 @@ var Window = Class.extend({
       });
       this._window.append(this._dragDiv);
     }
+
     $('body').
     append(this._window);
     
@@ -77,6 +85,9 @@ var Window = Class.extend({
       this.show();
     }else {
       this.hide();
+    }
+    if(this._options.maxWindow){
+      this.maxWindow(this);
     }
     this.bindEvent();
   },
@@ -243,11 +254,10 @@ var Window = Class.extend({
     _this._titleDiv.css({'width': _tmp+'px'});
     _tmp = size_.width-130;
     _this._titleText.css({'width': _tmp+'px'});
-    if (this._options.contentDiv) {
-      _tmp = size_.width -10;
-      var _tmp1 = size_.height - 50;
+    _tmp = size_.width -10;
+    var _tmp1 = size_.height - 50;
+    if(typeof _this._windowContent !== 'undefined')
       _this._windowContent.css({'width':_tmp+'px', 'height': _tmp1+'px'});
-    }
   },
   /**
    * [resizeWindowWithAnimate resize window with animate]
@@ -262,11 +272,11 @@ var Window = Class.extend({
     _this._titleDiv.animate({width: _tmp+'px'},_this._options.fadeSpeed);
     _tmp = size_.width-130;
     _this._titleText.animate({width: _tmp+'px'}, _this._options.fadeSpeed);
-    if (this._options.contentDiv) {
-      _tmp = size_.width -10;
-      var _tmp1 = size_.height - 50;
+    _tmp = size_.width -10;
+    var _tmp1 = size_.height - 50;
+    if(typeof _this._windowContent !== 'undefined'){
       _this._windowContent.animate({width:_tmp+'px', height: _tmp1+'px'},_this._options.fadeSpeed);
-    }
+    } 
   },
   /**
    * [maxWindow max window]
@@ -276,7 +286,7 @@ var Window = Class.extend({
   maxWindow:function(windowObj_){
     var _this = windowObj_;
     var _winWidth = document.body.clientWidth;
-    var _winHeight = $(document).height();
+    var _winHeight = document.body.clientHeight;
     var _dockBottom = $('#dock').attr('bottom');
     var _pos = {
       left: 0,
@@ -346,7 +356,7 @@ var Window = Class.extend({
    */
   hideDiv:function(windowObj_){
     var _this = windowObj_;
-    if (_this._options.contentDiv) {
+    if (typeof _this._windowContent !== 'undefined') {
       if (_this._options.animate) {
         _this._windowContent.slideUp(_this._options.fadeSpeed);
       } else {
@@ -370,7 +380,7 @@ var Window = Class.extend({
   showDiv:function(windowObj_){
     var _this = windowObj_;
     _this._ishide = false;
-    if (_this._options.contentDiv) {
+    if (typeof _this._windowContent !== 'undefined') {
       if (_this._options.animate) {
         _this._windowContent.slideDown(_this._options.fadeSpeed);
       } else {
@@ -417,19 +427,35 @@ var Window = Class.extend({
       this._windowContent.append(content_);
     }
   },
-
+  /**
+   * [close close window]
+   * @return {[type]} [description]
+   */
   close:function(){
     var _this = this ;
     if (typeof this._window !== 'undefined'){
       this.closeWindow(_this);
     } 
   },
-
+  /**
+   * [hide hide window]
+   * @return {[type]} [description]
+   */
   hide:function(){
     if (this._options.animate) {
       this._window.fadeOut(this._options.fadeSpeed);
     } else {
       this._window.hide();
+    }
+  },
+  /**
+   * [appendHtml append html]
+   * @param  {[type]} src_ [description]
+   * @return {[type]}      [description]
+   */
+  appendHtml:function(src_){
+    if(this._options.iframe){
+      this._windowContent[0].src = src_;
     }
   }
 
