@@ -254,8 +254,8 @@ var Window = Class.extend({
     _this._titleDiv.css({'width': _tmp+'px'});
     _tmp = size_.width-130;
     _this._titleText.css({'width': _tmp+'px'});
-    _tmp = size_.width -12;
-    var _tmp1 = size_.height - 52;
+    _tmp = size_.width -10;
+    var _tmp1 = size_.height - 50;
     if(typeof _this._windowContent !== 'undefined')
       _this._windowContent.css({'width':_tmp+'px', 'height': _tmp1+'px'});
   },
@@ -272,8 +272,8 @@ var Window = Class.extend({
     _this._titleDiv.animate({width: _tmp+'px'},_this._options.fadeSpeed);
     _tmp = size_.width-130;
     _this._titleText.animate({width: _tmp+'px'}, _this._options.fadeSpeed);
-    _tmp = size_.width -12;
-    var _tmp1 = size_.height - 52;
+    _tmp = size_.width -10;
+    var _tmp1 = size_.height - 50;
    if(typeof _this._windowContent !== 'undefined'){
      _this._windowContent.animate({width:_tmp+'px', height: _tmp1+'px'},_this._options.fadeSpeed);
     } 
