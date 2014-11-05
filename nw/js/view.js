@@ -2549,3 +2549,57 @@ var FlipperView = View.extend({
   }
 });
 
+var EditBox = Class.extend({
+  init: function( toAccountInfo_,imChatWinList_) {
+    var toAccount = toAccountInfo_.toAccount;
+    var imWindow = Window.create('imChat_' + toAccount, toAccount);
+    var toIP;
+    var toUID;
+    var localAccount ;
+    var localUID;
+    var sendTime;
+    var msgtime;
+    this.$view = $('<div>').html('<div><textarea id="disp_text_' + toAccount + '" readOnly="true" class="textarea" rows="20" cols="70"></textarea></div>\
+    <p></p>\
+    <textarea id="send_text_' + toAccount + '"   rows="10" cols="70" class="textarea"></textarea> </div>\
+    <p></p> \
+    <div align="right"> \
+    <button type="button"  id="close_button_' + toAccount + '">关闭</button> \
+    <button type="button"  id="send_button_' + toAccount + '">发送</button> \
+    </div> ');
+    imWindow.append(this.$view);
+    $('#close_button_' + toAccount).on('click', function() {
+      delete imChatWinList_['imChatWin_'+toAccount];
+      imWindow.closeWindow(imWindow);
+    });
+    $('#send_button_' + toAccount).on('click', function() {
+      if ($('#send_text_' + toAccount).val().length !== 0) {
+        var msg = $('#send_text_' + toAccount).val();
+        function sendIMMsgCb() {
+          $('#disp_text_' + toAccount).val($('#disp_text_' + toAccount).val() + localAccount + '   ' + sendTime + '  :\n' + msg + '\n\n');
+          $('#send_text_' + toAccount).val('');
+        }
+        _global._imV.getLocalData(function(localData) {
+          localAccount = localData.account;
+          localUID = localData.UID;
+          var ipset = {};
+          ipset["IP"] = toAccountInfo_.toIP;
+          ipset["UID"] = toAccountInfo_.toUID;
+          msgtime = new Date();
+          sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+          _global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
+        });
+      } else {}
+    });
+    if(toAccountInfo_.msg!==undefined){
+      msgtime = new Date();
+      sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+      $('#disp_text_' + toAccount).val($('#disp_text_' + toAccount).val() + toAccount + '   ' + sendTime + '  :\n' + toAccountInfo_.msg + '\n\n');
+    }
+  },
+  showRec:function (toAccount_,msg_){
+    var msgtime = new Date();
+    var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+    $('#disp_text_' + toAccount_).val($('#disp_text_' + toAccount_).val() + toAccount_ + '   ' + sendTime + '  :\n' + msg_ + '\n\n');
+  }
+});
