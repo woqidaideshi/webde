@@ -82,11 +82,11 @@
   box-shadow: @arg1 @arg2 @arg3 @arg4;
 }
 
-.out-box-shadow(@arg) {
-  -webkit-box-shadow: @arg;
-  -moz-box-shadow: @arg;
-  -o-box-shadow: @arg;
-  box-shadow: @arg;
+.out-box-shadow(...) {
+  -webkit-box-shadow: @arguments;
+  -moz-box-shadow: @arguments;
+  -o-box-shadow: @arguments;
+  box-shadow: @arguments;
 }
 
 .bg(@color, @opacity) {

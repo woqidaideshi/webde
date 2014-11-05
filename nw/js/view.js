@@ -1216,7 +1216,16 @@ var LauncherView = View.extend({
       'class': 'subject'
     })).append($('<div>', {
       'class': 'content'
-    }));
+    }).append($('<div>', {
+      'class': 'c-search'
+    }).append($('<input>', {
+      'class': 'c-s-input'
+    }).attr({
+      'type': 'search',
+      'results': 5,
+      'placeholder': 'Search...'//,
+      // 'autofocus': 'autofocus'
+    }))));
     this.initAction();
     this._c = [];
   },
@@ -1229,7 +1238,7 @@ var LauncherView = View.extend({
         return ;
       }
       var cg = app_.getCategory();
-      
+      // TODO: new appView and add to launcher
     });
   },
 
@@ -1238,7 +1247,6 @@ var LauncherView = View.extend({
     _this.$view.on('mousemove', function(e) {
       e.stopPropagation();
     }).on('mousedown', function(e) {
-      e.preventDefault();
       e.stopPropagation();
     });
     $(document).on('keydown', 'html', function(e) {
@@ -1258,6 +1266,7 @@ var LauncherView = View.extend({
     this.$view.hide();
     this._shown = false;
 
+    this.showInCategory('All');
     for(var cg in _global._App_Cate) {
       if(cg == 'Audio' || cg == 'Video') continue;
       this.showInCategory(cg);
@@ -1268,6 +1277,9 @@ var LauncherView = View.extend({
   showInCategory: function(category_, entry_) {
     var cg = category_, icon;
     switch(category_) {
+      case 'All':
+        icon = 'icon-th';
+        break;
       case 'AudioVideo':
       case 'Audio':
       case 'Video':
@@ -1290,7 +1302,7 @@ var LauncherView = View.extend({
         icon = 'icon-globe';
         break;
       case 'Office':
-        icon = 'icon-newspaper';
+        icon = 'icon-news';
         break;
       case 'Science':
         icon = 'icon-lightbulb';
@@ -1311,12 +1323,24 @@ var LauncherView = View.extend({
     }
     // TODO: add entry_ to category_
     if(typeof this._c[cg] === 'undefined') {
-      this._c[cg] = {
+      var _this = this;
+      _this._c[cg] = {
         'subject': $('<div>', {
-          'class': icon + ' sub-entry',
-          'title': cg
-        }),
-        'content': $('<div>')
+                    'class': icon + ' sub-entry',
+                    'title': cg
+                  }).on('click', function(e) {
+                    e.stopPropagation();
+                    _this._c[_this._cur].content.hide();
+                    _this._c[_this._cur].subject.removeClass('open');
+
+                    _this._c[cg].content.show();
+                    _this._c[cg].subject.addClass('open');
+                    _this._cur = cg;
+                    _this.$view.find('.c-s-input')[0].focus();
+                  }),
+        'content': $('<div>', {
+                    'class': 'c-items'
+                  })
       };
       this.$view.children('.subject').append(this._c[cg].subject);
       this.$view.children('.content').append(this._c[cg].content);
@@ -1341,6 +1365,10 @@ var LauncherView = View.extend({
           stackBlurCanvasRGB('blurcanvas', 0, 0, canvas.width, canvas.height, 20);
           _this.$view.show();
           _this._shown = true;
+          _this._c['All'].content.show(); 
+          _this._c['All'].subject.addClass('open'); 
+          _this._cur = 'All';
+          _this.$view.find('.c-s-input')[0].focus();
         }
       });
     }
@@ -2429,7 +2457,7 @@ var FlipperView = View.extend({
       'class': 'view-switch-bar',
       'onselectstart': 'return false'
     }).append($('<div>', {
-      'class': 'icon-plus-sign'
+      'class': 'icon-plus-squared'
     }).css({
       'display': 'inline-block',
       'cursor': 'pointer'
@@ -2547,7 +2575,7 @@ var FlipperView = View.extend({
     var _this = this;
     $selector.on('drag', function(e) {
       e.stopPropagation();
-    }).find('.icon-plus-sign').on('mousedown', function(e) {
+    }).find('.icon-plus-squared').on('mousedown', function(e) {
       e.stopPropagation();
       e.preventDefault();
       _this._controller.onAdd();
@@ -2680,7 +2708,7 @@ var FlipperView = View.extend({
           }
         });
     _this.$view.find('.showing').removeClass('showing');
-    _this.$view.find('.icon-plus-sign').before($switcher);
+    _this.$view.find('.icon-plus-squared').before($switcher);
     _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
   },
 
