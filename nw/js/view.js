@@ -1208,7 +1208,11 @@ var DeviceListView = View.extend({
       'id': this._id
     }).append($('<p>', {
       'class': 'title'
-    }).text('Online Devices'));
+    }).text('Online Devices').on('mouseenter', function(e) {
+      e.stopPropagation();
+    }).on('mouseleave', function(e) {
+      e.stopPropagation();
+    }));
     this._c = [];
     this.initAction();
   },
@@ -1261,6 +1265,17 @@ var DeviceListView = View.extend({
       enter();
     }).on('dragleave', function(e) {
       // leave();
+    }).on('mousewheel', function(e) {
+      var _scroll = this;
+      if(typeof _this._wheel === 'undefined') {
+        $(_scroll).css('overflow', 'auto');
+      }
+      clearTimeout(_this._wheel);
+      _this._wheel = setTimeout(function() {
+        $(_scroll).css('overflow', 'hidden');
+        _this._wheel = undefined;
+      }, 400);
+      e.stopPropagation();
     });
   },
 
