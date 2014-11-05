@@ -2550,14 +2550,6 @@ var FlipperView = View.extend({
 });
 
 var EditBox = Class.extend({
-  // @imChatWin_: which window the EditBox belongs to
-  // @toAccount: which account the window  belongs to
-  // @events_: which is an events object to binding to specific key include 'enter', 'up',
-  //            'down', 'left', 'right', 'clear'(for clear the state of 'tab-index')
-  // Note that: 1. Items of this container should have functions called 'focus', 'blur' and 
-  //              'getView' which is for getting the jquery object of item's view.
-  //            2. The container object should have a function called 'getSelectableItems'.
-  //
   init: function( toAccountInfo_,imChatWinList_) {
     var toAccount = toAccountInfo_.toAccount;
     var imWindow = Window.create('imChat_' + toAccount, toAccount);
