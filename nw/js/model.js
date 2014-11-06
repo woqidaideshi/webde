@@ -685,7 +685,7 @@ var AppEntryModel = EntryModel.extend({
       _this._comment = file_['Comment'];
       // get genericName
       if (typeof file_['GenericName[zh_CN]'] != 'undefined') {
-				_this._genericName = file_['GenericName[zh_CN]'];
+        _this._genericName = file_['GenericName[zh_CN]'];
       } else {
         _this._genericName = file_['GenericName'];
       }
@@ -997,6 +997,7 @@ var LauncherModel = Model.extend({
 var DeviceListModel = Model.extend({
   init: function(parent_) {
     this.callSuper('device-list', parent_);
+    this._imChatWinList = {}; 
   },
 
   release: function() {
@@ -1036,6 +1037,39 @@ var DeviceListModel = Model.extend({
       _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     });
     // TODO: for IM, emit 'message' event when recive a message
+    _global._imV.startIMChatServer(function(msgobj) {
+      var toAccount = msgobj.MsgObj.from;
+      var curEditBox = _this._imChatWinList['imChatWin_'+toAccount];
+      if(curEditBox===undefined){
+        Messenger().post({
+          message: toAccount + '给你发新消息啦！',
+          type: 'info',
+          actions: {
+            close: {
+              label: '取消闪烁',
+              action: function() {
+                Messenger().hideAll()
+              }
+            },
+            open: {
+              label: '查看',
+              action: function() {
+                Messenger().hideAll();
+                var toAccountInfo = {};
+                toAccountInfo['toAccount'] = toAccount;
+                toAccountInfo['toIP'] = msgobj.IP;
+                toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
+                toAccountInfo['msg'] = msgobj.MsgObj.message;
+                curEditBox = EditBox.create(toAccountInfo,_this._imChatWinList);
+                _this._imChatWinList['imChatWin_'+toAccount] = curEditBox;
+              }
+            }
+          }
+        });
+      } else {
+        curEditBox.showRec(toAccount,msgobj.MsgObj.message);
+      }
+    });
   }
 });
 
@@ -1060,12 +1094,13 @@ var DeviceEntryModel = EntryModel.extend({
 
   // TODO: show something about this device
   open: function() {
-    console.log(this._position);
-    var msg = '';
-    for(var key in this._position) {
-      msg += key + ': ' + this._position[key] + '<br/>';
-    }
-    Messenger().post(msg);
+    var toAccount = this._position['txt'][5];
+    var toAccountInfo = {};
+    toAccountInfo['toAccount'] = this._position['txt'][5];;
+    toAccountInfo['toIP'] = this._position['txt'][4];
+    toAccountInfo['toUID'] = this._position['txt'][1];
+    var curEditBox = EditBox.create( toAccountInfo,this._parent._imChatWinList);
+    this._parent._imChatWinList['imChatWin_'+toAccount] = curEditBox;
   },
 
   // send a file to remote device
@@ -1516,4 +1551,3 @@ var FlipperModel = LayoutModel.extend({
     }
   }
 });
-

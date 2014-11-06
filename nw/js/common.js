@@ -310,8 +310,9 @@ var Global = Class.extend({
           //TODO: change the nodejs'API to ourselves
           _this._fs = require('fs');
           _this._exec = require('child_process').exec;
-          WDC.requireAPI(['device'], function(dev) {
+          WDC.requireAPI(['device','imView'], function(dev,imV) {
             _this._device = dev;
+            _this._imV = imV;
             cb_(null);
           });
         }
