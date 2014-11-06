@@ -331,6 +331,9 @@ var DesktopModel = Model.extend({
           _layout[i].remove(_entry);
         }
       }
+      /* var _launcher = _desktop.getCOMById('launcher'), */
+          // _entry = _launcher.getCOMByAttr('_filename', filename);
+      /* if(_entry != null) _launcher.remove(_entry); */
     });
     this._desktopWatch.on('rename', function(oldName, newName) {
       console.log('rename:', oldName, '->', newName);
@@ -687,17 +690,37 @@ var AppEntryModel = EntryModel.extend({
         _this._genericName = file_['GenericName'];
       }
       // get category
-      var cgs = file_['Categories'].split(';');
-      for(var i = 0; i < cgs.length; ++i) {
-        if(_global._App_Cate[cgs[i]]) {
-          _this._category = cgs[i];
-          break;
+      if(file_['NoDisplay'] != 'true') {
+        var cgs = file_['Categories'].split(';'),
+          cg = 'Other';
+        for(var i = 0; i < cgs.length; ++i) {
+          if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
+            cg = cgs[i];
+            break;
+          }
         }
+        _this.setCategory(cg);
+        _this.setNoDisplay(false);
+      } else {
+        // TODO: should not show this entry
+        _this.setNoDisplay(true);
       }
     });
   },
 
+  getNoDisplay: function() {return this._noDisplay;},
+
+  setNoDisplay: function(nodisplay_) {
+    this._noDisplay = nodisplay_;
+    this.emit('noDisplay', null, this._noDisplay);
+  },
+
   getCategory: function() {return this._category;},
+
+  setCategory: function(cg_) {
+    this._category = cg_;
+    this.emit('category', null, cg_);
+  },
 
   getComment: function() {return this._comment;},
 
@@ -947,13 +970,14 @@ var ThemeEntryModel = EntryModel.extend({
 var LauncherModel = Model.extend({
   init: function(parent_) {
     this.callSuper('launcher', parent_);
-    this._appCache = Cache.create(); // caches app models
+    // this._appCache = Cache.create(); // caches app models
   },
 
   load: function() {},
 
   get: function(id_) {
-    var ret = this._appCache.get(id_);
+    // var ret = this._appCache.get(id_);
+    var ret = this.getCOMById(id_);
     if(typeof ret === 'undefined') {
       // catch this exception and get app model from FS
       throw 'Not in cache!';
@@ -962,8 +986,9 @@ var LauncherModel = Model.extend({
   },
 
   set: function(app_) {
-    this._appCache.set(app_.getID(), app_);
-    this.emit('new', null, app_);
+    /* this._appCache.set(app_.getID(), app_); */
+    /* this.emit('new', null, app_); */
+    this.add(app_);
   },
 
   release: function() {}

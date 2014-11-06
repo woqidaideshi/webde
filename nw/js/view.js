@@ -64,7 +64,7 @@ var DesktopView = View.extend({
         ctxMenu = _global.get('ctxMenu');
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
-      {text: 'create Dir', icon: 'icon-folder-close-alt', action: function(e) {
+      {text: 'create Dir', icon: 'icon-folder-1', action: function(e) {
         e.preventDefault();
         for (var i = 0; ; i++) {
           if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) {
@@ -75,7 +75,7 @@ var DesktopView = View.extend({
           }
         }
       }},
-      {text: 'create Text', icon: 'icon-file', action: function(e){
+      {text: 'create Text', icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
         for (var i = 0; ; i++) {
           if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
@@ -108,11 +108,11 @@ var DesktopView = View.extend({
         });
       }},
       {divider: true},
-      {text: 'refresh', icon: 'icon-refresh icon-spin', action: function(e) {
+      {text: 'refresh', icon: 'icon-spin3 animate-spin', action: function(e) {
         // TODO: only reload views
         location.reload();
       }},
-      {text: 'refresh (F5)', icon: 'icon-refresh icon-spin', action: function(e) {
+      {text: 'refresh (F5)', icon: 'icon-spin3 animate-spin', action: function(e) {
         location.reload(true);
       }},
       {divider: true},
@@ -249,7 +249,7 @@ var DesktopView = View.extend({
         e.stopPropagation();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
-      {text:'delete' , icon: 'icon-remove-circle', action:function(e){
+      {text:'delete' , icon: 'icon-cancel-circled2', action:function(e){
         e.preventDefault();
         var _path = desktop._widgets[ctxMenu._rightObjId]._path;
         utilIns.entryUtil.removeFile(_path);
@@ -263,7 +263,7 @@ var DesktopView = View.extend({
     ]);
     ctxMenu.addCtxMenu([
       {header: 'file-entry'},
-      {text: 'Open', icon: 'icon-folder-open-alt', action: function(e) {
+      {text: 'Open', icon: 'icon-folder-open-empty', action: function(e) {
         e.preventDefault();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
@@ -280,7 +280,7 @@ var DesktopView = View.extend({
         e.preventDefault();
         utilIns.trashUtil.moveToTrash(ctxMenu._rightObjId);
       }},
-      {text:'Delete' , icon: 'icon-remove-circle', action:function(e){
+      {text:'Delete' , icon: 'icon-cancel-circled2', action:function(e){
         e.preventDefault();
         var _msg;
         _msg = Messenger().post({
@@ -1228,17 +1228,27 @@ var LauncherView = View.extend({
     }))));
     this.initAction();
     this._c = [];
+    this._views = [];
   },
 
   registObservers: function() {
     var _this = this;
-    _this._model.on('new', function(err_, app_) {
+    _this._model.on('add', function(err_, app_) {
       if(err_) {
         console.log(err_);
         return ;
       }
-      var cg = app_.getCategory();
-      // TODO: new appView and add to launcher
+      // new appView and add to launcher
+      _this._views[app_.getID()] = LauncherEntryView.create(app_.getID(), app_, _this);
+      _this.showInCategory('All', _this._views[app_.getID()]);
+    }).on('remove', function(err_, app_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      _this._views[app_.getID()].hide();
+      _this._views[app_.getID()] = null;
+      delete _this._views[app_.getID()];
     });
   },
 
@@ -1263,6 +1273,18 @@ var LauncherView = View.extend({
 
   show: function($parent) {
     $parent.append(this.$view);
+    var $content = this.$view.children('.content'),
+        contentW = $content.width(),
+        contentH = $content.height(),
+        pw = contentW * 0.96,
+        ph = contentH * 0.6,
+        mt = ph * 0.01,
+        mr = pw * 0.01,
+        numH = 6;
+    this._itemH = (ph - mt * numH) / numH;
+    var numW = Math.floor(pw / (this._itemH + mr));
+    this._itemW = pw / numW;
+    this._imgSize = this._itemH * 0.625;
     this.$view.hide();
     this._shown = false;
 
@@ -1346,7 +1368,7 @@ var LauncherView = View.extend({
       this.$view.children('.content').append(this._c[cg].content);
     }
     if(typeof entry_ !== 'undefined') {
-      this._c[cg].content.append(entry_);
+      entry_.show(this._c[cg].content);
     }
   },
 
@@ -1372,11 +1394,75 @@ var LauncherView = View.extend({
         }
       });
     }
-  }
+  },
+  
+  getContents: function() {return this._c;}
 });
 
 var LauncherEntryView = View.extend({
   init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>', {
+      'class': 'c-item'
+    }).css({
+      'width': parent_._itemW,
+      'height': parent_._itemH
+    }).append($('<img>', {
+      'src': this._model.getImgPath()
+    }).css({
+      'width': parent_._imgSize,
+      'height': parent_._imgSize
+    })).append($('<p>').text(this._model.getName()));
+    this.$view2 = null;
+    this.initAction();
+    this._contents = parent_.getContents();
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this._model.on('category', function(err_, cg_) {
+      if(_this.$view2 == null) {
+        _this.$view2 = _this.$view.clone();
+      }
+      _this._contents[_global._App_Cate[cg_]].content.append(_this.$view2);
+    }).on('imgPath', function(err_, imgPath_) {
+      _this.$view.children('img').attr('src', imgPath_);
+      if(_this.$view2 != null) {
+        _this.$view2.children('img').attr('src', imgPath_);
+      }
+    }).on('name', function(err_, name_) {
+      _this.$view.children('p').text(name_);
+      if(_this.$view2 != null) {
+        _this.$view2.children('p').text(name_);
+      }
+    }).on('noDisplay', function(err_, noDisplay_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      if(noDisplay_) {
+        _this.hide();
+        _this._parent._views[_this._id] = null;
+        delete _this._parent._views[_this._id];
+      }
+    });
+  },
+
+  initAction: function() {},
+
+  show: function($parent) {
+    $parent.append(this.$view);
+    var cg = this._model.getCategory();
+    if(typeof cg !== 'undefined') {
+      this.$view2 = this.$view.clone();
+      this._contents[_global._App_Cate[cg]].content.append(this.$view2);
+    }
+  },
+
+  hide: function() {
+    this.$view.remove();
+    if(this.$view2 != null) this.$view2.remove();
   }
 });
 
