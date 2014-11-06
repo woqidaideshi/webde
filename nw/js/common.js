@@ -285,6 +285,22 @@ var Global = Class.extend({
     this.$home = undefined;
     this.$xdg_data_dirs = undefined;
     this.$xdg_data_home = undefined;
+    this._App_Cate = {
+      'AudioVideo': 'AudioVideo',
+      'Audio': 'AudioVideo',
+      'Video': 'AudioVideo',
+      'Development': 'Development',
+      'Education': 'Education',
+      'Game': 'Game',
+      'Graphics': 'Graphics',
+      'Network': 'Network',
+      'Office': 'Office',
+      'Science': 'Science',
+      'Settings': 'Settings',
+      'System': 'System',
+      'Utility': 'Utility',
+      'Other': 'Other'
+    };
     this.objects = [];
     
     var _this = this;

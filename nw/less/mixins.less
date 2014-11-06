@@ -82,15 +82,36 @@
   box-shadow: @arg1 @arg2 @arg3 @arg4;
 }
 
-.out-box-shadow(@arg) {
-  -webkit-box-shadow: @arg;
-  -moz-box-shadow: @arg;
-  -o-box-shadow: @arg;
-  box-shadow: @arg;
+.out-box-shadow(...) {
+  -webkit-box-shadow: @arguments;
+  -moz-box-shadow: @arguments;
+  -o-box-shadow: @arguments;
+  box-shadow: @arguments;
 }
 
 .bg(@color, @opacity) {
   background-clip: content-box;
   background-color: @color;
   opacity: @opacity;
+}
+
+.blur(@arg) {
+  -webkit-filter: blur(@arg);
+  -moz-filter: blur(@arg);
+  -ms-filter: blur(@arg);
+  filter: blur(@arg);
+}
+
+.brightness(@arg) {
+  -webkit-filter: brightness(@arg);
+  -moz-filter: brightness(@arg);
+  -ms-filter: brightness(@arg);
+  filter: brightness(@arg);
+}
+
+.invert(@arg) {
+  -webkit-filter: invert(@arg);
+  -moz-filter: invert(@arg);
+  -ms-filter: invert(@arg);
+  filter: invert(@arg);
 }
