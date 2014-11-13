@@ -8,7 +8,9 @@ var DesktopView = View.extend({
     this.callSuper('desktop-view', model_, parent_);
     this.controller = DesktopController.create(this);
     this.registObservers();
-    this.$view = $('body')/* .attr({id: this.getID()}) */;
+    this.$view = $('body').append($('<img>', {
+      'src': 'img/bgp.jpg'
+    }));
     this._c = [];
     this.initCtxMenu();
     this.initAction();
@@ -18,10 +20,13 @@ var DesktopView = View.extend({
     var _this = this;
     _this.__handlers = {
       'add': function(err_, component_) {
-        switch(component_.getID()) {
+        var id = component_.getID();
+        switch(id) {
           case 'launcher':
             // TODO: create a launcher view(split create and init into two functions, and
             //  here just create a view object)
+            _this._c[id] = LauncherView.create(component_, _this);
+            _this._c[id].show(_this.$view);
             break;
           case 'layout':
             _this._c['layout'] = FlipperView.create(component_, _this, true);
@@ -32,8 +37,8 @@ var DesktopView = View.extend({
             _this._c['device-list'].show(_this.$view);
             break;
           case 'dock':
-            _this._c[component_.getID()] = DockView.create(component_, _this);
-            _this._c[component_.getID()].show(_this.$view);
+            _this._c[id] = DockView.create(component_, _this);
+            _this._c[id].show(_this.$view);
             break;
           default:
             console.log('unknown type of component');
@@ -59,7 +64,7 @@ var DesktopView = View.extend({
         ctxMenu = _global.get('ctxMenu');
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
-      {text: 'create Dir', icon: 'icon-folder-close-alt', action: function(e) {
+      {text: 'create Dir', icon: 'icon-folder-1', action: function(e) {
         e.preventDefault();
         for (var i = 0; ; i++) {
           if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) {
@@ -70,7 +75,7 @@ var DesktopView = View.extend({
           }
         }
       }},
-      {text: 'create Text', icon: 'icon-file', action: function(e){
+      {text: 'create Text', icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
         for (var i = 0; ; i++) {
           if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
@@ -103,11 +108,11 @@ var DesktopView = View.extend({
         });
       }},
       {divider: true},
-      {text: 'refresh', icon: 'icon-refresh icon-spin', action: function(e) {
+      {text: 'refresh', icon: 'icon-spin3 animate-spin', action: function(e) {
         // TODO: only reload views
         location.reload();
       }},
-      {text: 'refresh (F5)', icon: 'icon-refresh icon-spin', action: function(e) {
+      {text: 'refresh (F5)', icon: 'icon-spin3 animate-spin', action: function(e) {
         location.reload(true);
       }},
       {divider: true},
@@ -244,7 +249,7 @@ var DesktopView = View.extend({
         e.stopPropagation();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
-      {text:'delete' , icon: 'icon-remove-circle', action:function(e){
+      {text:'delete' , icon: 'icon-cancel-circled2', action:function(e){
         e.preventDefault();
         var _path = desktop._widgets[ctxMenu._rightObjId]._path;
         utilIns.entryUtil.removeFile(_path);
@@ -258,7 +263,7 @@ var DesktopView = View.extend({
     ]);
     ctxMenu.addCtxMenu([
       {header: 'file-entry'},
-      {text: 'Open', icon: 'icon-folder-open-alt', action: function(e) {
+      {text: 'Open', icon: 'icon-folder-open-empty', action: function(e) {
         e.preventDefault();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
@@ -275,7 +280,7 @@ var DesktopView = View.extend({
         e.preventDefault();
         utilIns.trashUtil.moveToTrash(ctxMenu._rightObjId);
       }},
-      {text:'Delete' , icon: 'icon-remove-circle', action:function(e){
+      {text:'Delete' , icon: 'icon-cancel-circled2', action:function(e){
         e.preventDefault();
         var _msg;
         _msg = Messenger().post({
@@ -1199,6 +1204,268 @@ var DEntryView = WidgetView.extend({
   }
 });
 
+var LauncherView = View.extend({
+  init: function(model_, parent_) {
+    this.callSuper(model_.getID(), model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>', {
+      'class': 'launcher',
+      'id': this._id,
+      'onselectstart': 'return false'
+    }).append($('<div>', {
+      'class': 'subject'
+    })).append($('<div>', {
+      'class': 'content'
+    }).append($('<div>', {
+      'class': 'c-search'
+    }).append($('<input>', {
+      'class': 'c-s-input'
+    }).attr({
+      'type': 'search',
+      'results': 5,
+      'placeholder': 'Search...'//,
+      // 'autofocus': 'autofocus'
+    }))));
+    this.initAction();
+    this._c = [];
+    this._views = [];
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this._model.on('add', function(err_, app_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      // new appView and add to launcher
+      _this._views[app_.getID()] = LauncherEntryView.create(app_.getID(), app_, _this);
+      _this.showInCategory('All', _this._views[app_.getID()]);
+    }).on('remove', function(err_, app_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      _this._views[app_.getID()].hide();
+      _this._views[app_.getID()] = null;
+      delete _this._views[app_.getID()];
+    });
+  },
+
+  initAction: function() {
+    var _this = this;
+    _this.$view.on('mousemove', function(e) {
+      e.stopPropagation();
+    }).on('mousedown', function(e) {
+      e.stopPropagation();
+    });
+    $(document).on('keydown', 'html', function(e) {
+      switch(e.which) {
+        case 81:
+          if(!e.altKey) return;
+          _this.toggle();
+          break;
+        default:
+          break;
+      }
+    });
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+    var $content = this.$view.children('.content'),
+        contentW = $content.width(),
+        contentH = $content.height(),
+        pw = contentW * 0.96,
+        ph = contentH * 0.6,
+        mt = ph * 0.01,
+        mr = pw * 0.01,
+        numH = 6;
+    this._itemH = (ph - mt * numH) / numH;
+    var numW = Math.floor(pw / (this._itemH + mr));
+    this._itemW = pw / numW;
+    this._imgSize = this._itemH * 0.625;
+    this.$view.hide();
+    this._shown = false;
+
+    this.showInCategory('All');
+    for(var cg in _global._App_Cate) {
+      if(cg == 'Audio' || cg == 'Video') continue;
+      this.showInCategory(cg);
+    }
+    this.showInCategory('Other');
+  },
+
+  showInCategory: function(category_, entry_) {
+    var cg = category_, icon;
+    switch(category_) {
+      case 'All':
+        icon = 'icon-th';
+        break;
+      case 'AudioVideo':
+      case 'Audio':
+      case 'Video':
+        cg = 'AudioVideo';
+        icon = 'icon-video';
+        break;
+      case 'Development':
+        icon = 'icon-wrench-1';
+        break;
+      case 'Education':
+        icon = 'icon-college';
+        break;
+      case 'Game':
+        icon = 'icon-reddit';
+        break;
+      case 'Graphics':
+        icon = 'icon-art-gallery';
+        break;
+      case 'Network':
+        icon = 'icon-globe';
+        break;
+      case 'Office':
+        icon = 'icon-news';
+        break;
+      case 'Science':
+        icon = 'icon-lightbulb';
+        break;
+      case 'Settings':
+        icon = 'icon-cogs';
+        break;
+      case 'System':
+        icon = 'icon-wrench-outline';
+        break;
+      case 'Utility':
+        icon = 'icon-calendar';
+        break;
+      default:
+        cg = 'Other';
+        icon = 'icon-briefcase';
+        break;
+    }
+    // TODO: add entry_ to category_
+    if(typeof this._c[cg] === 'undefined') {
+      var _this = this;
+      _this._c[cg] = {
+        'subject': $('<div>', {
+                    'class': icon + ' sub-entry',
+                    'title': cg
+                  }).on('click', function(e) {
+                    e.stopPropagation();
+                    _this._c[_this._cur].content.hide();
+                    _this._c[_this._cur].subject.removeClass('open');
+
+                    _this._c[cg].content.show();
+                    _this._c[cg].subject.addClass('open');
+                    _this._cur = cg;
+                    _this.$view.find('.c-s-input')[0].focus();
+                  }),
+        'content': $('<div>', {
+                    'class': 'c-items'
+                  })
+      };
+      this.$view.children('.subject').append(this._c[cg].subject);
+      this.$view.children('.content').append(this._c[cg].content);
+    }
+    if(typeof entry_ !== 'undefined') {
+      entry_.show(this._c[cg].content);
+    }
+  },
+
+  toggle: function() {
+    if(this._shown) {
+      this.$view.hide().children('canvas').remove();
+      this._shown = false;
+    } else {
+      var _this = this;
+      html2canvas($('body'), {
+        onrendered: function(canvas) {
+          _this.$view.append(canvas).children('canvas').attr({
+            'class': 'blurcanvas',
+            'id': 'blurcanvas'
+          });
+          stackBlurCanvasRGB('blurcanvas', 0, 0, canvas.width, canvas.height, 20);
+          _this.$view.show();
+          _this._shown = true;
+          _this._c['All'].content.show(); 
+          _this._c['All'].subject.addClass('open'); 
+          _this._cur = 'All';
+          _this.$view.find('.c-s-input')[0].focus();
+        }
+      });
+    }
+  },
+  
+  getContents: function() {return this._c;}
+});
+
+var LauncherEntryView = View.extend({
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>', {
+      'class': 'c-item'
+    }).css({
+      'width': parent_._itemW,
+      'height': parent_._itemH
+    }).append($('<img>', {
+      'src': this._model.getImgPath()
+    }).css({
+      'width': parent_._imgSize,
+      'height': parent_._imgSize
+    })).append($('<p>').text(this._model.getName()));
+    this.$view2 = null;
+    this.initAction();
+    this._contents = parent_.getContents();
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this._model.on('category', function(err_, cg_) {
+      if(_this.$view2 == null) {
+        _this.$view2 = _this.$view.clone();
+      }
+      _this._contents[_global._App_Cate[cg_]].content.append(_this.$view2);
+    }).on('imgPath', function(err_, imgPath_) {
+      _this.$view.children('img').attr('src', imgPath_);
+      if(_this.$view2 != null) {
+        _this.$view2.children('img').attr('src', imgPath_);
+      }
+    }).on('name', function(err_, name_) {
+      _this.$view.children('p').text(name_);
+      if(_this.$view2 != null) {
+        _this.$view2.children('p').text(name_);
+      }
+    }).on('noDisplay', function(err_, noDisplay_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      if(noDisplay_) {
+        _this.hide();
+        _this._parent._views[_this._id] = null;
+        delete _this._parent._views[_this._id];
+      }
+    });
+  },
+
+  initAction: function() {},
+
+  show: function($parent) {
+    $parent.append(this.$view);
+    var cg = this._model.getCategory();
+    if(typeof cg !== 'undefined') {
+      this.$view2 = this.$view.clone();
+      this._contents[_global._App_Cate[cg]].content.append(this.$view2);
+    }
+  },
+
+  hide: function() {
+    this.$view.remove();
+    if(this.$view2 != null) this.$view2.remove();
+  }
+});
+
 var DeviceListView = View.extend({
   init: function(model_, parent_) {
     this.callSuper('device-list', model_, parent_);
@@ -1464,6 +1731,14 @@ var DockView = View.extend({
 
   show: function($parent) {
     $parent.append(this.$view);
+  },
+
+  toggle: function(show_) {
+    if(!show_) {
+      this.$view.hide();
+    } else {
+      this.$view.show();
+    }
   },
 
   addReflect: function() {
@@ -2268,7 +2543,7 @@ var FlipperView = View.extend({
       'class': 'view-switch-bar',
       'onselectstart': 'return false'
     }).append($('<div>', {
-      'class': 'icon-plus-sign'
+      'class': 'icon-plus-squared'
     }).css({
       'display': 'inline-block',
       'cursor': 'pointer'
@@ -2386,7 +2661,7 @@ var FlipperView = View.extend({
     var _this = this;
     $selector.on('drag', function(e) {
       e.stopPropagation();
-    }).find('.icon-plus-sign').on('mousedown', function(e) {
+    }).find('.icon-plus-squared').on('mousedown', function(e) {
       e.stopPropagation();
       e.preventDefault();
       _this._controller.onAdd();
@@ -2519,7 +2794,7 @@ var FlipperView = View.extend({
           }
         });
     _this.$view.find('.showing').removeClass('showing');
-    _this.$view.find('.icon-plus-sign').before($switcher);
+    _this.$view.find('.icon-plus-squared').before($switcher);
     _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
   },
 

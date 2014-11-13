@@ -26,7 +26,7 @@
 }
 a [class^="icon-"],
 a [class*=" icon-"] {
-  display: inline;
+  /* display: inline; */
 }
 [class^="icon-"].icon-fixed-width,
 [class*=" icon-"].icon-fixed-width {
