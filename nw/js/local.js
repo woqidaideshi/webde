@@ -118,6 +118,16 @@ var EntryController = WidgetController.extend({
   }
 });
 
+var LauncherEntryController = EntryController.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onClick: function() {
+    this.onDblclick();
+  }
+});
+
 var DockEntryController = EntryController.extend({
   init: function(view_) {
     this.callSuper(view_);

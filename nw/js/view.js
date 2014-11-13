@@ -1136,7 +1136,7 @@ var DEntryView = WidgetView.extend({
 
     var ctxMenu = _global.get('ctxMenu'),
         type = this._model.getType();
-    if(type != 'app' && type != 'theme') type = 'file';
+    if(type != 'app' && type != 'theme' && type != 'inside-app') type = 'file';
     ctxMenu.attachToMenu('#' + this.getID()
         , ctxMenu.getMenuByHeader(type + '-entry')
         , function(id_) {ctxMenu._rightObjId = id_;});
@@ -1227,29 +1227,47 @@ var LauncherView = View.extend({
       // 'autofocus': 'autofocus'
     }))));
     this.initAction();
+    this.initCtxMenu();
     this._c = [];
     this._views = [];
   },
 
   registObservers: function() {
     var _this = this;
-    _this._model.on('add', function(err_, app_) {
-      if(err_) {
-        console.log(err_);
-        return ;
+    _this.__handlers = {
+      'add': function(err_, app_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        // new appView and add to launcher
+        var id_ = app_.getID() + '-launcher';
+        _this._views[id_] = LauncherEntryView.create(id_, app_, _this);
+        _this.showInCategory('All', _this._views[id_]);
+      },
+      'remove': function(err_, app_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        var id_ = app_.getID() + '-launcher';
+        _this._views[id_].hide();
+        _this._views[id_] = null;
+        delete _this._views[id_];
+      },
+      'show': function(err_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        if(!_this._shown) {
+          _this.toggle();
+        }
       }
-      // new appView and add to launcher
-      _this._views[app_.getID()] = LauncherEntryView.create(app_.getID(), app_, _this);
-      _this.showInCategory('All', _this._views[app_.getID()]);
-    }).on('remove', function(err_, app_) {
-      if(err_) {
-        console.log(err_);
-        return ;
-      }
-      _this._views[app_.getID()].hide();
-      _this._views[app_.getID()] = null;
-      delete _this._views[app_.getID()];
-    });
+    };
+    for(var key in _this.__handlers) {
+      _this._model.on(key, _this.__handlers[key]);
+    }
   },
 
   initAction: function() {
@@ -1258,10 +1276,17 @@ var LauncherView = View.extend({
       e.stopPropagation();
     }).on('mousedown', function(e) {
       e.stopPropagation();
+    }).on('contextmenu', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
     });
     $(document).on('keydown', 'html', function(e) {
       switch(e.which) {
-        case 81:
+        case 27: // esc
+          if(_this._shown)
+            _this.toggle();
+          break;
+        case 81: // q/Q
           if(!e.altKey) return;
           _this.toggle();
           break;
@@ -1271,6 +1296,20 @@ var LauncherView = View.extend({
     });
   },
 
+  initCtxMenu: function() {
+    var _this = this,
+        ctxMenu = _global.get('ctxMenu');
+    ctxMenu.addCtxMenu([
+      {header: 'launcher'},
+      {text: 'add to Desktop', action: function(e) {
+        e.preventDefault();
+      }},
+      {text: 'add to Dock', action: function(e) {
+        e.preventDefault();
+      }}
+    ]);
+  },
+
   show: function($parent) {
     $parent.append(this.$view);
     var $content = this.$view.children('.content'),
@@ -1278,10 +1317,11 @@ var LauncherView = View.extend({
         contentH = $content.height(),
         pw = contentW * 0.96,
         ph = contentH * 0.6,
-        mt = ph * 0.01,
-        mr = pw * 0.01,
-        numH = 6;
+        mt = ph * 0.01, // the margin of top
+        mr = pw * 0.01, // the margin of right
+        numH = 6; // the number of row
     this._itemH = (ph - mt * numH) / numH;
+    // the number of column
     var numW = Math.floor(pw / (this._itemH + mr));
     this._itemW = pw / numW;
     this._imgSize = this._itemH * 0.625;
@@ -1404,7 +1444,8 @@ var LauncherEntryView = View.extend({
     this.callSuper(id_, model_, parent_);
     this.registObservers();
     this.$view = $('<div>', {
-      'class': 'c-item'
+      'class': 'c-item',
+      'id': this.getID()
     }).css({
       'width': parent_._itemW,
       'height': parent_._itemH
@@ -1417,6 +1458,7 @@ var LauncherEntryView = View.extend({
     this.$view2 = null;
     this.initAction();
     this._contents = parent_.getContents();
+    this._controller = LauncherEntryController.create(this);
   },
 
   registObservers: function() {
@@ -1449,10 +1491,30 @@ var LauncherEntryView = View.extend({
     });
   },
 
-  initAction: function() {},
+  initAction: function() {
+    var _this = this,
+        ctxMenu = _global.get('ctxMenu'),
+        $menu_ = ctxMenu.getMenuByHeader('launcher');
+    _this.$view.on('click', function(e) {
+      _this._controller.onClick();
+      _this._parent.toggle();
+    }).on('contextmenu', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ctxMenu._rightObjId = _this.getID();
+      var w = $menu_.width(),
+          h = $menu_.height(),
+          left_ = (document.body.clientWidth < e.clientX + w) 
+              ? (e.clientX - w) : e.clientX,
+          top_ = ($(document).height()< e.clientY + h + 25) 
+              ? (e.clientY - h - 10)  : e.clientY;
+      ctxMenu.show($menu_, left_, top_);
+    });
+  },
 
   show: function($parent) {
     $parent.append(this.$view);
+   
     var cg = this._model.getCategory();
     if(typeof cg !== 'undefined') {
       this.$view2 = this.$view.clone();

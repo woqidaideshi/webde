@@ -445,7 +445,7 @@ var EntryUtil = Event.extend({
                     desktop.getCOMById('launcher').set(_model);
                   }
                   break;
-                case "dir":
+                case "inside-app":
                   // _Entry = DirEntry;
                   break;
                 default:
