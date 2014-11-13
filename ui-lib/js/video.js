@@ -38,13 +38,54 @@ var Video = Class.extend({
     $parent_.append(this._section);
   },
 
+  setMenu:function(this_){
+    var _this = this_;
+    if (_this._video[0].paused) {
+      _this._ctxMenu.activeItem('video','Play',function(){
+        if (_this._video[0].paused) {
+          _this._video[0].play();
+        };
+      });
+      _this._ctxMenu.disableItem('video','Pause');
+    } else {
+      _this._ctxMenu.disableItem('video','Play');
+      _this._ctxMenu.activeItem('video','Pause',function(){
+        _this._video[0].pause();
+      });
+    }
+    if (_this._video[0].loop) {
+      _this._ctxMenu.activeItem('video','Order play',function(){
+      _this._video[0].loop = false;
+        });
+      _this._ctxMenu.disableItem('video','Loop play');
+    } else {
+      _this._ctxMenu.activeItem('video','Loop play',function(){
+        _this._video[0].loop = true;
+      });
+      _this._ctxMenu.disableItem('video','Order play');
+    }
+    if (_this._video[0].fullScreen) {
+      _this._ctxMenu.disableItem('video','Full screen')
+    } else {
+      _this._ctxMenu.activeItem('video','Full screen',function(){
+        if (typeof _this._video[0].mozRequestFullScreen !== 'undefined') {
+          _this._video[0].mozRequestFullScreen();
+        }
+        if (typeof _this._video[0].webkitRequestFullScreen !== 'undefined') {
+          _this._video[0].webkitRequestFullScreen();
+        };
+        if (typeof _this._video[0].requestFullscreen !== 'undefined') {
+          _this._video[0].requestFullscreen();
+        };
+      });
+    }
+  },
+
   setContextMenu: function() {
     var _this = this;
-    this._ctxMenu.addCtxMenu([{
-      header: 'video'
-    },
-    {
-      text: 'Play',
+    this._ctxMenu.addCtxMenu([
+    {header: 'video'},
+    { text: 'Play',
       icon: 'icon-play',
       action: function() {
         if (_this._video[0].paused) {
@@ -52,22 +93,35 @@ var Video = Class.extend({
         };
       }
     },
-    {
-      text: 'Paused',
+    {text: 'Pause',
       icon: 'icon-pause',
       action: function() {
         _this._video[0].pause();
       }
     },
-    {
-      text: 'Loop play',
+    { text: 'Loop play',
       icon: 'icon-repeat',
       action: function() {
         _this._video[0].loop = true;
       }
-    }]);
-    _this._ctxMenu.attachToMenu('video', _this._ctxMenu.getMenuByHeader('video'),
-    function() {});
+    },
+    { text: 'Order play',
+      icon: 'icon-reorder',
+      action: function() {
+        _this._video[0].loop = false;
+      }
+    },
+    { text: 'Full screen',
+      icon: 'icon-fullscreen',
+      action: function() {
+      }
+    }
+    ]);
+    _this._ctxMenu.attachToMenu('video'
+      , _this._ctxMenu.getMenuByHeader('video')
+      ,function() {
+        _this.setMenu(_this);
+      });
   }
 
 });
