@@ -1077,7 +1077,7 @@ var LauncherModel = Model.extend({
           model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
               this, this.show, [], attr_[3], attr_[5], attr_[6]);
           break;
-        /* case 'datamgr-app': */
+        /* case 'login-app': */
           /* break; */
         default:
           // TODO: new a InsideAppEntryModel for data manager or other inside app which launched by
@@ -1692,4 +1692,14 @@ var FlipperModel = LayoutModel.extend({
         return i;
     }
   }
+});
+
+var LoginModel = Model.extend({
+  init: function() {},
+
+  login: function() {}
+});
+
+var RegistModel = Model.extend({
+  init: function() {}
 });
