@@ -1,2 +1,3 @@
-#id$path$iconpath$name$position
-launcher-app$$img/launcher.png$launcher$
+#id$path$iconpath$name$type$idx$position
+launcher-app$$img/launcher.png$launcher$inside-app$0
+test-app$test/test-app$test/test-app/img/icon.png$test-app$inside-app
