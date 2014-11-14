@@ -261,7 +261,7 @@ var Window = Class.extend({
   },
   /**
    * [resizeWindowWithAnimate resize window with animate]
-   * @param  {[type]} size_ [new size ]
+   * @param  {[type]} size_ [new size]
    * @param  {[type]} pos_  [new position]
    * @return {[type]}       [description]
    */
@@ -401,10 +401,6 @@ var Window = Class.extend({
   setWindowPos:function(pos_){
     this._window.css('left', pos_['left'] + 'px');
     this._window.css('top', pos_['top'] + 'px');
-    if (typeof this._dragDiv !== 'undefined') {
-      this._dragDiv.css('left',pos_['left']+this._options._winWidth -10 + 'px');
-      this._dragDiv.css('top', pos_['pos']+this._options._winHeight-10 + 'px');
-    }
   },
   /**
    * [show show Window]
