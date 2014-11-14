@@ -654,7 +654,7 @@ var EntryModel = WidgetModel.extend({
 // initialize perameters:
 // @id_: id of this model, make sure is unique
 // @parent_: parent model of this model
-// @path_: the path of app if has(e.g. the path of data manager) or just a null string
+// @path_: the path of app package if has(e.g. the path of data manager) or just a null string
 // @iconPath_: the path of icon to show
 // @startUpContext_: the context for calling startUp_, default is this
 // @startUp_: the start up or show function for this inside app
@@ -1063,16 +1063,27 @@ var LauncherModel = Model.extend({
     if(type_ == 'app') {
       this.set(model);
     } else if(type_ == 'inside-app') {
+      // attr_:
+      // 0 -> id
+      // 1 -> path of app package
+      // 2 -> iconpath
+      // 3 -> name of app
+      // 4 -> type
+      // 5 -> index in dock(if have)
+      // 6 -> position in desktop(if have)
       switch(attr_[0]) {
         case 'launcher-app':
           // var launcher = _global.get('desktop').getCOMById('launcher');
           model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
               this, this.show, [], attr_[3], attr_[5], attr_[6]);
           break;
-        case 'datamgr-app':
-          // TODO: new a InsideAppEntryModel for data manager
-          break;
+        /* case 'datamgr-app': */
+          /* break; */
         default:
+          // TODO: new a InsideAppEntryModel for data manager or other inside app which launched by
+          //      using window with a iframe.
+          model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
+              this, this.startUp, [attr_[0]], attr_[3], attr_[5], attr_[6]);
           break;
       }
       this.set(model);
@@ -1080,6 +1091,10 @@ var LauncherModel = Model.extend({
       console.log('unknown type');
     }
     return model;
+  },
+
+  startUp: function(id_) {
+    this.emit('start-up', null, this.getCOMById(id_));
   }
 });
 
@@ -1332,6 +1347,7 @@ var WidgetManager = Model.extend({
               model = launcher.createAModel(pera, 'inside-app');
             }
             _this.add(model);
+            // change the way to create a inside app model
             /* switch(pera[0]) { */
               // case 'launcher-app':
                 // var launcher = _global.get('desktop').getCOMById('launcher');

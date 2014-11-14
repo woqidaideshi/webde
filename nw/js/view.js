@@ -1263,6 +1263,22 @@ var LauncherView = View.extend({
         if(!_this._shown) {
           _this.toggle();
         }
+      },
+      'start-up': function(err_, model_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        Window.create(model_.getID(), model_.getName(), {
+          left: 400,
+          top: 300,
+          height: 400,
+          width: 700,
+          fadeSpeed: 500,
+          animate: false,
+          contentDiv: false,
+          iframe: true
+        }).appendHtml(model_.getPath() + '/index.html'); 
       }
     };
     for(var key in _this.__handlers) {
