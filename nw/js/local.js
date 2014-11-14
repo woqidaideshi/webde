@@ -138,3 +138,16 @@ var DockEntryController = EntryController.extend({
   }
 });
 
+var LoginController = Controller.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onLogin: function() {
+    this._model.setCurState(true);
+  },
+
+  onLogout: function() {
+    this._model.setCurState(false);
+  }
+});
