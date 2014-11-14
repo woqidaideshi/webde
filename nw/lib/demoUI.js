@@ -3044,7 +3044,7 @@ var Window = Class.extend({
       switch(key){
         case 'close':
           if (_this._options[key] == true) {
-            _this._titleButton.append("<a id='window-"+_this._id+"-close' class='window-button-close' href='#'><i class='icon-remove'></i></a>");
+            _this._titleButton.append("<a id='window-"+_this._id+"-close' class='window-button-close' href='#'><i class='icon-cancel'></i></a>");
             _this.bindButton($(_this._titleButton.children('.window-button-close')[0]),_this.closeWindow, _this);
             $('.window-button-'+key).addClass('active');
           }
@@ -3064,7 +3064,7 @@ var Window = Class.extend({
           break;
         case 'hide':
           if (_this._options[key] == true) {
-            _this._titleButton.append("<a id='window-"+_this._id+"-hide' class='window-button-hide' href='#'><i class='icon-double-angle-up'></i></a>");
+            _this._titleButton.append("<a id='window-"+_this._id+"-hide' class='window-button-hide' href='#'><i class='icon-angle-double-up'></i></a>");
             _this.bindButton($(_this._titleButton.children('.window-button-hide')[0]),_this.hideDiv, _this);
             $('.window-button-'+key).addClass('active');
           }
