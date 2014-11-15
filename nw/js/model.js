@@ -1722,12 +1722,36 @@ var LoginModel = Model.extend({
   },
 
   login: function() {
+    // call the handler to get account and password
     this.emit('login', null, !this._login);
-    /* if(this._login) { */
-      // // TODO: logoff
-    // } else {
-      // // TODO: login
-    /* } */
+  },
+
+  doLogin: function(account_, password_) {
+    // TODO: call API to login
+    console.log(account_, password_);
+    var _this = this;
+    _this._to = setTimeout(function() {
+      _this.setCurState(true);
+    }, 3000);
+  },
+
+  cancelLogin: function() {
+    // TODO: call API to cancel login
+    clearTimeout(this._to);
+  },
+
+  doLogout: function() {
+    // TODO: call API to logout
+    this.setCurState(false);
+  },
+
+  doRegist: function(account_, password_) {
+    console.log(account_, password_);
+    // TODO: call API to regist
+    var _this = this;
+    _this._to = setTimeout(function() {
+      _this.emit('regist', null, false, '重复的用户名');
+    }, 3000);
   },
 
   getCurState: function() {return this._login;},
@@ -1738,8 +1762,3 @@ var LoginModel = Model.extend({
   }
 });
 
-var RegistModel = Model.extend({
-  init: function() {
-    this.callSuper('regist');
-  }
-});

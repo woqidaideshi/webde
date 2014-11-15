@@ -304,6 +304,7 @@ var Global = Class.extend({
       'Utility': 'Utility',
       'Other': 'Other'
     };
+    this._logining = false;
     this.objects = [];
     
     var _this = this;
