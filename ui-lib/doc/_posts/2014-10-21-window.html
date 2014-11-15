@@ -99,7 +99,9 @@ categories: ui
 <button class='btn active' onclick="closeWin()">Close Window</button>
 <button class='btn active' onclick="hideWin()">hide Window</button>
 <button class='btn active' onclick="showWin()">show Window</button>
-<button class='btn active' onclick="appendHtml()">append Html</button>
+<button class='btn active' onclick="appendHtml('/../app/shark/index.html')">append shark</button>
+<button class='btn success-btn' onclick="appendHtml('/../app/video/index.html')">append video</button>
+<button class='btn active' onclick="addVideo()">add video</button>
 <script type="text/javascript">
   var myNewWin;
   var newWin = function(){
@@ -137,11 +139,17 @@ categories: ui
     myNewWin.hide();
 }
 
-  var appendHtml = function(){
-    myNewWin.appendHtml('/../saved_resource.html');
-  }
+var appendHtml = function(src_){
+   myNewWin.appendHtml(src_);
+ }
 
-  var showWin = function(){
-    myNewWin.show();
+var showWin = function(){
+  myNewWin.show();
+}
+
+var addVideo= function(){
+  var _video = Video.create();
+  _video.setSrc ('http://www.projekktor.com/wp-content/manual/intro.mp4'); 
+  myNewWin.append(_video._section);
 }
 </script>

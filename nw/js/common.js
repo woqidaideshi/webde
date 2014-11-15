@@ -159,7 +159,10 @@ var Watcher = Event.extend({
 
   //close watch()
   close: function() {
-    this._watcher.close();
+    if(this._watcher) {
+      this._watcher.close();
+      this._watcher = null;
+    }
     clearInterval(this._timer);
   }
 });
@@ -445,7 +448,7 @@ var EntryUtil = Event.extend({
                     desktop.getCOMById('launcher').set(_model);
                   }
                   break;
-                case "dir":
+                case "inside-app":
                   // _Entry = DirEntry;
                   break;
                 default:
