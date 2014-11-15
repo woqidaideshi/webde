@@ -3,7 +3,7 @@ var Video = Class.extend({
     this._sections = {
       controls: true,
       width: '100%',
-      height: '100%',
+      height: '90%',
       src: '',
       contextMenu: true
     };
