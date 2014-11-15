@@ -66,6 +66,7 @@ var Window = Class.extend({
     } else if (this._options.iframe) {
       this._windowContent = $('<iframe>',{
         'class':'window-content',
+        "seamless":"seamless"
       })
       this._window.append(this._windowContent);
     };
