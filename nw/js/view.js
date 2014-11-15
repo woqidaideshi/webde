@@ -2823,36 +2823,61 @@ var FlipperView = View.extend({
     return this._c[this._model.getCur()].getSelectableItems();
   }
 });
-
-var EditBox = Class.extend({
-  init: function( toAccountInfo_,imChatWinList_) {
+var UEditBox = Class.extend({
+  init: function(toAccountInfo_, imChatWinList_) {
     var toAccount = toAccountInfo_.toAccount;
     var imWindow = Window.create('imChat_' + toAccount, toAccount);
     var toIP;
     var toUID;
-    var localAccount ;
+    var localAccount;
     var localUID;
     var sendTime;
     var msgtime;
-    this.$view = $('<div>').html('<div><textarea id="disp_text_' + toAccount + '" readOnly="true" class="textarea" rows="20" cols="70"></textarea></div>\
-    <p></p>\
-    <textarea id="send_text_' + toAccount + '"   rows="10" cols="70" class="textarea"></textarea> </div>\
+    this.$view = $('<div>').html('<div  id="disp_text_' + toAccount + '" class="imChat_dataDiv"></div>\
+    <div id="myEditor_' + toAccount + '" ></div>\
     <p></p> \
     <div align="right"> \
     <button type="button"  id="close_button_' + toAccount + '">关闭</button> \
     <button type="button"  id="send_button_' + toAccount + '">发送</button> \
     </div> ');
     imWindow.append(this.$view);
+    var um = UE.getEditor('myEditor_' + toAccount, {
+      //这里可以选择自己需要的工具按钮名称
+      toolbars: [
+        ['fullscreen', '|', 'undo', 'redo', '|',
+          'bold', 'italic', 'underline', 'fontborder', 'strikethrough', '|', 'forecolor', 'backcolor', '|',
+          'fontfamily', 'fontsize', '|',
+          'justifyleft', 'justifycenter', 'justifyright', 'justifyjustify', '|',
+          'simpleupload', 'insertimage', 'emotion', '|', 'attachment'
+        ]
+      ],
+      //    lang:'zh-cn' ,//语言
+      //focus时自动清空初始化时的内容
+      autoClearinitialContent: true,
+      //关闭字数统计
+      wordCount: false,
+      initialFrameHeight: 150,
+      //更多其他参数，请参考umeditor.config.js中的配置项
+      pasteImageEnabled: true, //ueditor
+      emotionLocalization: true,
+      //focus: true,
+      catchRemoteImageEnable: false, //ueditor
+      enableAutoSave: false,
+      elementPathEnabled: false //,
+      //autoClearEmptyNode : false
+    });
     $('#close_button_' + toAccount).on('click', function() {
-      delete imChatWinList_['imChatWin_'+toAccount];
+      um.destroy();
+      delete imChatWinList_['imChatWin_' + toAccount];
       imWindow.closeWindow(imWindow);
     });
     $('#send_button_' + toAccount).on('click', function() {
-      if ($('#send_text_' + toAccount).val().length !== 0) {
-        var msg = $('#send_text_' + toAccount).val();
+      if (um.hasContents()) {
+        var msg = um.getContent();
+
         function sendIMMsgCb() {
-          $('#disp_text_' + toAccount).val($('#disp_text_' + toAccount).val() + localAccount + '   ' + sendTime + '  :\n' + msg + '\n\n');
-          $('#send_text_' + toAccount).val('');
+          $('#disp_text_' + toAccount).append('<span class="accountFont"> ' + localAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
+          um.setContent('');
         }
         _global._imV.getLocalData(function(localData) {
           localAccount = localData.account;
@@ -2866,15 +2891,15 @@ var EditBox = Class.extend({
         });
       } else {}
     });
-    if(toAccountInfo_.msg!==undefined){
+    if (toAccountInfo_.msg !== undefined) {
       msgtime = new Date();
       sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-      $('#disp_text_' + toAccount).val($('#disp_text_' + toAccount).val() + toAccount + '   ' + sendTime + '  :\n' + toAccountInfo_.msg + '\n\n');
+      $('#disp_text_' + toAccount).append('<span class="accountFont">' + toAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msg);
     }
   },
-  showRec:function (toAccount_,msg_){
+  showRec: function(toAccount_, msg_) {
     var msgtime = new Date();
     var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-    $('#disp_text_' + toAccount_).val($('#disp_text_' + toAccount_).val() + toAccount_ + '   ' + sendTime + '  :\n' + msg_ + '\n\n');
+    $('#disp_text_' + toAccount_).append('<span  class="accountFont">' + toAccount_ + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg_);
   }
 });
