@@ -507,8 +507,8 @@ ul.messenger .messenger-spinner {
   position: absolute;
   bottom: 0px;
   right: 0px;
-  width: 10px;
-  height: 10px;
+  width: 15px;
+  height: 15px;
   cursor: se-resize;
 }
 .banner {
@@ -564,4 +564,34 @@ ul.messenger .messenger-spinner {
 .banner .dots li.active {
   background: #fff;
   opacity: 1;
+}
+.ac_results {
+  padding: 2px;
+  border: 1px solid #cccccc;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+.ac_results ul {
+  width: 100%;
+  list-style-position: outside;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ac_results li {
+  margin: 0px;
+  padding: 2px 5px;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  font: menu;
+  font-size: 13px;
+  overflow: hidden;
+}
+.ac_loading {
+  background-color: #ffffff;
+}
+.ac_over {
+  background-color: #cecece;
+  color: #131313;
 }
