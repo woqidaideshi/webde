@@ -95,17 +95,19 @@ var DesktopView = View.extend({
       {divider: true},
       {text: 'terminal', icon: 'icon-terminal', action: function(e) {
         e.preventDefault();
-        _global._exec("gnome-terminal", function(err, stdout, stderr) {
+        // _global._exec("gnome-terminal", function(err, stdout, stderr) {
+        _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
-        });
+        }, "gnome-terminal");
       }},
       {text:'gedit', icon: 'icon-edit', action:function(e){
         e.preventDefault();
-        _global._exec("gedit", function(err, stdout, stderr) {
+        // _global._exec("gedit", function(err, stdout, stderr) {
+        _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
-        });
+        }, "gedit");
       }},
       {divider: true},
       {text: 'refresh', icon: 'icon-spin3 animate-spin', action: function(e) {
@@ -1250,10 +1252,13 @@ var LauncherView = View.extend({
           console.log(err_);
           return ;
         }
-        var id_ = app_.getID() + '-launcher';
+        var id_ = app_.getID() + '-launcher',
+            cg_ = app_.getCategory();
         _this._views[id_].hide();
         _this._views[id_] = null;
         delete _this._views[id_];
+        _this._c['All'].subject.attr('title', 'All' + '(' + --_this._c['All'].length + ')');
+        _this._c[cg_].subject.attr('title', cg_ + '(' + --_this._c[cg_].length + ')');
       },
       'show': function(err_) {
         if(err_) {
@@ -1408,7 +1413,7 @@ var LauncherView = View.extend({
       _this._c[cg] = {
         'subject': $('<div>', {
                     'class': icon + ' sub-entry',
-                    'title': cg
+                    'title': cg + '(0)'
                   }).on('click', function(e) {
                     e.stopPropagation();
                     _this._c[_this._cur].content.hide();
@@ -1421,19 +1426,23 @@ var LauncherView = View.extend({
                   }),
         'content': $('<div>', {
                     'class': 'c-items'
-                  })
+                  }),
+        'length': 0
       };
       this.$view.children('.subject').append(this._c[cg].subject);
       this.$view.children('.content').append(this._c[cg].content);
     }
     if(typeof entry_ !== 'undefined') {
       entry_.show(this._c[cg].content);
+      this._c[cg].subject.attr('title', cg + '(' + ++this._c[cg].length + ')');
     }
   },
 
   toggle: function() {
     if(this._shown) {
       this.$view.hide().children('canvas').remove();
+      this._c[this._cur].content.hide();
+      this._c[this._cur].subject.removeClass('open');
       this._shown = false;
     } else {
       var _this = this;
@@ -1475,7 +1484,7 @@ var LauncherEntryView = View.extend({
       'height': parent_._imgSize
     })).append($('<p>').text(this._model.getName()));
     this.$view2 = null;
-    this.initAction();
+    this.initAction(this.$view);
     this._contents = parent_.getContents();
     this._controller = LauncherEntryController.create(this);
   },
@@ -1485,6 +1494,7 @@ var LauncherEntryView = View.extend({
     _this._model.on('category', function(err_, cg_) {
       if(_this.$view2 == null) {
         _this.$view2 = _this.$view.clone();
+        _this.initAction(_this.$view2);
       }
       _this._contents[_global._App_Cate[cg_]].content.append(_this.$view2);
     }).on('imgPath', function(err_, imgPath_) {
@@ -1510,11 +1520,11 @@ var LauncherEntryView = View.extend({
     });
   },
 
-  initAction: function() {
+  initAction: function($view) {
     var _this = this,
         ctxMenu = _global.get('ctxMenu'),
         $menu_ = ctxMenu.getMenuByHeader('launcher');
-    _this.$view.on('click', function(e) {
+    $view.on('click', function(e) {
       _this._controller.onClick();
       _this._parent.toggle();
     }).on('contextmenu', function(e) {
@@ -1537,6 +1547,7 @@ var LauncherEntryView = View.extend({
     var cg = this._model.getCategory();
     if(typeof cg !== 'undefined') {
       this.$view2 = this.$view.clone();
+      this.initAction(this.$view2);
       this._contents[_global._App_Cate[cg]].content.append(this.$view2);
     }
   },
@@ -3022,6 +3033,7 @@ var LoginView = View.extend({
       '<button class="btn active" id="btn-cancel">取消</button>'
     ));
     this._controller = LoginController.create(this);
+    this._r_shown = false;
   },
 
   registObservers: function() {
@@ -3157,6 +3169,7 @@ var LoginView = View.extend({
         $login.show().one('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
+          if(view._r_shown) view.toggleRegist(false);
           view._controller.onLogin($account.val(), $password.val());
         });
       });
@@ -3177,6 +3190,7 @@ var LoginView = View.extend({
       $('#' + view._id + '-window').find('.window-content').animate({
         height: '+=250px'
       }, function() {
+        view._r_shown = true;
         $registView.fadeIn();
         var onInput = function() {
           if($account.val() != '' && $password.val() != '' && $passwordC.val() != '') {
@@ -3217,6 +3231,7 @@ var LoginView = View.extend({
       });
     } else {
       $registView.hide(function() {
+        view._r_shown = false;
         $('#' + view._id + '-window').find('.window-content').animate({
           height: '-=250px'
         });

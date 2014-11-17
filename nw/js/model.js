@@ -278,6 +278,7 @@ var DesktopModel = Model.extend({
 
   initDesktopWatcher: function() {
     var _desktop = this;
+    // TODO: change to API our own
     this._DESKTOP_DIR = _global.$xdg_data_home + '/desktop';
     this._desktopWatch = Watcher.create(this._DESKTOP_DIR);
     this._desktopWatch.on('add', function(filename, stats) {
@@ -717,11 +718,14 @@ var AppEntryModel = EntryModel.extend({
   realInit: function(callback_) {
     var _this = this,
         utilIns = _global.get('utilIns');
-    utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
+    // utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
+    _global._dataOP.readDesktopConfig(function(err_, appFile_) {
       if(err_) {
         console.log(err_);
         callback_.call(this, err_);
+        return ;
       }
+      var file_ = appFile_['[Desktop Entry]'];
       // get launch commad
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
@@ -731,6 +735,7 @@ var AppEntryModel = EntryModel.extend({
         if(err_) {
           console.log(err_);
           callback_.call(this, err_);
+          return ;
         } else {
           _this.setImgPath(imgPath_[0]);
           callback_.call(this, null);
@@ -766,7 +771,7 @@ var AppEntryModel = EntryModel.extend({
         // TODO: should not show this entry
         _this.setNoDisplay(true);
       }
-    });
+    }, _this._path.match('[^\/]*$')[0]);
   },
 
   getNoDisplay: function() {return this._noDisplay;},
@@ -837,11 +842,12 @@ var AppEntryModel = EntryModel.extend({
   open: function(pera_) {
     var p_ = pera_ || '';
     // TODO: replace by API ourselves
-    _global._exec(this._execCmd + p_, function(err, stdout, stderr) {
+    // _global._exec(this._execCmd + p_, function(err, stdout, stderr) {
+    _global._dataOP.shellExec(function(err, stdout, stderr) {
       if(err !== null) {
         console.log(err);
       }
-    });
+    }, this._execCmd + p_);
   },
 
   rename: function(name_) {
@@ -874,21 +880,30 @@ var FileEntryModel = EntryModel.extend({
         , function(err_, imgPath_) {
           if(err_) {
             utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) {
-              if(err_) console.log(err_);
+              if(err_) {
+                console.log(err_);
+                return ;
+              }
               // TODO: try to get icon from cache first
-              utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
-                if(err_) console.log(err_);
+              // utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+              _global._dataOP.readDesktopConfig(function(err_, appFile_) {
+                if(err_) {
+                  console.log(err_);
+                  return ;
+                }
+                var file_ = appFile_['[Desktop Entry]'];
                 utilIns.entryUtil.getIconPath(file_['Icon'], 48
                   , function(err_, imgPath_) {
                     if(err_) {
                       console.log(err_);
                       cb_(err_);
+                      return ;
                     } else {
                       _this.setImgPath(imgPath_[0]);
                       cb_(null);
                     }
                 });
-              });
+              }, appFile_.match('[^\/]*$')[0]);
             });
           } else {
             _this.setImgPath(imgPath_[0]);
@@ -920,10 +935,10 @@ var FileEntryModel = EntryModel.extend({
 
   open: function() {
     // TODO: replace by API ourselves
-    _global._exec('xdg-open ' + this._path.replace(/ /g, '\\ ')
-        , function(err, stdout, stderr) {
-          if(err) console.log(err);
-        });
+    // _global._exec('xdg-open ' + this._path.replace(/ /g, '\\ ')
+    _global._dataOP.shellExec(function(err, stdout, stderr) {
+      if(err) console.log(err);
+    }, 'xdg-open ' + this._path.replace(/ /g, '\\ '));
   }
 });
 
@@ -1005,6 +1020,7 @@ var ThemeEntryModel = EntryModel.extend({
       if(err_) {
         console.log(err_);
         cb(err_);
+        return ;
       } else {
         _this.setImgPath(iconPath_[0]);
         cb(null);
@@ -1017,11 +1033,12 @@ var ThemeEntryModel = EntryModel.extend({
   },
 
   open: function() {
-    _global._exec('xdg-open ' + this._path, function(err, stdout, stderr) {
+    // _global._exec('xdg-open ' + this._path, function(err, stdout, stderr) {
+    _global._dataOP.shellExec(function(err, stdout, stderr) {
       if(err) {
         console.log(err);
       }
-    });
+    }, 'xdg-open ' + this._path);
   }
 });
 
@@ -1415,8 +1432,8 @@ var WidgetManager = Model.extend({
     }
 
     //handle destop entries
-    _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir() 
-        , desktop._desktopWatch, this._parent); 
+    _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()  
+        , desktop._desktopWatch, this._parent);  
   },
 
   save: function() {
