@@ -1279,6 +1279,9 @@ var LauncherView = View.extend({
           contentDiv: false,
           iframe: true
         }).appendHtml(model_.getPath() + '/index.html'); 
+      },
+      'add-login-app': function(err_, model_) {
+        var login = LoginView.create(model_.getID(), model_);
       }
     };
     for(var key in _this.__handlers) {
@@ -2956,3 +2959,274 @@ var EditBox = Class.extend({
     $('#disp_text_' + toAccount_).val($('#disp_text_' + toAccount_).val() + toAccount_ + '   ' + sendTime + '  :\n' + msg_ + '\n\n');
   }
 });
+
+var LoginView = View.extend({
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    this.registObservers();
+    // view for login
+    this.$loginView = $('<div>', {
+      'class': 'login'
+    }).append($('<div>', {
+      'class': 'login-content'
+    }).append($('<div>', {
+      'class': 'content-row'
+    }).html(
+      '账户： ' +
+      '<input type="text" name="account">'
+    )).append($('<div>', {
+      'class': 'content-row'
+    }).html(
+      '密码： ' +
+      '<input type="password" name="password">'
+    ))).append($('<div>', {
+      'class': 'login-btn-bar'
+    }).html(
+      '<button class="btn active" id="btn-regist">注册>>></button>' +
+      '<button class="btn disable" id="btn-login">登陆</button>' +
+      '<button class="btn active hidden" id="btn-cancel">取消</button>'
+    )).append($('<div>', {
+      'class': 'login-waiting hidden'
+    }).html(
+      '<div class="loading icon-spin5 animate-spin"></div>' +
+      '<p>正在登陆，请稍后...</p>'
+    )).append($('<div>', {
+      'class': 'login-regist hidden'
+    }).html(
+      '<div class="content-row">' +
+      '<div>账户</div>：<input type="text" name="r-account">' +
+      '</div>' +
+      '<div class="content-row">' +
+      '<div>密码</div>：<input type="password" name="r-password">' +
+      '</div>' +
+      '<div class="content-row">' +
+      '<div>确认密码</div>：<input type="password" name="r-password-c">' +
+      '</div>' +
+      '<div class="content-row" id="msg"></div>' +
+      '<div class="content-row">' +
+      '<button class="btn disable" id="btn-commit">提交</button>' +
+      '<button class="btn active" id="btn-r-cancel">关闭</button>' +
+      '</div>'
+    ));
+    // view for logout
+    this.$logoffView = $('<div>', {
+      'class': 'logout'
+    }).append($('<div>', {
+      'class': 'logout-content'
+    }).html(
+      '确定登出此账户？'
+    )).append($('<div>', {
+      'class': 'logout-btn-bar'
+    }).html(
+      '<button class="btn active" id="btn-sure">确认</button>' +
+      '<button class="btn active" id="btn-cancel">取消</button>'
+    ));
+    this._controller = LoginController.create(this);
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this.__handlers = {
+      'login': function(err_, state_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.show(state_);
+      },
+      'login-state': function(err_, state_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        // _this.toggleLogin(false);
+        $('#' + _this._id + '-window').remove();
+        // _this._win.closeWindow(_this._win);
+      },
+      'regist': function(err_, success_, reason_) {
+        _this.$loginView.find('span').remove();
+        if(success_) {
+          _this.$loginView.find('#msg').html('注册成功');
+        } else {
+          _this.$loginView.find('#msg').html('注册失败：' + reason_);
+        }
+      }
+    };
+    for(var key in _this.__handlers) {
+      _this._model.on(key, _this.__handlers[key]);
+    }
+  },
+
+  initAction: function(which_) {
+    if(which_ == 500) {
+      var _this = this,
+          $account = _this.$loginView.find('input[name="account"]'),
+          $password = _this.$loginView.find('input[name="password"]'),
+          $login = _this.$loginView.find('#btn-login'),
+          onInput = function(e) {
+            if($account.val() != '' && $password.val() != '') {
+              $login.removeClass('disable').addClass('active');
+            } else {
+              $login.removeClass('active').addClass('disable');
+            }
+          };
+      $account.on('input', onInput);
+      $password.on('input', onInput);
+      _this.toggleLogin(false);
+      /* $('#' + this._id + '-window').off.on('keydown', function(e) { */
+        // e.stopPropagation();
+      /* }); */
+    } else {
+      var _this = this,
+          $logout = _this.$logoffView.find('#btn-sure'),
+          $cancel2 = _this.$logoffView.find('#btn-cancel');
+      $logout.one('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        _this._controller.onLogout();
+      });
+      $cancel2.one('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // _this._win.closeWindow(_this._win);
+        $('#' + _this._id + '-window').remove();
+      });
+    }
+  },
+
+  show: function(toLogin_) {
+    if($('#' + this._id + '-window').length != 0) return ;
+    var $view, title, height, width;
+    if(toLogin_) {
+      $view = this.$loginView;
+      title = '登陆';
+      height = 300;
+      width = 500;
+    } else {
+      $view = this.$logoffView;
+      title = '登出';
+      height = 150;
+      width = 250;
+    }
+    Window.create(this._id + '-window', title, {
+      left: 400,
+      top: 300,
+      height: height,
+      width: width,
+      max: false,
+      fadeSpeed: 500,
+      animate: false,
+      hide: false
+    }).append($view);
+    this.initAction(width);
+  },
+
+  toggleLogin: function(loading_) {
+    var view = this,
+        $content = view.$loginView.find('.login-content'),
+        $waiting = view.$loginView.find('.login-waiting'),
+        $account = view.$loginView.find('input[name="account"]'),
+        $password = view.$loginView.find('input[name="password"]'),
+        $regist = view.$loginView.find('#btn-regist'),
+        $login = view.$loginView.find('#btn-login'),
+        $cancel = view.$loginView.find('#btn-cancel');
+    if(loading_) {
+      $content.fadeOut(function() {
+        $waiting.fadeIn();
+      });
+      $regist.hide();
+      $login.hide(function() {
+        $cancel.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view._controller.onCancelLogin();
+        });
+      });
+    } else {
+      $waiting.fadeOut(function() {
+        $password.val('');
+        $login.removeClass('active').addClass('disable');
+        $content.fadeIn();
+      });
+      $cancel.hide(function() {
+        $regist.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view.toggleRegist(true);
+        });
+        $login.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view._controller.onLogin($account.val(), $password.val());
+        });
+      });
+    }
+  },
+
+  toggleRegist: function(show_) {
+    var view = this,
+        $regist = view.$loginView.find('#btn-regist'),
+        $registView = view.$loginView.find('.login-regist'),
+        $commit = view.$loginView.find('#btn-commit'),
+        $cancel = view.$loginView.find('#btn-r-cancel'),
+        $account = view.$loginView.find('input[name="r-account"]'),
+        $password = view.$loginView.find('input[name="r-password"]'),
+        $passwordC = view.$loginView.find('input[name="r-password-c"]'),
+        $msg = view.$loginView.find('#msg');
+    if(show_) {
+      $('#' + view._id + '-window').find('.window-content').animate({
+        height: '+=250px'
+      }, function() {
+        $registView.fadeIn();
+        var onInput = function() {
+          if($account.val() != '' && $password.val() != '' && $passwordC.val() != '') {
+            $commit.removeClass('disable').addClass('active');
+          } else {
+            $commit.removeClass('active').addClass('disable');
+          }
+        }
+        $account.on('input', onInput);
+        $password.on('input', onInput);
+        $passwordC.on('input', onInput);
+        $commit.off().on('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var p1 = $password.val(),
+              p2 = $passwordC.val();
+          if(p1 == p2) {
+            $commit.removeClass('active').addClass('disable').append($('<span>', {
+              'class': 'icon-spin5 animate-spin'
+            }));
+            $password.val('');
+            $passwordC.val('');
+            view._controller.onRegist($account.val(), p1);
+          } else {
+            // TODO: show warnning
+            $msg.html('密码确认有误');
+          }
+        });
+        $cancel.off().on('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          $account.val('');
+          $password.val('');
+          $passwordC.val('');
+          $msg.html('');
+          view.toggleRegist(false);
+        })
+      });
+    } else {
+      $registView.hide(function() {
+        $('#' + view._id + '-window').find('.window-content').animate({
+          height: '-=250px'
+        });
+        $regist.one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view.toggleRegist(true);
+        });
+      });
+    }
+  }
+});
+

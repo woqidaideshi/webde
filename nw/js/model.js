@@ -1052,7 +1052,9 @@ var LauncherModel = Model.extend({
     this.add(app_);
   },
 
-  release: function() {},
+  release: function() {
+    // TODO: release all child conponts
+  },
 
   show: function() {
     this.emit('show', null);
@@ -1077,11 +1079,30 @@ var LauncherModel = Model.extend({
           model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
               this, this.show, [], attr_[3], attr_[5], attr_[6]);
           break;
-        /* case 'login-app': */
-          /* break; */
+        case 'login-app': 
+          var login = LoginModel.create();
+          this.emit('add-login-app', null, login);
+          var _this = this;
+          login.on('login-state', function(err_, state_) {
+            if(err_) {
+              console.log(err_);
+              return ;
+            }
+            var loginM = _this.getCOMById('login-app');
+            if(state_) {
+              loginM.setImgPath('img/Logout-icon.png');
+              loginM.setName('Logout');
+            } else {
+              loginM.setImgPath('img/Login-icon.png');
+              loginM.setName('Login');
+            }
+          });
+          model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
+              login, login.login, [], attr_[3], attr_[5], attr_[6]);
+          break; 
         default:
-          // TODO: new a InsideAppEntryModel for data manager or other inside app which launched by
-          //      using window with a iframe.
+          // new a InsideAppEntryModel for data manager or other inside app which launched by
+          //   using window with a iframe.
           model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
               this, this.startUp, [attr_[0]], attr_[3], attr_[5], attr_[6]);
           break;
@@ -1695,11 +1716,49 @@ var FlipperModel = LayoutModel.extend({
 });
 
 var LoginModel = Model.extend({
-  init: function() {},
+  init: function() {
+    this.callSuper('login');
+    this._login = false;
+  },
 
-  login: function() {}
+  login: function() {
+    // call the handler to get account and password
+    this.emit('login', null, !this._login);
+  },
+
+  doLogin: function(account_, password_) {
+    // TODO: call API to login
+    console.log(account_, password_);
+    var _this = this;
+    _this._to = setTimeout(function() {
+      _this.setCurState(true);
+    }, 3000);
+  },
+
+  cancelLogin: function() {
+    // TODO: call API to cancel login
+    clearTimeout(this._to);
+  },
+
+  doLogout: function() {
+    // TODO: call API to logout
+    this.setCurState(false);
+  },
+
+  doRegist: function(account_, password_) {
+    console.log(account_, password_);
+    // TODO: call API to regist
+    var _this = this;
+    _this._to = setTimeout(function() {
+      _this.emit('regist', null, false, '重复的用户名');
+    }, 3000);
+  },
+
+  getCurState: function() {return this._login;},
+
+  setCurState: function(state_) {
+    this._login = state_;
+    this.emit('login-state', null, this._login);
+  }
 });
 
-var RegistModel = Model.extend({
-  init: function() {}
-});
