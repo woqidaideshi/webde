@@ -54,13 +54,9 @@ UE.I18N['en'] = {
         'heiti':'Sim hei',
         'lishu':'Sim li',
         'yahei': 'Microsoft yahei',
-        'DejaVu Sans':' DejaVu Sans',
+        'DejaVuSans':' DejaVu Sans',
         'KacstOffice':'KacstOffice',
-        'andaleMono':'Andale mono',
-        'arial': 'Arial',
-        'arialBlack':'Arial black',
-        'comicSansMs':'Comic sans ms',
-        'impact':'Impact',
+        'DroidSans': 'Droid Sans',
         'timesNewRoman':'Times new roman'
     },
     'customstyle':{

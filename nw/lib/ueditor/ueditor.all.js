@@ -6923,7 +6923,7 @@ var fillCharReg = new RegExp(domUtils.fillChar, 'g');
                     '.view{padding:0;word-wrap:break-word;cursor:text;height:90%;}\n' +
                     //设置默认字体和字号
                     //font-family不能呢随便改，在safari下fillchar会有解析问题
-                    'body{margin:8px;font-family:sans-serif;font-size:16px;}' +
+                    'body{margin:8px;font-family:宋体;font-size:16px;}' +
                     //设置段落间距
                     'p{margin:5px 0;}</style>' +
                     ( options.iframeCssUrl ? '<link rel=\'stylesheet\' type=\'text/css\' href=\'' + utils.unhtml(options.iframeCssUrl) + '\'/>' : '' ) +
@@ -11408,13 +11408,9 @@ UE.plugins['font'] = function () {
             { name: 'kaiti', val: '方正楷体_GBK,FZKai,楷体,楷体_GB2312, SimKai'},
             { name: 'heiti', val: '黑体, SimHei,方正黑体_GBK,FZHei'},
             { name: 'lishu', val: '隶书, SimLi,方正隶书_GBK,FZLiShu'},
-            { name: 'DejaVu Sans', val: 'DejaVu Sans'},
+            { name: 'DejaVuSans', val: 'DejaVu Sans,DejaVu Sans Mono,DejaVu Sans Condensed'},
             { name: 'KacstOffice', val: 'KacstOffice'},
-            { name: 'andaleMono', val: 'andale mono'},
-            { name: 'arial', val: 'arial, helvetica,sans-serif'},
-            { name: 'arialBlack', val: 'arial black,avant garde'},
-            { name: 'comicSansMs', val: 'comic sans ms'},
-            { name: 'impact', val: 'impact,chicago'},
+            { name: 'DroidSans', val: 'Droid Sans'},
             { name: 'timesNewRoman', val: 'times new roman'}
         ],
         'fontsize': [10, 11, 12, 14, 16, 18, 20, 24, 36]

@@ -1143,45 +1143,43 @@ var DeviceListModel = Model.extend({
       _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     });
     // TODO: for IM, emit 'message' event when recive a message
-    if (_this._imChatServer === undefined) {
-      _global._imV.startIMChatServer(function(msgobj) {
-        if (msgobj['server'] !== undefined) {
-          _this._imChatServer = msgobj['server'];
-          return;
-        }
-        var toAccount = msgobj.MsgObj.from;
-        var curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
-        if (curEditBox === undefined) {
-          Messenger().post({
-            message: toAccount + '给你发新消息啦！',
-            type: 'info',
-            actions: {
-              close: {
-                label: '取消闪烁',
-                action: function() {
-                  Messenger().hideAll()
-                }
-              },
-              open: {
-                label: '查看',
-                action: function() {
-                  Messenger().hideAll();
-                  var toAccountInfo = {};
-                  toAccountInfo['toAccount'] = toAccount;
-                  toAccountInfo['toIP'] = msgobj.IP;
-                  toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
-                  toAccountInfo['msg'] = msgobj.MsgObj.message;
-                  curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
-                  _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
-                }
+    _global._imV.startIMChatServer(function(msgobj) {
+      if (msgobj['server'] !== undefined) {
+        _this._imChatServer = msgobj['server'];
+        return;
+      }
+      var toAccount = msgobj.MsgObj.from;
+      var curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
+      if (curEditBox === undefined) {
+        Messenger().post({
+          message: toAccount + '给你发新消息啦！',
+          type: 'info',
+          actions: {
+            close: {
+              label: '取消闪烁',
+              action: function() {
+                Messenger().hideAll()
+              }
+            },
+            open: {
+              label: '查看',
+              action: function() {
+                Messenger().hideAll();
+                var toAccountInfo = {};
+                toAccountInfo['toAccount'] = toAccount;
+                toAccountInfo['toIP'] = msgobj.IP;
+                toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
+                toAccountInfo['msg'] = msgobj.MsgObj.message;
+                curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
+                _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
               }
             }
-          });
-        } else {
-          curEditBox.showRec(toAccount, msgobj.MsgObj.message);
-        }
-      });
-    }
+          }
+        });
+      } else {
+        curEditBox.showRec(toAccount, msgobj.MsgObj.message);
+      }
+    });
   }
 });
 

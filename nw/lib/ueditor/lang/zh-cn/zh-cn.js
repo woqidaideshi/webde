@@ -54,13 +54,9 @@ UE.I18N['zh-cn'] = {
         'heiti':'黑体',
         'lishu':'隶书',
         'yahei':'微软雅黑',
-        'DejaVu Sans':' DejaVu Sans',
+        'DejaVuSans':' DejaVu Sans',
         'KacstOffice':'KacstOffice',
-        'andaleMono':'andale mono',
-        'arial': 'arial',
-        'arialBlack':'arial black',
-        'comicSansMs':'comic sans ms',
-        'impact':'impact',
+        'DroidSans': 'Droid Sans',
         'timesNewRoman':'times new roman'
     },
     'customstyle':{

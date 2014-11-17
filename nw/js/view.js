@@ -2926,7 +2926,7 @@ var UEditBox = Class.extend({
           'bold', 'italic', 'underline', 'fontborder', 'strikethrough', '|', 'forecolor', 'backcolor', '|',
           'fontfamily', 'fontsize', '|',
           'justifyleft', 'justifycenter', 'justifyright', 'justifyjustify', '|',
-          'simpleupload', 'insertimage', 'emotion', '|', 'attachment'
+          'simpleupload', 'insertimage', 'emotion'
         ]
       ],
       //    lang:'zh-cn' ,//语言
@@ -2934,14 +2934,14 @@ var UEditBox = Class.extend({
       autoClearinitialContent: true,
       //关闭字数统计
       wordCount: false,
-      initialFrameHeight: 150,
+      initialFrameHeight: 130,
       //更多其他参数，请参考umeditor.config.js中的配置项
       pasteImageEnabled: true, //ueditor
       emotionLocalization: true,
       //focus: true,
       catchRemoteImageEnable: false, //ueditor
       enableAutoSave: false,
-      elementPathEnabled: false //,
+      elementPathEnabled: false 
       //autoClearEmptyNode : false
     });
     $('#close_button_' + toAccount).on('click', function() {
@@ -2955,6 +2955,7 @@ var UEditBox = Class.extend({
 
         function sendIMMsgCb() {
           $('#disp_text_' + toAccount).append('<span class="accountFont"> ' + localAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
+          $('#disp_text_' + toAccount).scrollTop($('#disp_text_' + toAccount).height());
           um.setContent('');
         }
         _global._imV.getLocalData(function(localData) {
@@ -2973,11 +2974,13 @@ var UEditBox = Class.extend({
       msgtime = new Date();
       sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
       $('#disp_text_' + toAccount).append('<span class="accountFont">' + toAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msg);
+      $('#disp_text_' + toAccount).scrollTop($('#disp_text_' + toAccount).height());
     }
   },
   showRec: function(toAccount_, msg_) {
     var msgtime = new Date();
     var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
     $('#disp_text_' + toAccount_).append('<span  class="accountFont">' + toAccount_ + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg_);
+    $('#disp_text_' + toAccount_).scrollTop($('#disp_text_' + toAccount_).height()) ;
   }
 });

@@ -14,6 +14,7 @@ UE.registerUI('button',function(editor,uiName){
         title:uiName,
         //需要添加的额外样式，指定icon图标，这里默认使用一个重复的icon
         cssRules :'background-position: -500px 0;',
+        type:'file',
         //点击时执行的命令
         onclick:function () {
             //这里可以不用执行命令,做你自己的操作也可
@@ -38,6 +39,7 @@ UE.registerUI('button',function(editor,uiName){
 }/*index 指定添加到工具栏上的那个位置，默认时追加到最后,editorId 指定这个UI是那个编辑器实例上的，默认是页面上所有的编辑器都会添加这个按钮*/);
 
 //自定义引用样式例子
+/*
 UE.registerUI('myblockquote',function(editor,uiName){
     editor.registerCommand(uiName,{
         execCommand:function(){
@@ -69,4 +71,4 @@ UE.registerUI('myblockquote',function(editor,uiName){
     });
 
     return btn;
-});
+});*/
