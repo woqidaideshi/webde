@@ -260,8 +260,11 @@ var DesktopModel = Model.extend({
     console.log('post start');
     // TODO: Load contents of Launcher and DeviceList
     this.getCOMById('device-list').start();
-    this.getCOMById('launcher').load();
-    cb_(null);
+    var _this = this;
+    setTimeout(function() {
+      _this.getCOMById('launcher').load();
+      cb_(null);
+    }, 2000);
   },
 
   initLayout: function() {
@@ -883,6 +886,22 @@ var AppEntryModel = EntryModel.extend({
       //    send new name to Data Layer and rename this entry
       this.setName(name_);
     }
+  },
+
+  linkToDesktop: function() {
+    _global._dataOP.linkAppToDesktop(function() {}, this._filename, 'desktop');
+  },
+
+  unlinkFromDesktop: function() {
+    _global._dataOP.unlinkApp(function() {}, '/desktop/' + this._filename);
+  },
+
+  linkToDock:function() {
+    _global._dataOP.linkAppToDesktop(function() {}, this._filename, 'dock');
+  },
+
+  unlinkFromDock: function() {
+    _global._dataOP.linkAppToDesktop(function() {}, '/desktop/' + this._filename);
   }
 });
 

@@ -125,6 +125,16 @@ var LauncherEntryController = EntryController.extend({
 
   onClick: function() {
     this.onDblclick();
+  },
+
+  onAddToDesktop: function() {
+    _global.get('theCP').perform(NormalCommand.create(this._model
+        , this._model.linkToDesktop, this._model.unlinkFromDesktop));
+  },
+
+  onAddToDock: function() {
+    _global.get('theCP').perform(NormalCommand.create(this._model
+        , this._model.linkToDock, this._model.unlinkFromDock));
   }
 });
 

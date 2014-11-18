@@ -1286,8 +1286,7 @@ var LauncherView = View.extend({
           contentDiv: false,
           iframe: true
         }, function() {
-          var _this = this,
-              id = model.getID() + '-window';
+          var id = this._id;
           _global._openingWindows[id] = this;
           this.appendHtml(model_.getPath() + '/index.html');
           this.bindCloseButton(function() {
@@ -1338,9 +1337,11 @@ var LauncherView = View.extend({
       {header: 'launcher'},
       {text: 'add to Desktop', action: function(e) {
         e.preventDefault();
+        _this._views[ctxMenu._rightObjId]._controller.onAddToDesktop();
       }},
       {text: 'add to Dock', action: function(e) {
         e.preventDefault();
+        _this._views[ctxMenu._rightObjId]._controller.onAddToDock();
       }}
     ]);
   },
