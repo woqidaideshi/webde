@@ -305,6 +305,8 @@ var Global = Class.extend({
       'Other': 'Other'
     };
     this._logining = false;
+    // manage opened inside-app windows
+    this._openingWindows = [];
     this.objects = [];
     
     var _this = this;
@@ -428,6 +430,7 @@ var EntryUtil = Event.extend({
         desktop = _global.get('desktop'),
         _newEntry = [];
     _global._fs.readdir(dir_, function(err, files) {
+      if(err || files.length == 0) return ;
       _global.Series.series1(files, function(file_, cb_) {
         _global._fs.stat(dir_ + '/' + file_, function(err, stats) {
           if(!err) {

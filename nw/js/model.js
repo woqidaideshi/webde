@@ -221,19 +221,26 @@ var DesktopModel = Model.extend({
     this.add(DeviceListModel.create(this));
     this.add(DockModel.create(this));
     this.add(LauncherModel.create(this));
-    this.initDesktopWatcher();
+    // this.initDesktopWatcher();
     this._inputer = Inputer.create('d-inputer');
+    this._DESKTOP_DIR = '/data/desktop';
     var _this = this;
-    _global._fs.readFile(_global.$xdg_data_home + "/widget.conf"
-      , 'utf-8', function(err, data) {
-        if(err) {
-          console.log(err);
-          cb_(err);
-        } else {
-          _this._USER_CONFIG = data;
-          cb_(null);
-        }
-      });
+    _global._dataOP.CreateWatcher(function(err_, watcher_) { 
+      if(err_) {
+        return console.log(err_);
+      }
+      _this.initDesktopWatcher(watcher_);
+      _global._fs.readFile(_global.$xdg_data_home + "/widget.conf"
+        , 'utf-8', function(err, data) {
+          if(err) {
+            console.log(err);
+            cb_(err);
+          } else {
+            _this._USER_CONFIG = data;
+            cb_(null);
+          }
+        });
+    }, this._DESKTOP_DIR); 
   },
 
   // The cb_ should be called at the end of this function
@@ -253,6 +260,7 @@ var DesktopModel = Model.extend({
     console.log('post start');
     // TODO: Load contents of Launcher and DeviceList
     this.getCOMById('device-list').start();
+    this.getCOMById('launcher').load();
     cb_(null);
   },
 
@@ -276,11 +284,12 @@ var DesktopModel = Model.extend({
     return null;
   },
 
-  initDesktopWatcher: function() {
+  initDesktopWatcher: function(watcher_) {
     var _desktop = this;
     // TODO: change to API our own
-    this._DESKTOP_DIR = _global.$xdg_data_home + '/desktop';
-    this._desktopWatch = Watcher.create(this._DESKTOP_DIR);
+    // this._DESKTOP_DIR = _global.$xdg_data_home + '/desktop';
+    // this._desktopWatch = Watcher.create(this._DESKTOP_DIR);
+    this._desktopWatch = watcher_;
     this._desktopWatch.on('add', function(filename, stats) {
       //console.log('add:', filename, stats);
       var _filenames = filename.split('.'),
@@ -302,11 +311,17 @@ var DesktopModel = Model.extend({
             _model = _desktop.getCOMById('launcher').get(_id);
           } catch(e) {
             var linkPath = _desktop._desktopWatch.getBaseDir() + '/' + filename;
-            _model = AppEntryModel.create(_id
-                , _parent
-                , linkPath
-                , _desktop._position);
-            _desktop.getCOMById('launcher').set(_model);
+            /* _model = AppEntryModel.create(_id */
+                // , _parent
+                // , linkPath
+                // , _desktop._position);
+            /* _desktop.getCOMById('launcher').set(_model); */
+            _model = _desktop.getCOMById('launcher').createAModel({
+              '0': _id,
+              '1': linkPath,
+              '2': -1,
+              '3': _desktop._position
+            }, 'app');
           } 
         } else {
           _model = FileEntryModel.create(_id
@@ -358,13 +373,19 @@ var DockModel = Model.extend({
   init: function(parent_) {
     this.callSuper('dock', parent_);
     this._index = 0;
-    this.initWatcher();
+    this._DOCK_DIR = '/data/dock';
+
+    var _this = this;
+    _global._dataOP.CreateWatcher(function(err_, watcher_) {
+      if(err_) return console.log(err_);
+      _this.initWatcher(watcher_);
+    }, this._DOCK_DIR);
   },
 
   load: function() {
     // TODO: load dock apps from configure file
     var _this = this;
-    _global._fs.readFile(_this._DOCK_DIR + '/.info', 'utf-8', function(err, data) {
+    _global._fs.readFile(_global.$xdg_data_home + '/dock/.info', 'utf-8', function(err, data) {
       if(err) {
         console.log(err);
         return ;
@@ -403,9 +424,10 @@ var DockModel = Model.extend({
     this._dockWatch.close();
   },
 
-  initWatcher: function() {
-    this._DOCK_DIR = _global.$xdg_data_home + '/dock';
-    this._dockWatch = Watcher.create(this._DOCK_DIR);
+  initWatcher: function(watcher_) {
+    // this._DOCK_DIR = _global.$xdg_data_home + '/dock';
+    // this._dockWatch = Watcher.create(this._DOCK_DIR);
+    this._dockWatch = watcher_;
     var _this = this;
     this._dockWatch.on('add', function(filename, stats) {
       //console.log('add:', filename, stats);
@@ -421,11 +443,16 @@ var DockModel = Model.extend({
         try {
           _model = _desktop.getCOMById('launcher').get(_id);
         } catch(e) {
-          _model = AppEntryModel.create(_id
-            , _this 
-            , _this._dockWatch.getBaseDir() + '/' + filename
-            , _this._position);
-          _desktop.getCOMById('launcher').set(_model); 
+          /* _model = AppEntryModel.create(_id */
+            // , _this 
+            // , _this._dockWatch.getBaseDir() + '/' + filename
+            // , _this._position);
+          /* _desktop.getCOMById('launcher').set(_model); */
+          _model = _desktop.getCOMById('launcher').createAModel({
+            '0': _id,
+            '1': _this._dockWatch.getBaseDir() + '/' + filename,
+            '2': -1
+          }, 'app');
         }
         _this.add(_model);
       }
@@ -1051,7 +1078,23 @@ var LauncherModel = Model.extend({
     // this._appCache = Cache.create(); // caches app models
   },
 
-  load: function() {},
+  load: function() {
+    var _this = this;
+    _global._dataOP.getAllDesktopFile(function(err_, files_) {
+      if(err_) return console.log(err_);
+      for(var key in files_) {
+        var id = 'id-' + files_[key];
+        try {
+          _this.get(id);
+        } catch(e) {
+          _this.createAModel({
+            '0': id,
+            '1': key
+          }, 'app');
+        }
+      }
+    });
+  },
 
   get: function(id_) {
     // var ret = this._appCache.get(id_);
@@ -1080,6 +1123,12 @@ var LauncherModel = Model.extend({
   createAModel: function(attr_, type_) {
     var model = null;
     if(type_ == 'app') {
+      // attr_:
+      // 0 -> id
+      // 1 -> path
+      // 2 -> index in dock(if have)
+      // 3 -> position in desktop(if have)
+      model = AppEntryModel.create(attr_[0], this, attr_[1], attr_[2], attr_[3], attr_[4]);
       this.set(model);
     } else if(type_ == 'inside-app') {
       // attr_:
@@ -1432,8 +1481,8 @@ var WidgetManager = Model.extend({
     }
 
     //handle destop entries
-    _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()  
-        , desktop._desktopWatch, this._parent);  
+    _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()   
+        , desktop._desktopWatch, this._parent);   
   },
 
   save: function() {

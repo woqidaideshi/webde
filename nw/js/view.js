@@ -1258,7 +1258,8 @@ var LauncherView = View.extend({
         _this._views[id_] = null;
         delete _this._views[id_];
         _this._c['All'].subject.attr('title', 'All' + '(' + --_this._c['All'].length + ')');
-        _this._c[cg_].subject.attr('title', cg_ + '(' + --_this._c[cg_].length + ')');
+        if(typeof cg_ != 'undefined' && cg_ != 'All')
+          _this._c[cg_].subject.attr('title', cg_ + '(' + --_this._c[cg_].length + ')');
       },
       'show': function(err_) {
         if(err_) {
@@ -1274,7 +1275,8 @@ var LauncherView = View.extend({
           console.log(err_);
           return ;
         }
-        Window.create(model_.getID(), model_.getName(), {
+        if(typeof _global._openingWindows[model_.getID() + '-window'] != 'undefined') return ;
+        Window.create(model_.getID() + '-window', model_.getName(), {
           left: 400,
           top: 300,
           height: 400,
@@ -1283,7 +1285,16 @@ var LauncherView = View.extend({
           animate: false,
           contentDiv: false,
           iframe: true
-        }).appendHtml(model_.getPath() + '/index.html'); 
+        }, function() {
+          var _this = this,
+              id = model.getID() + '-window';
+          _global._openingWindows[id] = this;
+          this.appendHtml(model_.getPath() + '/index.html');
+          this.bindCloseButton(function() {
+            _global._openingWindows[id] = null;
+            delete _global._openingWindows[id];
+          });
+        })/* .appendHtml(model_.getPath() + '/index.html') */; 
       },
       'add-login-app': function(err_, model_) {
         var login = LoginView.create(model_.getID(), model_);
@@ -1407,7 +1418,7 @@ var LauncherView = View.extend({
         icon = 'icon-briefcase';
         break;
     }
-    // TODO: add entry_ to category_
+    // add entry_ to category_
     if(typeof this._c[cg] === 'undefined') {
       var _this = this;
       _this._c[cg] = {
@@ -1496,7 +1507,9 @@ var LauncherEntryView = View.extend({
         _this.$view2 = _this.$view.clone();
         _this.initAction(_this.$view2);
       }
-      _this._contents[_global._App_Cate[cg_]].content.append(_this.$view2);
+      var cg = _global._App_Cate[cg_];
+      _this._contents[cg].subject.attr('title', cg + '(' + ++_this._contents[cg].length + ')');
+      _this._contents[cg].content.append(_this.$view2);
     }).on('imgPath', function(err_, imgPath_) {
       _this.$view.children('img').attr('src', imgPath_);
       if(_this.$view2 != null) {
@@ -1514,6 +1527,8 @@ var LauncherEntryView = View.extend({
       }
       if(noDisplay_) {
         _this.hide();
+        _this._parent._c['All'].subject.attr('title'
+          , 'All' + '(' + --_this._parent._c['All'].length + ')');
         _this._parent._views[_this._id] = null;
         delete _this._parent._views[_this._id];
       }
