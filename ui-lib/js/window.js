@@ -21,7 +21,7 @@ var Window = Class.extend({
       resize: false,           //设置是否可重新调整窗口的大小
       minWidth: 200,            //设置窗口的最小宽度
       minHeight:200,            //设置窗口的最小高度
-      fullScreen: false
+      fullScreen: false        //双击内容全屏显示
     };
 
     //set options
@@ -40,6 +40,9 @@ var Window = Class.extend({
     this._id = id_;                                                // record id
     this._isMax = false;                                    // record window is maxsize or not
     this._fullScreen = false;
+    this._saveWindowCss = '';
+    this._saveWinContentCss = '';
+    this._INDEX = 100;
 
     this._window = $('<div>',{
       'id': this._id,
@@ -178,6 +181,25 @@ var Window = Class.extend({
     this.bindButton(this._titleButton.children('.window-button-hide'), eventAction_, arg_);
   },
 
+  gitID:function(){
+    return this._id;
+  },
+
+  force:function(){
+    this._window.css('z-index' , this._INDEX +1);
+  },
+
+  blur:function(){
+    this._window.css('z-index' , this._INDEX);
+  },
+
+  onforce:function(callback_){
+    this.force();
+    if (callback_) {
+      callback_.call(this);
+    };
+  },
+
   /**
    * [changeIcon change icon by class]
    * @param  {[string]} aClass_    [class name of a]
@@ -210,7 +232,6 @@ var Window = Class.extend({
 
     //drag window
     this._titleDiv.mousedown(function(ev){
-      ev.stopPropagation();
       ev.preventDefault();
       if (_this._isMax) {
         return ;
@@ -218,24 +239,22 @@ var Window = Class.extend({
       _this._isMouseOnTitleDown = true;
       _this._offsetX = ev.clientX - _this._window.position().left;
       _this._offsetY = ev.clientY - _this._window.position().top;
-      _this._window.fadeTo(20, 0.5);
     }).mouseup(function(ev){
-      ev.stopPropagation();
       _this._isMouseOnTitleDown = false;
       _this._window.fadeTo(20, 1);
-    });
+    }).dblclick(function(){
+      _this.toggleMaxWindow();
+    })
 
     //resize window
     if (typeof this._dragDiv !== 'undefined') {
       this._dragDiv.mousedown(function(ev){
-        ev.stopPropagation();
         if (_this._isMax || _this._ishideDiv || !_this._options.resize) {
           return ;
         };
         _this._isMouseResizeDown = true;
         _this._window.fadeTo(20, 0.9);
       }).mouseup(function(ev){
-        ev.stopPropagation();
         if (!_this._isMouseResizeDown) {
           return ;
         }
@@ -247,6 +266,7 @@ var Window = Class.extend({
     }
     $(document).mousemove(function(ev){
       if(_this._isMouseOnTitleDown){ 
+        _this._window.fadeTo(20, 0.5);
         var x = ev.clientX - _this._offsetX; 
         var y = ev.clientY - _this._offsetY; 
         _this.setWindowPos({left:x, top: y});
@@ -275,6 +295,13 @@ var Window = Class.extend({
         ev.preventDefault();
       })
     }
+
+    _this._window.mousedown(function(ev){
+      _this.onforce();
+      ev.stopPropagation();
+    }).mouseup(function(ev){
+      ev.stopPropagation();
+    });
   },
   /**
    * [resizeWindow  resize Window without animate]
@@ -366,6 +393,9 @@ var Window = Class.extend({
     _this.changeIcon('window-button-max', 'icon-resize-small', 'icon-resize-full', _this.maxWindow);
   },
 
+  toggleMaxWindow:function(){
+    (this._isMax ? this.recoverWindow(this) : this.maxWindow(this) );
+  },
   /**
    * [closeWindow close window]
    * @param  {[this ]} windowObj_ [this obj]
@@ -494,10 +524,24 @@ var Window = Class.extend({
    */
   fullScreen:function(state_){
     if (typeof state_ === 'undefined') state_ = true;
-    (state_ ? $("body") : this._window).append(this._windowContent);
+    (state_ ? this._titleDiv.hide() : this._titleDiv.show());
     this._fullScreen = state_;
-    this._windowContent[0].style.cssText = '';
+    if(state_){
+      this._saveWinContentCss = this._windowContent[0].style.cssText;
+      this._windowContent[0].style.cssText = 'margin: 0;';
+    } else {
+      this._windowContent[0].style.cssText = this._saveWinContentCss;
+      this._saveWinContentCss = '';
+    }
+    if (state_) {
+      this._saveWindowCss = this._window[0].style.cssText;
+      this._window[0].style.cssText = 'left: 0px; top: 0px; display: block;'; 
+    } else {
+      this._window[0].style.cssText = this._saveWindowCss;
+      this._saveWindowCss = '';
+    }
     this._windowContent[state_ ? 'addClass' : 'removeClass']('fullwindow');
+    this._window[state_ ? 'addClass' : 'removeClass']('fullwindow');
   },
 
   togglefullScreen:function(){
