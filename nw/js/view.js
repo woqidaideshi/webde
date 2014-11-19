@@ -2037,18 +2037,18 @@ var DockEntryView = View.extend({
     if(n_idx == -1) {
       $parent.append(this.$view);
       this._model.setIdx(divList.length);
-      return ;
-    }
-    for(var i = 0; i < divList.length; ++i) {
-      var model = this._parent._c[divList[i].id]._model,
-          o_idx = model.getIdx();
-      if(n_idx == o_idx && !inserted) {
-        $(divList[i]).before(this.$view);
-        inserted = true;
+    } else {
+      for(var i = 0; i < divList.length; ++i) {
+        var model = this._parent._c[divList[i].id]._model,
+            o_idx = model.getIdx();
+        if(n_idx == o_idx && !inserted) {
+          $(divList[i]).before(this.$view);
+          inserted = true;
+        }
+        if(inserted) model.setIdx(i + 1);
       }
-      if(inserted) model.setIdx(i + 1);
+      if(!inserted) $parent.append(this.$view);
     }
-    if(!inserted) $parent.append(this.$view);
     
     return this;
   },

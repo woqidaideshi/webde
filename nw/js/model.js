@@ -15,44 +15,51 @@ var ThemeModel = Model.extend({
   getCurThemeConfig: function(callback_) {
     var theme = this;
 
-    _global._fs.readFile(this._themePath, 'utf-8', function(err, data) {
-      if(err) {
-        console.log(err);
-        callback_.call(this, err);
-      } else {
-        var lines = data.split('\n');
-        for(var i = 0; i < lines.length; ++i) {
-          if(lines[i] == "") continue;
-          var attr = lines[i].split(':');
-          // theme._keys = attr[0];
-          var attrs = attr[1].split(' ');
-          theme._theme[attr[0]] = {
-            'name': attrs[0],
-            'active': attrs[1],
-            'icon': attrs[2],
-            'path': attrs[3],
-            'id': attrs[4],
-            'pos': {x: attrs[5], y: attrs[6]}
-          };
-        }
-        callback_.call(this, null);
-      }
-    });
+    _global._dataOP.readDesktopConfig(function(err_, ret_) {
+      if(err_) return console.log(err_);
+      theme._theme = ret_;
+      callback_.call(this, null);
+    }, 'Theme.conf');
+
+    // replace with demo-rio's API
+    /* _global._fs.readFile(this._themePath, 'utf-8', function(err, data) { */
+      // if(err) {
+        // console.log(err);
+        // callback_.call(this, err);
+      // } else {
+        // var lines = data.split('\n');
+        // for(var i = 0; i < lines.length; ++i) {
+          // if(lines[i] == "") continue;
+          // var attr = lines[i].split(':');
+          // // theme._keys = attr[0];
+          // var attrs = attr[1].split(' ');
+          // theme._theme[attr[0]] = {
+            // 'name': attrs[0],
+            // 'active': attrs[1],
+            // 'icon': attrs[2],
+            // 'path': attrs[3],
+            // 'id': attrs[4],
+            // 'pos': {x: attrs[5], y: attrs[6]}
+          // };
+        // }
+        // callback_.call(this, null);
+      // }
+    /* }); */
   },
 
   saveConfig: function(desktop_) {
     var data = "";
     for(var key in this._theme) {
       data += key + ":" 
-        + ((this._theme[key]['active'] == 'true') ?
+        + ((this._theme[key]['active']) ?
           desktop_._c[key]._name : this._theme[key]['name']) + ' '
         + this._theme[key]['active'] + ' '
         + this._theme[key]['icon'] + ' '
         + this._theme[key]['path'] + ' '
         + this._theme[key]['id'] + ' '
-        + ((this._theme[key]['active'] == 'true') ?
+        + ((this._theme[key]['active']) ?
           desktop_._c[key]._position.x : this._theme[key]['pos'].x) + ' '
-        + ((this._theme[key]['active'] == 'true') ?
+        + ((this._theme[key]['active']) ?
           desktop_._c[key]._position.y : this._theme[key]['pos'].y) + '\n';
     }
     // for(var i = 0; i < this._keys.length; ++i) {
@@ -68,14 +75,14 @@ var ThemeModel = Model.extend({
   loadThemeEntry: function(desktop_) {
     for(var key in this._theme) {
       if(key == 'icontheme') continue;
-      if(this._theme[key]['active'] == 'false') continue;
+      if(!this._theme[key]['active']) continue;
       this.addAThemeEntry(key);
     }
   },
 
   addAThemeEntry: function(key_) {
     var layout = _global.get('desktop').getCOMById('layout'),
-        parent = layout.getAllWidgets()[layout.getCur()];
+        parent = layout.getCurLayout();
     parent.add(ThemeEntryModel.create(
       this._theme[key_]['id'],
       parent,
@@ -230,16 +237,21 @@ var DesktopModel = Model.extend({
         return console.log(err_);
       }
       _this.initDesktopWatcher(watcher_);
-      _global._fs.readFile(_global.$xdg_data_home + "/widget.conf"
-        , 'utf-8', function(err, data) {
-          if(err) {
-            console.log(err);
-            cb_(err);
-          } else {
-            _this._USER_CONFIG = data;
-            cb_(null);
-          }
-        });
+      _global._dataOP.readDesktopConfig(function(err_, ret_) {
+        if(err_) return console.log(err_);
+        _this._USER_CONFIG = ret_;
+        cb_(null);
+      }, 'Widget.conf');
+      /* _global._fs.readFile(_global.$xdg_data_home + "/widget.conf" */
+        // , 'utf-8', function(err, data) {
+          // if(err) {
+            // console.log(err);
+            // cb_(err);
+          // } else {
+            // _this._USER_CONFIG = data;
+            // cb_(null);
+          // }
+        /* }); */
     }, this._DESKTOP_DIR); 
   },
 
@@ -248,8 +260,8 @@ var DesktopModel = Model.extend({
   start: function(cb_) {
     console.log('starting');
     // Load contents to all components EXCEPT Launcher and DeciceList
-    this.getCOMById('layout').load();
-    this.getCOMById('dock').load();
+    this.getCOMById('layout').load(this._USER_CONFIG.layout);
+    this.getCOMById('dock').load(this._USER_CONFIG.dock);
     cb_(null);
   },
 
@@ -320,10 +332,10 @@ var DesktopModel = Model.extend({
                 // , _desktop._position);
             /* _desktop.getCOMById('launcher').set(_model); */
             _model = _desktop.getCOMById('launcher').createAModel({
-              '0': _id,
-              '1': linkPath,
-              '2': -1,
-              '3': _desktop._position
+              'id': _id,
+              'path': linkPath,
+              'idx': -1,
+              'position': _desktop._position
             }, 'app');
           } 
         } else {
@@ -385,42 +397,75 @@ var DockModel = Model.extend({
     }, this._DOCK_DIR);
   },
 
-  load: function() {
+  load: function(conf_) {
     // TODO: load dock apps from configure file
-    var _this = this;
-    _global._fs.readFile(_global.$xdg_data_home + '/dock/.info', 'utf-8', function(err, data) {
-      if(err) {
-        console.log(err);
-        return ;
-      }
-      var lines = data.split('\n'),
-          lastSave = [];
-      for(var i = 0; i < lines.length; ++i) {
-        if(lines[i].match('[\s,\t]*#+') != null) continue;
-        if(lines[i] == '') continue;
-        var attr = lines[i].split('$');
-        // if(attr.length != 5) continue;
-        if(attr[4] == 'inside-app') {
-          var model,
-              launcher = _global.get('desktop').getCOMById('launcher');
-          try {
-            model = launcher.get(attr[0]);
-          } catch(e) {
-            model = launcher.createAModel(attr, 'inside-app');
-          }
-          _this.add(model);
-        } else {
-          lastSave[attr[0]] = {
-            path: attr[1],
-            x: attr[2],
-            y: attr[3],
-            type: attr[4]
-          };
+    // replace with demo-rio's API
+    /* var _this = this; */
+    // _global._fs.readFile(_global.$xdg_data_home + '/dock/.info', 'utf-8', function(err, data) {
+      // if(err) {
+        // console.log(err);
+        // return ;
+      // }
+      // var lines = data.split('\n'),
+          // lastSave = [];
+      // for(var i = 0; i < lines.length; ++i) {
+        // if(lines[i].match('[\s,\t]*#+') != null) continue;
+        // if(lines[i] == '') continue;
+        // var attr = lines[i].split('$');
+        // // if(attr.length != 5) continue;
+        // if(attr[4] == 'inside-app') {
+          // var model,
+              // launcher = _global.get('desktop').getCOMById('launcher');
+          // try {
+            // model = launcher.get(attr[0]);
+          // } catch(e) {
+            // model = launcher.createAModel(attr, 'inside-app');
+          // }
+          // _this.add(model);
+        // } else {
+          // lastSave[attr[0]] = {
+            // path: attr[1],
+            // x: attr[2],
+            // y: attr[3],
+            // type: attr[4]
+          // };
+        // }
+      // }
+      // _global.get('utilIns').entryUtil.loadEntrys(lastSave, _this._dockWatch.getBaseDir()
+        // , _this._dockWatch, _this);
+    /* }); */
+
+    var lastSave = [];
+    for(var key in conf_) {
+      if(conf_[key].type == 'inside-app') {
+        var model,
+            launcher = _global.get('desktop').getCOMById('launcher');
+        try {
+          model = launcher.get(conf_[key].id);
+        } catch(e) {
+          model = launcher.createAModel(/* { */
+            // '0': conf_.insideApp[key].id,
+            // '1': conf_.insideApp[key].path,
+            // '2': conf_.insideApp[key].iconPath,
+            // '3': conf_.insideApp[key].name,
+            // '4': conf_.insideApp[key].type,
+            // '5': conf_.insideApp[key].idx,
+            // '6': conf_.insideApp[key].position
+          /* } */conf_.insideApp[key], 'inside-app');
+        }
+        this.add(model);
+      } else {
+        lastSave[conf_[key].id] = {
+          path: conf_[key].path,
+          x: conf_[key].position.x,
+          y: conf_[key].position.y,
+          type: conf_[key].type,
+          idx: conf_[key].idx
         }
       }
-      _global.get('utilIns').entryUtil.loadEntrys(lastSave, _this._dockWatch.getBaseDir()
-        , _this._dockWatch, _this);
-    });
+    }
+    _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir()
+      , this._dockWatch, this);
   },
 
   release: function() {
@@ -452,9 +497,9 @@ var DockModel = Model.extend({
             // , _this._position);
           /* _desktop.getCOMById('launcher').set(_model); */
           _model = _desktop.getCOMById('launcher').createAModel({
-            '0': _id,
-            '1': _this._dockWatch.getBaseDir() + '/' + filename,
-            '2': -1
+            'id': _id,
+            'path': _this._dockWatch.getBaseDir() + '/' + filename,
+            'idx': -1
           }, 'app');
         }
         _this.add(_model);
@@ -710,7 +755,7 @@ var InsideAppEntryModel = EntryModel.extend({
     this._startUp = startUp_;
     this._startUpPera = startUpPera_ || [];
     this._name = name_ || id_;
-    this._idx = idx_ || -1;
+    this._idx = ((typeof idx_ === 'undefined') ? -1 : idx_);
     this._type = 'inside-app';
     this._cb = callback_ || function() {};
 
@@ -757,7 +802,8 @@ var AppEntryModel = EntryModel.extend({
     var cb_ = callback_ || function() {};
     this._execCmd = null;
     this._type = 'app';
-    this._idx = idx_;//((typeof position_ === 'undefined') ? -1 : position_.x);
+    //((typeof position_ === 'undefined') ? -1 : position_.x);
+    this._idx = ((typeof idx_ === 'undefined') ? -1 : idx_);
     this.realInit(cb_);
   },
 
@@ -1123,8 +1169,8 @@ var LauncherModel = Model.extend({
           _this.get(id);
         } catch(e) {
           _this.createAModel({
-            '0': id,
-            '1': key
+            'id': id,
+            'path': key
           }, 'app');
         }
       }
@@ -1163,7 +1209,7 @@ var LauncherModel = Model.extend({
       // 1 -> path
       // 2 -> index in dock(if have)
       // 3 -> position in desktop(if have)
-      model = AppEntryModel.create(attr_[0], this, attr_[1], attr_[2], attr_[3], attr_[4]);
+      model = AppEntryModel.create(attr_.id, this, attr_.path, attr_.idx, attr_.position);
       this.set(model);
     } else if(type_ == 'inside-app') {
       // attr_:
@@ -1174,11 +1220,11 @@ var LauncherModel = Model.extend({
       // 4 -> type
       // 5 -> index in dock(if have)
       // 6 -> position in desktop(if have)
-      switch(attr_[0]) {
+      switch(attr_.id) {
         case 'launcher-app':
           // var launcher = _global.get('desktop').getCOMById('launcher');
-          model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
-              this, this.show, [], attr_[3], attr_[5], attr_[6]);
+          model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
+              this, this.show, [], attr_.name, attr_.idx, attr_.position);
           break;
         case 'login-app': 
           var login = LoginModel.create();
@@ -1198,14 +1244,14 @@ var LauncherModel = Model.extend({
               loginM.setName('Login');
             }
           });
-          model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
-              login, login.login, [], attr_[3], attr_[5], attr_[6]);
+          model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
+              login, login.login, [], attr_.name, attr_.idx, attr_.position);
           break; 
         default:
           // new a InsideAppEntryModel for data manager or other inside app which launched by
           //   using window with a iframe.
-          model = InsideAppEntryModel.create(attr_[0], this, attr_[1], attr_[2],
-              this, this.startUp, [attr_[0]], attr_[3], attr_[5], attr_[6]);
+          model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
+              this, this.startUp, [attr_.id], attr_.name, attr_.idx, attr_.position);
           break;
       }
       this.set(model);
@@ -1400,8 +1446,8 @@ var LayoutModel = WidgetModel.extend({
   },
 
   // load widgets from saved data
-  load: function() {
-    this._wm.load();
+  load: function(conf_) {
+    this._wm.load(conf_);
   },
 
   // load widgets from an array in which widgets have been created.
@@ -1444,98 +1490,131 @@ var WidgetManager = Model.extend({
     this.callSuper('widgetmanager', parent_);
   },
 
-  load: function() {
+  load: function(conf_) {
     // load theme entry
     _global.get('theme').loadThemeEntry(this);
    
     // load inside app entry, just a temporary solution.
     // should load all user config data on desktop._USER_CONFIG
     // and get data by key-value style.
-    var _this = this;
-    _global._fs.readFile(_global.$xdg_data_home + "/inside-app.conf"
-      , 'utf-8', function(err, data) {
-        if(err) {
-          console.log(err);
-        } else {
-          var model,
-              launcher = _global.get('desktop').getCOMById('launcher'),
-              apps = data.split('\n');
-          for(var i = 0; i < apps.length; ++i) {
-            if(apps[i].match('[\s,\t]*#+') != null || apps[i] == "") continue;
-            var pera = apps[i].split('$');
-            try {
-              model = launcher.get(pera[0]);
-            } catch(e) {
-              model = launcher.createAModel(pera, 'inside-app');
-            }
-            _this.add(model);
-            // change the way to create a inside app model
-            /* switch(pera[0]) { */
-              // case 'launcher-app':
-                // var launcher = _global.get('desktop').getCOMById('launcher');
-                // _this.add(InsideAppEntryModel.create(pera[0], _this._parent, pera[1], pera[2],
-                    // launcher, launcher.show, [], pera[3], pera[4]));
-                // break;
-              // case 'datamgr-app':
-                // // TODO: new a InsideAppEntryModel for data manager
-                // break;
-              // default:
-                // break;
-            /* } */
-          }
-        }
-      });
+    var model,
+        launcher = _global.get('desktop').getCOMById('launcher');
+    for(var key in conf_.insideApp) {
+      var model;
+      try {
+        model = launcher.get(conf_.insideApp[key].id);
+      } catch(e) {
+        model = launcher.createAModel(/* { */
+          // '0': conf_.insideApp[key].id,
+          // '1': conf_.insideApp[key].path,
+          // '2': conf_.insideApp[key].iconPath,
+          // '3': conf_.insideApp[key].name,
+          // '4': conf_.insideApp[key].type,
+          // '5': conf_.insideApp[key].idx,
+          // '6': conf_.insideApp[key].position
+        /* } */conf_.insideApp[key], conf_.insideApp[key].type);
+      }
+      this.add(model);
+    }
+    // replace with demo-rio's API
+    /* var _this = this; */
+    // _global._fs.readFile(_global.$xdg_data_home + "/inside-app.conf"
+      // , 'utf-8', function(err, data) {
+        // if(err) {
+          // console.log(err);
+        // } else {
+          // var model,
+              // launcher = _global.get('desktop').getCOMById('launcher'),
+              // apps = data.split('\n');
+          // for(var i = 0; i < apps.length; ++i) {
+            // if(apps[i].match('[\s,\t]*#+') != null || apps[i] == "") continue;
+            // var pera = apps[i].split('$');
+            // try {
+              // model = launcher.get(pera[0]);
+            // } catch(e) {
+              // model = launcher.createAModel(pera, 'inside-app');
+            // }
+            // _this.add(model);
+          // }
+        // }
+      /* }); */
     
     // load desktop entry
-    var _lastSave = [],
-        desktop = _global.get('desktop'),
-        lines = desktop._USER_CONFIG.split('\n');
-    for(var i = 0; i < lines.length; ++i) {
-      if(lines[i].match('[\s,\t]*#+') != null) continue;
-      if(lines[i] == "") continue;
-      var attr = lines[i].split('$');
-      if(attr.length != 5) continue;
-      var _plugin = null;
-      switch(attr[4]) {
-        case "ClockPlugin":
-        case "ImagePlugin":
-          _plugin = DPluginModel.create(attr[0], this._parent, attr[1], attr[4]
-              , {x: attr[2], y: attr[3]});
-          break;
-        default:
-          _lastSave[attr[0]] = {
-            path: attr[1],
-            x: attr[2],
-            y: attr[3],
-            type: attr[4]
-          };  
-      }
-      if (_plugin != null) {
-        this.add(_plugin);  
-      } 
+    // replace with demo-rio's API
+    /* var _lastSave = [], */
+        // desktop = _global.get('desktop'),
+        // lines = desktop._USER_CONFIG.split('\n');
+    // for(var i = 0; i < lines.length; ++i) {
+      // if(lines[i].match('[\s,\t]*#+') != null) continue;
+      // if(lines[i] == "") continue;
+      // var attr = lines[i].split('$');
+      // if(attr.length != 5) continue;
+      // var _plugin = null;
+      // switch(attr[4]) {
+        // case "ClockPlugin":
+        // case "ImagePlugin":
+          // _plugin = DPluginModel.create(attr[0], this._parent, attr[1], attr[4]
+              // , {x: attr[2], y: attr[3]});
+          // break;
+        // default:
+          // _lastSave[attr[0]] = {
+            // path: attr[1],
+            // x: attr[2],
+            // y: attr[3],
+            // type: attr[4]
+          // };  
+      // }
+      // if (_plugin != null) {
+        // this.add(_plugin);  
+      // } 
+    /* } */
+
+    // handle plugins
+    for(var key in conf_.plugin) {
+      this.add(DPluginModel.create(
+            conf_.plugin[key].id,
+            this._parent,
+            conf_.plugin[key].path,
+            conf_.plugin[key].type,
+            conf_.plugin[key].position
+          ));
     }
 
-    //handle destop entries
+    // handle destop entries
+    var _lastSave = [],
+        desktop = _global.get('desktop');
+    for(var key in conf_.dentry) {
+      _lastSave[conf_.dentry[key].id] = {
+        path: conf_.dentry[key].path,
+        x: conf_.dentry[key].position.x,
+        y: conf_.dentry[key].position.y,
+        type: conf_.dentry[key].type
+      }
+    }
     _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()   
         , desktop._desktopWatch, this._parent);   
   },
 
-  save: function() {
-    var data = "";
-    for(var key in this._c) {
-      if(typeof theme._theme[key] !== 'undefined') continue;
-      data += key + "$" + this._c[key]._path + "$"
-         + this._c[key]._position.x + "$"
-         + this._c[key]._position.y + "$"
-        + this._c[key]._type + '\n';
-    }
-    //console.log(data);
-    this._fs.writeFile(_global.$xdg_data_home + "/widget.conf"
-        , data, function(err) {
-      if(err) {
-        console.log(err);
-      }
-    });
+  save: function(conf_) {
+    /* var data = ""; */
+    // for(var key in this._c) {
+      // if(typeof theme._theme[key] !== 'undefined') continue;
+      // data += key + "$" + this._c[key]._path + "$"
+         // + this._c[key]._position.x + "$"
+         // + this._c[key]._position.y + "$"
+        // + this._c[key]._type + '\n';
+    // }
+    // //console.log(data);
+    // this._fs.writeFile(_global.$xdg_data_home + "/widget.conf"
+        // , data, function(err) {
+      // if(err) {
+        // console.log(err);
+      // }
+    /* }); */
+    // TODO: save theme entry
+    // TODO: save inside-app entry
+    // TODO: save plugins
+    // TODO: save dentrys
   }
 });
 
@@ -1768,15 +1847,42 @@ var LayoutManager = Model.extend({
     this.callSuper('layout-manager', parent_);
   },
 
-  load: function() {
-    // TODO: check config of layout
-    _global.get('desktop').setLayoutType('grid');
-    var grid = GridModel.create('grid', this._parent, WidgetManager);
-    this.add(grid);
-    grid.load();
+  load: function(conf_) {
+    // check config of layout
+    var desktop = _global.get('desktop');
+    switch(conf_.type) {
+      case 'grid':
+        desktop.setLayoutType('grid');
+        for(var i = 0; i < conf_.num; ++i) {
+          var grid = GridModel.create('grid-' + i, this._parent, WidgetManager);
+          this.add(grid);
+          grid.load(conf_.widget[i]);
+        }
+        break;
+      default:
+        break;
+    }
   },
 
-  save: function() {},
+  save: function(conf_) {
+    var desktop = _global.get('desktop');
+    conf_.type = desktop.getLayoutType();
+    if(conf_.num != this._c.length) {
+      if(conf_.num < this._c.length) {
+        for(var i = conf_.num; i < this._c.length; ++i) {
+          conf_.widget[i] = {};
+        }
+      } else {
+        for(var i = conf_.num - 1; i >= this._c.length; --i) {
+          conf_.widget[i].pop();
+        }
+      }
+      conf_.num = this._c.length;
+    }
+    for(var i = 0; i < conf_.num; ++i) {
+      this._c[i].save(conf_.widget[i]);
+    }
+  },
 
   add: function(layout_) {
     this._c.push(layout_);
@@ -1803,8 +1909,15 @@ var FlipperModel = LayoutModel.extend({
     this._cur = cur_;
   },
 
+  getNum: function() {return this._wm._c;},
+
   getCurLayout: function() {
     return this._wm._c[this._cur];
+  },
+
+  getLayoutByIdx: function(idx_) {
+    if(typeof idx_ === 'undefined' || this._wm._c <= idx_) return null;
+    return this._wm._c[idx_];
   },
 
   getIndex: function(layout_) {

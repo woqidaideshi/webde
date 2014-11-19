@@ -36,7 +36,8 @@ var FlipperController = Controller.extend({
     var desktop = _global.get('desktop');
     switch(desktop.getLayoutType()) {
       case 'grid':
-        this._model.add(GridModel.create('grid', this._model, WidgetManager));
+        this._model.add(GridModel.create('grid-' + this._model.getNum()
+            , this._model, WidgetManager));
         break;
       default:
         break;
