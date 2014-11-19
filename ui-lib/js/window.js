@@ -42,6 +42,7 @@ var Window = Class.extend({
     this._fullScreen = false;
     this._saveWindowCss = '';
     this._saveWinContentCss = '';
+    this._focusCallback = undefined;    //获取聚焦时的回调函数
     this._INDEX = 100;
 
     this._window = $('<div>',{
@@ -185,7 +186,7 @@ var Window = Class.extend({
     return this._id;
   },
 
-  force:function(){
+  focus:function(){
     this._window.css('z-index' , this._INDEX +1);
   },
 
@@ -193,10 +194,9 @@ var Window = Class.extend({
     this._window.css('z-index' , this._INDEX);
   },
 
-  onforce:function(callback_){
-    this.force();
+  onfocus:function(callback_){
     if (callback_) {
-      callback_.call(this);
+      this._focusCallback = callback_;
     };
   },
 
@@ -297,7 +297,10 @@ var Window = Class.extend({
     }
 
     _this._window.mousedown(function(ev){
-      _this.onforce();
+      _this.focus();
+      if (_this._focusCallback) {
+        _this._focusCallback.call(_this);
+      };
       ev.stopPropagation();
     }).mouseup(function(ev){
       ev.stopPropagation();

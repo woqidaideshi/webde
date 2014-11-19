@@ -148,6 +148,7 @@ var bindEvent = function(){
   myNewWin.bindMinButton(function(){alert('close window')});
   myNewWin.bindMaxButton(function(){alert('close window')});
   myNewWin.bindHideButton(function(){alert('close window')});
+  myNewWin.onfocus(function(){alert('focus window')});
 }
 
   var appendContent = function(){
