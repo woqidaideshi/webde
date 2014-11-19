@@ -306,7 +306,7 @@ var Global = Class.extend({
     };
     this._logining = false;
     // manage opened inside-app windows
-    this._openingWindows = [];
+    this._openingWindows = WindowManager.create();
     this.objects = [];
     
     var _this = this;
@@ -944,3 +944,36 @@ var Cache = Class.extend({
   }
 });
 
+var WindowManager = Model.extend({
+  init: function() {
+    this.callSuper('window-manager');
+    this._s = [];
+  },
+
+  add: function(window_) {
+    if(this.callSuper(window_)) {
+      this._s.push(window_);
+    }
+  },
+
+  remove: function(window_) {
+    if(this.callSuper(window_)) {
+      for(var i = 0; i < this._s.length; ++i) {
+        if(this._s[i] == window_) {
+          this._s.splice(i, 1);
+        }
+      }
+    }
+  },
+
+  focusOnAWindow: function(wID_) {
+    for(var key in this._c) {
+      if(wID == key) {
+        this._c[key].focus();
+        // TODO: change the sequence of windows in _s
+      } else {
+        this._c[key].blur();
+      }
+    }
+  }
+});

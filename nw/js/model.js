@@ -710,7 +710,7 @@ var InsideAppEntryModel = EntryModel.extend({
     this._startUp = startUp_;
     this._startUpPera = startUpPera_ || [];
     this._name = name_ || id_;
-    this._idx = idx_;
+    this._idx = idx_ || -1;
     this._type = 'inside-app';
     this._cb = callback_ || function() {};
 
@@ -728,6 +728,22 @@ var InsideAppEntryModel = EntryModel.extend({
   setIdx: function(idx_) {
     this._idx = idx_;
     this.emit('idx', null, this._idx);
+  },
+
+  linkToDesktop: function() {
+    _global.get('desktop').getCOMById('layout').getCurLayout().add(this);
+  },
+
+  unlinkFromDesktop: function() {
+    _global.get('desktop').getCOMById('layout').getCurLayout().remove(this);
+  },
+
+  linkToDock:function() {
+    _global.get('desktop').getCOMById('dock').add(this);
+  },
+
+  unlinkFromDock: function() {
+    _global.get('desktop').getCOMById('dock').remove(this);
   }
 })
 

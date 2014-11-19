@@ -1275,7 +1275,7 @@ var LauncherView = View.extend({
           console.log(err_);
           return ;
         }
-        if(typeof _global._openingWindows[model_.getID() + '-window'] != 'undefined') return ;
+        if(_global._openingWindows.has(model_.getID() + '-window')) return ;
         Window.create(model_.getID() + '-window', model_.getName(), {
           left: 400,
           top: 300,
@@ -1286,12 +1286,12 @@ var LauncherView = View.extend({
           contentDiv: false,
           iframe: true
         }, function() {
-          var id = this._id;
-          _global._openingWindows[id] = this;
+          this.getID = function() {return this._id;};
+          _global._openingWindows.add(this);
           this.appendHtml(model_.getPath() + '/index.html');
+          var _this = this;
           this.bindCloseButton(function() {
-            _global._openingWindows[id] = null;
-            delete _global._openingWindows[id];
+            _global._openingWindows.remove(_this);
           });
         })/* .appendHtml(model_.getPath() + '/index.html') */; 
       },
@@ -2037,6 +2037,7 @@ var DockEntryView = View.extend({
     if(n_idx == -1) {
       $parent.append(this.$view);
       this._model.setIdx(divList.length);
+      return ;
     }
     for(var i = 0; i < divList.length; ++i) {
       var model = this._parent._c[divList[i].id]._model,
@@ -3146,6 +3147,7 @@ var LoginView = View.extend({
       animate: false,
       hide: false
     }).append($view);
+    $view.parent().css('position', 'initial');
     this.initAction(width);
   },
 
