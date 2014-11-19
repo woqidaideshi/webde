@@ -128,13 +128,13 @@ var LauncherEntryController = EntryController.extend({
   },
 
   onAddToDesktop: function() {
-    _global.get('theCP').perform(NormalCommand.create(this._model
-        , this._model.linkToDesktop, this._model.unlinkFromDesktop));
+    _global.get('theCP').perform(NoUndoCommand.create(this._model
+        , 'exec', this._model.linkToDesktop));
   },
 
   onAddToDock: function() {
-    _global.get('theCP').perform(NormalCommand.create(this._model
-        , this._model.linkToDock, this._model.unlinkFromDock));
+    _global.get('theCP').perform(NoUndoCommand.create(this._model
+        , 'exec', this._model.linkToDock));
   }
 });
 
