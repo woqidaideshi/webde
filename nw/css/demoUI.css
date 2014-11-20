@@ -515,6 +515,12 @@ ul.messenger .messenger-spinner {
 .fullwindow {
   border: 0px;
   margin: 0;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  -ms-border-radius: 0px;
+  -o-border-radius: 0px;
+  border-radius: 0px;
+  padding: 0px;
   width: 100%;
   height: 100%;
   position: absolute;
@@ -523,6 +529,7 @@ ul.messenger .messenger-spinner {
   bottom: 0;
   top: 0;
   overflow: hidden;
+  background-color: #ffffff;
   z-index: 10000;
 }
 .banner {

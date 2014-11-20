@@ -239,6 +239,7 @@ var Window = Class.extend({
       _this._isMouseOnTitleDown = true;
       _this._offsetX = ev.clientX - _this._window.position().left;
       _this._offsetY = ev.clientY - _this._window.position().top;
+        _this._window.fadeTo(20, 0.8);
     }).mouseup(function(ev){
       _this._isMouseOnTitleDown = false;
       _this._window.fadeTo(20, 1);
@@ -266,7 +267,6 @@ var Window = Class.extend({
     }
     $(document).mousemove(function(ev){
       if(_this._isMouseOnTitleDown){ 
-        _this._window.fadeTo(20, 0.5);
         var x = ev.clientX - _this._offsetX; 
         var y = ev.clientY - _this._offsetY; 
         _this.setWindowPos({left:x, top: y});
@@ -528,7 +528,10 @@ var Window = Class.extend({
   fullScreen:function(state_){
     if (typeof state_ === 'undefined') state_ = true;
     (state_ ? this._titleDiv.hide() : this._titleDiv.show());
-    this._fullScreen = state_;
+    if (state_ !== this._fullScreen) {
+      this._fullScreen = state_;
+    }else return ;
+    
     if(state_){
       this._saveWinContentCss = this._windowContent[0].style.cssText;
       this._windowContent[0].style.cssText = 'margin: 0;';
