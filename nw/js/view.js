@@ -347,7 +347,7 @@ var DesktopView = View.extend({
 
   initAction: function() {
     var _this = this;
-    $(window).on('unload', function() {
+    $(window).on('beforeunload', function() {
       _this._model.release();
     });
 
@@ -2041,9 +2041,10 @@ var DockEntryView = View.extend({
       for(var i = 0; i < divList.length; ++i) {
         var model = this._parent._c[divList[i].id]._model,
             o_idx = model.getIdx();
-        if(n_idx == o_idx && !inserted) {
+        if(n_idx <= o_idx && !inserted) {
           $(divList[i]).before(this.$view);
           inserted = true;
+          if(n_idx < o_idx) break;
         }
         if(inserted) model.setIdx(i + 1);
       }

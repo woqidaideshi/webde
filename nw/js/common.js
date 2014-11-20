@@ -451,6 +451,7 @@ var EntryUtil = Event.extend({
                     _model = AppEntryModel.create(_id
                       , container_
                       , lastSave_[_id].path
+                      , lastSave_[_id].idx
                       , {x: lastSave_[_id].x, y: lastSave_[_id].y});
                     desktop.getCOMById('launcher').set(_model);
                   }

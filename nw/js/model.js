@@ -48,28 +48,33 @@ var ThemeModel = Model.extend({
   },
 
   saveConfig: function(desktop_) {
-    var data = "";
-    for(var key in this._theme) {
-      data += key + ":" 
-        + ((this._theme[key]['active']) ?
-          desktop_._c[key]._name : this._theme[key]['name']) + ' '
-        + this._theme[key]['active'] + ' '
-        + this._theme[key]['icon'] + ' '
-        + this._theme[key]['path'] + ' '
-        + this._theme[key]['id'] + ' '
-        + ((this._theme[key]['active']) ?
-          desktop_._c[key]._position.x : this._theme[key]['pos'].x) + ' '
-        + ((this._theme[key]['active']) ?
-          desktop_._c[key]._position.y : this._theme[key]['pos'].y) + '\n';
-    }
-    // for(var i = 0; i < this._keys.length; ++i) {
-      // data += this._keys[i] + this._theme[this._keys[i]] + '\n';
+    _global._dataOP.writeDesktopConfig(function(err_, ret_) {
+      if(err_) return console.log(err_);
+    }, 'Theme.conf', this._theme);
+
+    // replace with demo-rio's API
+    /* var data = ""; */
+    // for(var key in this._theme) {
+      // data += key + ":" 
+        // + ((this._theme[key]['active']) ?
+          // desktop_._c[key]._name : this._theme[key]['name']) + ' '
+        // + this._theme[key]['active'] + ' '
+        // + this._theme[key]['icon'] + ' '
+        // + this._theme[key]['path'] + ' '
+        // + this._theme[key]['id'] + ' '
+        // + ((this._theme[key]['active']) ?
+          // desktop_._c[key]._position.x : this._theme[key]['pos'].x) + ' '
+        // + ((this._theme[key]['active']) ?
+          // desktop_._c[key]._position.y : this._theme[key]['pos'].y) + '\n';
     // }
-    _global._fs.writeFile(this._themePath, data, 'utf-8', function(err) {
-      if(err) {
-        console.log(err);
-      } 
-    });
+    // // for(var i = 0; i < this._keys.length; ++i) {
+      // // data += this._keys[i] + this._theme[this._keys[i]] + '\n';
+    // // }
+    // _global._fs.writeFile(this._themePath, data, 'utf-8', function(err) {
+      // if(err) {
+        // console.log(err);
+      // } 
+    /* }); */
   },
 
   loadThemeEntry: function(desktop_) {
@@ -82,7 +87,8 @@ var ThemeModel = Model.extend({
 
   addAThemeEntry: function(key_) {
     var layout = _global.get('desktop').getCOMById('layout'),
-        parent = layout.getCurLayout();
+        parent = layout.getLayoutByIdx(this._theme[key_]['idx']);
+    if(parent == null) parent = layout.getCurLayout();
     parent.add(ThemeEntryModel.create(
       this._theme[key_]['id'],
       parent,
@@ -210,6 +216,7 @@ var DesktopModel = Model.extend({
   },
 
   release: function() {
+    this.save();
     for(var key in this._c) {
       this._c[key].release();
     }
@@ -223,7 +230,7 @@ var DesktopModel = Model.extend({
     console.log('pre start');
     // TODO: move to Global
     this._view = DesktopView.create(this);
-    // TODO: get user config data, create all components(Launcher, Layout, Dock, DeviceList)
+    // get user config data, create all components(Launcher, Layout, Dock, DeviceList)
     this.add(FlipperModel.create('layout', this, LayoutManager));
     this.add(DeviceListModel.create(this));
     this.add(DockModel.create(this));
@@ -270,13 +277,23 @@ var DesktopModel = Model.extend({
   //
   postStart: function(cb_) {
     console.log('post start');
-    // TODO: Load contents of Launcher and DeviceList
+    // Load contents of Launcher and DeviceList
     this.getCOMById('device-list').start();
     var _this = this;
     setTimeout(function() {
       _this.getCOMById('launcher').load();
       cb_(null);
     }, 2000);
+  },
+
+  save: function() {
+    if(typeof this._USER_CONFIG === 'undefined') return ;
+    this.getCOMById('layout').save(this._USER_CONFIG.layout);
+    this._USER_CONFIG.dock = this.getCOMById('dock').save();
+    _global._dataOP.writeDesktopConfig(function(err_) {
+      // if(err_) return console.log(err_);
+      // cb_();
+    }, 'Widget.conf', this._USER_CONFIG);
   },
 
   initLayout: function() {
@@ -466,6 +483,36 @@ var DockModel = Model.extend({
     }
     _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir()
       , this._dockWatch, this);
+  },
+
+  save: function() {
+    var models = this.getAllCOMs(),
+        nConf_ = {};
+    for(var key in models) {
+      var id = models[key].getID(),
+          type = models[key].getType();
+      if(type == 'inside-app') {
+        nConf_[key] = {
+          'id': id,
+          'path': models[key].getPath(),
+          'iconPath': models[key].getImgPath(),
+          'name': models[key].getName(),
+          'type': type,
+          'idx': models[key].getIdx(),
+          'position': models[key].getPosition()
+        };
+      } else {
+        var pos = models[key].getPosition();
+        nConf_[key] = {
+          'id': id,
+          'path': models[key].getPath(),
+          'type': type,
+          'position': ((typeof pos === 'undefined') ? {} : pos),
+          'idx': models[key].getIdx()
+        };
+      }
+    }
+    return nConf_;
   },
 
   release: function() {
@@ -1136,6 +1183,11 @@ var ThemeEntryModel = EntryModel.extend({
     });
   },
 
+  setPosition: function(pos_) {
+    this.callSuper(pos_);
+    _global.get('theme')._theme[this._id]['pos'] = pos_;
+  },
+
   rename: function(name_) {
     this.setName(name_);
   },
@@ -1458,8 +1510,8 @@ var LayoutModel = WidgetModel.extend({
     }
   },
 
-  save: function() {
-    this._wm.save();
+  save: function(conf_) {
+    this._wm.save(conf_);
   },
 
   getSize: function() {
@@ -1588,7 +1640,8 @@ var WidgetManager = Model.extend({
         path: conf_.dentry[key].path,
         x: conf_.dentry[key].position.x,
         y: conf_.dentry[key].position.y,
-        type: conf_.dentry[key].type
+        type: conf_.dentry[key].type,
+        idx: conf_.dentry[key].idx
       }
     }
     _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()   
@@ -1611,10 +1664,52 @@ var WidgetManager = Model.extend({
         // console.log(err);
       // }
     /* }); */
-    // TODO: save theme entry
-    // TODO: save inside-app entry
-    // TODO: save plugins
-    // TODO: save dentrys
+
+    // save theme entry
+    _global.get('theme').saveConfig();
+    
+    var models = this.getAllCOMs(),
+        insideApp = {},
+        plugin = {},
+        dentry = {};
+    for(var key in models) {
+      var id = models[key].getID(),
+          type = models[key].getType();
+      if(type == 'inside-app') {
+        // save inside-app entry
+        insideApp[id] = {
+          'id': id,
+          'path': models[key].getPath(),
+          'iconPath': models[key].getImgPath(),
+          'name': models[key].getName(),
+          'type': type,
+          'idx': models[key].getIdx(),
+          'position': models[key].getPosition()
+        };
+      } else if(type.match(/\w*Plugin/) != null) {
+        // save plugins
+        plugin[id] = {
+          'id': id,
+          'path': models[key].getPath(),
+          'type': type,
+          'position': models[key].getPosition()
+        };
+      } else if(type == 'theme') {
+        continue;
+      } else {
+        // save dentrys
+        dentry[id] = {
+          'id': id,
+          'path': models[key].getPath(),
+          'type': type,
+          'position': models[key].getPosition(),
+          'idx': models[key].getIdx()
+        };
+      }
+    }
+    conf_.insideApp = insideApp;
+    conf_.plugin = plugin;
+    conf_.dentry = dentry;
   }
 });
 
@@ -1870,7 +1965,11 @@ var LayoutManager = Model.extend({
     if(conf_.num != this._c.length) {
       if(conf_.num < this._c.length) {
         for(var i = conf_.num; i < this._c.length; ++i) {
-          conf_.widget[i] = {};
+          conf_.widget[i] = {
+            'insideApp': {},
+            'plugin': {},
+            'dentry': {}
+          };
         }
       } else {
         for(var i = conf_.num - 1; i >= this._c.length; --i) {
