@@ -2904,29 +2904,49 @@ var FlipperView = View.extend({
 var UEditBox = Class.extend({
   init: function(toAccountInfo_, imChatWinList_) {
     var toAccount = toAccountInfo_.toAccount;
-    var imWindow = Window.create('imChat_' + toAccount, toAccount);
+    this.imWindow = Window.create('imChat_' + toAccount, toAccount,{ 
+      height: 600,
+      width: 600
+    });
     var toIP;
     var toUID;
     var localAccount;
     var localUID;
     var sendTime;
     var msgtime;
-    this.$view = $('<div>').html('<div  id="disp_text_' + toAccount + '" class="imChat_dataDiv"></div>\
-    <div id="myEditor_' + toAccount + '" ></div>\
-    <p></p> \
-    <div align="right"> \
-    <button type="button"  id="close_button_' + toAccount + '">关闭</button> \
-    <button type="button"  id="send_button_' + toAccount + '">发送</button> \
-    </div> ');
-    imWindow.append(this.$view);
+    this.$view = $('<div class="imChat">').html('<div class="imLeftDiv"><div class ="upLoadFile" ><input type="file" id="file_' + toAccount + '" style="display:none"/>\
+    <input type="image"  src="img/uploadFile.png" width=25px  height=25px id="file_button_' + toAccount + '"/>\
+    <input type="text" id="filename_' + toAccount + '" style="display:none" value=""/></div>\
+    <div  id="disp_text_' + toAccount + '" class="imChat_dataDiv"></div>\
+    <div class="imChat_ueditorDiv" id="myEditor_' + toAccount + '" ></div>\
+    <div class="imChat_btnDiv"> \
+    <button type="button" class="imCloseBtn" id="close_button_' + toAccount + '">关闭</button> \
+    <button type="button" class="imSendBtn" id="send_button_' + toAccount + '">发送</button></div></div>\
+    <div class="imRightDiv" id="memList">\
+    <div class="chat03">\
+                    <div class="chat03_title">\
+                        <label class="chat03_title_t">\
+                            成员列表</label>\
+                    </div>\
+                    <div class="chat03_content">\
+                        <ul>\
+                            <li>\
+                                <label class="online">\
+                                </label>\
+                                <a href="javascript:;">\
+                                    <img src="img/2016.jpg"></a><a href="javascript:;" class="chat03_name">刘秀</a>\
+                            </li>\
+                        </ul>\
+                    </div>\
+                </div>\
+            </div>');
+    this.imWindow.append(this.$view);
     var um = UE.getEditor('myEditor_' + toAccount, {
       //这里可以选择自己需要的工具按钮名称
       toolbars: [
-        ['fullscreen', '|', 'undo', 'redo', '|',
-          'bold', 'italic', 'underline', 'fontborder', 'strikethrough', '|', 'forecolor', 'backcolor', '|',
+        [ 'bold', 'italic', 'underline', 'fontborder', 'strikethrough', '|', 'forecolor', 'backcolor', '|',
           'fontfamily', 'fontsize', '|',
-          'justifyleft', 'justifycenter', 'justifyright', 'justifyjustify', '|',
-          'simpleupload', 'insertimage', 'emotion'
+           'emotion'
         ]
       ],
       //    lang:'zh-cn' ,//语言
@@ -2934,7 +2954,8 @@ var UEditBox = Class.extend({
       autoClearinitialContent: true,
       //关闭字数统计
       wordCount: false,
-      initialFrameHeight: 130,
+      initialFrameWidth: 450,
+      initialFrameHeight: 150,
       //更多其他参数，请参考umeditor.config.js中的配置项
       pasteImageEnabled: true, //ueditor
       emotionLocalization: true,
@@ -2946,41 +2967,132 @@ var UEditBox = Class.extend({
     });
     $('#close_button_' + toAccount).on('click', function() {
       um.destroy();
-      delete imChatWinList_['imChatWin_' + toAccount];
-      imWindow.closeWindow(imWindow);
+      this.imWindow.closeWindow(this.imWindow);
+     // imChatWinList_['imChatWin_' + toAccount].closeWindow(imChatWinList_['imChatWin_' + toAccount]);
+      delete imChatWinList_['imChatWin_' + toAccount];    
     });
-    $('#send_button_' + toAccount).on('click', function() {
+    $('#file_button_' + toAccount).on('click', function() {
+      var ie = navigator.appName == "Microsoft Internet Explorer" ? true : false;
+      if (ie) {
+        document.getElementById("file_" + toAccount).click();
+      } else {
+        var a = document.createEvent("MouseEvents"); //FF的处理 
+        a.initEvent("click", true, false);
+        document.getElementById("file_" + toAccount).dispatchEvent(a);
+      }
+      $('#file_' + toAccount).on('change',function(){
+        var fileUp=$('#file_' + toAccount);
+        fileUp.after(fileUp.clone().val('')); 
+        fileUp.remove();
+        var val = fileUp.val(); 
+        if (val !== '' && val !== undefined && val !== null) {
+          function sendIMFileCb() {
+            //var fileUp=$('#file_' + toAccount);
+            //fileUp.after(fileUp.clone().val('')); 
+            //fileUp.remove();
+          }
+          if (localAccount === undefined) {
+            _global._imV.getLocalData(function(localData) {
+              localAccount = localData.account;
+              localUID = localData.UID;
+            });
+          }
+          var ipset = {};
+          ipset["IP"] = toAccountInfo_.toIP;
+          ipset["UID"] = toAccountInfo_.toUID;
+          msgJson={};
+          msgJson['file']=val;
+          console.log('------------------------'+JSON.stringify(msgJson));
+          _global._imV.sendIMMsg(sendIMFileCb, ipset, toAccount, JSON.stringify(msgJson));
+        }
+      });
+    });
+  $('#send_button_' + toAccount).on('click', function() {
       if (um.hasContents()) {
         var msg = um.getContent();
-
         function sendIMMsgCb() {
           $('#disp_text_' + toAccount).append('<span class="accountFont"> ' + localAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
           $('#disp_text_' + toAccount).scrollTop($('#disp_text_' + toAccount).height());
           um.setContent('');
         }
-        _global._imV.getLocalData(function(localData) {
-          localAccount = localData.account;
-          localUID = localData.UID;
-          var ipset = {};
-          ipset["IP"] = toAccountInfo_.toIP;
-          ipset["UID"] = toAccountInfo_.toUID;
-          msgtime = new Date();
-          sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          _global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
-        });
+        if (localAccount === undefined) {
+          _global._imV.getLocalData(function(localData) {
+            localAccount = localData.account;
+            localUID = localData.UID;
+          });
+        }
+        var ipset = {};
+        ipset["IP"] = toAccountInfo_.toIP;
+        ipset["UID"] = toAccountInfo_.toUID;
+        msgtime = new Date();
+        sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+        _global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
       } else {}
     });
     if (toAccountInfo_.msg !== undefined) {
-      msgtime = new Date();
-      sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-      $('#disp_text_' + toAccount).append('<span class="accountFont">' + toAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msg);
-      $('#disp_text_' + toAccount).scrollTop($('#disp_text_' + toAccount).height());
+      if (toAccountInfo_.msg.file === undefined) {
+        msgtime = new Date();
+        sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+        $('#disp_text_' + toAccount).append('<span class="accountFont">' + toAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msg);
+        $('#disp_text_' + toAccount).scrollTop($('#disp_text_' + toAccount).height());
+      } else {
+        Messenger().post({
+          message: toAccount + '给你发文件\n' + toAccountInfo_.msg.file,
+          type: 'info',
+          actions: {
+            close: {
+              label: '拒绝',
+              action: function() {
+                Messenger().hideAll();
+                // _global._imV.img();//////////////////
+              }
+            },
+            open: {
+              label: '接收',
+              action: function() {
+                Messenger().hideAll();
+              }
+            }
+          }
+        });
+      }
     }
   },
-  showRec: function(toAccount_, msg_) {
-    var msgtime = new Date();
-    var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-    $('#disp_text_' + toAccount_).append('<span  class="accountFont">' + toAccount_ + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg_);
-    $('#disp_text_' + toAccount_).scrollTop($('#disp_text_' + toAccount_).height()) ;
+  showRec: function(toAccount_, msg_,curEditBox_) {
+    if (msg_.file === undefined) {
+      console.log('++++++++++++++++++' + msg_);
+      var msgtime = new Date();
+      var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+      $('#disp_text_' + toAccount_).append('<span  class="accountFont">' + toAccount_ + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg_);
+      $('#disp_text_' + toAccount_).scrollTop($('#disp_text_' + toAccount_).height());
+    } else {
+      Messenger().post({
+        message: toAccount_ + '给你发文件\n' + msg_.file,
+        type: 'info',
+        actions: {
+          close: {
+            label: '拒绝',
+            action: function() {
+              Messenger().hideAll();
+              // _global._imV.img();//////////////////
+            }
+          },
+          open: {
+            label: '接收',
+            action: function() {
+              Messenger().hideAll();
+              //var thisImChatWin=$('#imChat_' + toAccount_)[0];
+              //curEditBox_.imWindow.closeWindow(curEditBox_.imWindow);
+              /*var newSize={};
+              newSize['width']=curEditBox_.imWindow._options.width+80;
+              newSize['height']=curEditBox_.imWindow._options.height;
+              curEditBox_.imWindow.resizeWindow(newSize);
+              curEditBox_.imWindow.append('<div bord="1" align="right" width="80px"  height="'+newSize['height']+'px"  id="appendDiv_'+toAccount_+'"></div>');
+              $('#appendDiv_'+toAccount_).append('<p>'+msg_.file+'</p>');*/
+            }
+          }
+        }
+      });
+    }
   }
 });

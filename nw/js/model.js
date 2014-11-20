@@ -1118,6 +1118,8 @@ var DeviceListModel = Model.extend({
         id_ = dev_.address + ':' + dev_.port;
     switch(ev_) {
       case 'ItemNew':
+        if(dev_.txt.length<5)
+          break;
         var device = DeviceEntryModel.create(id_, _this, dev_.host, dev_);
         _this.add(device);
         break;
@@ -1150,34 +1152,69 @@ var DeviceListModel = Model.extend({
       }
       var toAccount = msgobj.MsgObj.from;
       var curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
+      var fileMsg=msgobj.MsgObj.message;
+      try{
+        fileMsg=JSON.parse(msgobj.MsgObj.message);
+      }catch(e){
+        console.log('just talk==================');
+      }
       if (curEditBox === undefined) {
-        Messenger().post({
-          message: toAccount + '给你发新消息啦！',
-          type: 'info',
-          actions: {
-            close: {
-              label: '取消闪烁',
-              action: function() {
-                Messenger().hideAll()
-              }
-            },
-            open: {
-              label: '查看',
-              action: function() {
-                Messenger().hideAll();
-                var toAccountInfo = {};
-                toAccountInfo['toAccount'] = toAccount;
-                toAccountInfo['toIP'] = msgobj.IP;
-                toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
-                toAccountInfo['msg'] = msgobj.MsgObj.message;
-                curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
-                _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+        if (fileMsg.file === undefined) {
+          Messenger().post({
+            message: toAccount + '给你发新消息啦！',
+            type: 'info',
+            actions: {
+              close: {
+                label: '取消闪烁',
+                action: function() {
+                  Messenger().hideAll()
+                }
+              },
+              open: {
+                label: '查看',
+                action: function() {
+                  Messenger().hideAll();
+                  var toAccountInfo = {};
+                  toAccountInfo['toAccount'] = toAccount;
+                  toAccountInfo['toIP'] = msgobj.IP;
+                  toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
+                  toAccountInfo['msg'] = fileMsg;
+                  curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
+                  _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+                }
               }
             }
-          }
-        });
+          });
+        } else {
+          Messenger().post({
+            message: toAccount + '给你发文件\n' + fileMsg.file,
+            type: 'info',
+            actions: {
+              close: {
+                label: '拒绝',
+                action: function() {
+                  Messenger().hideAll();
+                  // _global._imV.img();//////////////////
+                }
+              },
+              open: {
+                label: '接收',
+                action: function() {
+                  Messenger().hideAll();
+                  var toAccountInfo = {};
+                  toAccountInfo['toAccount'] = toAccount;
+                  toAccountInfo['toIP'] = msgobj.IP;
+                  toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
+                  toAccountInfo['msg'] = fileMsg;
+                  curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
+                  _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+                }
+              }
+            }
+          });
+        }
       } else {
-        curEditBox.showRec(toAccount, msgobj.MsgObj.message);
+        curEditBox.showRec(toAccount, fileMsg,curEditBox);
       }
     });
   }

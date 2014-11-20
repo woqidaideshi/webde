@@ -1,26 +1,42 @@
 UE.registerUI('button',function(editor,uiName){
     //注册按钮执行时的command命令，使用命令默认就会带有回退操作
-    editor.registerCommand(uiName,{
+   /* editor.registerCommand(uiName,{
         execCommand:function(){
             alert('execCommand:' + uiName)
         }
-    });
+    });*/
 
     //创建一个button
     var btn = new UE.ui.Button({
         //按钮的名字
         name:uiName,
         //提示
-        title:uiName,
+        title:"传送文件",
+        id:"fileUpload",
         //需要添加的额外样式，指定icon图标，这里默认使用一个重复的icon
-        cssRules :'background-position: -500px 0;',
-        type:'file',
+        cssRules :' background-image:url(http://mimg.163.com/netfolder/images/all_toolbar.gif);',
         //点击时执行的命令
-        onclick:function () {
-            //这里可以不用执行命令,做你自己的操作也可
-           editor.execCommand(uiName);
-        }
-    });
+    onclick: function() {
+        //这里可以不用执行命令,做你自己的操作也可
+        //editor.execCommand(uiName);
+        alert('execCommand:' + uiName)
+        var file = document.createElement("input");
+        file.type = "file";
+        file.id = "fileUpload";
+        file.name = "fileUpload";
+        file.hideFocus = true;
+        file.style.cssText = "cursor:pointer; width:1px; border:none; height:32px; padding:0px; margin:0px;position:absolute; opacity:0;filter:alpha(opacity=0);font-size:20px;";
+        file.onchange = function() {
+           // $("#s" + TotalFiles.toString()).innerHTML = $("f" + TotalFiles.toString()).value.substring($("f" + TotalFiles.toString()).value.lastIndexOf("\\") + 1, $("f" + TotalFiles.toString()).value.length) + "    <span onclick=\"DelFile('" + TotalFiles.toString() + "')\" style=\"cursor:pointer;color:red\">X</span>";
+            this.style.display = "none";
+            //AddFiles();
+        };
+        $("#UpFilePanelHidden").append(file);
+        //var div = document.createElement("div");
+        //div.id = "s" + TotalFiles.toString();
+     //   $("#UpFilePanelShow").append(div);
+    }
+});
 
     //当点到编辑内容上时，按钮要做的状态反射
     editor.addListener('selectionchange', function () {
