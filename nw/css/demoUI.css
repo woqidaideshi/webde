@@ -496,6 +496,7 @@ ul.messenger .messenger-spinner {
   color: #ababab;
 }
 .window .window-content {
+  position: relative;
   margin-top: 0;
   margin-right: 4px;
   margin-bottom: 2px;
@@ -510,6 +511,26 @@ ul.messenger .messenger-spinner {
   width: 15px;
   height: 15px;
   cursor: se-resize;
+}
+.fullwindow {
+  border: 0px;
+  margin: 0;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  -ms-border-radius: 0px;
+  -o-border-radius: 0px;
+  border-radius: 0px;
+  padding: 0px;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  overflow: hidden;
+  background-color: #ffffff;
+  z-index: 10000;
 }
 .banner {
   position: relative;

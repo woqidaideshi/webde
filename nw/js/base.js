@@ -117,7 +117,7 @@ var Model = Event.extend({
   getParent: function() {return this._parent;},
 
   add: function(component_) {
-    if(typeof component_ === 'undefined' || component_ == null) return ;
+    if(typeof component_ === 'undefined' || component_ == null) return false;
     if(typeof this._c[component_.getID()] !== "undefined") {
       this.emit('add', 'This component[id: ' + component_.getID() + '] has already existed!!');
       return false;
@@ -128,7 +128,7 @@ var Model = Event.extend({
   },
 
   remove: function(component_) {
-    if(typeof component_ === 'undefined' || component_ == null) return ;
+    if(typeof component_ === 'undefined' || component_ == null) return false;
     if(typeof this._c[component_.getID()] === 'undefined') {
       this.emit('remove', 'This component[id: ' + component_.getID() + '] is not existed!!');
       return false;
@@ -155,6 +155,10 @@ var Model = Event.extend({
 
   getAllCOMs: function() {
     return this._c;
+  },
+
+  has: function(cID_) {
+    return ((typeof this.getCOMById(cID_) === 'undefined') ? false : true);
   }
 
   // addObserver: function(observer_) {

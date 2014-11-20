@@ -95,17 +95,19 @@ var DesktopView = View.extend({
       {divider: true},
       {text: 'terminal', icon: 'icon-terminal', action: function(e) {
         e.preventDefault();
-        _global._exec("gnome-terminal", function(err, stdout, stderr) {
+        // _global._exec("gnome-terminal", function(err, stdout, stderr) {
+        _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
-        });
+        }, "gnome-terminal");
       }},
       {text:'gedit', icon: 'icon-edit', action:function(e){
         e.preventDefault();
-        _global._exec("gedit", function(err, stdout, stderr) {
+        // _global._exec("gedit", function(err, stdout, stderr) {
+        _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
-        });
+        }, "gedit");
       }},
       {divider: true},
       {text: 'refresh', icon: 'icon-spin3 animate-spin', action: function(e) {
@@ -1250,10 +1252,14 @@ var LauncherView = View.extend({
           console.log(err_);
           return ;
         }
-        var id_ = app_.getID() + '-launcher';
+        var id_ = app_.getID() + '-launcher',
+            cg_ = app_.getCategory();
         _this._views[id_].hide();
         _this._views[id_] = null;
         delete _this._views[id_];
+        _this._c['All'].subject.attr('title', 'All' + '(' + --_this._c['All'].length + ')');
+        if(typeof cg_ != 'undefined' && cg_ != 'All')
+          _this._c[cg_].subject.attr('title', cg_ + '(' + --_this._c[cg_].length + ')');
       },
       'show': function(err_) {
         if(err_) {
@@ -1269,7 +1275,8 @@ var LauncherView = View.extend({
           console.log(err_);
           return ;
         }
-        Window.create(model_.getID(), model_.getName(), {
+        if(_global._openingWindows.has(model_.getID() + '-window')) return ;
+        Window.create(model_.getID() + '-window', model_.getName(), {
           left: 400,
           top: 300,
           height: 400,
@@ -1278,7 +1285,18 @@ var LauncherView = View.extend({
           animate: false,
           contentDiv: false,
           iframe: true
-        }).appendHtml(model_.getPath() + '/index.html'); 
+        }, function() {
+          this.getID = function() {return this._id;};
+          _global._openingWindows.add(this);
+          this.appendHtml(model_.getPath() + '/index.html');
+          var _this = this;
+          this.bindCloseButton(function() {
+            _global._openingWindows.remove(_this);
+          });
+        })/* .appendHtml(model_.getPath() + '/index.html') */; 
+      },
+      'add-login-app': function(err_, model_) {
+        var login = LoginView.create(model_.getID(), model_);
       }
     };
     for(var key in _this.__handlers) {
@@ -1319,9 +1337,11 @@ var LauncherView = View.extend({
       {header: 'launcher'},
       {text: 'add to Desktop', action: function(e) {
         e.preventDefault();
+        _this._views[ctxMenu._rightObjId]._controller.onAddToDesktop();
       }},
       {text: 'add to Dock', action: function(e) {
         e.preventDefault();
+        _this._views[ctxMenu._rightObjId]._controller.onAddToDock();
       }}
     ]);
   },
@@ -1399,13 +1419,13 @@ var LauncherView = View.extend({
         icon = 'icon-briefcase';
         break;
     }
-    // TODO: add entry_ to category_
+    // add entry_ to category_
     if(typeof this._c[cg] === 'undefined') {
       var _this = this;
       _this._c[cg] = {
         'subject': $('<div>', {
                     'class': icon + ' sub-entry',
-                    'title': cg
+                    'title': cg + '(0)'
                   }).on('click', function(e) {
                     e.stopPropagation();
                     _this._c[_this._cur].content.hide();
@@ -1418,19 +1438,23 @@ var LauncherView = View.extend({
                   }),
         'content': $('<div>', {
                     'class': 'c-items'
-                  })
+                  }),
+        'length': 0
       };
       this.$view.children('.subject').append(this._c[cg].subject);
       this.$view.children('.content').append(this._c[cg].content);
     }
     if(typeof entry_ !== 'undefined') {
       entry_.show(this._c[cg].content);
+      this._c[cg].subject.attr('title', cg + '(' + ++this._c[cg].length + ')');
     }
   },
 
   toggle: function() {
     if(this._shown) {
       this.$view.hide().children('canvas').remove();
+      this._c[this._cur].content.hide();
+      this._c[this._cur].subject.removeClass('open');
       this._shown = false;
     } else {
       var _this = this;
@@ -1472,7 +1496,7 @@ var LauncherEntryView = View.extend({
       'height': parent_._imgSize
     })).append($('<p>').text(this._model.getName()));
     this.$view2 = null;
-    this.initAction();
+    this.initAction(this.$view);
     this._contents = parent_.getContents();
     this._controller = LauncherEntryController.create(this);
   },
@@ -1482,8 +1506,11 @@ var LauncherEntryView = View.extend({
     _this._model.on('category', function(err_, cg_) {
       if(_this.$view2 == null) {
         _this.$view2 = _this.$view.clone();
+        _this.initAction(_this.$view2);
       }
-      _this._contents[_global._App_Cate[cg_]].content.append(_this.$view2);
+      var cg = _global._App_Cate[cg_];
+      _this._contents[cg].subject.attr('title', cg + '(' + ++_this._contents[cg].length + ')');
+      _this._contents[cg].content.append(_this.$view2);
     }).on('imgPath', function(err_, imgPath_) {
       _this.$view.children('img').attr('src', imgPath_);
       if(_this.$view2 != null) {
@@ -1501,17 +1528,19 @@ var LauncherEntryView = View.extend({
       }
       if(noDisplay_) {
         _this.hide();
+        _this._parent._c['All'].subject.attr('title'
+          , 'All' + '(' + --_this._parent._c['All'].length + ')');
         _this._parent._views[_this._id] = null;
         delete _this._parent._views[_this._id];
       }
     });
   },
 
-  initAction: function() {
+  initAction: function($view) {
     var _this = this,
         ctxMenu = _global.get('ctxMenu'),
         $menu_ = ctxMenu.getMenuByHeader('launcher');
-    _this.$view.on('click', function(e) {
+    $view.on('click', function(e) {
       _this._controller.onClick();
       _this._parent.toggle();
     }).on('contextmenu', function(e) {
@@ -1534,6 +1563,7 @@ var LauncherEntryView = View.extend({
     var cg = this._model.getCategory();
     if(typeof cg !== 'undefined') {
       this.$view2 = this.$view.clone();
+      this.initAction(this.$view2);
       this._contents[_global._App_Cate[cg]].content.append(this.$view2);
     }
   },
@@ -2007,6 +2037,7 @@ var DockEntryView = View.extend({
     if(n_idx == -1) {
       $parent.append(this.$view);
       this._model.setIdx(divList.length);
+      return ;
     }
     for(var i = 0; i < divList.length; ++i) {
       var model = this._parent._c[divList[i].id]._model,
@@ -3096,3 +3127,279 @@ var UEditBox = Class.extend({
     }
   }
 });
+
+var LoginView = View.extend({
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    this.registObservers();
+    // view for login
+    this.$loginView = $('<div>', {
+      'class': 'login'
+    }).append($('<div>', {
+      'class': 'login-content'
+    }).append($('<div>', {
+      'class': 'content-row'
+    }).html(
+      '账户： ' +
+      '<input type="text" name="account">'
+    )).append($('<div>', {
+      'class': 'content-row'
+    }).html(
+      '密码： ' +
+      '<input type="password" name="password">'
+    ))).append($('<div>', {
+      'class': 'login-btn-bar'
+    }).html(
+      '<button class="btn active" id="btn-regist">注册>>></button>' +
+      '<button class="btn disable" id="btn-login">登陆</button>' +
+      '<button class="btn active hidden" id="btn-cancel">取消</button>'
+    )).append($('<div>', {
+      'class': 'login-waiting hidden'
+    }).html(
+      '<div class="loading icon-spin5 animate-spin"></div>' +
+      '<p>正在登陆，请稍后...</p>'
+    )).append($('<div>', {
+      'class': 'login-regist hidden'
+    }).html(
+      '<div class="content-row">' +
+      '<div>账户</div>：<input type="text" name="r-account">' +
+      '</div>' +
+      '<div class="content-row">' +
+      '<div>密码</div>：<input type="password" name="r-password">' +
+      '</div>' +
+      '<div class="content-row">' +
+      '<div>确认密码</div>：<input type="password" name="r-password-c">' +
+      '</div>' +
+      '<div class="content-row" id="msg"></div>' +
+      '<div class="content-row">' +
+      '<button class="btn disable" id="btn-commit">提交</button>' +
+      '<button class="btn active" id="btn-r-cancel">关闭</button>' +
+      '</div>'
+    ));
+    // view for logout
+    this.$logoffView = $('<div>', {
+      'class': 'logout'
+    }).append($('<div>', {
+      'class': 'logout-content'
+    }).html(
+      '确定登出此账户？'
+    )).append($('<div>', {
+      'class': 'logout-btn-bar'
+    }).html(
+      '<button class="btn active" id="btn-sure">确认</button>' +
+      '<button class="btn active" id="btn-cancel">取消</button>'
+    ));
+    this._controller = LoginController.create(this);
+    this._r_shown = false;
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this.__handlers = {
+      'login': function(err_, state_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.show(state_);
+      },
+      'login-state': function(err_, state_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        // _this.toggleLogin(false);
+        $('#' + _this._id + '-window').remove();
+        // _this._win.closeWindow(_this._win);
+      },
+      'regist': function(err_, success_, reason_) {
+        _this.$loginView.find('span').remove();
+        if(success_) {
+          _this.$loginView.find('#msg').html('注册成功');
+        } else {
+          _this.$loginView.find('#msg').html('注册失败：' + reason_);
+        }
+      }
+    };
+    for(var key in _this.__handlers) {
+      _this._model.on(key, _this.__handlers[key]);
+    }
+  },
+
+  initAction: function(which_) {
+    if(which_ == 500) {
+      var _this = this,
+          $account = _this.$loginView.find('input[name="account"]'),
+          $password = _this.$loginView.find('input[name="password"]'),
+          $login = _this.$loginView.find('#btn-login'),
+          onInput = function(e) {
+            if($account.val() != '' && $password.val() != '') {
+              $login.removeClass('disable').addClass('active');
+            } else {
+              $login.removeClass('active').addClass('disable');
+            }
+          };
+      $account.on('input', onInput);
+      $password.on('input', onInput);
+      _this.toggleLogin(false);
+      /* $('#' + this._id + '-window').off.on('keydown', function(e) { */
+        // e.stopPropagation();
+      /* }); */
+    } else {
+      var _this = this,
+          $logout = _this.$logoffView.find('#btn-sure'),
+          $cancel2 = _this.$logoffView.find('#btn-cancel');
+      $logout.one('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        _this._controller.onLogout();
+      });
+      $cancel2.one('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // _this._win.closeWindow(_this._win);
+        $('#' + _this._id + '-window').remove();
+      });
+    }
+  },
+
+  show: function(toLogin_) {
+    if($('#' + this._id + '-window').length != 0) return ;
+    var $view, title, height, width;
+    if(toLogin_) {
+      $view = this.$loginView;
+      title = '登陆';
+      height = 300;
+      width = 500;
+    } else {
+      $view = this.$logoffView;
+      title = '登出';
+      height = 150;
+      width = 250;
+    }
+    Window.create(this._id + '-window', title, {
+      left: 400,
+      top: 300,
+      height: height,
+      width: width,
+      max: false,
+      fadeSpeed: 500,
+      animate: false,
+      hide: false
+    }).append($view);
+    $view.parent().css('position', 'initial');
+    this.initAction(width);
+  },
+
+  toggleLogin: function(loading_) {
+    var view = this,
+        $content = view.$loginView.find('.login-content'),
+        $waiting = view.$loginView.find('.login-waiting'),
+        $account = view.$loginView.find('input[name="account"]'),
+        $password = view.$loginView.find('input[name="password"]'),
+        $regist = view.$loginView.find('#btn-regist'),
+        $login = view.$loginView.find('#btn-login'),
+        $cancel = view.$loginView.find('#btn-cancel');
+    if(loading_) {
+      $content.fadeOut(function() {
+        $waiting.fadeIn();
+      });
+      $regist.hide();
+      $login.hide(function() {
+        $cancel.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view._controller.onCancelLogin();
+        });
+      });
+    } else {
+      $waiting.fadeOut(function() {
+        $password.val('');
+        $login.removeClass('active').addClass('disable');
+        $content.fadeIn();
+      });
+      $cancel.hide(function() {
+        $regist.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view.toggleRegist(true);
+        });
+        $login.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if(view._r_shown) view.toggleRegist(false);
+          view._controller.onLogin($account.val(), $password.val());
+        });
+      });
+    }
+  },
+
+  toggleRegist: function(show_) {
+    var view = this,
+        $regist = view.$loginView.find('#btn-regist'),
+        $registView = view.$loginView.find('.login-regist'),
+        $commit = view.$loginView.find('#btn-commit'),
+        $cancel = view.$loginView.find('#btn-r-cancel'),
+        $account = view.$loginView.find('input[name="r-account"]'),
+        $password = view.$loginView.find('input[name="r-password"]'),
+        $passwordC = view.$loginView.find('input[name="r-password-c"]'),
+        $msg = view.$loginView.find('#msg');
+    if(show_) {
+      $('#' + view._id + '-window').find('.window-content').animate({
+        height: '+=250px'
+      }, function() {
+        view._r_shown = true;
+        $registView.fadeIn();
+        var onInput = function() {
+          if($account.val() != '' && $password.val() != '' && $passwordC.val() != '') {
+            $commit.removeClass('disable').addClass('active');
+          } else {
+            $commit.removeClass('active').addClass('disable');
+          }
+        }
+        $account.on('input', onInput);
+        $password.on('input', onInput);
+        $passwordC.on('input', onInput);
+        $commit.off().on('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var p1 = $password.val(),
+              p2 = $passwordC.val();
+          if(p1 == p2) {
+            $commit.removeClass('active').addClass('disable').append($('<span>', {
+              'class': 'icon-spin5 animate-spin'
+            }));
+            $password.val('');
+            $passwordC.val('');
+            view._controller.onRegist($account.val(), p1);
+          } else {
+            // TODO: show warnning
+            $msg.html('密码确认有误');
+          }
+        });
+        $cancel.off().on('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          $account.val('');
+          $password.val('');
+          $passwordC.val('');
+          $msg.html('');
+          view.toggleRegist(false);
+        })
+      });
+    } else {
+      $registView.hide(function() {
+        view._r_shown = false;
+        $('#' + view._id + '-window').find('.window-content').animate({
+          height: '-=250px'
+        });
+        $regist.one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view.toggleRegist(true);
+        });
+      });
+    }
+  }
+});
+

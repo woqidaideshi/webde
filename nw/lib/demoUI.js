@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-11-15
+/*! ui-lib - v0.0.1 - 2014-11-20
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -3571,7 +3571,7 @@ var Video = Class.extend({
 //windows lib for create window fastly
 //this is relaty font-awesome
 var Window = Class.extend({
-  init:function(id_, title_ , options_){
+  init:function(id_, title_ , options_, callback_){
     this._options = {
       animate: true,             //动画效果
       contentDiv: true,     //包含放置内容的div
@@ -3590,7 +3590,8 @@ var Window = Class.extend({
       maxWindow: false,  //是否初始最大化
       resize: false,           //设置是否可重新调整窗口的大小
       minWidth: 200,            //设置窗口的最小宽度
-      minHeight:200            //设置窗口的最小高度
+      minHeight:200,            //设置窗口的最小高度
+      fullScreen: false        //双击内容全屏显示
     };
 
     //set options
@@ -3608,6 +3609,11 @@ var Window = Class.extend({
     this._title = title_;                                   //record title
     this._id = id_;                                                // record id
     this._isMax = false;                                    // record window is maxsize or not
+    this._fullScreen = false;
+    this._saveWindowCss = '';
+    this._saveWinContentCss = '';
+    this._focusCallback = undefined;    //获取聚焦时的回调函数
+    this._INDEX = 100;
 
     this._window = $('<div>',{
       'id': this._id,
@@ -3660,6 +3666,10 @@ var Window = Class.extend({
       this.maxWindow(this);
     }
     this.bindEvent();
+
+    if (callback_) {
+      callback_.call(this);
+    };
   },
 
   /**
@@ -3722,6 +3732,44 @@ var Window = Class.extend({
     });
   },
 
+  bindCloseButton:function(eventAction_, arg_){
+    if (this._options.close)
+    this.bindButton(this._titleButton.children('.window-button-close'), eventAction_, arg_);
+  },
+
+  bindMinButton:function(eventAction_, arg_){
+    if (this._options.min)
+    this.bindButton(this._titleButton.children('.window-button-min'), eventAction_, arg_);
+  },
+
+  bindMaxButton:function(eventAction_, arg_){
+    if (this._options.max)
+    this.bindButton(this._titleButton.children('.window-button-max'), eventAction_, arg_);
+  },
+
+  bindHideButton:function(eventAction_, arg_){
+    if (this._options.hide)
+    this.bindButton(this._titleButton.children('.window-button-hide'), eventAction_, arg_);
+  },
+
+  gitID:function(){
+    return this._id;
+  },
+
+  focus:function(){
+    this._window.css('z-index' , this._INDEX +1);
+  },
+
+  blur:function(){
+    this._window.css('z-index' , this._INDEX);
+  },
+
+  onfocus:function(callback_){
+    if (callback_) {
+      this._focusCallback = callback_;
+    };
+  },
+
   /**
    * [changeIcon change icon by class]
    * @param  {[string]} aClass_    [class name of a]
@@ -3754,7 +3802,6 @@ var Window = Class.extend({
 
     //drag window
     this._titleDiv.mousedown(function(ev){
-      ev.stopPropagation();
       ev.preventDefault();
       if (_this._isMax) {
         return ;
@@ -3762,24 +3809,23 @@ var Window = Class.extend({
       _this._isMouseOnTitleDown = true;
       _this._offsetX = ev.clientX - _this._window.position().left;
       _this._offsetY = ev.clientY - _this._window.position().top;
-      _this._window.fadeTo(20, 0.5);
+        _this._window.fadeTo(20, 0.8);
     }).mouseup(function(ev){
-      ev.stopPropagation();
       _this._isMouseOnTitleDown = false;
       _this._window.fadeTo(20, 1);
-    });
+    }).dblclick(function(){
+      _this.toggleMaxWindow();
+    })
 
     //resize window
     if (typeof this._dragDiv !== 'undefined') {
       this._dragDiv.mousedown(function(ev){
-        ev.stopPropagation();
         if (_this._isMax || _this._ishideDiv || !_this._options.resize) {
           return ;
         };
         _this._isMouseResizeDown = true;
         _this._window.fadeTo(20, 0.9);
       }).mouseup(function(ev){
-        ev.stopPropagation();
         if (!_this._isMouseResizeDown) {
           return ;
         }
@@ -3811,6 +3857,23 @@ var Window = Class.extend({
         _this.resizeWindow(_this._options);
         _this._dragDiv.css('cursor', 'se-resie');
       };
+    });
+    if (_this._options.fullscreen) {
+      _this._windowContent.dblclick(function(ev){
+        _this.togglefullScreen();
+        ev.stopPropagation();
+        ev.preventDefault();
+      })
+    }
+
+    _this._window.mousedown(function(ev){
+      _this.focus();
+      if (_this._focusCallback) {
+        _this._focusCallback.call(_this);
+      };
+      ev.stopPropagation();
+    }).mouseup(function(ev){
+      ev.stopPropagation();
     });
   },
   /**
@@ -3903,6 +3966,9 @@ var Window = Class.extend({
     _this.changeIcon('window-button-max', 'icon-resize-small', 'icon-resize-full', _this.maxWindow);
   },
 
+  toggleMaxWindow:function(){
+    (this._isMax ? this.recoverWindow(this) : this.maxWindow(this) );
+  },
   /**
    * [closeWindow close window]
    * @param  {[this ]} windowObj_ [this obj]
@@ -4023,6 +4089,39 @@ var Window = Class.extend({
     if(this._options.iframe){
       this._windowContent[0].src = src_;
     }
+  },
+  /**
+   * [fullscreen fullscreen ]
+   * @param  {[type]} state_ [fullScreen state]
+   * @return {[type]}        [description]
+   */
+  fullScreen:function(state_){
+    if (typeof state_ === 'undefined') state_ = true;
+    (state_ ? this._titleDiv.hide() : this._titleDiv.show());
+    if (state_ !== this._fullScreen) {
+      this._fullScreen = state_;
+    }else return ;
+    
+    if(state_){
+      this._saveWinContentCss = this._windowContent[0].style.cssText;
+      this._windowContent[0].style.cssText = 'margin: 0;';
+    } else {
+      this._windowContent[0].style.cssText = this._saveWinContentCss;
+      this._saveWinContentCss = '';
+    }
+    if (state_) {
+      this._saveWindowCss = this._window[0].style.cssText;
+      this._window[0].style.cssText = 'left: 0px; top: 0px; display: block;'; 
+    } else {
+      this._window[0].style.cssText = this._saveWindowCss;
+      this._saveWindowCss = '';
+    }
+    this._windowContent[state_ ? 'addClass' : 'removeClass']('fullwindow');
+    this._window[state_ ? 'addClass' : 'removeClass']('fullwindow');
+  },
+
+  togglefullScreen:function(){
+    this.fullScreen(!this._fullScreen);
   }
 
 });
