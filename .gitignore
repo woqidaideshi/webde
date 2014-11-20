@@ -13,5 +13,4 @@ ui-lib/doc/assets/font/*wesome*
 *.swp
 shell
 shell/*
-test
-test/*
+ui-lib/doc/app
