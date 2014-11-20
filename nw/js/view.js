@@ -8,7 +8,9 @@ var DesktopView = View.extend({
     this.callSuper('desktop-view', model_, parent_);
     this.controller = DesktopController.create(this);
     this.registObservers();
-    this.$view = $('body')/* .attr({id: this.getID()}) */;
+    this.$view = $('body').append($('<img>', {
+      'src': 'img/bgp.jpg'
+    }));
     this._c = [];
     this.initCtxMenu();
     this.initAction();
@@ -18,10 +20,13 @@ var DesktopView = View.extend({
     var _this = this;
     _this.__handlers = {
       'add': function(err_, component_) {
-        switch(component_.getID()) {
+        var id = component_.getID();
+        switch(id) {
           case 'launcher':
             // TODO: create a launcher view(split create and init into two functions, and
             //  here just create a view object)
+            _this._c[id] = LauncherView.create(component_, _this);
+            _this._c[id].show(_this.$view);
             break;
           case 'layout':
             _this._c['layout'] = FlipperView.create(component_, _this, true);
@@ -32,8 +37,8 @@ var DesktopView = View.extend({
             _this._c['device-list'].show(_this.$view);
             break;
           case 'dock':
-            _this._c[component_.getID()] = DockView.create(component_, _this);
-            _this._c[component_.getID()].show(_this.$view);
+            _this._c[id] = DockView.create(component_, _this);
+            _this._c[id].show(_this.$view);
             break;
           default:
             console.log('unknown type of component');
@@ -59,7 +64,7 @@ var DesktopView = View.extend({
         ctxMenu = _global.get('ctxMenu');
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
-      {text: 'create Dir', icon: 'icon-folder-close-alt', action: function(e) {
+      {text: 'create Dir', icon: 'icon-folder-1', action: function(e) {
         e.preventDefault();
         for (var i = 0; ; i++) {
           if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) {
@@ -70,7 +75,7 @@ var DesktopView = View.extend({
           }
         }
       }},
-      {text: 'create Text', icon: 'icon-file', action: function(e){
+      {text: 'create Text', icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
         for (var i = 0; ; i++) {
           if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
@@ -90,24 +95,26 @@ var DesktopView = View.extend({
       {divider: true},
       {text: 'terminal', icon: 'icon-terminal', action: function(e) {
         e.preventDefault();
-        _global._exec("gnome-terminal", function(err, stdout, stderr) {
+        // _global._exec("gnome-terminal", function(err, stdout, stderr) {
+        _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
-        });
+        }, "gnome-terminal");
       }},
       {text:'gedit', icon: 'icon-edit', action:function(e){
         e.preventDefault();
-        _global._exec("gedit", function(err, stdout, stderr) {
+        // _global._exec("gedit", function(err, stdout, stderr) {
+        _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
-        });
+        }, "gedit");
       }},
       {divider: true},
-      {text: 'refresh', icon: 'icon-refresh icon-spin', action: function(e) {
+      {text: 'refresh', icon: 'icon-spin3 animate-spin', action: function(e) {
         // TODO: only reload views
         location.reload();
       }},
-      {text: 'refresh (F5)', icon: 'icon-refresh icon-spin', action: function(e) {
+      {text: 'refresh (F5)', icon: 'icon-spin3 animate-spin', action: function(e) {
         location.reload(true);
       }},
       {divider: true},
@@ -244,7 +251,7 @@ var DesktopView = View.extend({
         e.stopPropagation();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
-      {text:'delete' , icon: 'icon-remove-circle', action:function(e){
+      {text:'delete' , icon: 'icon-cancel-circled2', action:function(e){
         e.preventDefault();
         var _path = desktop._widgets[ctxMenu._rightObjId]._path;
         utilIns.entryUtil.removeFile(_path);
@@ -258,7 +265,7 @@ var DesktopView = View.extend({
     ]);
     ctxMenu.addCtxMenu([
       {header: 'file-entry'},
-      {text: 'Open', icon: 'icon-folder-open-alt', action: function(e) {
+      {text: 'Open', icon: 'icon-folder-open-empty', action: function(e) {
         e.preventDefault();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
@@ -275,7 +282,7 @@ var DesktopView = View.extend({
         e.preventDefault();
         utilIns.trashUtil.moveToTrash(ctxMenu._rightObjId);
       }},
-      {text:'Delete' , icon: 'icon-remove-circle', action:function(e){
+      {text:'Delete' , icon: 'icon-cancel-circled2', action:function(e){
         e.preventDefault();
         var _msg;
         _msg = Messenger().post({
@@ -1131,7 +1138,7 @@ var DEntryView = WidgetView.extend({
 
     var ctxMenu = _global.get('ctxMenu'),
         type = this._model.getType();
-    if(type != 'app' && type != 'theme') type = 'file';
+    if(type != 'app' && type != 'theme' && type != 'inside-app') type = 'file';
     ctxMenu.attachToMenu('#' + this.getID()
         , ctxMenu.getMenuByHeader(type + '-entry')
         , function(id_) {ctxMenu._rightObjId = id_;});
@@ -1196,6 +1203,374 @@ var DEntryView = WidgetView.extend({
   setTabIndex: function(tabIdx_) {
     this._tabIndex = tabIdx_;
     // $('#' + _this._id).attr('tabindex', tabIdx_);
+  }
+});
+
+var LauncherView = View.extend({
+  init: function(model_, parent_) {
+    this.callSuper(model_.getID(), model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>', {
+      'class': 'launcher',
+      'id': this._id,
+      'onselectstart': 'return false'
+    }).append($('<div>', {
+      'class': 'subject'
+    })).append($('<div>', {
+      'class': 'content'
+    }).append($('<div>', {
+      'class': 'c-search'
+    }).append($('<input>', {
+      'class': 'c-s-input'
+    }).attr({
+      'type': 'search',
+      'results': 5,
+      'placeholder': 'Search...'//,
+      // 'autofocus': 'autofocus'
+    }))));
+    this.initAction();
+    this.initCtxMenu();
+    this._c = [];
+    this._views = [];
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this.__handlers = {
+      'add': function(err_, app_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        // new appView and add to launcher
+        var id_ = app_.getID() + '-launcher';
+        _this._views[id_] = LauncherEntryView.create(id_, app_, _this);
+        _this.showInCategory('All', _this._views[id_]);
+      },
+      'remove': function(err_, app_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        var id_ = app_.getID() + '-launcher',
+            cg_ = app_.getCategory();
+        _this._views[id_].hide();
+        _this._views[id_] = null;
+        delete _this._views[id_];
+        _this._c['All'].subject.attr('title', 'All' + '(' + --_this._c['All'].length + ')');
+        if(typeof cg_ != 'undefined' && cg_ != 'All')
+          _this._c[cg_].subject.attr('title', cg_ + '(' + --_this._c[cg_].length + ')');
+      },
+      'show': function(err_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        if(!_this._shown) {
+          _this.toggle();
+        }
+      },
+      'start-up': function(err_, model_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        if(_global._openingWindows.has(model_.getID() + '-window')) return ;
+        Window.create(model_.getID() + '-window', model_.getName(), {
+          left: 400,
+          top: 300,
+          height: 400,
+          width: 700,
+          fadeSpeed: 500,
+          animate: false,
+          contentDiv: false,
+          iframe: true
+        }, function() {
+          this.getID = function() {return this._id;};
+          _global._openingWindows.add(this);
+          this.appendHtml(model_.getPath() + '/index.html');
+          var _this = this;
+          this.bindCloseButton(function() {
+            _global._openingWindows.remove(_this);
+          });
+        })/* .appendHtml(model_.getPath() + '/index.html') */; 
+      },
+      'add-login-app': function(err_, model_) {
+        var login = LoginView.create(model_.getID(), model_);
+      }
+    };
+    for(var key in _this.__handlers) {
+      _this._model.on(key, _this.__handlers[key]);
+    }
+  },
+
+  initAction: function() {
+    var _this = this;
+    _this.$view.on('mousemove', function(e) {
+      e.stopPropagation();
+    }).on('mousedown', function(e) {
+      e.stopPropagation();
+    }).on('contextmenu', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    });
+    $(document).on('keydown', 'html', function(e) {
+      switch(e.which) {
+        case 27: // esc
+          if(_this._shown)
+            _this.toggle();
+          break;
+        case 81: // q/Q
+          if(!e.altKey) return;
+          _this.toggle();
+          break;
+        default:
+          break;
+      }
+    });
+  },
+
+  initCtxMenu: function() {
+    var _this = this,
+        ctxMenu = _global.get('ctxMenu');
+    ctxMenu.addCtxMenu([
+      {header: 'launcher'},
+      {text: 'add to Desktop', action: function(e) {
+        e.preventDefault();
+        _this._views[ctxMenu._rightObjId]._controller.onAddToDesktop();
+      }},
+      {text: 'add to Dock', action: function(e) {
+        e.preventDefault();
+        _this._views[ctxMenu._rightObjId]._controller.onAddToDock();
+      }}
+    ]);
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+    var $content = this.$view.children('.content'),
+        contentW = $content.width(),
+        contentH = $content.height(),
+        pw = contentW * 0.96,
+        ph = contentH * 0.6,
+        mt = ph * 0.01, // the margin of top
+        mr = pw * 0.01, // the margin of right
+        numH = 6; // the number of row
+    this._itemH = (ph - mt * numH) / numH;
+    // the number of column
+    var numW = Math.floor(pw / (this._itemH + mr));
+    this._itemW = pw / numW;
+    this._imgSize = this._itemH * 0.625;
+    this.$view.hide();
+    this._shown = false;
+
+    this.showInCategory('All');
+    for(var cg in _global._App_Cate) {
+      if(cg == 'Audio' || cg == 'Video') continue;
+      this.showInCategory(cg);
+    }
+    this.showInCategory('Other');
+  },
+
+  showInCategory: function(category_, entry_) {
+    var cg = category_, icon;
+    switch(category_) {
+      case 'All':
+        icon = 'icon-th';
+        break;
+      case 'AudioVideo':
+      case 'Audio':
+      case 'Video':
+        cg = 'AudioVideo';
+        icon = 'icon-video';
+        break;
+      case 'Development':
+        icon = 'icon-wrench-1';
+        break;
+      case 'Education':
+        icon = 'icon-college';
+        break;
+      case 'Game':
+        icon = 'icon-reddit';
+        break;
+      case 'Graphics':
+        icon = 'icon-art-gallery';
+        break;
+      case 'Network':
+        icon = 'icon-globe';
+        break;
+      case 'Office':
+        icon = 'icon-news';
+        break;
+      case 'Science':
+        icon = 'icon-lightbulb';
+        break;
+      case 'Settings':
+        icon = 'icon-cogs';
+        break;
+      case 'System':
+        icon = 'icon-wrench-outline';
+        break;
+      case 'Utility':
+        icon = 'icon-calendar';
+        break;
+      default:
+        cg = 'Other';
+        icon = 'icon-briefcase';
+        break;
+    }
+    // add entry_ to category_
+    if(typeof this._c[cg] === 'undefined') {
+      var _this = this;
+      _this._c[cg] = {
+        'subject': $('<div>', {
+                    'class': icon + ' sub-entry',
+                    'title': cg + '(0)'
+                  }).on('click', function(e) {
+                    e.stopPropagation();
+                    _this._c[_this._cur].content.hide();
+                    _this._c[_this._cur].subject.removeClass('open');
+
+                    _this._c[cg].content.show();
+                    _this._c[cg].subject.addClass('open');
+                    _this._cur = cg;
+                    _this.$view.find('.c-s-input')[0].focus();
+                  }),
+        'content': $('<div>', {
+                    'class': 'c-items'
+                  }),
+        'length': 0
+      };
+      this.$view.children('.subject').append(this._c[cg].subject);
+      this.$view.children('.content').append(this._c[cg].content);
+    }
+    if(typeof entry_ !== 'undefined') {
+      entry_.show(this._c[cg].content);
+      this._c[cg].subject.attr('title', cg + '(' + ++this._c[cg].length + ')');
+    }
+  },
+
+  toggle: function() {
+    if(this._shown) {
+      this.$view.hide().children('canvas').remove();
+      this._c[this._cur].content.hide();
+      this._c[this._cur].subject.removeClass('open');
+      this._shown = false;
+    } else {
+      var _this = this;
+      html2canvas($('body'), {
+        onrendered: function(canvas) {
+          _this.$view.append(canvas).children('canvas').attr({
+            'class': 'blurcanvas',
+            'id': 'blurcanvas'
+          });
+          stackBlurCanvasRGB('blurcanvas', 0, 0, canvas.width, canvas.height, 20);
+          _this.$view.show();
+          _this._shown = true;
+          _this._c['All'].content.show(); 
+          _this._c['All'].subject.addClass('open'); 
+          _this._cur = 'All';
+          _this.$view.find('.c-s-input')[0].focus();
+        }
+      });
+    }
+  },
+  
+  getContents: function() {return this._c;}
+});
+
+var LauncherEntryView = View.extend({
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>', {
+      'class': 'c-item',
+      'id': this.getID()
+    }).css({
+      'width': parent_._itemW,
+      'height': parent_._itemH
+    }).append($('<img>', {
+      'src': this._model.getImgPath()
+    }).css({
+      'width': parent_._imgSize,
+      'height': parent_._imgSize
+    })).append($('<p>').text(this._model.getName()));
+    this.$view2 = null;
+    this.initAction(this.$view);
+    this._contents = parent_.getContents();
+    this._controller = LauncherEntryController.create(this);
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this._model.on('category', function(err_, cg_) {
+      if(_this.$view2 == null) {
+        _this.$view2 = _this.$view.clone();
+        _this.initAction(_this.$view2);
+      }
+      var cg = _global._App_Cate[cg_];
+      _this._contents[cg].subject.attr('title', cg + '(' + ++_this._contents[cg].length + ')');
+      _this._contents[cg].content.append(_this.$view2);
+    }).on('imgPath', function(err_, imgPath_) {
+      _this.$view.children('img').attr('src', imgPath_);
+      if(_this.$view2 != null) {
+        _this.$view2.children('img').attr('src', imgPath_);
+      }
+    }).on('name', function(err_, name_) {
+      _this.$view.children('p').text(name_);
+      if(_this.$view2 != null) {
+        _this.$view2.children('p').text(name_);
+      }
+    }).on('noDisplay', function(err_, noDisplay_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      if(noDisplay_) {
+        _this.hide();
+        _this._parent._c['All'].subject.attr('title'
+          , 'All' + '(' + --_this._parent._c['All'].length + ')');
+        _this._parent._views[_this._id] = null;
+        delete _this._parent._views[_this._id];
+      }
+    });
+  },
+
+  initAction: function($view) {
+    var _this = this,
+        ctxMenu = _global.get('ctxMenu'),
+        $menu_ = ctxMenu.getMenuByHeader('launcher');
+    $view.on('click', function(e) {
+      _this._controller.onClick();
+      _this._parent.toggle();
+    }).on('contextmenu', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ctxMenu._rightObjId = _this.getID();
+      var w = $menu_.width(),
+          h = $menu_.height(),
+          left_ = (document.body.clientWidth < e.clientX + w) 
+              ? (e.clientX - w) : e.clientX,
+          top_ = ($(document).height()< e.clientY + h + 25) 
+              ? (e.clientY - h - 10)  : e.clientY;
+      ctxMenu.show($menu_, left_, top_);
+    });
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+   
+    var cg = this._model.getCategory();
+    if(typeof cg !== 'undefined') {
+      this.$view2 = this.$view.clone();
+      this.initAction(this.$view2);
+      this._contents[_global._App_Cate[cg]].content.append(this.$view2);
+    }
+  },
+
+  hide: function() {
+    this.$view.remove();
+    if(this.$view2 != null) this.$view2.remove();
   }
 });
 
@@ -1466,6 +1841,14 @@ var DockView = View.extend({
     $parent.append(this.$view);
   },
 
+  toggle: function(show_) {
+    if(!show_) {
+      this.$view.hide();
+    } else {
+      this.$view.show();
+    }
+  },
+
   addReflect: function() {
     this.$view.find('img').each(function() {
       Reflection.create(this, {hasParentDiv: true}).add();
@@ -1654,6 +2037,7 @@ var DockEntryView = View.extend({
     if(n_idx == -1) {
       $parent.append(this.$view);
       this._model.setIdx(divList.length);
+      return ;
     }
     for(var i = 0; i < divList.length; ++i) {
       var model = this._parent._c[divList[i].id]._model,
@@ -2268,7 +2652,7 @@ var FlipperView = View.extend({
       'class': 'view-switch-bar',
       'onselectstart': 'return false'
     }).append($('<div>', {
-      'class': 'icon-plus-sign'
+      'class': 'icon-plus-squared'
     }).css({
       'display': 'inline-block',
       'cursor': 'pointer'
@@ -2386,7 +2770,7 @@ var FlipperView = View.extend({
     var _this = this;
     $selector.on('drag', function(e) {
       e.stopPropagation();
-    }).find('.icon-plus-sign').on('mousedown', function(e) {
+    }).find('.icon-plus-squared').on('mousedown', function(e) {
       e.stopPropagation();
       e.preventDefault();
       _this._controller.onAdd();
@@ -2519,7 +2903,7 @@ var FlipperView = View.extend({
           }
         });
     _this.$view.find('.showing').removeClass('showing');
-    _this.$view.find('.icon-plus-sign').before($switcher);
+    _this.$view.find('.icon-plus-squared').before($switcher);
     _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
   },
 
@@ -2603,3 +2987,279 @@ var EditBox = Class.extend({
     $('#disp_text_' + toAccount_).val($('#disp_text_' + toAccount_).val() + toAccount_ + '   ' + sendTime + '  :\n' + msg_ + '\n\n');
   }
 });
+
+var LoginView = View.extend({
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    this.registObservers();
+    // view for login
+    this.$loginView = $('<div>', {
+      'class': 'login'
+    }).append($('<div>', {
+      'class': 'login-content'
+    }).append($('<div>', {
+      'class': 'content-row'
+    }).html(
+      '账户： ' +
+      '<input type="text" name="account">'
+    )).append($('<div>', {
+      'class': 'content-row'
+    }).html(
+      '密码： ' +
+      '<input type="password" name="password">'
+    ))).append($('<div>', {
+      'class': 'login-btn-bar'
+    }).html(
+      '<button class="btn active" id="btn-regist">注册>>></button>' +
+      '<button class="btn disable" id="btn-login">登陆</button>' +
+      '<button class="btn active hidden" id="btn-cancel">取消</button>'
+    )).append($('<div>', {
+      'class': 'login-waiting hidden'
+    }).html(
+      '<div class="loading icon-spin5 animate-spin"></div>' +
+      '<p>正在登陆，请稍后...</p>'
+    )).append($('<div>', {
+      'class': 'login-regist hidden'
+    }).html(
+      '<div class="content-row">' +
+      '<div>账户</div>：<input type="text" name="r-account">' +
+      '</div>' +
+      '<div class="content-row">' +
+      '<div>密码</div>：<input type="password" name="r-password">' +
+      '</div>' +
+      '<div class="content-row">' +
+      '<div>确认密码</div>：<input type="password" name="r-password-c">' +
+      '</div>' +
+      '<div class="content-row" id="msg"></div>' +
+      '<div class="content-row">' +
+      '<button class="btn disable" id="btn-commit">提交</button>' +
+      '<button class="btn active" id="btn-r-cancel">关闭</button>' +
+      '</div>'
+    ));
+    // view for logout
+    this.$logoffView = $('<div>', {
+      'class': 'logout'
+    }).append($('<div>', {
+      'class': 'logout-content'
+    }).html(
+      '确定登出此账户？'
+    )).append($('<div>', {
+      'class': 'logout-btn-bar'
+    }).html(
+      '<button class="btn active" id="btn-sure">确认</button>' +
+      '<button class="btn active" id="btn-cancel">取消</button>'
+    ));
+    this._controller = LoginController.create(this);
+    this._r_shown = false;
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this.__handlers = {
+      'login': function(err_, state_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.show(state_);
+      },
+      'login-state': function(err_, state_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        // _this.toggleLogin(false);
+        $('#' + _this._id + '-window').remove();
+        // _this._win.closeWindow(_this._win);
+      },
+      'regist': function(err_, success_, reason_) {
+        _this.$loginView.find('span').remove();
+        if(success_) {
+          _this.$loginView.find('#msg').html('注册成功');
+        } else {
+          _this.$loginView.find('#msg').html('注册失败：' + reason_);
+        }
+      }
+    };
+    for(var key in _this.__handlers) {
+      _this._model.on(key, _this.__handlers[key]);
+    }
+  },
+
+  initAction: function(which_) {
+    if(which_ == 500) {
+      var _this = this,
+          $account = _this.$loginView.find('input[name="account"]'),
+          $password = _this.$loginView.find('input[name="password"]'),
+          $login = _this.$loginView.find('#btn-login'),
+          onInput = function(e) {
+            if($account.val() != '' && $password.val() != '') {
+              $login.removeClass('disable').addClass('active');
+            } else {
+              $login.removeClass('active').addClass('disable');
+            }
+          };
+      $account.on('input', onInput);
+      $password.on('input', onInput);
+      _this.toggleLogin(false);
+      /* $('#' + this._id + '-window').off.on('keydown', function(e) { */
+        // e.stopPropagation();
+      /* }); */
+    } else {
+      var _this = this,
+          $logout = _this.$logoffView.find('#btn-sure'),
+          $cancel2 = _this.$logoffView.find('#btn-cancel');
+      $logout.one('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        _this._controller.onLogout();
+      });
+      $cancel2.one('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // _this._win.closeWindow(_this._win);
+        $('#' + _this._id + '-window').remove();
+      });
+    }
+  },
+
+  show: function(toLogin_) {
+    if($('#' + this._id + '-window').length != 0) return ;
+    var $view, title, height, width;
+    if(toLogin_) {
+      $view = this.$loginView;
+      title = '登陆';
+      height = 300;
+      width = 500;
+    } else {
+      $view = this.$logoffView;
+      title = '登出';
+      height = 150;
+      width = 250;
+    }
+    Window.create(this._id + '-window', title, {
+      left: 400,
+      top: 300,
+      height: height,
+      width: width,
+      max: false,
+      fadeSpeed: 500,
+      animate: false,
+      hide: false
+    }).append($view);
+    $view.parent().css('position', 'initial');
+    this.initAction(width);
+  },
+
+  toggleLogin: function(loading_) {
+    var view = this,
+        $content = view.$loginView.find('.login-content'),
+        $waiting = view.$loginView.find('.login-waiting'),
+        $account = view.$loginView.find('input[name="account"]'),
+        $password = view.$loginView.find('input[name="password"]'),
+        $regist = view.$loginView.find('#btn-regist'),
+        $login = view.$loginView.find('#btn-login'),
+        $cancel = view.$loginView.find('#btn-cancel');
+    if(loading_) {
+      $content.fadeOut(function() {
+        $waiting.fadeIn();
+      });
+      $regist.hide();
+      $login.hide(function() {
+        $cancel.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view._controller.onCancelLogin();
+        });
+      });
+    } else {
+      $waiting.fadeOut(function() {
+        $password.val('');
+        $login.removeClass('active').addClass('disable');
+        $content.fadeIn();
+      });
+      $cancel.hide(function() {
+        $regist.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view.toggleRegist(true);
+        });
+        $login.show().one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if(view._r_shown) view.toggleRegist(false);
+          view._controller.onLogin($account.val(), $password.val());
+        });
+      });
+    }
+  },
+
+  toggleRegist: function(show_) {
+    var view = this,
+        $regist = view.$loginView.find('#btn-regist'),
+        $registView = view.$loginView.find('.login-regist'),
+        $commit = view.$loginView.find('#btn-commit'),
+        $cancel = view.$loginView.find('#btn-r-cancel'),
+        $account = view.$loginView.find('input[name="r-account"]'),
+        $password = view.$loginView.find('input[name="r-password"]'),
+        $passwordC = view.$loginView.find('input[name="r-password-c"]'),
+        $msg = view.$loginView.find('#msg');
+    if(show_) {
+      $('#' + view._id + '-window').find('.window-content').animate({
+        height: '+=250px'
+      }, function() {
+        view._r_shown = true;
+        $registView.fadeIn();
+        var onInput = function() {
+          if($account.val() != '' && $password.val() != '' && $passwordC.val() != '') {
+            $commit.removeClass('disable').addClass('active');
+          } else {
+            $commit.removeClass('active').addClass('disable');
+          }
+        }
+        $account.on('input', onInput);
+        $password.on('input', onInput);
+        $passwordC.on('input', onInput);
+        $commit.off().on('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var p1 = $password.val(),
+              p2 = $passwordC.val();
+          if(p1 == p2) {
+            $commit.removeClass('active').addClass('disable').append($('<span>', {
+              'class': 'icon-spin5 animate-spin'
+            }));
+            $password.val('');
+            $passwordC.val('');
+            view._controller.onRegist($account.val(), p1);
+          } else {
+            // TODO: show warnning
+            $msg.html('密码确认有误');
+          }
+        });
+        $cancel.off().on('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          $account.val('');
+          $password.val('');
+          $passwordC.val('');
+          $msg.html('');
+          view.toggleRegist(false);
+        })
+      });
+    } else {
+      $registView.hide(function() {
+        view._r_shown = false;
+        $('#' + view._id + '-window').find('.window-content').animate({
+          height: '-=250px'
+        });
+        $regist.one('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          view.toggleRegist(true);
+        });
+      });
+    }
+  }
+});
+

@@ -42,6 +42,7 @@ categories: ui
   contentDiv: true   //包含放置内容的div
   iframe: true       //iframe内容框，如果contentDiv为false时生效。
   maxWindow: false   //初始最大化窗口
+  fullWindow: false   //双击内容全屏显示。
 </code>
 </pre>
 <p><br /></p>
@@ -70,6 +71,15 @@ categories: ui
 6、closeWindow(windowobj_)    //关闭windowobj_窗口对象， windowobj_ = Window.create(options);
 7、bindButton($target_, eventAction_, argument)    //绑定鼠标点击$target的事件eventAction_,argument是传给eventAction的参数。
 8、appendHtml(src)   //向iframe中加入网页，src为html文件的地址。必须加入的是iframe内容页。
+9、bindCloseButton(eventAction_, argument) //绑定鼠标点击关闭的事件eventAction_,argument是传给eventAction的参数。
+10、bindMinButton(eventAction_, argument) //绑定鼠标点击最小化的事件eventAction_,argument是传给eventAction的参数。
+11、bindMaxButton(eventAction_, argument) //绑定鼠标点击最大化的事件eventAction_,argument是传给eventAction的参数。
+12、bindHideButton(eventAction_, argument) //绑定鼠标点击隐藏的事件eventAction_,argument是传给eventAction的参数。
+13、getID()  //获取窗口ID
+14、onfocus(callback_)  //窗口被点击获取聚焦时执行回调函数。
+15、focus()  //窗口获得聚焦时（被点击时默认执行的方法）设置z-index,
+16、blur()   //窗口失去聚焦时调用的方法，用于提供外部调用。
+17、fullScreen()   //窗口提供的伪全屏方法，用于nw下提供全屏方法。
 </code>
 </pre>
 
@@ -95,11 +105,15 @@ categories: ui
 <p>窗口标题：<input type='text' id='win-Title' value="Test Window"></p>
 
 <button class='btn active' onclick="newWin()">New Window</button>
+<button class='btn active' onclick="fullScreen()">fullScreen</button>
+<button class='btn active' onclick="bindEvent()">bindEvent</button>
 <button class='btn active' onclick="appendContent()">Append </button>
 <button class='btn active' onclick="closeWin()">Close Window</button>
 <button class='btn active' onclick="hideWin()">hide Window</button>
 <button class='btn active' onclick="showWin()">show Window</button>
-<button class='btn active' onclick="appendHtml()">append Html</button>
+<button class='btn active' onclick="appendHtml('/../app/flash-app/index.html')">append shark</button>
+<button class='btn success-btn' onclick="appendHtml('/../app/video/index.html')">append video</button>
+<button class='btn active' onclick="addVideo()">add video</button>
 <script type="text/javascript">
   var myNewWin;
   var newWin = function(){
@@ -125,6 +139,18 @@ categories: ui
     myNewWin = Window.create('newWin', $('#win-Title')[0].value, _options);
   }
 
+  var fullScreen = function(){
+    myNewWin.fullScreen();
+  }
+
+var bindEvent = function(){
+  myNewWin.bindCloseButton(function(){alert('close window')});
+  myNewWin.bindMinButton(function(){alert('close window')});
+  myNewWin.bindMaxButton(function(){alert('close window')});
+  myNewWin.bindHideButton(function(){alert('close window')});
+  myNewWin.onfocus(function(){alert('focus window')});
+}
+
   var appendContent = function(){
     myNewWin.append("<img src='/assets/img/cat.jpg' width='190px'>");
   }
@@ -137,11 +163,17 @@ categories: ui
     myNewWin.hide();
 }
 
-  var appendHtml = function(){
-    myNewWin.appendHtml('/../saved_resource.html');
-  }
+var appendHtml = function(src_){
+   myNewWin.appendHtml(src_);
+ }
 
-  var showWin = function(){
-    myNewWin.show();
+var showWin = function(){
+  myNewWin.show();
+}
+
+var addVideo= function(){
+  var _video = Video.create();
+  _video.setSrc ('http://www.projekktor.com/wp-content/manual/intro.mp4'); 
+  myNewWin.append(_video._section);
 }
 </script>

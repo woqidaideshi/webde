@@ -159,7 +159,10 @@ var Watcher = Event.extend({
 
   //close watch()
   close: function() {
-    this._watcher.close();
+    if(this._watcher) {
+      this._watcher.close();
+      this._watcher = null;
+    }
     clearInterval(this._timer);
   }
 });
@@ -285,6 +288,25 @@ var Global = Class.extend({
     this.$home = undefined;
     this.$xdg_data_dirs = undefined;
     this.$xdg_data_home = undefined;
+    this._App_Cate = {
+      'AudioVideo': 'AudioVideo',
+      'Audio': 'AudioVideo',
+      'Video': 'AudioVideo',
+      'Development': 'Development',
+      'Education': 'Education',
+      'Game': 'Game',
+      'Graphics': 'Graphics',
+      'Network': 'Network',
+      'Office': 'Office',
+      'Science': 'Science',
+      'Settings': 'Settings',
+      'System': 'System',
+      'Utility': 'Utility',
+      'Other': 'Other'
+    };
+    this._logining = false;
+    // manage opened inside-app windows
+    this._openingWindows = WindowManager.create();
     this.objects = [];
     
     var _this = this;
@@ -294,23 +316,26 @@ var Global = Class.extend({
           //TODO: change the nodejs'API to ourselves
           _this._fs = require('fs');
           _this._exec = require('child_process').exec;
-          WDC.requireAPI(['device','imView'], function(dev,imV) {
+          WDC.requireAPI(['device', 'imView', 'data'], function(dev, imV, data) {
             _this._device = dev;
             _this._imV = imV;
+            _this._dataOP = data;
             cb_(null);
           });
         }
       },
       {
         fn: function(pera_, cb_) {
-          _this._exec('echo $HOME', function(err, stdout, stderr) {
+          // _this._exec('echo $HOME', function(err, stdout, stderr) {
+          _this._dataOP.shellExec(function(err, stdout, stderr) {
             if(err) {
               console.log(err);
               callback_(err);
             } else {
               _this.$home = stdout.substr(0, stdout.length - 1);
               _this.$xdg_data_home = _this.$home + '/.local/share/webde';
-              _this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
+              // _this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
+              _this._dataOP.shellExec(function(err, stdout, stderr) {
                 if(err) {
                   console.log(err);
                   callback_(err);
@@ -323,9 +348,9 @@ var Global = Class.extend({
       
                   cb_(null);
                 }
-              });
+              }, 'echo $XDG_DATA_DIRS');
             }
-          });
+          }, 'echo $HOME');
         }
       }
     ], function(err_, rets_) {
@@ -405,6 +430,7 @@ var EntryUtil = Event.extend({
         desktop = _global.get('desktop'),
         _newEntry = [];
     _global._fs.readdir(dir_, function(err, files) {
+      if(err || files.length == 0) return ;
       _global.Series.series1(files, function(file_, cb_) {
         _global._fs.stat(dir_ + '/' + file_, function(err, stats) {
           if(!err) {
@@ -429,7 +455,7 @@ var EntryUtil = Event.extend({
                     desktop.getCOMById('launcher').set(_model);
                   }
                   break;
-                case "dir":
+                case "inside-app":
                   // _Entry = DirEntry;
                   break;
                 default:
@@ -510,7 +536,8 @@ var EntryUtil = Event.extend({
             + ' -regextype \"posix-egrep\" -regex \".*'
              + ((index_ < _this._iconSearchPath.length - 1)
             ? size_ : '') + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
-          _global._exec(tmp, function(err, stdout, stderr) {
+          // _global._exec(tmp, function(err, stdout, stderr) {
+          _global._dataOP.shellExec(function(err, stdout, stderr) {
             if(stdout == '') {
               _global._fs.readFile(_path + '/index.theme'
                 , 'utf-8', function(err, data) {
@@ -545,7 +572,7 @@ var EntryUtil = Event.extend({
             } else {
               callback_.call(this, null, stdout.split('\n'));
             }
-          });
+          }, tmp);
         } else {
           findIcon(index_ + 1);
         } 
@@ -598,23 +625,23 @@ var EntryUtil = Event.extend({
     if(typeof callback_ !== 'function')
       throw 'Bad type of callback!!';
     var _this = this;
-    _global._exec('xdg-mime query filetype ' + path_.replace(/ /g, '\\ ')
-        , function(err, stdout, stderr) {
-          if(err) {
-            console.log(err);
-            callback_.call(this, 'Unknown mime-type!');
-          } else {
-            callback_.call(this, null, stdout.replace('\n', ''));
-          }
-        });
+    // _global._exec('xdg-mime query filetype ' + path_.replace(/ /g, '\\ ')
+    _global._dataOP.shellExec(function(err, stdout, stderr) {
+      if(err) {
+        console.log(err);
+        callback_.call(this, 'Unknown mime-type!');
+      } else {
+        callback_.call(this, null, stdout.replace('\n', ''));
+      }
+    }, 'xdg-mime query filetype ' + path_.replace(/ /g, '\\ '));
   },
 
   getDefaultApp: function(mimeType_, callback_) {
     if(typeof callback_ !== 'function')
       throw 'Bad type for callback!!';
     var _this = this;
-    _global._exec('xdg-mime query default ' + mimeType_
-      , function(err, stdout, stderr) {
+    // _global._exec('xdg-mime query default ' + mimeType_
+    _global._dataOP.shellExec(function(err, stdout, stderr) {
       if(err) {
         console.log(err);
       } else {
@@ -625,7 +652,7 @@ var EntryUtil = Event.extend({
           callback_.call(this, err, filePath_);
         });
       }
-    });
+    }, 'xdg-mime query default ' + mimeType_);
   },
 
   findDesktopFile: function(fileName_, callback_) {
@@ -639,15 +666,15 @@ var EntryUtil = Event.extend({
         callback_.call(this, 'Not found');
         return ;
       }
-      _global._exec('find ' + _this.$xdg_data_dirs[index_] + ' -name ' + fileName_
-          , function(err, stdout, stderr) {
-            if(stdout == '') {//err || 
-              tryInThisPath(index_ + 1);
-            } else {
-              _this.emit('findDFile', null, stdout.replace('\n', ''));
-              callback_.call(this, null, stdout.replace('\n', ''));
-            }
-          });
+      // _global._exec('find ' + _this.$xdg_data_dirs[index_] + ' -name ' + fileName_
+      _global._dataOP.shellExec(function(err, stdout, stderr) {
+        if(stdout == '') {//err || 
+          tryInThisPath(index_ + 1);
+        } else {
+          _this.emit('findDFile', null, stdout.replace('\n', ''));
+          callback_.call(this, null, stdout.replace('\n', ''));
+        }
+      }, 'find ' + _this.$xdg_data_dirs[index_] + ' -name ' + fileName_);
     };
     tryInThisPath(0);
   },
@@ -659,7 +686,8 @@ var EntryUtil = Event.extend({
     var _this = this;
     if(typeof callback_ !== 'function')
       throw 'Bad type for callback';
-    _global._exec('stat ' + filename_, function(err, stdout, stderr){
+    // _global._exec('stat ' + filename_, function(err, stdout, stderr){
+    _global._dataOP.shellExec(function(err, stdout, stderr){
         if(stdout == '') {//err 
           throw 'Bad filename_';
         } else {
@@ -679,7 +707,7 @@ var EntryUtil = Event.extend({
 
           callback_.call(this, null ,attr);
         }
-    });
+    }, 'stat ' + filename_);
   },
 
   // copy file ;
@@ -698,9 +726,10 @@ var EntryUtil = Event.extend({
   //rm file 
   //path_: file Path_
   removeFile:function(path_){
-    _global._exec('rm '+path_, function(err, out ,stderr){
+    // _global._exec(function(err, out ,stderr) {
+    _global._dataOP.shellExec(function(err, out ,stderr) {
       if(err) throw 'util.js-rmFile: bad path';
-    });
+    }, 'rm '+path_);
   },
 	/**
 	 * [getRelevantAppName : get relevant app's name ]
@@ -735,13 +764,14 @@ var EntryUtil = Event.extend({
  * @return {callbask_}
  */
 	isTextFile:function(path_, callback_){
-		this._exec('file '+ path_ + " | grep -E 'text|empty'", function(err_, out_ ,stderr_) {
+		// this._exec('file '+ path_ + " | grep -E 'text|empty'", function(err_, out_ ,stderr_) {
+		_global._dataOP.shellExec(function(err_, out_ ,stderr_) {
 			if (out_ !== '' ) {
 				return callback_.call(this, null , true);
 			}else {
 				return callback_.call(this,null, false);
 			}
-		});
+		}, 'file '+ path_ + " | grep -E 'text|empty'");
 	},
 /**
  * [getItemFromApp : read .desktop then  get name and exec to build Item]
@@ -776,12 +806,16 @@ var EntryUtil = Event.extend({
 				return callback_.call(this, 'Unknown name or cmd!');
 			};
 						
-			var _item = {text:_name,action:function(e){
-				e.preventDefault();
-				_global._exec(_execCmd ,function(err){
-				console.log(err);
-				});
-			}};
+			var _item = {
+        text: _name,
+        action: function(e) {
+          e.preventDefault();
+          // _global._exec(_execCmd ,function(err){
+          _global._dataOP.shellExec(function(err) {
+            console.log(err);
+          }, _execCmd);
+			  }
+      };
 			return callback_.call(this, null, _item);
 		});
 	}
@@ -910,3 +944,36 @@ var Cache = Class.extend({
   }
 });
 
+var WindowManager = Model.extend({
+  init: function() {
+    this.callSuper('window-manager');
+    this._s = [];
+  },
+
+  add: function(window_) {
+    if(this.callSuper(window_)) {
+      this._s.push(window_);
+    }
+  },
+
+  remove: function(window_) {
+    if(this.callSuper(window_)) {
+      for(var i = 0; i < this._s.length; ++i) {
+        if(this._s[i] == window_) {
+          this._s.splice(i, 1);
+        }
+      }
+    }
+  },
+
+  focusOnAWindow: function(wID_) {
+    for(var key in this._c) {
+      if(wID == key) {
+        this._c[key].focus();
+        // TODO: change the sequence of windows in _s
+      } else {
+        this._c[key].blur();
+      }
+    }
+  }
+});

@@ -118,6 +118,26 @@ var EntryController = WidgetController.extend({
   }
 });
 
+var LauncherEntryController = EntryController.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onClick: function() {
+    this.onDblclick();
+  },
+
+  onAddToDesktop: function() {
+    _global.get('theCP').perform(NoUndoCommand.create(this._model
+        , 'exec', this._model.linkToDesktop));
+  },
+
+  onAddToDock: function() {
+    _global.get('theCP').perform(NoUndoCommand.create(this._model
+        , 'exec', this._model.linkToDock));
+  }
+});
+
 var DockEntryController = EntryController.extend({
   init: function(view_) {
     this.callSuper(view_);
@@ -128,3 +148,33 @@ var DockEntryController = EntryController.extend({
   }
 });
 
+var LoginController = Controller.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onLogin: function(account_, password_) {
+    // TODO: show waiting page
+    this._view.toggleLogin(true);
+    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.doLogin 
+          , account_, password_);
+    _global.get('theCP').perform(cmd); 
+  },
+
+  onCancelLogin: function() {
+    this._view.toggleLogin(false);
+    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.cancelLogin);
+    _global.get('theCP').perform(cmd); 
+  },
+
+  onRegist: function(account_, password_) {
+    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.doRegist
+        , account_, password_);
+    _global.get('theCP').perform(cmd); 
+  },
+
+  onLogout: function() {
+    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.doLogout);
+    _global.get('theCP').perform(cmd); 
+  }
+});

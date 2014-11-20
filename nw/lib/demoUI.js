@@ -57,6 +57,506 @@ Class.extend = function extend(props) {
 
   return SubClass;
 }
+jQuery.autocomplete = function(input, options) {
+  // Create a link to self
+  var me = this;
+
+  // Create jQuery object for input element
+  var $input = $(input).attr("autocomplete", "off");
+
+  // Apply inputClass if necessary
+  if (options.inputClass) $input.addClass(options.inputClass);
+
+  // Create results
+  var results = document.createElement("div");
+  // Create jQuery object for results
+  var $results = $(results);
+  $results.hide().addClass(options.resultsClass).css("position", "absolute");
+  if( options.width > 0 ) $results.css("width", options.width);
+
+  // Add to body element
+  $("body").append(results);
+
+  input.autocompleter = me;
+
+  var timeout = null;
+  var prev = "";
+  var active = -1;
+  var cache = {};
+  var keyb = false;
+  var hasFocus = false;
+  var lastKeyPressCode = null;
+
+  // flush cache
+  function flushCache(){
+    cache = {};
+    cache.data = {};
+    cache.length = 0;
+  };
+
+  // flush cache
+  flushCache();
+
+  // if there is a data array supplied
+  if( options.data != null ){
+    var sFirstChar = "", stMatchSets = {}, row = [];
+
+    // no url was specified, we need to adjust the cache length to make sure it fits the local data store
+    if( typeof options.url != "string" ) options.cacheLength = 1;
+
+    // loop through the array and create a lookup structure
+    for( var i=0; i < options.data.length; i++ ){
+      // if row is a string, make an array otherwise just reference the array
+      row = ((typeof options.data[i] == "string") ? [options.data[i]] : options.data[i]);
+
+      // if the length is zero, don't add to list
+      if( row[0].length > 0 ){
+        // get the first character
+        sFirstChar = row[0].substring(0, 1).toLowerCase();
+        // if no lookup array for this character exists, look it up now
+        if( !stMatchSets[sFirstChar] ) stMatchSets[sFirstChar] = [];
+        // if the match is a string
+        stMatchSets[sFirstChar].push(row);
+      }
+    }
+
+    // add the data items to the cache
+    for( var k in stMatchSets ){
+      // increase the cache size
+      options.cacheLength++;
+      // add to the cache
+      addToCache(k, stMatchSets[k]);
+    }
+  }
+
+  $input
+  .keydown(function(e) {
+    // track last key pressed
+    lastKeyPressCode = e.keyCode;
+    switch(e.keyCode) {
+      case 38: // up
+        e.preventDefault();
+        moveSelect(-1);
+        break;
+      case 40: // down
+        e.preventDefault();
+        moveSelect(1);
+        break;
+      case 9:  // tab
+      case 13: // return
+        if( selectCurrent() ){
+          // make sure to blur off the current field
+          $input.get(0).blur();
+          e.preventDefault();
+        }
+        break;
+      default:
+        active = -1;
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(function(){onChange();}, options.delay);
+        break;
+    }
+  })
+  .focus(function(){
+    // track whether the field has focus, we shouldn't process any results if the field no longer has focus
+    hasFocus = true;
+  })
+  .blur(function() {
+    // track whether the field has focus
+    hasFocus = false;
+    hideResults();
+  });
+
+  hideResultsNow();
+
+  function onChange() {
+    // ignore if the following keys are pressed: [del] [shift] [capslock]
+    if( lastKeyPressCode == 46 || (lastKeyPressCode > 8 && lastKeyPressCode < 32) ) return $results.hide();
+    var v = $input.val();
+    if (v == prev) return;
+    prev = v;
+    if (v.length >= options.minChars) {
+      $input.addClass(options.loadingClass);
+      requestData(v);
+    } else {
+      $input.removeClass(options.loadingClass);
+      $results.hide();
+    }
+  };
+
+  function moveSelect(step) {
+
+    var lis = $("li", results);
+    if (!lis) return;
+
+    active += step;
+
+    if (active < 0) {
+      active = 0;
+    } else if (active >= lis.size()) {
+      active = lis.size() - 1;
+    }
+
+    lis.removeClass("ac_over");
+
+    $(lis[active]).addClass("ac_over");
+  };
+
+  function selectCurrent() {
+    var li = $("li.ac_over", results)[0];
+    if (!li) {
+      var $li = $("li", results);
+      if (options.selectOnly) {
+        if ($li.length == 1) li = $li[0];
+      } else if (options.selectFirst) {
+        li = $li[0];
+      }
+    }
+    if (li) {
+      selectItem(li);
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  function selectItem(li) {
+    if (!li) {
+      li = document.createElement("li");
+      li.extra = [];
+      li.selectValue = "";
+    }
+    var v = $.trim(li.selectValue ? li.selectValue : li.innerHTML);
+    input.lastSelected = v;
+    prev = v;
+    $results.html("");
+    $input.val(v);
+    hideResultsNow();
+    if (options.onItemSelect) setTimeout(function() { options.onItemSelect(li) }, 1);
+  };
+
+  // selects a portion of the input string
+  function createSelection(start, end){
+    // get a reference to the input element
+    var field = $input.get(0);
+    if( field.createTextRange ){
+      var selRange = field.createTextRange();
+      selRange.collapse(true);
+      selRange.moveStart("character", start);
+      selRange.moveEnd("character", end);
+      selRange.select();
+    } else if( field.setSelectionRange ){
+      field.setSelectionRange(start, end);
+    } else {
+      if( field.selectionStart ){
+        field.selectionStart = start;
+        field.selectionEnd = end;
+      }
+    }
+    field.focus();
+  };
+
+  // fills in the input box w/the first match (assumed to be the best match)
+  function autoFill(sValue){
+    // if the last user key pressed was backspace, don't autofill
+    if( lastKeyPressCode != 8 ){
+      // fill in the value (keep the case the user has typed)
+      $input.val($input.val() + sValue.substring(prev.length));
+      // select the portion of the value not typed by the user (so the next character will erase)
+      createSelection(prev.length, sValue.length);
+    }
+  };
+
+  function showResults() {
+    // get the position of the input field right now (in case the DOM is shifted)
+    var pos = findPos(input);
+    // either use the specified width, or autocalculate based on form element
+    var iWidth = (options.width > 0) ? options.width : input.offsetWidth;
+    // reposition
+    $results.css({
+      width: parseInt(iWidth) + "px",
+      top: (pos.y + input.offsetHeight) + "px",
+      left: pos.x + "px"
+    });
+    $results.show();
+  };
+
+  function hideResults() {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(hideResultsNow, 200);
+  };
+
+  function hideResultsNow() {
+    if (timeout) clearTimeout(timeout);
+    $input.removeClass(options.loadingClass);
+    if ($results.is(":visible")) {
+      $results.hide();
+    }
+    if (options.mustMatch) {
+      var v = $input.val();
+      if (v != input.lastSelected) {
+        selectItem(null);
+      }
+    }
+  };
+
+  function receiveData(q, data) {
+    if (data) {
+      $input.removeClass(options.loadingClass);
+      results.innerHTML = "";
+
+      // if the field no longer has focus or if there are no matches, do not display the drop down
+      if( !hasFocus || data.length == 0 ) return hideResultsNow();
+
+
+      results.appendChild(dataToDom(data));
+      // autofill in the complete box w/the first match as long as the user hasn't entered in more data
+      if( options.autoFill && ($input.val().toLowerCase() == q.toLowerCase()) ) autoFill(data[0][0]);
+      showResults();
+    } else {
+      hideResultsNow();
+    }
+  };
+
+  function parseData(data) {
+    if (!data) return null;
+    var parsed = [];
+    var rows = data.split(options.lineSeparator);
+    for (var i=0; i < rows.length; i++) {
+      var row = $.trim(rows[i]);
+      if (row) {
+        parsed[parsed.length] = row.split(options.cellSeparator);
+      }
+    }
+    return parsed;
+  };
+
+  function dataToDom(data) {
+    var ul = document.createElement("ul");
+    var num = data.length;
+
+    // limited results to a max number
+    if( (options.maxItemsToShow > 0) && (options.maxItemsToShow < num) ) num = options.maxItemsToShow;
+
+    for (var i=0; i < num; i++) {
+      var row = data[i];
+      if (!row) continue;
+      var li = document.createElement("li");
+      if (options.formatItem) {
+        li.innerHTML = options.formatItem(row, i, num);
+        li.selectValue = row[0];
+      } else {
+        li.innerHTML = row[0];
+        li.selectValue = row[0];
+      }
+      var extra = null;
+      if (row.length > 1) {
+        extra = [];
+        for (var j=1; j < row.length; j++) {
+          extra[extra.length] = row[j];
+        }
+      }
+      li.extra = extra;
+      ul.appendChild(li);
+      $(li).hover(
+        function() { $("li", ul).removeClass("ac_over"); $(this).addClass("ac_over"); active = $("li", ul).indexOf($(this).get(0)); },
+        function() { $(this).removeClass("ac_over"); }
+      ).click(function(e) { e.preventDefault(); e.stopPropagation(); selectItem(this) });
+    }
+    return ul;
+  };
+
+  function requestData(q) {
+    if (!options.matchCase) q = q.toLowerCase();
+    var data = options.cacheLength ? loadFromCache(q) : null;
+    // recieve the cached data
+    if (data) {
+      receiveData(q, data);
+    // if an AJAX url has been supplied, try loading the data now
+    } else if( (typeof options.url == "string") && (options.url.length > 0) ){
+      $.get(makeUrl(q), function(data) {
+        data = parseData(data);
+        addToCache(q, data);
+        receiveData(q, data);
+      });
+    // if there's been no data found, remove the loading class
+    } else {
+      $input.removeClass(options.loadingClass);
+    }
+  };
+
+  function makeUrl(q) {
+    var url = options.url + "?q=" + encodeURI(q);
+    for (var i in options.extraParams) {
+      url += "&" + i + "=" + encodeURI(options.extraParams[i]);
+    }
+    return url;
+  };
+
+  function loadFromCache(q) {
+    if (!q) return null;
+    if (cache.data[q]) return cache.data[q];
+    if (options.matchSubset) {
+      for (var i = q.length - 1; i >= options.minChars; i--) {
+        var qs = q.substr(0, i);
+        var c = cache.data[qs];
+        if (c) {
+          var csub = [];
+          for (var j = 0; j < c.length; j++) {
+            var x = c[j];
+            var x0 = x[0];
+            if (matchSubset(x0, q)) {
+              csub[csub.length] = x;
+            }
+          }
+          return csub;
+        }
+      }
+    }
+    return null;
+  };
+
+  function matchSubset(s, sub) {
+    if (!options.matchCase) s = s.toLowerCase();
+    var i = s.indexOf(sub);
+    if (i == -1) return false;
+    return i == 0 || options.matchContains;
+  };
+
+  this.flushCache = function() {
+    flushCache();
+  };
+
+  this.setExtraParams = function(p) {
+    options.extraParams = p;
+  };
+
+  this.findValue = function(){
+    var q = $input.val();
+
+    if (!options.matchCase) q = q.toLowerCase();
+    var data = options.cacheLength ? loadFromCache(q) : null;
+    if (data) {
+      findValueCallback(q, data);
+    } else if( (typeof options.url == "string") && (options.url.length > 0) ){
+      $.get(makeUrl(q), function(data) {
+        data = parseData(data)
+        addToCache(q, data);
+        findValueCallback(q, data);
+      });
+    } else {
+      // no matches
+      findValueCallback(q, null);
+    }
+  }
+
+  function findValueCallback(q, data){
+    if (data) $input.removeClass(options.loadingClass);
+
+    var num = (data) ? data.length : 0;
+    var li = null;
+
+    for (var i=0; i < num; i++) {
+      var row = data[i];
+
+      if( row[0].toLowerCase() == q.toLowerCase() ){
+        li = document.createElement("li");
+        if (options.formatItem) {
+          li.innerHTML = options.formatItem(row, i, num);
+          li.selectValue = row[0];
+        } else {
+          li.innerHTML = row[0];
+          li.selectValue = row[0];
+        }
+        var extra = null;
+        if( row.length > 1 ){
+          extra = [];
+          for (var j=1; j < row.length; j++) {
+            extra[extra.length] = row[j];
+          }
+        }
+        li.extra = extra;
+      }
+    }
+
+    if( options.onFindValue ) setTimeout(function() { options.onFindValue(li) }, 1);
+  }
+
+  function addToCache(q, data) {
+    if (!data || !q || !options.cacheLength) return;
+    if (!cache.length || cache.length > options.cacheLength) {
+      flushCache();
+      cache.length++;
+    } else if (!cache[q]) {
+      cache.length++;
+    }
+    cache.data[q] = data;
+  };
+
+  function findPos(obj) {
+    var curleft = $(obj).position().left + 2|| 0;
+    var curtop = $(obj).position().top || 0;
+    /*while (obj = obj.offsetParent) {
+      curleft += obj.offsetLeft
+      curtop += obj.offsetTop
+    }*/
+    return {x:curleft,y:curtop};
+  }
+}
+
+jQuery.fn.autocomplete = function(url, options, data) {
+  // Make sure options exists
+  options = options || {};
+  // Set url as option
+  options.url = url;
+  // set some bulk local data
+  options.data = ((typeof data == "object") && (data.constructor == Array)) ? data : null;
+
+  // Set default values for required options
+  options.inputClass = options.inputClass || "ac_input";
+  options.resultsClass = options.resultsClass || "ac_results";
+  options.lineSeparator = options.lineSeparator || "\n";
+  options.cellSeparator = options.cellSeparator || "|";
+  options.minChars = options.minChars || 1;
+  options.delay = options.delay || 400;
+  options.matchCase = options.matchCase || 0;
+  options.matchSubset = options.matchSubset || 1;
+  options.matchContains = options.matchContains || 0;
+  options.cacheLength = options.cacheLength || 1;
+  options.mustMatch = options.mustMatch || 0;
+  options.extraParams = options.extraParams || {};
+  options.loadingClass = options.loadingClass || "ac_loading";
+  options.selectFirst = options.selectFirst || false;
+  options.selectOnly = options.selectOnly || false;
+  options.maxItemsToShow = options.maxItemsToShow || -1;
+  options.autoFill = options.autoFill || false;
+  options.width = parseInt(options.width, 10) || 0;
+
+  this.each(function() {
+    var input = this;
+    new jQuery.autocomplete(input, options);
+  });
+
+  // Don't break the chain
+  return this;
+}
+
+jQuery.fn.autocompleteArray = function(data, options) {
+  return this.autocomplete(null, options, data);
+}
+
+jQuery.fn.indexOf = function(e){
+  for( var i=0; i<this.length; i++ ){
+    if( this[i] == e ) return i;
+  }
+  return -1;
+};
+
+var AutoComplete = Class.extend({
+  init:function($input, data_, options_){
+    $input.autocomplete(null, options_, data_);
+  }
+});
 
 var ContextMenu = Class.extend({
   init: function(options_) {
@@ -3064,10 +3564,137 @@ var Unslider = Class.extend({
       });
   }
 });
+var Video = Class.extend({
+  init: function(sections_) {
+    this._sections = {
+      controls: true,
+      width: '100%',
+      height: '90%',
+      src: '',
+      contextMenu: true
+    };
+    if (sections_) {
+      for (var key in sections_) {
+        this._sections[key] = sections_[key];
+      }
+    };
+    this._section = $("<section id='player'></section>");
+    this._video = $("<video width='" + this._sections.width + "' height='" + this._sections.height + "' controls></video>");
+    this._section.append(this._video);
+    this._ctxMenu = ContextMenu.create();
+    this._source = $("<source src=''></source>");
+    this._video.append(this._source);
+    this._video.append($("<p>The browser doesn't support html5</p>"));
+    if (this._sections.controls) {
+      this._video[0].style.cssText = "controls='controls'";
+    };
+    if (this._sections.src !== '') {
+      this.setSrc(this._sections.src);
+    };
+    if (this._sections.contextMenu) {
+      this.setContextMenu();
+    };
+  },
+
+  setSrc: function(src_) {
+    this._source[0].src = src_;
+  },
+
+  injectParent: function($parent_) {
+    $parent_.append(this._section);
+  },
+
+  setMenu:function(this_){
+    var _this = this_;
+    if (_this._video[0].paused) {
+      _this._ctxMenu.activeItem('video','Play',function(){
+        if (_this._video[0].paused) {
+          _this._video[0].play();
+        };
+      });
+      _this._ctxMenu.disableItem('video','Pause');
+    } else {
+      _this._ctxMenu.disableItem('video','Play');
+      _this._ctxMenu.activeItem('video','Pause',function(){
+        _this._video[0].pause();
+      });
+    }
+    if (_this._video[0].loop) {
+      _this._ctxMenu.activeItem('video','Order play',function(){
+      _this._video[0].loop = false;
+        });
+      _this._ctxMenu.disableItem('video','Loop play');
+    } else {
+      _this._ctxMenu.activeItem('video','Loop play',function(){
+        _this._video[0].loop = true;
+      });
+      _this._ctxMenu.disableItem('video','Order play');
+    }
+    if (_this._video[0].fullScreen) {
+      _this._ctxMenu.disableItem('video','Full screen')
+    } else {
+      _this._ctxMenu.activeItem('video','Full screen',function(){
+        if (typeof _this._video[0].mozRequestFullScreen !== 'undefined') {
+          _this._video[0].mozRequestFullScreen();
+        }
+        if (typeof _this._video[0].webkitRequestFullScreen !== 'undefined') {
+          _this._video[0].webkitRequestFullScreen();
+        };
+        if (typeof _this._video[0].requestFullscreen !== 'undefined') {
+          _this._video[0].requestFullscreen();
+        };
+      });
+    }
+  },
+
+  setContextMenu: function() {
+    var _this = this;
+    this._ctxMenu.addCtxMenu([
+    {header: 'video'},
+    { text: 'Play',
+      icon: 'icon-play',
+      action: function() {
+        if (_this._video[0].paused) {
+          _this._video[0].play();
+        };
+      }
+    },
+    {text: 'Pause',
+      icon: 'icon-pause',
+      action: function() {
+        _this._video[0].pause();
+      }
+    },
+    { text: 'Loop play',
+      icon: 'icon-repeat',
+      action: function() {
+        _this._video[0].loop = true;
+      }
+    },
+    { text: 'Order play',
+      icon: 'icon-reorder',
+      action: function() {
+        _this._video[0].loop = false;
+      }
+    },
+    { text: 'Full screen',
+      icon: 'icon-fullscreen',
+      action: function() {
+      }
+    }
+    ]);
+    _this._ctxMenu.attachToMenu('video'
+      , _this._ctxMenu.getMenuByHeader('video')
+      ,function() {
+        _this.setMenu(_this);
+      });
+  }
+
+});
 //windows lib for create window fastly
 //this is relaty font-awesome
 var Window = Class.extend({
-  init:function(id_, title_ , options_){
+  init:function(id_, title_ , options_, callback_){
     this._options = {
       animate: true,             //动画效果
       contentDiv: true,     //包含放置内容的div
@@ -3086,7 +3713,8 @@ var Window = Class.extend({
       maxWindow: false,  //是否初始最大化
       resize: false,           //设置是否可重新调整窗口的大小
       minWidth: 200,            //设置窗口的最小宽度
-      minHeight:200            //设置窗口的最小高度
+      minHeight:200,            //设置窗口的最小高度
+      fullScreen: false        //双击内容全屏显示
     };
 
     //set options
@@ -3104,6 +3732,11 @@ var Window = Class.extend({
     this._title = title_;                                   //record title
     this._id = id_;                                                // record id
     this._isMax = false;                                    // record window is maxsize or not
+    this._fullScreen = false;
+    this._saveWindowCss = '';
+    this._saveWinContentCss = '';
+    this._focusCallback = undefined;    //获取聚焦时的回调函数
+    this._INDEX = 100;
 
     this._window = $('<div>',{
       'id': this._id,
@@ -3131,7 +3764,7 @@ var Window = Class.extend({
       this._window.append(this._windowContent);
     } else if (this._options.iframe) {
       this._windowContent = $('<iframe>',{
-        'class':'window-content',
+        'class':'window-content'
       })
       this._window.append(this._windowContent);
     };
@@ -3156,6 +3789,10 @@ var Window = Class.extend({
       this.maxWindow(this);
     }
     this.bindEvent();
+
+    if (callback_) {
+      callback_.call(this);
+    };
   },
 
   /**
@@ -3218,6 +3855,44 @@ var Window = Class.extend({
     });
   },
 
+  bindCloseButton:function(eventAction_, arg_){
+    if (this._options.close)
+    this.bindButton(this._titleButton.children('.window-button-close'), eventAction_, arg_);
+  },
+
+  bindMinButton:function(eventAction_, arg_){
+    if (this._options.min)
+    this.bindButton(this._titleButton.children('.window-button-min'), eventAction_, arg_);
+  },
+
+  bindMaxButton:function(eventAction_, arg_){
+    if (this._options.max)
+    this.bindButton(this._titleButton.children('.window-button-max'), eventAction_, arg_);
+  },
+
+  bindHideButton:function(eventAction_, arg_){
+    if (this._options.hide)
+    this.bindButton(this._titleButton.children('.window-button-hide'), eventAction_, arg_);
+  },
+
+  gitID:function(){
+    return this._id;
+  },
+
+  focus:function(){
+    this._window.css('z-index' , this._INDEX +1);
+  },
+
+  blur:function(){
+    this._window.css('z-index' , this._INDEX);
+  },
+
+  onfocus:function(callback_){
+    if (callback_) {
+      this._focusCallback = callback_;
+    };
+  },
+
   /**
    * [changeIcon change icon by class]
    * @param  {[string]} aClass_    [class name of a]
@@ -3250,7 +3925,6 @@ var Window = Class.extend({
 
     //drag window
     this._titleDiv.mousedown(function(ev){
-      ev.stopPropagation();
       ev.preventDefault();
       if (_this._isMax) {
         return ;
@@ -3258,24 +3932,23 @@ var Window = Class.extend({
       _this._isMouseOnTitleDown = true;
       _this._offsetX = ev.clientX - _this._window.position().left;
       _this._offsetY = ev.clientY - _this._window.position().top;
-      _this._window.fadeTo(20, 0.5);
+        _this._window.fadeTo(20, 0.8);
     }).mouseup(function(ev){
-      ev.stopPropagation();
       _this._isMouseOnTitleDown = false;
       _this._window.fadeTo(20, 1);
-    });
+    }).dblclick(function(){
+      _this.toggleMaxWindow();
+    })
 
     //resize window
     if (typeof this._dragDiv !== 'undefined') {
       this._dragDiv.mousedown(function(ev){
-        ev.stopPropagation();
         if (_this._isMax || _this._ishideDiv || !_this._options.resize) {
           return ;
         };
         _this._isMouseResizeDown = true;
         _this._window.fadeTo(20, 0.9);
       }).mouseup(function(ev){
-        ev.stopPropagation();
         if (!_this._isMouseResizeDown) {
           return ;
         }
@@ -3308,6 +3981,23 @@ var Window = Class.extend({
         _this._dragDiv.css('cursor', 'se-resie');
       };
     });
+    if (_this._options.fullscreen) {
+      _this._windowContent.dblclick(function(ev){
+        _this.togglefullScreen();
+        ev.stopPropagation();
+        ev.preventDefault();
+      })
+    }
+
+    _this._window.mousedown(function(ev){
+      _this.focus();
+      if (_this._focusCallback) {
+        _this._focusCallback.call(_this);
+      };
+      ev.stopPropagation();
+    }).mouseup(function(ev){
+      ev.stopPropagation();
+    });
   },
   /**
    * [resizeWindow  resize Window without animate]
@@ -3327,7 +4017,7 @@ var Window = Class.extend({
   },
   /**
    * [resizeWindowWithAnimate resize window with animate]
-   * @param  {[type]} size_ [new size ]
+   * @param  {[type]} size_ [new size]
    * @param  {[type]} pos_  [new position]
    * @return {[type]}       [description]
    */
@@ -3399,6 +4089,9 @@ var Window = Class.extend({
     _this.changeIcon('window-button-max', 'icon-resize-small', 'icon-resize-full', _this.maxWindow);
   },
 
+  toggleMaxWindow:function(){
+    (this._isMax ? this.recoverWindow(this) : this.maxWindow(this) );
+  },
   /**
    * [closeWindow close window]
    * @param  {[this ]} windowObj_ [this obj]
@@ -3467,10 +4160,6 @@ var Window = Class.extend({
   setWindowPos:function(pos_){
     this._window.css('left', pos_['left'] + 'px');
     this._window.css('top', pos_['top'] + 'px');
-    if (typeof this._dragDiv !== 'undefined') {
-      this._dragDiv.css('left',pos_['left']+this._options._winWidth -10 + 'px');
-      this._dragDiv.css('top', pos_['pos']+this._options._winHeight-10 + 'px');
-    }
   },
   /**
    * [show show Window]
@@ -3523,6 +4212,39 @@ var Window = Class.extend({
     if(this._options.iframe){
       this._windowContent[0].src = src_;
     }
+  },
+  /**
+   * [fullscreen fullscreen ]
+   * @param  {[type]} state_ [fullScreen state]
+   * @return {[type]}        [description]
+   */
+  fullScreen:function(state_){
+    if (typeof state_ === 'undefined') state_ = true;
+    (state_ ? this._titleDiv.hide() : this._titleDiv.show());
+    if (state_ !== this._fullScreen) {
+      this._fullScreen = state_;
+    }else return ;
+    
+    if(state_){
+      this._saveWinContentCss = this._windowContent[0].style.cssText;
+      this._windowContent[0].style.cssText = 'margin: 0;';
+    } else {
+      this._windowContent[0].style.cssText = this._saveWinContentCss;
+      this._saveWinContentCss = '';
+    }
+    if (state_) {
+      this._saveWindowCss = this._window[0].style.cssText;
+      this._window[0].style.cssText = 'left: 0px; top: 0px; display: block;'; 
+    } else {
+      this._window[0].style.cssText = this._saveWindowCss;
+      this._saveWindowCss = '';
+    }
+    this._windowContent[state_ ? 'addClass' : 'removeClass']('fullwindow');
+    this._window[state_ ? 'addClass' : 'removeClass']('fullwindow');
+  },
+
+  togglefullScreen:function(){
+    this.fullScreen(!this._fullScreen);
   }
 
 });

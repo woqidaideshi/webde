@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Video Player</title>
+  <link rel="stylesheet" type="text/css" href="../../css/demoUI.css"/>
+  <link rel="stylesheet" type="text/css" href="../../css/demoUItheme.css"/>
+  <link rel="stylesheet" type="text/css" href="../../css/demoUIFont.css"/>
+  <script type="text/javascript" src="../../lib/jquery.js"></script>
+  <script type="text/javascript" src="../../lib/demoUI.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+  var _video = Video.create();
+   _video.setSrc ('http://video-js.zencoder.com/oceans-clip.webm'); 
+   $('body').append(_video._section);
+</script>
+</body>
+</html>

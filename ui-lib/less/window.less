@@ -61,20 +61,38 @@
   }
 
   .window-content{
-      margin-top:  0;
-      margin-right:4px;
-      margin-bottom: 2px;
-      margin-left: 4px;
-      overflow :auto;
-      background-color: @windowContentBkgColor;  
+    position: relative;
+    margin-top:  0;
+    margin-right:4px;
+    margin-bottom: 2px;
+    margin-left: 4px;
+    overflow :auto;
+    background-color: @windowContentBkgColor;  
   }
 
   .rb-drag-div{
     position: absolute;
     bottom: 0px;
     right: 0px;
-    width:10px;
-    height: 10px;
+    width:15px;
+    height: 15px;
     cursor: se-resize;
   }
 }
+
+  .fullwindow{
+    border: 0px;
+    margin: 0;
+    .radius(0px);
+    padding: 0px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    overflow: hidden;
+    background-color: @windowContentBkgColor;  
+    z-index: 10000;
+  }
