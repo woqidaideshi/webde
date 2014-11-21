@@ -7,11 +7,9 @@ ui-lib/doc/_site/
 ui-lib/_site/
 ui-lib/doc/assets/css/demoUI*
 ui-lib/doc/assets/js/demoUI.js
-ui-lib/doc/assets/img/close.png
-ui-lib/doc/assets/img/cat.jpg
+ui-lib/doc/assets/img
 ui-lib/doc/assets/font/*wesome*
 *.swp
 shell
 shell/*
-test
-test/*
+ui-lib/doc/app

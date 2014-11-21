@@ -1,0 +1,114 @@
+---
+layout: post
+title:  "listview"
+date:   2014-11-18 17:09:12
+categories: ui
+---
+
+<h2>listview</h2>
+<p>listview是下拉菜单，可以在任意元素上添加下拉菜单</p>
+<h3>使用方法</h3>
+<pre>
+<code>
+var _listview = ListView.create("_listview_id", {'width':200});  //创建下拉菜单，指定id和宽度
+var items = [{id:"first_item", type:"item", href:"", img:"img/t1.png", text:"first", clkaction:function(){ alert('first')}}, 
+                    {id:"second_item", type:"item", href:"http://www.baidu.com", img:"img/t2.png", text:"second"},
+                    {id:"third_subitem", type:"subitems", img:"img/t3.png", text:"third", subitems:[
+                      {id:"four_item", href:"http://www.baidu.com", img:"img/empty.gif", text:"four"},
+                      {id:"five_item", href:"", img:"img/sunset.jpg", text:"fifth", dblclkaction: function(){alert('why......')}}
+                     ]}];  //下拉菜单的内容
+_listview.addItems(items);  //添加到下拉菜单
+_listview.attach('parent_id');  //在某个元素下添加下拉菜单
+</code>
+</pre><br />
+<h3>item和subitem可以指定的选项</h3>
+<p>item需要指定type为"item"，其他的选项可以包括：</p>
+<pre>
+<code>
+  id                    -------------    该item的id
+  href                -------------    链接地址
+  img                 -------------    图像
+  text                 -------------    文本
+  clkaction        -------------    单击回调函数
+  dblclkaction   -------------    双击回调函数
+</code>
+</pre><br />
+<p>subitems需要指定type为"subitems"，其他的选项可以包括：</p>
+<pre>
+<code>
+  id                    -------------    该subitem的id
+  img                 -------------    图像
+  text                 -------------    文本
+  subitems        -------------    item数组
+</code>
+</pre><br />
+<h3>提供的接口</h3>
+<p>此_listview对象提供以下接口：</p>
+<pre>
+<code>
+  1. addItems，一般用于创建下拉菜单时，添加多项内容，如上说明
+  2. addItem用于在下拉菜单或者子下拉菜单动态添加条目，如在下拉菜单下添加，则
+      var item = {href:"", img:"img/t1.png", text:"six", dblclkaction:function(){ alert('six')}};
+      _listview.addItem(item);
+      而如果添加一个子下拉菜单添加条目，则
+      _listview.addItem(item, $('#third_subitem').find('ul'));
+  3. addSubItems用于动态添加子条目
+       var subitem = {img:"img/t3.png", text:"seven", subitems:[
+                                 {href:"http://www.baidu.com", img:"img/empty.gif", text:"eight", clkaction: function(){alert('what.....')}},
+                                 {href:"", img:"img/empty.gif", text:"nine", action: function(){alert('why......')}}
+                               ]};
+       _listview.addSubItems(subitem);
+   4. remove删除条目和子条目
+       _listview.remove('first_item'); //删除条目
+       _listview.remove('third_subitem'); //删除子条目
+   5. attach在某个元素下添加下拉菜单，如上示例
+   6. isEmptyOfSubItems 判断某个subitems是否为空
+       var isEmpty = _listview.isEmptyOfSubItems('third_subitem');
+</code>
+</pre>
+
+<h2>demo</h2>
+<button type="button" onclick="show()">show</button>
+<button type="button" onclick="add_an_item()">add_an_item</button>
+<button type="button" onclick="add_an_subitem()">add_an_subitem</button>
+<button type="button" onclick="remove_an_item()">remove_an_item</button>
+<button type="button" onclick="empty_or_not()">empty_or_not</button>
+
+<script type="text/javascript">
+var listview = ListView.create("dkk", {'width':200});
+var items = [{id:"first_item", type:"item", href:"", img:"/assets/img/t1.png", text:"first", clkaction:function(){ alert('first')}}, 
+                     {id:"second_item", type:"item", href:"http://www.baidu.com", img:"/assets/img/t2.png", text:"second"},
+                     {id:"third_subitem", type:"subitems", img:"/assets/img/t3.png", text:"third", subitems:[
+                       {id:"four_item", href:"http://www.baidu.com", img:"/assets/img/empty.gif", text:"four"},
+                       {id:"five_item", href:"", img:"/assets/img/sunset.jpg", text:"fifth", dblclkaction: function(){alert('why......')}}
+                     ]}];
+listview.addItems(items);
+
+function add_an_item(){
+  var item = {href:"", img:"/assets/img/t1.png", text:"six", dblclkaction:function(){ alert('six')}};
+  listview.addItem(item, $('#' + 'third_subitem').find('ul'));
+}
+
+function add_an_subitem(){
+  var subitem = {img:"/assets/img/t3.png", text:"seven", subitems:[
+                            {href:"http://www.baidu.com", img:"/assets/img/empty.gif", text:"eight", clkaction: function(){alert('what.....')}},
+                            {href:"", img:"/assets/img/empty.gif", text:"nine", action: function(){alert('why......')}}
+                          ]};
+  listview.addSubItems(subitem);
+}
+
+function remove_an_item(){
+  listview.remove('five_item');
+}
+
+function empty_or_not(){
+  var isEmpty = listview.isEmptyOfSubItems('third_subitem');
+  alert(isEmpty);
+}
+
+function show(){
+  var win = Window.create("mywin_id", "hitest");
+  win.append('<p id="div_test_id">hello</p>');
+  listview.attach('div_test_id');
+}
+</script>

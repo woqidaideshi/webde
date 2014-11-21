@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-11-18
+/*! ui-lib - v0.0.1 - 2014-11-21
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -271,7 +271,7 @@ jQuery.autocomplete = function(input, options) {
     // get the position of the input field right now (in case the DOM is shifted)
     var pos = findPos(input);
     // either use the specified width, or autocalculate based on form element
-    var iWidth = (options.width > 0) ? options.width : input.offsetWidth;
+    var iWidth = (options.width > 0) ? options.width : $input.width();
     // reposition
     $results.css({
       width: parseInt(iWidth) + "px",
@@ -494,12 +494,12 @@ jQuery.autocomplete = function(input, options) {
   };
 
   function findPos(obj) {
-    var curleft = $(obj).position().left + 2|| 0;
+    var curleft = $(obj).position().left  + (document.defaultView.getComputedStyle(obj,null)['marginLeft'] ? parseInt(document.defaultView.getComputedStyle(obj,null)['marginLeft']) : 0)|| 0;
     var curtop = $(obj).position().top || 0;
-    /*while (obj = obj.offsetParent) {
+    while (obj = obj.offsetParent) {
       curleft += obj.offsetLeft
       curtop += obj.offsetTop
-    }*/
+    }
     return {x:curleft,y:curtop};
   }
 }
@@ -1365,6 +1365,129 @@ var Inputer = Class.extend({
       this._options.callback.call(this, this.$input.val().replace(/\n/g, ''));
       this._options.callback = null;
       this.$input.hide();
+  }
+});
+
+
+var ListView = Class.extend({
+  init:function(id_, options_){
+    this._options = {
+      'width': '100%'
+    };
+    //set options
+    if (options_) {
+      for(var key in options_) {
+        this._options[key] = options_[key];
+      }
+    };
+    this._id = id_;     // record id
+    this._listview = $('<ul>',{
+      'id': this._id,
+      'class': 'listview'
+    });
+    this._listview.css({
+      'width': this._options.width
+    });
+  },
+
+  addItem : function(data, $ul_){
+    var $item = $('<li>');
+    if (typeof data.id !== 'undefined'){
+      $item.attr('id', data.id);
+    }
+    if (data.href === 'undefined' || data.href === ''){
+      $item.append('<a href="#"></a>');
+    }
+    else{
+      $item.append('<a href="' + data.href + '"></a>');
+    }
+    if (data.img !== 'undefined' && data.img !== ''){
+      $item.find('a').append('<img src="' + data.img + '" />');
+    }
+    $item.find('a').append(data.text);
+
+    if (typeof data.clkaction !== 'undefined'){
+      var actiond = new Date(),
+        actionID = 'event' + actiond.getTime() * Math.floor(Math.random() * 100000),
+        eventAction = data.clkaction;
+        $item.find('a').attr('id', actionID);
+        $(document).on('click', '#' + actionID, data.clkaction);
+    }
+
+    if (typeof data.dblclkaction !== 'undefined'){
+      var actiond = new Date(),
+        actionID = 'event' + actiond.getTime() * Math.floor(Math.random() * 100000),
+        eventAction = data.dblclkaction;
+        $item.find('a').attr('id', actionID);
+        $(document).on('dblclick', '#' + actionID, data.dblclkaction);
+    }
+
+    if (typeof $ul_ === 'undefined') {
+      this._listview.append($item);
+    }
+    else{
+      $ul_.append($item);
+    }
+  },
+
+  addSubItems : function(data){
+    var $subItems = $('<li>');
+    if (typeof data.id !== 'undefined'){
+      $subItems.attr('id', data.id);
+    }
+    $subItems.append('<a href="#" class ="sub" tabindex="1"></a>');
+    if (typeof data.img !== 'undefined' && data.img !== ''){
+      $subItems.find('a').append('<img src="' + data.img + '" />');
+    }
+    $subItems.find('a').append(data.text);
+    $subItems.append('<img alt="" />');
+
+    if (typeof data.subitems !== 'undefined' && data.subitems.length !== 0){
+      var len = data.subitems.length;
+      var $ul = $('<ul>').css({
+        'width':this._options.width
+      });
+      for (var i = 0; i !== len; i++){
+        this.addItem(data.subitems[i], $ul);
+      }
+      $subItems.append($ul);
+    }
+    else{
+      $subItems.append($('<ul>'));
+    }
+
+    this._listview.append($subItems);
+  },
+
+  addItems: function(items){
+    var len = items.length;
+    for (var i = 0; i < len; i++){
+      switch(items[i].type){
+        case 'item':
+          this.addItem(items[i]);
+          break;
+        case 'subitems':
+          this.addSubItems(items[i]);
+          break;
+        default:
+          console.log('Error: unknown listview type');
+          return;
+      }
+    }
+  },
+
+  remove: function(id){
+    $('#' + id).remove();
+  },
+
+  attach: function(id){
+    $('#' + id).append(this._listview);
+    this._listview.show();
+  },
+
+  isEmptyOfSubItems: function(id){
+    var len = $('#' + id).find('ul').find('li').length ;
+    return len === 0 ? true : false;
   }
 });
 
@@ -3591,7 +3714,7 @@ var Window = Class.extend({
       resize: false,           //设置是否可重新调整窗口的大小
       minWidth: 200,            //设置窗口的最小宽度
       minHeight:200,            //设置窗口的最小高度
-      fullScreen: false
+      fullScreen: false        //双击内容全屏显示
     };
 
     //set options
@@ -3610,6 +3733,10 @@ var Window = Class.extend({
     this._id = id_;                                                // record id
     this._isMax = false;                                    // record window is maxsize or not
     this._fullScreen = false;
+    this._saveWindowCss = '';
+    this._saveWinContentCss = '';
+    this._focusCallback = undefined;    //获取聚焦时的回调函数
+    this._INDEX = 100;
 
     this._window = $('<div>',{
       'id': this._id,
@@ -3748,6 +3875,24 @@ var Window = Class.extend({
     this.bindButton(this._titleButton.children('.window-button-hide'), eventAction_, arg_);
   },
 
+  gitID:function(){
+    return this._id;
+  },
+
+  focus:function(){
+    this._window.css('z-index' , this._INDEX +1);
+  },
+
+  blur:function(){
+    this._window.css('z-index' , this._INDEX);
+  },
+
+  onfocus:function(callback_){
+    if (callback_) {
+      this._focusCallback = callback_;
+    };
+  },
+
   /**
    * [changeIcon change icon by class]
    * @param  {[string]} aClass_    [class name of a]
@@ -3780,7 +3925,6 @@ var Window = Class.extend({
 
     //drag window
     this._titleDiv.mousedown(function(ev){
-      ev.stopPropagation();
       ev.preventDefault();
       if (_this._isMax) {
         return ;
@@ -3788,24 +3932,23 @@ var Window = Class.extend({
       _this._isMouseOnTitleDown = true;
       _this._offsetX = ev.clientX - _this._window.position().left;
       _this._offsetY = ev.clientY - _this._window.position().top;
-      _this._window.fadeTo(20, 0.5);
+        _this._window.fadeTo(20, 0.8);
     }).mouseup(function(ev){
-      ev.stopPropagation();
       _this._isMouseOnTitleDown = false;
       _this._window.fadeTo(20, 1);
-    });
+    }).dblclick(function(){
+      _this.toggleMaxWindow();
+    })
 
     //resize window
     if (typeof this._dragDiv !== 'undefined') {
       this._dragDiv.mousedown(function(ev){
-        ev.stopPropagation();
         if (_this._isMax || _this._ishideDiv || !_this._options.resize) {
           return ;
         };
         _this._isMouseResizeDown = true;
         _this._window.fadeTo(20, 0.9);
       }).mouseup(function(ev){
-        ev.stopPropagation();
         if (!_this._isMouseResizeDown) {
           return ;
         }
@@ -3845,6 +3988,16 @@ var Window = Class.extend({
         ev.preventDefault();
       })
     }
+
+    _this._window.mousedown(function(ev){
+      _this.focus();
+      if (_this._focusCallback) {
+        _this._focusCallback.call(_this);
+      };
+      ev.stopPropagation();
+    }).mouseup(function(ev){
+      ev.stopPropagation();
+    });
   },
   /**
    * [resizeWindow  resize Window without animate]
@@ -3936,6 +4089,9 @@ var Window = Class.extend({
     _this.changeIcon('window-button-max', 'icon-resize-small', 'icon-resize-full', _this.maxWindow);
   },
 
+  toggleMaxWindow:function(){
+    (this._isMax ? this.recoverWindow(this) : this.maxWindow(this) );
+  },
   /**
    * [closeWindow close window]
    * @param  {[this ]} windowObj_ [this obj]
@@ -4064,10 +4220,27 @@ var Window = Class.extend({
    */
   fullScreen:function(state_){
     if (typeof state_ === 'undefined') state_ = true;
-    (state_ ? $("body") : this._window).append(this._windowContent);
-    this._fullScreen = state_;
-    this._windowContent[0].style.cssText = '';
+    (state_ ? this._titleDiv.hide() : this._titleDiv.show());
+    if (state_ !== this._fullScreen) {
+      this._fullScreen = state_;
+    }else return ;
+    
+    if(state_){
+      this._saveWinContentCss = this._windowContent[0].style.cssText;
+      this._windowContent[0].style.cssText = 'margin: 0;';
+    } else {
+      this._windowContent[0].style.cssText = this._saveWinContentCss;
+      this._saveWinContentCss = '';
+    }
+    if (state_) {
+      this._saveWindowCss = this._window[0].style.cssText;
+      this._window[0].style.cssText = 'left: 0px; top: 0px; display: block;'; 
+    } else {
+      this._window[0].style.cssText = this._saveWindowCss;
+      this._saveWindowCss = '';
+    }
     this._windowContent[state_ ? 'addClass' : 'removeClass']('fullwindow');
+    this._window[state_ ? 'addClass' : 'removeClass']('fullwindow');
   },
 
   togglefullScreen:function(){

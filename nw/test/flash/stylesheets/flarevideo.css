@@ -1,0 +1,162 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font: 100 16px/1.5 Avenir, sans-serif;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -webkit-text-size-adjust: none;
+  overflow: hidden; 
+}
+
+.flareVideo {
+  position: relative;
+  padding: 0;
+  margin: 0;
+  -webkit-user-select: none;
+  background: #000;
+  height: 100%;
+  
+  z-index: 90;
+}
+
+.flareVideo.fullScreen {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  overflow: hidden;
+}
+
+.flareVideo .controls .disabled {
+  display: none;
+}
+
+.flareVideo video,
+.flareVideo .video {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.flareVideo embed, .flareVideo object {
+  z-index: 100;
+}
+
+.flareVideo .controls {
+  z-index: 200;
+}
+
+.flareVideo .controls input[type="range"] {
+  margin: 0;
+  padding: 0;
+}
+
+/* jQuery UI Slider
+----------------------------------*/
+.flareVideo .ui-slider { position: relative; text-align: left; }
+.flareVideo .ui-slider .ui-slider-handle { position: absolute; z-index: 2; width: 1.2em; height: 1.2em; cursor: default; }
+.flareVideo .ui-slider .ui-slider-range { position: absolute; z-index: 1; font-size: .7em; display: block; border: 0; background-position: 0 0; }
+
+/*.flareVideo .ui-slider-horizontal { padding-left: 10px; }*/
+.flareVideo .ui-slider-horizontal .ui-slider-handle { margin-left: -5px; }
+
+.fullwindow{
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    overflow: hidden;
+    z-index: 10000;
+}
+
+.post__toc-trigger {
+  width: 220px;
+  padding-left: 40px;
+  position: fixed;
+  top: 0px;
+  bottom: 0;
+  right: 0;
+  z-index: 98;
+  -webkit-transform: translateX(220px);
+  -moz-transform: translateX(220px);
+  -ms-transform: translateX(220px);
+  -o-transform: translateX(220px);
+  transform: translateX(220px);
+  -webkit-transition: -webkit-transform .35s ease-in-out .1s;
+  -moz-transition: -moz-transform .35s ease-in-out .1s;
+  -ms-transition: -ms-transform .35s ease-in-out .1s;
+  -o-transition: -o-transform .35s ease-in-out .1s;
+  transition: transform .35s ease-in-out .1s; 
+}
+  .post__toc-trigger:hover {
+    -webkit-transform: translateX(0);
+    -moz-transform: translateX(0);
+    -ms-transform: translateX(0);
+    -o-transform: translateX(0);
+    transform: translateX(0); }
+  @media screen and (max-device-width: 1280px) {
+    .post__toc-trigger {
+      display: none; } }
+
+.post__toc {
+  width: 220px;
+  height: 100%;
+  padding-top: 30px;
+  background: rgba(250, 250, 250, 0.9);
+  border-top: 1px solid #e5e8ec;
+  border-left: 1px solid #e5e8ec;
+  border-radius: 10px 0 0 0;
+  display: block;
+  overflow-y: scroll;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none; }
+
+.post__toc-title {
+  padding: 0 0 5px 11px;
+  color: #2c353d;
+  font-size: 1em;
+  display: block; }
+
+.post__toc-ul {
+  margin: 0;
+  padding: 0 10px 20px 15px;
+  line-height: 1.6; }
+
+.post__toc-li {
+  color: #7d8b99;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden; 
+}
+  .post__toc-li:before {
+    content: "\e806";
+    margin-right: 5px; }
+  .post__toc-li a{
+  color: inherit;
+  text-decoration: none;
+  }
+  .post__toc-li > a:hover {
+    color: #2eb695; }
+
+.post__toc-h1 {
+  font-size: 1em;
+  list-style: none; }
+
+.post__toc-h2 {
+  font-size: .95em; }
+
+.post__toc-h3 {
+  margin-left: 12px;
+  font-size: .9em; }
+
+.post__toc-h3 + .post__toc-h2 {
+  padding-top: .25em; }
