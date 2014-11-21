@@ -25,13 +25,13 @@ var ListView = Class.extend({
     if (typeof data.id !== 'undefined'){
       $item.attr('id', data.id);
     }
-    if (data.href === 'undefined' || data.href === ''){
+    if (typeof data.href === 'undefined' || data.href === ''){
       $item.append('<a href="#"></a>');
     }
     else{
       $item.append('<a href="' + data.href + '"></a>');
     }
-    if (data.img !== 'undefined' && data.img !== ''){
+    if (typeof data.img !== 'undefined' && data.img !== ''){
       $item.find('a').append('<img src="' + data.img + '" />');
     }
     $item.find('a').append(data.text);
