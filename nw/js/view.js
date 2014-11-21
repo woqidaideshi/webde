@@ -3018,9 +3018,6 @@ var UEditBox = Class.extend({
         var val = fileUp.val(); 
         if (val !== '' && val !== undefined && val !== null) {
           function sendIMFileCb() {
-            //var fileUp=$('#file_' + toAccount);
-            //fileUp.after(fileUp.clone().val('')); 
-            //fileUp.remove();
           }
           if (localAccount === undefined) {
             _global._imV.getLocalData(function(localData) {
@@ -3028,13 +3025,18 @@ var UEditBox = Class.extend({
               localUID = localData.UID;
             });
           }
-          var ipset = {};
-          ipset["IP"] = toAccountInfo_.toIP;
-          ipset["UID"] = toAccountInfo_.toUID;
+          var sendMsg = {};
+          sendMsg['IP'] = toAccountInfo_.toIP;
+          sendMsg['UID'] = toAccountInfo_.toUID;
+          sendMsg['Account'] = toAccount;
           msgJson={};
           msgJson['file']=val;
-          console.log('------------------------'+JSON.stringify(msgJson));
-          _global._imV.sendIMMsg(sendIMFileCb, ipset, toAccount, JSON.stringify(msgJson));
+          sendMsg['Msg']=JSON.stringify(msgJson);
+          sendMsg['App']='imV';
+          //_global._imV.sendIMMsg(sendIMFileCb, ipset, toAccount, JSON.stringify(msgJson));
+          _global._imV.SendAppMsg(function(mmm){
+            console.log('----------------SendAppMsg');
+          },sendMsg);
         }
       });
     });
@@ -3052,12 +3054,18 @@ var UEditBox = Class.extend({
             localUID = localData.UID;
           });
         }
-        var ipset = {};
-        ipset["IP"] = toAccountInfo_.toIP;
-        ipset["UID"] = toAccountInfo_.toUID;
         msgtime = new Date();
         sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-        _global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
+        //_global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
+        var sendMsg = {};
+        sendMsg['IP'] = toAccountInfo_.toIP;
+        sendMsg['UID'] = toAccountInfo_.toUID;
+        sendMsg['Account'] = toAccount;
+        sendMsg['Msg'] =msg;
+        sendMsg['App'] = 'imV';
+        _global._imV.SendAppMsg(function(mmm) {
+          console.log('----------------SendAppMsg');
+        }, sendMsg);
       } else {}
     });
     if (toAccountInfo_.msg !== undefined) {
@@ -3112,15 +3120,7 @@ var UEditBox = Class.extend({
             label: '接收',
             action: function() {
               Messenger().hideAll();
-              //var thisImChatWin=$('#imChat_' + toAccount_)[0];
-              //curEditBox_.imWindow.closeWindow(curEditBox_.imWindow);
-              /*var newSize={};
-              newSize['width']=curEditBox_.imWindow._options.width+80;
-              newSize['height']=curEditBox_.imWindow._options.height;
-              curEditBox_.imWindow.resizeWindow(newSize);
-              curEditBox_.imWindow.append('<div bord="1" align="right" width="80px"  height="'+newSize['height']+'px"  id="appendDiv_'+toAccount_+'"></div>');
-              $('#appendDiv_'+toAccount_).append('<p>'+msg_.file+'</p>');*/
-            }
+             }
           }
         }
       });

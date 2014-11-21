@@ -262,7 +262,7 @@ var DesktopModel = Model.extend({
     this.getCOMById('device-list').start();
     var _this = this;
     setTimeout(function() {
-      _this.getCOMById('launcher').load();
+      //_this.getCOMById('launcher').load();
       cb_(null);
     }, 2000);
   },
@@ -1224,14 +1224,12 @@ var DeviceListModel = Model.extend({
   init: function(parent_) {
     this.callSuper('device-list', parent_);
     this._imChatWinList = {}; 
-    this._imChatServer;
   },
 
   release: function() {
     // TODO: release device monitor server
     _global._device.removeDeviceListener(this.__handler);
     _global._device.entryGroupReset();
-    _global._imV.closeIMChatServer(this._imChatServer);
   },
 
   __handler: function(ev_, dev_) {
@@ -1267,77 +1265,77 @@ var DeviceListModel = Model.extend({
       _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     });
     // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.startIMChatServer(function(msgobj) {
-      if (msgobj['server'] !== undefined) {
-        _this._imChatServer = msgobj['server'];
+    _global._imV.StartIMService(function(done) {
+      if(!done)
         return;
-      }
-      var toAccount = msgobj.MsgObj.from;
-      var curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
-      var fileMsg=msgobj.MsgObj.message;
-      try{
-        fileMsg=JSON.parse(msgobj.MsgObj.message);
-      }catch(e){
-        console.log('just talk==================');
-      }
-      if (curEditBox === undefined) {
-        if (fileMsg.file === undefined) {
-          Messenger().post({
-            message: toAccount + '给你发新消息啦！',
-            type: 'info',
-            actions: {
-              close: {
-                label: '取消闪烁',
-                action: function() {
-                  Messenger().hideAll()
-                }
-              },
-              open: {
-                label: '查看',
-                action: function() {
-                  Messenger().hideAll();
-                  var toAccountInfo = {};
-                  toAccountInfo['toAccount'] = toAccount;
-                  toAccountInfo['toIP'] = msgobj.IP;
-                  toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
-                  toAccountInfo['msg'] = fileMsg;
-                  curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
-                  _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
-                }
-              }
-            }
-          });
-        } else {
-          Messenger().post({
-            message: toAccount + '给你发文件\n' + fileMsg.file,
-            type: 'info',
-            actions: {
-              close: {
-                label: '拒绝',
-                action: function() {
-                  Messenger().hideAll();
-                  // _global._imV.img();//////////////////
-                }
-              },
-              open: {
-                label: '接收',
-                action: function() {
-                  Messenger().hideAll();
-                  var toAccountInfo = {};
-                  toAccountInfo['toAccount'] = toAccount;
-                  toAccountInfo['toIP'] = msgobj.IP;
-                  toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
-                  toAccountInfo['msg'] = fileMsg;
-                  curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
-                  _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
-                }
-              }
-            }
-          });
+      _global._imV.RegisterApp(function(recMsg) {
+        var toAccount = recMsg.Msgobj.from;
+        var curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
+        var fileMsg = recMsg.Msgobj.message;
+        try {
+          fileMsg = JSON.parse(recMsg.Msgobj.message);
+        } catch (e) {
+          console.log('just talk==================');
         }
-      } else {
-        curEditBox.showRec(toAccount, fileMsg,curEditBox);
-      }
+        if (curEditBox === undefined) {
+          if (fileMsg.file === undefined) {
+            Messenger().post({
+              message: toAccount + '给你发新消息啦！',
+              type: 'info',
+              actions: {
+                close: {
+                  label: '取消闪烁',
+                  action: function() {
+                    Messenger().hideAll()
+                  }
+                },
+                open: {
+                  label: '查看',
+                  action: function() {
+                    Messenger().hideAll();
+                    var toAccountInfo = {};
+                    toAccountInfo['toAccount'] = toAccount;
+                    toAccountInfo['toIP'] = recMsg.IP;
+                    toAccountInfo['toUID'] = recMsg.msgobj.uuid;
+                    toAccountInfo['msg'] = fileMsg;
+                    curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
+                    _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+                  }
+                }
+              }
+            });
+          } else {
+            Messenger().post({
+              message: toAccount + '给你发文件\n' + fileMsg.file,
+              type: 'info',
+              actions: {
+                close: {
+                  label: '拒绝',
+                  action: function() {
+                    Messenger().hideAll();
+                    // _global._imV.img();//////////////////
+                  }
+                },
+                open: {
+                  label: '接收',
+                  action: function() {
+                    Messenger().hideAll();
+                    var toAccountInfo = {};
+                    toAccountInfo['toAccount'] = toAccount;
+                    toAccountInfo['toIP'] = recMsg.IP;
+                    toAccountInfo['toUID'] = recMsg.MsgObj.uuid;
+                    toAccountInfo['msg'] = fileMsg;
+                    curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
+                    _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+                  }
+                }
+              }
+            });
+          }
+        } else {
+          curEditBox.showRec(toAccount, fileMsg, curEditBox);
+        }
+      }, 'imV');
     });
   }
 });
