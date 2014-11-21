@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-11-20
+/*! ui-lib - v0.0.1 - 2014-11-21
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -271,7 +271,7 @@ jQuery.autocomplete = function(input, options) {
     // get the position of the input field right now (in case the DOM is shifted)
     var pos = findPos(input);
     // either use the specified width, or autocalculate based on form element
-    var iWidth = (options.width > 0) ? options.width : input.offsetWidth;
+    var iWidth = (options.width > 0) ? options.width : $input.width();
     // reposition
     $results.css({
       width: parseInt(iWidth) + "px",
@@ -494,12 +494,12 @@ jQuery.autocomplete = function(input, options) {
   };
 
   function findPos(obj) {
-    var curleft = $(obj).position().left + 2|| 0;
+    var curleft = $(obj).position().left  + (document.defaultView.getComputedStyle(obj,null)['marginLeft'] ? parseInt(document.defaultView.getComputedStyle(obj,null)['marginLeft']) : 0)|| 0;
     var curtop = $(obj).position().top || 0;
-    /*while (obj = obj.offsetParent) {
+    while (obj = obj.offsetParent) {
       curleft += obj.offsetLeft
       curtop += obj.offsetTop
-    }*/
+    }
     return {x:curleft,y:curtop};
   }
 }
