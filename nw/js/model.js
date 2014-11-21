@@ -216,7 +216,7 @@ var DesktopModel = Model.extend({
   },
 
   release: function() {
-    this.save();
+    // this.save();
     for(var key in this._c) {
       this._c[key].release();
     }
@@ -1326,22 +1326,49 @@ var DeviceListModel = Model.extend({
 
   release: function() {
     // TODO: release device monitor server
-    _global._device.removeDeviceListener(this.__handler);
-    _global._device.entryGroupReset();
+    // _global._device.removeDeviceListener(this.__handler);
+    _global._device.deviceDown();
   },
+  
+  // replace with new API
+  /* __handler: function(ev_, dev_) { */
+    // if(dev_ == null) return ;
+    // var _this = _global.get('desktop').getCOMById('device-list'),
+        // id_ = dev_.address + ':' + dev_.port;
+    // switch(ev_) {
+      // case 'ItemNew':
+        // var device = DeviceEntryModel.create(id_, _this, dev_.host, dev_);
+        // _this.add(device);
+        // break;
+      // case 'ItemRemove':
+        // var device = _this.getCOMById(id_);
+        // _this.remove(device);
+        // break;
+    // }
+  /* }, */
 
-  __handler: function(ev_, dev_) {
-    if(dev_ == null) return ;
+  __handler: function(pera_) {
     var _this = _global.get('desktop').getCOMById('device-list'),
-        id_ = dev_.address + ':' + dev_.port;
-    switch(ev_) {
-      case 'ItemNew':
-        var device = DeviceEntryModel.create(id_, _this, dev_.host, dev_);
-        _this.add(device);
+        info = pera_.info,
+        account_id_ = info.txt[1];
+        dev_id_ = info.address + ':' + info.port;
+    switch(pera_.flag) {
+      case 'up':
+        if(!_this.has(account_id_)) {
+          _this.add(AccountEntryModel.create(account_id_, _this, info.txt[0], info));
+        }
+        var ac = _this.getCOMById(account_id_);
+        ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
         break;
-      case 'ItemRemove':
-        var device = _this.getCOMById(id_);
-        _this.remove(device);
+      case 'down':
+        var ac = _this.getCOMById(account_id_);
+        if(ac.size() == 1) {
+          _this.remove(ac);
+        } else {
+          ac.remove(ac.getCOMById(dev_id_));
+        }
+        break;
+      default:
         break;
     }
   },
@@ -1356,44 +1383,78 @@ var DeviceListModel = Model.extend({
       // }
     /* }); */
     var _this = this;
-    _global._device.addDeviceListener(this.__handler);
-    _global._device.createServer(function() {
-      _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
-    });
-    // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.startIMChatServer(function(msgobj) {
-      var toAccount = msgobj.MsgObj.from;
-      var curEditBox = _this._imChatWinList['imChatWin_'+toAccount];
-      if(curEditBox===undefined){
-        Messenger().post({
-          message: toAccount + '给你发新消息啦！',
-          type: 'info',
-          actions: {
-            close: {
-              label: '取消闪烁',
-              action: function() {
-                Messenger().hideAll()
-              }
-            },
-            open: {
-              label: '查看',
-              action: function() {
-                Messenger().hideAll();
-                var toAccountInfo = {};
-                toAccountInfo['toAccount'] = toAccount;
-                toAccountInfo['toIP'] = msgobj.IP;
-                toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
-                toAccountInfo['msg'] = msgobj.MsgObj.message;
-                curEditBox = EditBox.create(toAccountInfo,_this._imChatWinList);
-                _this._imChatWinList['imChatWin_'+toAccount] = curEditBox;
-              }
-            }
-          }
-        });
-      } else {
-        curEditBox.showRec(toAccount,msgobj.MsgObj.message);
+    _global._device.addListener(this.__handler);
+    _global._device.startMdnsService(function(state_) {
+      if(state_) {
+        console.log('start MDNS Service success');
       }
     });
+    // replace with new API
+    /* _global._device.addDeviceListener(this.__handler); */
+    // _global._device.createServer(function() {
+      // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
+    /* }); */
+
+    // TODO: for IM, emit 'message' event when recive a message
+    /* _global._imV.startIMChatServer(function(msgobj) { */
+      // var toAccount = msgobj.MsgObj.from;
+      // var curEditBox = _this._imChatWinList['imChatWin_'+toAccount];
+      // if(curEditBox===undefined){
+        // Messenger().post({
+          // message: toAccount + '给你发新消息啦！',
+          // type: 'info',
+          // actions: {
+            // close: {
+              // label: '取消闪烁',
+              // action: function() {
+                // Messenger().hideAll()
+              // }
+            // },
+            // open: {
+              // label: '查看',
+              // action: function() {
+                // Messenger().hideAll();
+                // var toAccountInfo = {};
+                // toAccountInfo['toAccount'] = toAccount;
+                // toAccountInfo['toIP'] = msgobj.IP;
+                // toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
+                // toAccountInfo['msg'] = msgobj.MsgObj.message;
+                // curEditBox = EditBox.create(toAccountInfo,_this._imChatWinList);
+                // _this._imChatWinList['imChatWin_'+toAccount] = curEditBox;
+              // }
+            // }
+          // }
+        // });
+      // } else {
+        // curEditBox.showRec(toAccount,msgobj.MsgObj.message);
+      // }
+    /* }); */
+  }
+});
+
+var AccountEntryModel = EntryModel.extend({
+  // @id_ is address:port
+  // @path_ is name
+  // @position_ is whole info object
+  init: function(id_, parent_, path_, position_, callback_) {
+    this.callSuper(id_, parent_, path_, position_);
+    this._name = path_;
+    this._offline = false;
+    this._type = 'account';
+    this._imgPath = 'img/user.png';
+    this.realInit(callback_);
+  },
+
+  realInit: function(cb_) {
+    var cb = cb_ || function() {};
+    // TODO: get icon from cache or fs, and call cb at last
+    cb(null);
+  },
+
+  open: function() {
+  },
+
+  copyTo: function() {
   }
 });
 
@@ -1636,16 +1697,24 @@ var WidgetManager = Model.extend({
     var _lastSave = [],
         desktop = _global.get('desktop');
     for(var key in conf_.dentry) {
-      _lastSave[conf_.dentry[key].id] = {
-        path: conf_.dentry[key].path,
-        x: conf_.dentry[key].position.x,
-        y: conf_.dentry[key].position.y,
-        type: conf_.dentry[key].type,
-        idx: conf_.dentry[key].idx
+      // change the load strategy
+      /* _lastSave[conf_.dentry[key].id] = { */
+        // path: conf_.dentry[key].path,
+        // x: conf_.dentry[key].position.x,
+        // y: conf_.dentry[key].position.y,
+        // type: conf_.dentry[key].type,
+        // idx: conf_.dentry[key].idx
+      /* } */
+      var model;
+      try {
+        model = launcher.get(conf_.dentry[key].id);
+      } catch(e) {
+        model = launcher.createAModel(conf_.dentry[key], conf_.dentry[key].type);
       }
+      this.add(model);
     }
-    _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()   
-        , desktop._desktopWatch, this._parent);   
+    /* _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()    */
+        /* , desktop._desktopWatch, this._parent);    */
   },
 
   save: function(conf_) {
@@ -1950,9 +2019,12 @@ var LayoutManager = Model.extend({
         desktop.setLayoutType('grid');
         for(var i = 0; i < conf_.num; ++i) {
           var grid = GridModel.create('grid-' + i, this._parent, WidgetManager);
-          this.add(grid);
+          this.add(grid, true);
           grid.load(conf_.widget[i]);
         }
+        var layout = desktop.getCOMById('layout');
+        layout.setMain(conf_.main);
+        layout.setCur(conf_.main);
         break;
       default:
         break;
@@ -1977,15 +2049,16 @@ var LayoutManager = Model.extend({
         }
       }
       conf_.num = this._c.length;
+      conf_.main = desktop.getCOMById('layout').getMain();
     }
     for(var i = 0; i < conf_.num; ++i) {
       this._c[i].save(conf_.widget[i]);
     }
   },
 
-  add: function(layout_) {
+  add: function(layout_, init_) {
     this._c.push(layout_);
-    this.emit('add', null, layout_);
+    this.emit('add', null, layout_, init_);
   },
 
   remove: function(idx_) {
@@ -1997,13 +2070,14 @@ var FlipperModel = LayoutModel.extend({
   init: function(id_, parent_, Manager_) {
     this.callSuper(id_, parent_, Manager_, 'flipper');
     this._cur = -1;
+    this._main = 0;
   },
 
   getCur: function() {return this._cur;},
 
   setCur: function(cur_) {
     if(cur_ >= this._wm._c.length || cur_ == this._cur) return ;
-    if(this._cur != -1 && this._cur != cur_)
+    if(/* this._cur != -1 &&  */this._cur != cur_)
       this.emit('cur', null, this._cur, cur_);
     this._cur = cur_;
   },
@@ -2025,6 +2099,12 @@ var FlipperModel = LayoutModel.extend({
       if(layouts[i] == layout_)
         return i;
     }
+  },
+
+  getMain: function() {return this._main;},
+
+  setMain: function(main_) {
+    this._main = main_;
   }
 });
 

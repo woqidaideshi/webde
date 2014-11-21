@@ -316,7 +316,7 @@ var Global = Class.extend({
           //TODO: change the nodejs'API to ourselves
           _this._fs = require('fs');
           _this._exec = require('child_process').exec;
-          WDC.requireAPI(['device', 'imView', 'data'], function(dev, imV, data) {
+          WDC.requireAPI(['device_service', 'IM', 'data'], function(dev, imV, data) {
             _this._device = dev;
             _this._imV = imV;
             _this._dataOP = data;

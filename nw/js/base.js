@@ -107,6 +107,7 @@ var Model = Event.extend({
     this._id = id_;
     this._parent = parent_;
     this._c = []; // model container
+    this._size = 0;
     // this._obList = [];
   },
 
@@ -124,6 +125,7 @@ var Model = Event.extend({
     }
     this._c[component_.getID()] = component_;
     this.emit('add', null, component_);
+    ++this._size;
     return true;
   },
 
@@ -136,6 +138,7 @@ var Model = Event.extend({
     this.emit('remove', null, component_);
     this._c[component_.getID()] = null;
     delete this._c[component_.getID()];
+    --this._size;
     return true;
   },
 
@@ -159,7 +162,9 @@ var Model = Event.extend({
 
   has: function(cID_) {
     return ((typeof this.getCOMById(cID_) === 'undefined') ? false : true);
-  }
+  },
+
+  size: function() {return this._size;}
 
   // addObserver: function(observer_) {
     // this._obList[observer_._id] = observer_;

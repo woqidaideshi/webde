@@ -667,8 +667,9 @@ var GridView = WidgetView.extend({
     $col.remove();
   },
 
-  show: function($parent) {
+  show: function($parent, init_) {
     $parent.append(this.$view);
+    if(init_) this.$view.css('display', 'none');
     var _this = this;
     if(this._needSelector) {
       this._selector = Selector.create(this, '#' + this._id, {
@@ -1583,7 +1584,7 @@ var DeviceListView = View.extend({
       'id': this._id
     }).append($('<p>', {
       'class': 'title'
-    }).text('Online Devices').on('mouseenter', function(e) {
+    }).text('Online Users').on('mouseenter', function(e) {
       e.stopPropagation();
     }).on('mouseleave', function(e) {
       e.stopPropagation();
@@ -1601,7 +1602,7 @@ var DeviceListView = View.extend({
           console.log(err_);
           return ;
         }
-        _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_, _this);
+        _this._c[dev_.getID()] = AccountEntryView.create(dev_.getID(), dev_, _this);
         _this._c[dev_.getID()].show(_this.$view);
       },
       'remove': function(err_, dev_){
@@ -1657,6 +1658,94 @@ var DeviceListView = View.extend({
   show: function($parent) {
     $parent.append(this.$view);
     this._left = this.$view.position().left;
+  }
+});
+
+var AccountEntryView = View.extend({
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>').append($('<div>', {
+      'class': 'icon',
+      'id': this._id
+    }).html(
+      "<img draggable='false' src='" + this._model.getImgPath() + "'/>" + 
+      "<p>" + this._model.getName() + "</p>"
+    ).css({
+      'color': '#FFF',
+    })).append($('<div>', {
+      'class': 'acc-devlist'
+    }));
+    this.initAction();
+    this._controller = EntryController.create(this);
+    this._devListShown = false;
+    this._c = [];
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this.__handlers = {
+      'add': function(err_, dev_) {
+        if(err_) return console.log(err_);
+        // TODO: add a dev entry under this account
+        _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_, _this);
+        _this._c[dev_.getID()].show(_this.$view.find('.acc-devlist'));
+      },
+      'remove': function(err_, dev_) {
+        if(err_) return console.log(err_);
+        // TODO: remove a dev entry from this account
+        _this._c[dev_.getID()].destroy();
+        _this._c[dev_.getID()] = null;
+        delete _this._c[dev_.getID()];
+      },
+      'name': function(err_, name_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.$view.children('p').text(name_);
+        // $('#' + _this._id + ' p').text(name_);
+      },
+      'imgPath': function(err_, imgPath_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.$view.children('img').attr('src', imgPath_);
+      }
+    };
+    for(var key in _this.__handlers) {
+      this._model.on(key, _this.__handlers[key]);
+    }
+  },
+
+  initAction: function() {
+    var _this = this;
+    _this.$view.find('#' + _this._id).on('click', function(e) {
+      e.stopPropagation();
+      _this.toggleDevList();
+    });
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+  },
+
+  hide: function() {
+    this.$view.remove();
+  },
+
+  toggleDevList: function() {
+    var _this = this;
+    if(!this._devListShown) {
+      this.$view.find('.acc-devlist').show('blind', {}, 500, function() {
+        _this._devListShown = true;
+      });
+    } else {
+      this.$view.find('.acc-devlist').hide('blind', {}, 500, function() {
+        _this._devListShown = false;
+      });
+    }
   }
 });
 
@@ -2670,16 +2759,17 @@ var FlipperView = View.extend({
   registObservers: function() {
     var _this = this;
     _this.__handlers = {
-      'add': function(err_, widget_) {
+      'add': function(err_, widget_, init_) {
         if(err_) {
           console.log(err_);
           return ;
         }
+        var init = init_ || false;
         switch(widget_.getType()) {
           case 'grid':
             var l = _this._c.push(GridView.create('grid-view', widget_, _this));
-            _this._c[l - 1].show(_this.$view);
-            _this.addASwitcher(_this._c[l - 1].getView());
+            _this._c[l - 1].show(_this.$view, init);
+            _this.addASwitcher(_this._c[l - 1].getView(), init);
             break;
           default:
             break;
@@ -2703,9 +2793,16 @@ var FlipperView = View.extend({
           console.log(err_);
           return ;
         }
-        _this._switchMotion[_this._curMotion](_this._c[from_].getView()
-            , _this._c[to_].getView()
-            , from_ - to_);
+        if(from_ == -1) {
+          _this._c[to_].getView().show();
+          var ss = _this.$view.find('.view-switcher');
+          $(ss[ss.length - 1]).removeClass('showing');
+          $(ss[to_]).addClass('showing');
+        } else {
+          _this._switchMotion[_this._curMotion](_this._c[from_].getView()
+              , _this._c[to_].getView()
+              , from_ - to_);
+        }
       }
     };
     for(var key in _this.__handlers) {
@@ -2887,7 +2984,7 @@ var FlipperView = View.extend({
     }
   },
 
-  addASwitcher: function($view) {
+  addASwitcher: function($view, init_) {
     var _this = this,
         $switcher = $('<div>', {
           'class': 'view-switcher showing'
@@ -2905,7 +3002,7 @@ var FlipperView = View.extend({
         });
     _this.$view.find('.showing').removeClass('showing');
     _this.$view.find('.icon-plus-squared').before($switcher);
-    _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
+    if(!init_) _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
   },
 
   removeASwitcher: function(idx_) {
