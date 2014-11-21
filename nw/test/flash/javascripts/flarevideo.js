@@ -353,7 +353,11 @@ FlareVideo.fn.setupNative = function(){
   this.videoElement.dblclick($.proxy(function(){
     this.toggleFullScreen();
   }, this));
-    
+  
+  this.videoElement.click($.proxy(function(){
+    if(this.video.paused) this.video.play();
+    else this.video.pause();
+  }, this));
   this.triggerReady();
 };
 
