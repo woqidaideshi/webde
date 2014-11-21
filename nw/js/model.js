@@ -2121,11 +2121,24 @@ var LoginModel = Model.extend({
 
   doLogin: function(account_, password_) {
     // TODO: call API to login
-    console.log(account_, password_);
     var _this = this;
-    _this._to = setTimeout(function() {
-      _this.setCurState(true);
-    }, 3000);
+    _global._account.accountLogin(function(ret_) {
+      if(ret_.type == 'error') return console.log('login error:', ret_.msg);
+      if(ret_.state == 1) {
+        _this.setCurState(true);
+      } else {
+        _this.emit('login-state', null, false, ret_.msg);
+      }
+    }, {
+      'account': account_,
+      'passwd': password_
+    });
+    // replace with real API
+    /* console.log(account_, password_); */
+    // var _this = this;
+    // _this._to = setTimeout(function() {
+      // _this.setCurState(true);
+    /* }, 3000); */
   },
 
   cancelLogin: function() {
@@ -2142,9 +2155,22 @@ var LoginModel = Model.extend({
     console.log(account_, password_);
     // TODO: call API to regist
     var _this = this;
-    _this._to = setTimeout(function() {
-      _this.emit('regist', null, false, '重复的用户名');
-    }, 3000);
+    _global._account.accountRegister(function(ret_) {
+      if(ret_.type == 'error') return console.log('register error:', ret_.msg);
+      if(ret_.state == 1) {
+        // register successfully
+        _this.emit('regist', null, true);
+      } else {
+        _this.emit('regist', null, false, ret_.msg);
+      }
+    }, {
+      'account': account_,
+      'passwd': password_
+    });
+    // replace with real API
+    /* _this._to = setTimeout(function() { */
+      // _this.emit('regist', null, false, '重复的用户名');
+    /* }, 3000); */
   },
 
   getCurState: function() {return this._login;},

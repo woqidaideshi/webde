@@ -1724,6 +1724,32 @@ var AccountEntryView = View.extend({
     _this.$view.find('#' + _this._id).on('click', function(e) {
       e.stopPropagation();
       _this.toggleDevList();
+    }).on('mouseenter', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }).on('mouseleave', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }).on('dragenter', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      if(!_this._devListShown) {
+        _this.toggleDevList();
+      }
+    }).on('dragleave', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }).on('dragover', function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      ev.originalEvent.dataTransfer.dropEffect = 'copy';
+    }).on('drop', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this._controller.onDrop(e, _this._parent._parent._c['layout']._selector.getSelectedItems());
+    }).dblclick(function(e) {
+      e.stopPropagation();
+      _this._controller.onDblclick();
     });
   },
 
@@ -1811,7 +1837,8 @@ var DevEntryView = View.extend({
     }).on('drop', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this._controller.onDrop(e, _this._parent._parent._c['layout']._selector.getSelectedItems());
+      _this._controller.onDrop(e
+        , _this._parent._parent._parent._c['layout']._selector.getSelectedItems());
     }).dblclick(function(e) {
       e.stopPropagation();
       _this._controller.onDblclick();
@@ -3105,7 +3132,10 @@ var LoginView = View.extend({
     }).html(
       '密码： ' +
       '<input type="password" name="password">'
-    ))).append($('<div>', {
+    )).append($('<div>', {
+      'class': 'content-row',
+      'id': 'msg1'
+    }))).append($('<div>', {
       'class': 'login-btn-bar'
     }).html(
       '<button class="btn active" id="btn-regist">注册>>></button>' +
@@ -3161,13 +3191,18 @@ var LoginView = View.extend({
         }
         _this.show(state_);
       },
-      'login-state': function(err_, state_) {
+      'login-state': function(err_, state_, msg_) {
         if(err_) {
           console.log(err_);
           return ;
         }
         // _this.toggleLogin(false);
-        $('#' + _this._id + '-window').remove();
+        if(state_) {
+          $('#' + _this._id + '-window').remove();
+        } else {
+          _this.toggleLogin(false);
+          _this.$loginView.find('#msg1').html('登陆失败：' + msg_);
+        }
         // _this._win.closeWindow(_this._win);
       },
       'regist': function(err_, success_, reason_) {
@@ -3255,6 +3290,7 @@ var LoginView = View.extend({
         $waiting = view.$loginView.find('.login-waiting'),
         $account = view.$loginView.find('input[name="account"]'),
         $password = view.$loginView.find('input[name="password"]'),
+        $msg1 = view.$loginView.find('#msg1'),
         $regist = view.$loginView.find('#btn-regist'),
         $login = view.$loginView.find('#btn-login'),
         $cancel = view.$loginView.find('#btn-cancel');
@@ -3262,6 +3298,7 @@ var LoginView = View.extend({
       $content.fadeOut(function() {
         $waiting.fadeIn();
       });
+      $msg1.html('');
       $regist.hide();
       $login.hide(function() {
         $cancel.show().one('click', function(e) {
