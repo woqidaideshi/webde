@@ -12,10 +12,10 @@ categories: ui
 <code>
 var _listview = ListView.create("_listview_id", {'width':200});  //创建下拉菜单，指定id和宽度
 var items = [{id:"first_item", type:"item", href:"", img:"img/t1.png", text:"first", clkaction:function(){ alert('first')}}, 
-                     {id:"second_item", type:"item", href:"http://www.baidu.com", img:"img/t2.png", text:"second"},
-                     {id:"third_subitem", type:"subitems", img:"img/t3.png", text:"third", subitems:[
-                       {id:"four_item", href:"http://www.baidu.com", img:"img/empty.gif", text:"four"},
-                       {id:"five_item", href:"", img:"img/sunset.jpg", text:"fifth", dblclkaction: function(){alert('why......')}}
+                    {id:"second_item", type:"item", href:"http://www.baidu.com", img:"img/t2.png", text:"second"},
+                    {id:"third_subitem", type:"subitems", img:"img/t3.png", text:"third", subitems:[
+                      {id:"four_item", href:"http://www.baidu.com", img:"img/empty.gif", text:"four"},
+                      {id:"five_item", href:"", img:"img/sunset.jpg", text:"fifth", dblclkaction: function(){alert('why......')}}
                      ]}];  //下拉菜单的内容
 _listview.addItems(items);  //添加到下拉菜单
 _listview.attach('parent_id');  //在某个元素下添加下拉菜单
@@ -54,9 +54,9 @@ _listview.attach('parent_id');  //在某个元素下添加下拉菜单
       _listview.addItem(item, $('#third_subitem').find('ul'));
   3. addSubItems用于动态添加子条目
        var subitem = {img:"img/t3.png", text:"seven", subitems:[
-                            {href:"http://www.baidu.com", img:"img/empty.gif", text:"eight", clkaction: function(){alert('what.....')}},
-                            {href:"", img:"img/empty.gif", text:"nine", action: function(){alert('why......')}}
-                          ]};
+                                 {href:"http://www.baidu.com", img:"img/empty.gif", text:"eight", clkaction: function(){alert('what.....')}},
+                                 {href:"", img:"img/empty.gif", text:"nine", action: function(){alert('why......')}}
+                               ]};
        _listview.addSubItems(subitem);
    4. remove删除条目和子条目
        _listview.remove('first_item'); //删除条目
