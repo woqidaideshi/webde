@@ -1385,11 +1385,17 @@ var DeviceListModel = Model.extend({
     var _this = this;
     _global._device.addListener(this.__handler);
     _global._device.startMdnsService(function(state_) {
-        if (state_) {
-          console.log('start MDNS Service success');
-        }
+      if(state_) {
+        console.log('start MDNS Service success');
+      }
+    });
+    // replace with new API
+    /* _global._device.addDeviceListener(this.__handler); */
+    // _global._device.createServer(function() {
+      // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
+    /* }); */
     // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.StartIMService(function(done) {
+    /*_global._imV.StartIMService(function(done) {
       if(!done)
         return;
       _global._imV.RegisterApp(function(recMsg) {
@@ -1459,48 +1465,7 @@ var DeviceListModel = Model.extend({
         } else {
           curEditBox.showRec(toAccount, fileMsg, curEditBox);
         }
-      }, 'imV');
-    });
-    // replace with new API
-    /* _global._device.addDeviceListener(this.__handler); */
-    // _global._device.createServer(function() {
-      // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
-    /* }); */
-
-    // TODO: for IM, emit 'message' event when recive a message
-    /* _global._imV.startIMChatServer(function(msgobj) { */
-      // var toAccount = msgobj.MsgObj.from;
-      // var curEditBox = _this._imChatWinList['imChatWin_'+toAccount];
-      // if(curEditBox===undefined){
-        // Messenger().post({
-          // message: toAccount + '给你发新消息啦！',
-          // type: 'info',
-          // actions: {
-            // close: {
-              // label: '取消闪烁',
-              // action: function() {
-                // Messenger().hideAll()
-              // }
-            // },
-            // open: {
-              // label: '查看',
-              // action: function() {
-                // Messenger().hideAll();
-                // var toAccountInfo = {};
-                // toAccountInfo['toAccount'] = toAccount;
-                // toAccountInfo['toIP'] = msgobj.IP;
-                // toAccountInfo['toUID'] = msgobj.MsgObj.uuid;
-                // toAccountInfo['msg'] = msgobj.MsgObj.message;
-                // curEditBox = EditBox.create(toAccountInfo,_this._imChatWinList);
-                // _this._imChatWinList['imChatWin_'+toAccount] = curEditBox;
-              // }
-            // }
-          // }
-        // });
-      // } else {
-        // curEditBox.showRec(toAccount,msgobj.MsgObj.message);
-      // }
-    /* }); */
+      }, 'imV');*/
   }
 });
 
