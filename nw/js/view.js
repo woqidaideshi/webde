@@ -347,7 +347,7 @@ var DesktopView = View.extend({
 
   initAction: function() {
     var _this = this;
-    $(window).on('unload', function() {
+    $(window).on('beforeunload', function() {
       _this._model.release();
     });
 
@@ -667,8 +667,9 @@ var GridView = WidgetView.extend({
     $col.remove();
   },
 
-  show: function($parent) {
+  show: function($parent, init_) {
     $parent.append(this.$view);
+    if(init_) this.$view.css('display', 'none');
     var _this = this;
     if(this._needSelector) {
       this._selector = Selector.create(this, '#' + this._id, {
@@ -1583,7 +1584,7 @@ var DeviceListView = View.extend({
       'id': this._id
     }).append($('<p>', {
       'class': 'title'
-    }).text('Online Devices').on('mouseenter', function(e) {
+    }).text('Online Users').on('mouseenter', function(e) {
       e.stopPropagation();
     }).on('mouseleave', function(e) {
       e.stopPropagation();
@@ -1601,7 +1602,7 @@ var DeviceListView = View.extend({
           console.log(err_);
           return ;
         }
-        _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_, _this);
+        _this._c[dev_.getID()] = AccountEntryView.create(dev_.getID(), dev_, _this);
         _this._c[dev_.getID()].show(_this.$view);
       },
       'remove': function(err_, dev_){
@@ -1657,6 +1658,120 @@ var DeviceListView = View.extend({
   show: function($parent) {
     $parent.append(this.$view);
     this._left = this.$view.position().left;
+  }
+});
+
+var AccountEntryView = View.extend({
+  init: function(id_, model_, parent_) {
+    this.callSuper(id_, model_, parent_);
+    this.registObservers();
+    this.$view = $('<div>').append($('<div>', {
+      'class': 'icon',
+      'id': this._id
+    }).html(
+      "<img draggable='false' src='" + this._model.getImgPath() + "'/>" + 
+      "<p>" + this._model.getName() + "</p>"
+    ).css({
+      'color': '#FFF',
+    })).append($('<div>', {
+      'class': 'acc-devlist'
+    }));
+    this.initAction();
+    this._controller = EntryController.create(this);
+    this._devListShown = false;
+    this._c = [];
+  },
+
+  registObservers: function() {
+    var _this = this;
+    _this.__handlers = {
+      'add': function(err_, dev_) {
+        if(err_) return console.log(err_);
+        // TODO: add a dev entry under this account
+        _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_, _this);
+        _this._c[dev_.getID()].show(_this.$view.find('.acc-devlist'));
+      },
+      'remove': function(err_, dev_) {
+        if(err_) return console.log(err_);
+        // TODO: remove a dev entry from this account
+        _this._c[dev_.getID()].destroy();
+        _this._c[dev_.getID()] = null;
+        delete _this._c[dev_.getID()];
+      },
+      'name': function(err_, name_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.$view.children('p').text(name_);
+        // $('#' + _this._id + ' p').text(name_);
+      },
+      'imgPath': function(err_, imgPath_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        _this.$view.children('img').attr('src', imgPath_);
+      }
+    };
+    for(var key in _this.__handlers) {
+      this._model.on(key, _this.__handlers[key]);
+    }
+  },
+
+  initAction: function() {
+    var _this = this;
+    _this.$view.find('#' + _this._id).on('click', function(e) {
+      e.stopPropagation();
+      _this.toggleDevList();
+    }).on('mouseenter', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }).on('mouseleave', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }).on('dragenter', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      if(!_this._devListShown) {
+        _this.toggleDevList();
+      }
+    }).on('dragleave', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }).on('dragover', function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      ev.originalEvent.dataTransfer.dropEffect = 'copy';
+    }).on('drop', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      _this._controller.onDrop(e, _this._parent._parent._c['layout']._selector.getSelectedItems());
+    }).dblclick(function(e) {
+      e.stopPropagation();
+      _this._controller.onDblclick();
+    });
+  },
+
+  show: function($parent) {
+    $parent.append(this.$view);
+  },
+
+  hide: function() {
+    this.$view.remove();
+  },
+
+  toggleDevList: function() {
+    var _this = this;
+    if(!this._devListShown) {
+      this.$view.find('.acc-devlist').show('blind', {}, 500, function() {
+        _this._devListShown = true;
+      });
+    } else {
+      this.$view.find('.acc-devlist').hide('blind', {}, 500, function() {
+        _this._devListShown = false;
+      });
+    }
   }
 });
 
@@ -1722,7 +1837,8 @@ var DevEntryView = View.extend({
     }).on('drop', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this._controller.onDrop(e, _this._parent._parent._c['layout']._selector.getSelectedItems());
+      _this._controller.onDrop(e
+        , _this._parent._parent._parent._c['layout']._selector.getSelectedItems());
     }).dblclick(function(e) {
       e.stopPropagation();
       _this._controller.onDblclick();
@@ -2037,18 +2153,19 @@ var DockEntryView = View.extend({
     if(n_idx == -1) {
       $parent.append(this.$view);
       this._model.setIdx(divList.length);
-      return ;
-    }
-    for(var i = 0; i < divList.length; ++i) {
-      var model = this._parent._c[divList[i].id]._model,
-          o_idx = model.getIdx();
-      if(n_idx == o_idx && !inserted) {
-        $(divList[i]).before(this.$view);
-        inserted = true;
+    } else {
+      for(var i = 0; i < divList.length; ++i) {
+        var model = this._parent._c[divList[i].id]._model,
+            o_idx = model.getIdx();
+        if(n_idx <= o_idx && !inserted) {
+          $(divList[i]).before(this.$view);
+          inserted = true;
+          if(n_idx < o_idx) break;
+        }
+        if(inserted) model.setIdx(i + 1);
       }
-      if(inserted) model.setIdx(i + 1);
+      if(!inserted) $parent.append(this.$view);
     }
-    if(!inserted) $parent.append(this.$view);
     
     return this;
   },
@@ -2669,16 +2786,17 @@ var FlipperView = View.extend({
   registObservers: function() {
     var _this = this;
     _this.__handlers = {
-      'add': function(err_, widget_) {
+      'add': function(err_, widget_, init_) {
         if(err_) {
           console.log(err_);
           return ;
         }
+        var init = init_ || false;
         switch(widget_.getType()) {
           case 'grid':
             var l = _this._c.push(GridView.create('grid-view', widget_, _this));
-            _this._c[l - 1].show(_this.$view);
-            _this.addASwitcher(_this._c[l - 1].getView());
+            _this._c[l - 1].show(_this.$view, init);
+            _this.addASwitcher(_this._c[l - 1].getView(), init);
             break;
           default:
             break;
@@ -2702,9 +2820,16 @@ var FlipperView = View.extend({
           console.log(err_);
           return ;
         }
-        _this._switchMotion[_this._curMotion](_this._c[from_].getView()
-            , _this._c[to_].getView()
-            , from_ - to_);
+        if(from_ == -1) {
+          _this._c[to_].getView().show();
+          var ss = _this.$view.find('.view-switcher');
+          $(ss[ss.length - 1]).removeClass('showing');
+          $(ss[to_]).addClass('showing');
+        } else {
+          _this._switchMotion[_this._curMotion](_this._c[from_].getView()
+              , _this._c[to_].getView()
+              , from_ - to_);
+        }
       }
     };
     for(var key in _this.__handlers) {
@@ -2886,7 +3011,7 @@ var FlipperView = View.extend({
     }
   },
 
-  addASwitcher: function($view) {
+  addASwitcher: function($view, init_) {
     var _this = this,
         $switcher = $('<div>', {
           'class': 'view-switcher showing'
@@ -2904,7 +3029,7 @@ var FlipperView = View.extend({
         });
     _this.$view.find('.showing').removeClass('showing');
     _this.$view.find('.icon-plus-squared').before($switcher);
-    _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
+    if(!init_) _this._model.setCur(_this.$view.find('.view-switcher').length - 1);
   },
 
   removeASwitcher: function(idx_) {
@@ -3147,7 +3272,10 @@ var LoginView = View.extend({
     }).html(
       '密码： ' +
       '<input type="password" name="password">'
-    ))).append($('<div>', {
+    )).append($('<div>', {
+      'class': 'content-row',
+      'id': 'msg1'
+    }))).append($('<div>', {
       'class': 'login-btn-bar'
     }).html(
       '<button class="btn active" id="btn-regist">注册>>></button>' +
@@ -3203,13 +3331,18 @@ var LoginView = View.extend({
         }
         _this.show(state_);
       },
-      'login-state': function(err_, state_) {
+      'login-state': function(err_, state_, msg_) {
         if(err_) {
           console.log(err_);
           return ;
         }
         // _this.toggleLogin(false);
-        $('#' + _this._id + '-window').remove();
+        if(state_) {
+          $('#' + _this._id + '-window').remove();
+        } else {
+          _this.toggleLogin(false);
+          _this.$loginView.find('#msg1').html('登陆失败：' + msg_);
+        }
         // _this._win.closeWindow(_this._win);
       },
       'regist': function(err_, success_, reason_) {
@@ -3297,6 +3430,7 @@ var LoginView = View.extend({
         $waiting = view.$loginView.find('.login-waiting'),
         $account = view.$loginView.find('input[name="account"]'),
         $password = view.$loginView.find('input[name="password"]'),
+        $msg1 = view.$loginView.find('#msg1'),
         $regist = view.$loginView.find('#btn-regist'),
         $login = view.$loginView.find('#btn-login'),
         $cancel = view.$loginView.find('#btn-cancel');
@@ -3304,6 +3438,7 @@ var LoginView = View.extend({
       $content.fadeOut(function() {
         $waiting.fadeIn();
       });
+      $msg1.html('');
       $regist.hide();
       $login.hide(function() {
         $cancel.show().one('click', function(e) {

@@ -316,12 +316,14 @@ var Global = Class.extend({
           //TODO: change the nodejs'API to ourselves
           _this._fs = require('fs');
           _this._exec = require('child_process').exec;
-          WDC.requireAPI(['device', 'IM', 'data'], function(dev, imV, data) {
-            _this._device = dev;
-            _this._imV = imV;
-            _this._dataOP = data;
-            cb_(null);
-          });
+          WDC.requireAPI(['device_service', 'IM', 'data'/* , 'account' */]
+            , function(dev, imV, data/* , acc */) {
+              _this._device = dev;
+              _this._imV = imV;
+              _this._dataOP = data;
+              // _this._account = acc;
+              cb_(null);
+            });
         }
       },
       {
@@ -451,6 +453,7 @@ var EntryUtil = Event.extend({
                     _model = AppEntryModel.create(_id
                       , container_
                       , lastSave_[_id].path
+                      , lastSave_[_id].idx
                       , {x: lastSave_[_id].x, y: lastSave_[_id].y});
                     desktop.getCOMById('launcher').set(_model);
                   }

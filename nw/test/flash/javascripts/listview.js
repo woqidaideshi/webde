@@ -31,7 +31,7 @@ var ListView = Class.extend({
     else{
       $item.append('<a href="' + data.href + '"></a>');
     }
-    if (typeof data.img !== 'undefined' && data.img !== ''){
+    if (data.img !== 'undefined' && data.img !== ''){
       $item.find('a').append('<img src="' + data.img + '" />');
     }
     $item.find('a').append(data.text);
@@ -110,8 +110,8 @@ var ListView = Class.extend({
     $('#' + id).remove();
   },
 
-  attach: function(id){
-    $('#' + id).append(this._listview);
+  attach: function($obj_){
+    $obj_.append(this._listview);
     this._listview.show();
   },
 

@@ -36,7 +36,8 @@ var FlipperController = Controller.extend({
     var desktop = _global.get('desktop');
     switch(desktop.getLayoutType()) {
       case 'grid':
-        this._model.add(GridModel.create('grid', this._model, WidgetManager));
+        this._model.add(GridModel.create('grid-' + this._model.getNum()
+            , this._model, WidgetManager));
         break;
       default:
         break;
@@ -102,7 +103,8 @@ var EntryController = WidgetController.extend({
       if(tarArr[i] != null)
         tarIdArr.push(tarArr[i].getID());
     }
-    if(ev.ctrlKey || this._model.getType() == 'dev' || this._model.getType() == 'app') {
+    if(ev.ctrlKey || this._model.getType() == 'dev' || this._model.getType() == 'app'
+        || this._model.getType() == 'account') {
       cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo
           , ev.originalEvent.dataTransfer, tarIdArr);
     } else {
