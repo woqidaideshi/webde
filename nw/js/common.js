@@ -971,7 +971,7 @@ var WindowManager = Model.extend({
 
   focusOnAWindow: function(wID_) {
     for(var key in this._c) {
-      if(wID == key) {
+      if(wID_ == key) {
         this._c[key].focus();
         // TODO: change the sequence of windows in _s
       } else {

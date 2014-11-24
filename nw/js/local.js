@@ -50,6 +50,12 @@ var FlipperController = Controller.extend({
 var GridController = WidgetController.extend({
   init: function(view_) {
     this.callSuper(view_);
+  },
+
+  onAddFile: function(path_, inode_) {
+    var desktop = _global.get('desktop'),
+        entry = FileEntryModel('id-' + inode_, this._model, path_, desktop._position);
+    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
   }
 });
 
@@ -117,6 +123,14 @@ var EntryController = WidgetController.extend({
   onDblclick: function() {
     var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open);
     _global.get('theCP').perform(cmd);
+  },
+
+  onEntryDelete: function() {
+    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec'
+          , this._model.unlinkFromDesktop));
+  },
+
+  onFileDelete: function() {
   }
 });
 
@@ -147,6 +161,11 @@ var DockEntryController = EntryController.extend({
 
   onClick: function() {
     this.onDblclick();
+  },
+
+  onEntryDelete: function() {
+    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec'
+          , this._model.unlinkFromDock));
   }
 });
 

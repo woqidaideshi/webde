@@ -126,16 +126,34 @@ var DesktopView = View.extend({
           width: 700,
           fadeSpeed: 500,
           animate: false
+        }, function() {
+          this.getID = function() {return this._id;};
+          _global._openingWindows.add(this);
+          var _this = this;
+          this.bindCloseButton(function() {
+            _global._openingWindows.remove(_this);
+          });
+        }).onfocus(function() {
+          _global._openingWindows.focusOnAWindow(this._id);
         });
       }},
       {text: 'window2', action: function() {
-        Window.create('newWin','Test Window2!', {
+        Window.create('newWin2','Test Window2!', {
           left:400,
           top:300,
           height: 500,
           width: 800,
           fadeSpeed: 500,
           animate: true
+        }, function() {
+          this.getID = function() {return this._id;};
+          _global._openingWindows.add(this);
+          var _this = this;
+          this.bindCloseButton(function() {
+            _global._openingWindows.remove(_this);
+          });
+        }).onfocus(function() {
+          _global._openingWindows.focusOnAWindow(this._id);
         });
       }},
       {text: 'app-plugin', icon: 'icon-plus', subMenu: [
@@ -253,8 +271,9 @@ var DesktopView = View.extend({
       }},
       {text:'delete' , icon: 'icon-cancel-circled2', action:function(e){
         e.preventDefault();
-        var _path = desktop._widgets[ctxMenu._rightObjId]._path;
-        utilIns.entryUtil.removeFile(_path);
+        /* var _path = desktop._widgets[ctxMenu._rightObjId]._path; */
+        /* utilIns.entryUtil.removeFile(_path); */
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onEntryDelete();
       }},
       {text:'property',action:function(e){
         e.preventDefault();
@@ -775,7 +794,11 @@ var GridView = WidgetView.extend({
       for(var i = 0; i < _files.length; ++i) {
         var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
         if(_files[i].path == dst) continue;
-        _global._fs.rename(_files[i].path, dst, function() {});
+        // _global._fs.rename(_files[i].path, dst, function() {});
+        _global._dataOP.moveToDesktopSingle(function(err_, ret_) {
+          if(err_) return console.log(err_);
+          this._controller.onAddFile(ret[0], ret[1]);
+        }, _files[i].path);
       }
       return ;
     }
@@ -1140,6 +1163,7 @@ var DEntryView = WidgetView.extend({
     var ctxMenu = _global.get('ctxMenu'),
         type = this._model.getType();
     if(type != 'app' && type != 'theme' && type != 'inside-app') type = 'file';
+    else if(type == 'inside-app') type = 'app';
     ctxMenu.attachToMenu('#' + this.getID()
         , ctxMenu.getMenuByHeader(type + '-entry')
         , function(id_) {ctxMenu._rightObjId = id_;});
@@ -1293,6 +1317,9 @@ var LauncherView = View.extend({
           var _this = this;
           this.bindCloseButton(function() {
             _global._openingWindows.remove(_this);
+          });
+          this.onfocus(function() {
+            _global._openingWindows.focusOnAWindow(this._id);
           });
         })/* .appendHtml(model_.getPath() + '/index.html') */; 
       },
@@ -1949,6 +1976,9 @@ var DockView = View.extend({
       }},
       {text: 'remove reflect', action: function() {
         _this.removeReflect();
+      }},
+      {text: 'delete', action: function() {
+        _this._c[ctxMenu._rightObjId]._controller.onEntryDelete();
       }}
     ]);
   },
@@ -2779,7 +2809,7 @@ var FlipperView = View.extend({
     this._tabIdx = -1;
     this._needSelector = needSelector_ || false;
     this._controller = FlipperController.create(this);
-    this._curMotion = 'normal';
+    this._curMotion = 'fold';
     this._main = 0;
   },
 
@@ -3061,7 +3091,17 @@ var FlipperView = View.extend({
 var EditBox = Class.extend({
   init: function( toAccountInfo_,imChatWinList_) {
     var toAccount = toAccountInfo_.toAccount;
-    var imWindow = Window.create('imChat_' + toAccount, toAccount);
+    var imWindow = Window.create('imChat_' + toAccount, toAccount, function() {
+      this.getID = function() {return this._id;};
+      _global._openingWindows.add(this);
+      this.onfocus(function() {
+        _global._openingWindows.focusOnAWindow(this._id);
+      });
+      var _this = this;
+      this.bindCloseButton(function() {
+        _global._openingWindows.remove(_this);
+      });
+    });
     var toIP;
     var toUID;
     var localAccount ;
@@ -3279,6 +3319,16 @@ var LoginView = View.extend({
       fadeSpeed: 500,
       animate: false,
       hide: false
+    }, function() {
+      this.getID = function() {return this._id;};
+      _global._openingWindows.add(this);
+      this.onfocus(function() {
+        _global._openingWindows.focusOnAWindow(this._id);
+      });
+      var _this = this;
+      this.bindCloseButton(function() {
+        _global._openingWindows.remove(_this);
+      });
     }).append($view);
     $view.parent().css('position', 'initial');
     this.initAction(width);

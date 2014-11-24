@@ -371,7 +371,7 @@ var DesktopModel = Model.extend({
       var /* _path = _desktop._desktopWatch.getBaseDir() + '/' + filename, */
           _layout = _desktop.getCOMById('layout').getAllWidgets();
       for(var i = 0; i < _layout.length; ++i) {
-        var _entry = _layout[i].getWidgetByAttr('_filename', filename);
+        var _entry = _layout[i].getWidgetByAttr('_filename', filename.match(/[^\/]*$/));
         if(_entry == null) {
           console.log('Can not find this widget');
           continue;
@@ -555,7 +555,7 @@ var DockModel = Model.extend({
     this._dockWatch.on('delete', function(filename) {
       //console.log('delete:', filename);
       // var _path = _this._dockWatch.getBaseDir() + '/' + filename;
-      var _dockApp = _this.getCOMByAttr('_filename', filename);
+      var _dockApp = _this.getCOMByAttr('_filename', filename.match(/[^\/]*$/));
       if(_dockApp == null) {
         console.log('Can not find this widget');
         return ;
@@ -836,6 +836,14 @@ var InsideAppEntryModel = EntryModel.extend({
 
   unlinkFromDock: function() {
     _global.get('desktop').getCOMById('dock').remove(this);
+  },
+
+  rename: function(name_) {
+    if(name_ != this._name) {
+      // TODO: rename a app entry
+      //    send new name to Data Layer and rename this entry
+      this.setName(name_);
+    }
   }
 })
 
@@ -1010,7 +1018,7 @@ var AppEntryModel = EntryModel.extend({
   },
 
   unlinkFromDock: function() {
-    _global._dataOP.linkAppToDesktop(function() {}, '/desktop/' + this._filename);
+    _global._dataOP.unlinkApp(function() {}, '/dock/' + this._filename);
   }
 });
 
@@ -1327,6 +1335,7 @@ var DeviceListModel = Model.extend({
   release: function() {
     // TODO: release device monitor server
     // _global._device.removeDeviceListener(this.__handler);
+    _global._device.removeListener(this._hID);
     _global._device.deviceDown();
   },
   
@@ -1350,12 +1359,13 @@ var DeviceListModel = Model.extend({
   __handler: function(pera_) {
     var _this = _global.get('desktop').getCOMById('device-list'),
         info = pera_.info,
-        account_id_ = info.txt[1];
+        len = info.txt.length,
+        account_id_ = info.txt[len - 1];
         dev_id_ = info.address + ':' + info.port;
     switch(pera_.flag) {
       case 'up':
         if(!_this.has(account_id_)) {
-          _this.add(AccountEntryModel.create(account_id_, _this, info.txt[0], info));
+          _this.add(AccountEntryModel.create(account_id_, _this, info.txt[len - 2], info));
         }
         var ac = _this.getCOMById(account_id_);
         ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
@@ -1383,7 +1393,7 @@ var DeviceListModel = Model.extend({
       // }
     /* }); */
     var _this = this;
-    _global._device.addListener(this.__handler);
+    _this._hID = _global._device.addListener(this.__handler);
     _global._device.startMdnsService(function(state_) {
       if(state_) {
         console.log('start MDNS Service success');
@@ -1443,6 +1453,7 @@ var AccountEntryModel = EntryModel.extend({
     this._type = 'account';
     this._imgPath = 'img/user.png';
     this.realInit(callback_);
+    this._imChatWinList = {}; 
   },
 
   realInit: function(cb_) {
@@ -1484,7 +1495,7 @@ var DeviceEntryModel = EntryModel.extend({
     toAccountInfo['toAccount'] = this._position['txt'][5];;
     toAccountInfo['toIP'] = this._position['txt'][4];
     toAccountInfo['toUID'] = this._position['txt'][1];
-    var curEditBox = EditBox.create( toAccountInfo,this._parent._imChatWinList);
+    var curEditBox = EditBox.create(toAccountInfo, this._parent._imChatWinList);
     this._parent._imChatWinList['imChatWin_'+toAccount] = curEditBox;
   },
 
