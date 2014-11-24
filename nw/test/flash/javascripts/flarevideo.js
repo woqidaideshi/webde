@@ -88,6 +88,8 @@ var FlareVideo = function(parent, options){
   } else {
     this.setupFlash();
   }
+
+  this.setupMune();
   
   this.ready($.proxy(function(){
     this.setupEvents();
@@ -441,6 +443,73 @@ FlareVideo.eiTriggerReady = function(id) {
     console.error(e);
   }
 };
+
+FlareVideo.fn.setupMune = function(){
+   var _this = this;
+   this._ctxMenu = ContextMenu.create();
+    this._ctxMenu.addCtxMenu([
+    {header: 'video'},
+    { text: 'Play',
+      icon: 'icon-play',
+      action: function() {
+        if (_this.video.paused) {
+          _this.video.play();
+        };
+      }
+    },
+    {text: 'Pause',
+      icon: 'icon-pause',
+      action: function() {
+        _this.video.pause();
+      }
+    },
+    { text: 'Loop play',
+      icon: 'icon-repeat',
+      action: function() {
+        _this.video.loop = true;
+      }
+    },
+    { text: 'Order play',
+      icon: 'icon-reorder',
+      action: function() {
+        _this.video.loop = false;
+      }
+    }
+    ]);
+    _this._ctxMenu.attachToMenu('video'
+      , _this._ctxMenu.getMenuByHeader('video')
+      ,function() {
+        _this.setMenu(_this);
+      });
+};
+
+FlareVideo.fn.setMenu =function(this_){
+    var _this = this_;
+    if (_this.video.paused) {
+      _this._ctxMenu.activeItem('video','Play',function(){
+        if (_this.video.paused) {
+          _this.video.play();
+        };
+      });
+      _this._ctxMenu.disableItem('video','Pause');
+    } else {
+      _this._ctxMenu.disableItem('video','Play');
+      _this._ctxMenu.activeItem('video','Pause',function(){
+        _this.video.pause();
+      });
+    }
+    if (_this.video.loop) {
+      _this._ctxMenu.activeItem('video','Order play',function(){
+      _this.video.loop = false;
+      });
+      _this._ctxMenu.disableItem('video','Loop play');
+    } else {
+      _this._ctxMenu.activeItem('video','Loop play',function(){
+        _this.video.loop = true;
+      });
+      _this._ctxMenu.disableItem('video','Order play');
+    }
+  }
 
 FlareVideo.fn.setupButtons = function(){
   var play = $("<div />");
