@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-11-21
+/*! ui-lib - v0.0.1 - 2014-11-24
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -1395,13 +1395,13 @@ var ListView = Class.extend({
     if (typeof data.id !== 'undefined'){
       $item.attr('id', data.id);
     }
-    if (data.href === 'undefined' || data.href === ''){
+    if (typeof data.href === 'undefined' || data.href === ''){
       $item.append('<a href="#"></a>');
     }
     else{
       $item.append('<a href="' + data.href + '"></a>');
     }
-    if (data.img !== 'undefined' && data.img !== ''){
+    if (typeof data.img !== 'undefined' && data.img !== ''){
       $item.find('a').append('<img src="' + data.img + '" />');
     }
     $item.find('a').append(data.text);
@@ -3737,6 +3737,7 @@ var Window = Class.extend({
     this._saveWinContentCss = '';
     this._focusCallback = undefined;    //获取聚焦时的回调函数
     this._INDEX = 100;
+    this._interval = undefined;
 
     this._window = $('<div>',{
       'id': this._id,
@@ -4099,6 +4100,9 @@ var Window = Class.extend({
    */
   closeWindow:function(windowObj_){
     var _this = windowObj_;
+    if (_this._interval) {
+      clearInterval(_this._interval);
+    }
     if (_this._options.animate) {
       _this._window.fadeOut(_this._options.fadeSpeed,function(){
         _this._window.remove();
@@ -4209,8 +4213,22 @@ var Window = Class.extend({
    * @return {[type]}      [description]
    */
   appendHtml:function(src_){
+    var _this = this ;
+    function iframeClick(){
+      _this._windowContent.contents().find("body")[0].onclick = function(){
+        _this.focus();
+        if (_this._options._focusCallback) {
+          _this._options._focusCallback.call(_this);
+        };
+      }
+    }
     if(this._options.iframe){
+      this._windowContent[0].onload = function(){
+        _this._interval = setInterval(iframeClick,1);
+      }
       this._windowContent[0].src = src_;
+    }else {
+      return 0;
     }
   },
   /**
