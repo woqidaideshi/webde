@@ -3056,7 +3056,7 @@ var FlipperView = View.extend({
   getSelectableItems: function() {
     return this._c[this._model.getCur()].getSelectableItems();
   }
-});
+});/*
 var UEditBox = Class.extend({
   init: function(toAccountInfo_, imChatWinList_) {
     var toAccount = toAccountInfo_.toAccount;
@@ -3078,8 +3078,8 @@ var UEditBox = Class.extend({
     <div class="imChat_btnDiv"> \
     <button type="button" class="imCloseBtn" id="close_button_' + toAccount + '">关闭</button> \
     <button type="button" class="imSendBtn" id="send_button_' + toAccount + '">发送</button></div></div>\
-    <div class="imRightDiv" id="memList">\
-    <div class="chat03">\
+    <div class="imRightDiv">\
+    <div class="chat03" id="memList">\
                     <div class="chat03_title">\
                         <label class="chat03_title_t">\
                             成员列表</label>\
@@ -3095,6 +3095,24 @@ var UEditBox = Class.extend({
                         </ul>\
                     </div>\
                 </div>\
+
+             <div class="chat03" id="fileTransShow"  style="display:none">\
+                    <div class="chat03_title">\
+                        <label class="chat03_title_t">\
+                            正在传输文件...</label>\
+                    </div>\
+                    <div class="chat03_content">\
+                        <ul>\
+                            <li>\
+                                <label class="online">\
+                                </label>\
+                                <a href="javascript:;">\
+                                    <img src="img/2016.jpg"></a><a href="javascript:;" class="chat03_name">刘秀</a>\
+                            </li>\
+                        </ul>\
+                    </div>\
+                </div>\
+
             </div>');
     this.imWindow.append(this.$view);
     var um = UE.getEditor('myEditor_' + toAccount, {
@@ -3136,6 +3154,7 @@ var UEditBox = Class.extend({
         a.initEvent("click", true, false);
         document.getElementById("file_" + toAccount).dispatchEvent(a);
       }
+  
       $('#file_' + toAccount).on('change',function(){
         var fileUp=$('#file_' + toAccount);
         fileUp.after(fileUp.clone().val('')); 
@@ -3143,6 +3162,7 @@ var UEditBox = Class.extend({
         var val = fileUp.val(); 
         if (val !== '' && val !== undefined && val !== null) {
           function sendIMFileCb() {
+            $('#').style.display='block';
           }
           if (localAccount === undefined) {
             _global._imV.getLocalData(function(localData) {
@@ -3252,7 +3272,7 @@ var UEditBox = Class.extend({
     }
   }
 });
-
+*/
 var LoginView = View.extend({
   init: function(id_, model_, parent_) {
     this.callSuper(id_, model_, parent_);
