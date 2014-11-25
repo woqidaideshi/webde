@@ -88,8 +88,6 @@ var FlareVideo = function(parent, options){
   } else {
     this.setupFlash();
   }
-
-  this.setupMune();
   
   this.ready($.proxy(function(){
     this.setupEvents();
@@ -345,12 +343,6 @@ FlareVideo.fn.setupNative = function(){
   this.video.setCurrentTime = function(val){ this.currentTime = val; }
   this.video.getVolume      = function(){ return this.volume; };
   this.video.setVolume      = function(val){ this.volume = val; };
-  /*this.video.enterFullScreen = function(){ 
-    // Because we don't know when full screen is exited
-    self.inFullScreen = false;
-    this.webkitEnterFullScreen(); 
-  };
-  this.video.exitFullScreen  = function(){ this.webkitExitFullScreen(); };*/
   
   this.videoElement.dblclick($.proxy(function(){
     this.toggleFullScreen();
@@ -444,73 +436,6 @@ FlareVideo.eiTriggerReady = function(id) {
   }
 };
 
-FlareVideo.fn.setupMune = function(){
-   var _this = this;
-   this._ctxMenu = ContextMenu.create();
-    this._ctxMenu.addCtxMenu([
-    {header: 'video'},
-    { text: 'Play',
-      icon: 'icon-play',
-      action: function() {
-        if (_this.video.paused) {
-          _this.video.play();
-        };
-      }
-    },
-    {text: 'Pause',
-      icon: 'icon-pause',
-      action: function() {
-        _this.video.pause();
-      }
-    },
-    { text: 'Loop play',
-      icon: 'icon-repeat',
-      action: function() {
-        _this.video.loop = true;
-      }
-    },
-    { text: 'Order play',
-      icon: 'icon-reorder',
-      action: function() {
-        _this.video.loop = false;
-      }
-    }
-    ]);
-    _this._ctxMenu.attachToMenu('video'
-      , _this._ctxMenu.getMenuByHeader('video')
-      ,function() {
-        _this.setMenu(_this);
-      });
-};
-
-FlareVideo.fn.setMenu =function(this_){
-    var _this = this_;
-    if (_this.video.paused) {
-      _this._ctxMenu.activeItem('video','Play',function(){
-        if (_this.video.paused) {
-          _this.video.play();
-        };
-      });
-      _this._ctxMenu.disableItem('video','Pause');
-    } else {
-      _this._ctxMenu.disableItem('video','Play');
-      _this._ctxMenu.activeItem('video','Pause',function(){
-        _this.video.pause();
-      });
-    }
-    if (_this.video.loop) {
-      _this._ctxMenu.activeItem('video','Order play',function(){
-      _this.video.loop = false;
-      });
-      _this._ctxMenu.disableItem('video','Loop play');
-    } else {
-      _this._ctxMenu.activeItem('video','Loop play',function(){
-        _this.video.loop = true;
-      });
-      _this._ctxMenu.disableItem('video','Order play');
-    }
-  }
-
 FlareVideo.fn.setupButtons = function(){
   var play = $("<div />");
   play.addClass("play");
@@ -530,11 +455,22 @@ FlareVideo.fn.setupButtons = function(){
   }, this));
   this.controls.append(pause);
 
-  var fullScreen = $("<div />");
+  var fullScreen = $("<div> <a class='icon-resize-full'></a><a class='icon-repeat'></a></div>");
   fullScreen.addClass("fullScreen");
-  fullScreen.text("Full Screen");
-  fullScreen.click($.proxy(this.toggleFullScreen, this));
-  if (!this.options.useFullScreen) fullScreen.addClass("disabled");
+  //fullScreen.text("Full Screen");
+  $(fullScreen.children('a')[0]).click($.proxy(this.toggleFullScreen, this));
+  var _loop = $(fullScreen.children('a')[1]);
+  _loop.click($.proxy(function(){
+    if(!this.video.loop){
+      this.video.loop = true;
+      _loop.removeClass('icon-repeat');
+      _loop.addClass('icon-list');
+    }else {
+      this.video.loop = false;
+      _loop.removeClass('icon-list');
+      _loop.addClass('icon-repeat');
+    }
+  },this));
   this.controls.append(fullScreen);
 };
 

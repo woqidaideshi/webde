@@ -15,10 +15,10 @@ var PlayList = Class.extend({
       this._playList = list_;
     }
     this._bkgDiv = $('<div>', {
-      'class': "post__toc-trigger"
+      'class': "playList-trigger"
     });
     this._listviewContent = $('<div>',{
-      'class' : 'post__toc'
+      'class' : 'playList'
     });
     this._bkgDiv.append(this._listviewContent);
     if (this._options.search) {
@@ -35,7 +35,7 @@ var PlayList = Class.extend({
     this._listview = ListView.create('playlist');
     this._listview.attach(this._listviewContent);
     this._bottom = $('<div>',{
-      'class' : 'post__toc-bottom'
+      'class' : 'playList-bottom'
     });
     this._listviewContent.append(this._bottom);
     $('body').append(this._bkgDiv);
@@ -43,7 +43,7 @@ var PlayList = Class.extend({
 
   addTitle:function(obj_){
     var _span = $('<span>',{
-      'class' : 'post__toc-title'
+      'class' : 'playList-title'
     });
     this._listviewContent.append(_span);
     if (typeof obj_ === 'string') {
