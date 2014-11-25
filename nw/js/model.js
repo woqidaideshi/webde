@@ -770,7 +770,24 @@ var EntryModel = WidgetModel.extend({
 
   copyTo: function() {},
 
-  open: function() {}
+  open: function() {},
+
+  getTag: function() {return this._tag;},
+
+  setTag: function(tag_) {
+    this._tag = tag_;
+    // TODO: call the demo-rio's API
+  },
+
+  toJSON: function() {
+    return {
+      'id': this._id,
+      'path': this._path,
+      'type': this._type,
+      'position': this._position,
+      'idx': this._idx
+    };
+  }
 });
 
 // The model for inside app
@@ -874,6 +891,9 @@ var AppEntryModel = EntryModel.extend({
       }
       var file_ = appFile_['[Desktop Entry]'];
       // get launch commad
+      if(typeof file_['Exec'] === 'undefined') {
+        return ;
+      }
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
       // get icon
@@ -1105,65 +1125,111 @@ var FileEntryModel = EntryModel.extend({
   }
 });
 
-var DirEntryModel = FileEntryModel.extend({
+var DirEntryModel = EntryModel.extend({
   init: function(id_, parent_, path_, position_, callback_) {
     this.callSuper(id_, parent_, path_, position_);
     this._type = 'dir';
+    this.setImgPath('img/folder.png');
+    this.setName(path_.match(/[^\/]*$/)[0]);
+    if(typeof callback_ !== 'undefined') callback_.call(this);
   },
 
-  // TODO: copy file to this dir
-  copyTo: function() {},
+  add: function(model_) {
+    this._c[model_.getID()] = {
+      'path': model_.getPath()
+    };
+    if(model_.getType() == 'dir')
+      this._c[model_.getID()].list = model_.getList();
+  },
 
-  // TODO: move file to this dir
-  moveTo: function(clip_, entryIds_) {
+  getList: function() {return this._c;},
+
+  setList: function(list_) {
+    this._c = list_;
+  },
+
+  // send a signal to show models belong to
+  open: function() {
+    this.emit('open', null, this.getAllCOMs());
+    console.log(this.toJSON());
+  },
+
+  // copy files or entrys to this dir
+  copyTo: function(clip_, entryIds_) {
     // handle file move
     if(clip_.files.length != 0) {
       for(var i = 0; i < clip_.files.length; ++i) {
         if(clip_.files[i].path == this._path) continue;
-        var filename = clip_.files[i].path.match(/[^\/]*$/)[0];
-        // TODO: replace this API
-        _global._fs.rename(clip_.files[i].path, this._path + '/' + filename, function(err) {
-          if(err) {
-            console.log(err);
-          }
+        var filename = clip_.files[i].path.match(/[^\/]*$/)[0],
+            _this = this;
+        // replace this API
+        _global._dataOP.moveToDesktopSingle(clip_.files[i].path, function(err_, ret_) {
+          if(err_) return console.log(err_);
+          _this.add(FileEntryModel.create(ret_[1], _this, ret_[0], undefined
+              , function() {
+                this.setTag(_this._path.replace(/\//g, '$'));
+              }));
         });
+        /* _global._fs.rename(clip_.files[i].path, this._path + '/' + filename, function(err) { */
+          // if(err) {
+            // console.log(err);
+          // }
+        /* }); */
       }
-      return ;
+      return true;
     }
     // handle entry move
     if(entryIds_.length == 0)
       entryIds_.push(clip_.getData('ID'));
     for(var i = 0; i < entryIds_.length; ++i) {
       var desktop = _global.get('desktop'),
-          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]),
-          type = item.getType(),
-          srcP = null;
-      if(entryIds_[i] == this._id/*  || typeof item === 'undefined' */) return ;
-      if(item.getType() == 'app') {
-        srcP = desktop._desktopWatch.getBaseDir() + '/' + item.getFilename();
+          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
+      if(entryIds_[i] == this._id || typeof item === 'undefined' ) continue;
+      item.setTag(this._path.replace(/\//g, '$'));
+      this.add(item);
+    }
+    return true;
+  },
+
+  // move files or entrys to this dir
+  //      remove models to be moved from old parents and add to this dir model
+  moveTo: function(clip_, entryIds_) {
+    this.copyTo(clip_, entryIds_);
+    // handle entry move
+    if(entryIds_.length == 0)
+      entryIds_.push(clip_.getData('ID'));
+    for(var i = 0; i < entryIds_.length; ++i) {
+      var desktop = _global.get('desktop'),
+          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
+      if(entryIds_[i] == this._id || typeof item === 'undefined' ) continue;
+      var type = item.getType();
+      if(type == 'app' || type == 'inside-app') {
+        item.unlinkFromDesktop();
       } else {
-        srcP = item.getPath();
+        item.getParent().remove(item);
       }
-      // TODO: replace this API
-      _global._fs.rename(srcP, this._path + '/' + item.getFilename(), function(err) {
-        if(err) {
-          console.log(err);
-        }
-      });
     }
   },
 
   rename: function(name_) {
     if(name_ != this._name) {
       this.setName(name_);
-      var _match = /(.*[\/])([^\/].*)$/.exec(this._path),
-          oldPath = this._path;
+      var _match = /(.*[\/])([^\/].*)$/.exec(this._path)/* , */
+          /* oldPath = this._path */;
       this.setPath(_match[1] + this._name);
+      // for now, the dir just a logistic entry
       this._filename = name_;
-      _global._fs.rename(oldPath, this._path, function(err) {
-        if(err) console.log(err);
-      });
+      // TODO: change tags of files saving in this directory
+      /* _global._fs.rename(oldPath, this._path, function(err) { */
+        // if(err) console.log(err);
+      /* }); */
     }
+  },
+
+  toJSON: function() {
+    var ret = this.callSuper();
+    ret.list = this.getList();
+    return ret;
   }
 });
 
@@ -1717,10 +1783,23 @@ var WidgetManager = Model.extend({
         // idx: conf_.dentry[key].idx
       /* } */
       var model;
-      try {
-        model = launcher.get(conf_.dentry[key].id);
-      } catch(e) {
-        model = launcher.createAModel(conf_.dentry[key], conf_.dentry[key].type);
+      switch(conf_.dentry[key].type) {
+        case 'app':
+          try {
+            model = launcher.get(conf_.dentry[key].id);
+          } catch(e) {
+            model = launcher.createAModel(conf_.dentry[key], conf_.dentry[key].type);
+          }
+          break;
+        case 'dir':
+          model = DirEntryModel.create(conf_.dentry[key].id, this, conf_.dentry[key].path
+              , conf_.dentry[key].position, function() {
+                this.setList(conf_.dentry[key].list);
+              });
+          break;
+        default:
+          // TODO: handle File entry model
+          break;
       }
       this.add(model);
     }
@@ -1778,13 +1857,7 @@ var WidgetManager = Model.extend({
         continue;
       } else {
         // save dentrys
-        dentry[id] = {
-          'id': id,
-          'path': models[key].getPath(),
-          'type': type,
-          'position': models[key].getPosition(),
-          'idx': models[key].getIdx()
-        };
+        dentry[id] = models[key].toJSON();
       }
     }
     conf_.insideApp = insideApp;

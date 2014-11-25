@@ -54,7 +54,16 @@ var GridController = WidgetController.extend({
 
   onAddFile: function(path_, inode_) {
     var desktop = _global.get('desktop'),
-        entry = FileEntryModel('id-' + inode_, this._model, path_, desktop._position);
+        entry = FileEntryModel.create('id-' + inode_, this._model, path_, desktop._position);
+    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
+  },
+
+  onAddFolder: function(path_, id_, list_) {
+    var desktop = _global.get('desktop'),
+        l = list_ || [],
+        entry = DirEntryModel.create(id_, this._model, path_, desktop._position, function() {
+          this.setList(l);
+        });
     _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
   },
 

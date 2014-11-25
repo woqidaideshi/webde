@@ -61,33 +61,46 @@ var DesktopView = View.extend({
 
   initCtxMenu: function() {
     var desktop = this._model,
-        ctxMenu = _global.get('ctxMenu');
+        ctxMenu = _global.get('ctxMenu'),
+        _this = this;
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
       {text: 'create Dir', icon: 'icon-folder-1', action: function(e) {
         e.preventDefault();
+        var layout = desktop.getCOMById('layout').getCurLayout();
         for (var i = 0; ; i++) {
-          if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) {
-            continue;
-          } else {
-            _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
-            return;
-          }
+          /* if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { */
+            // continue;
+          // } else {
+            // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
+            // return;
+          /* } */
+          // replace with logistic directory
+          if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
+          var d = new Date();
+          _this._c['layout'].getCurView()._controller.onAddFolder('/desktop/New Folder ' + i
+            , 'folder' + d.getTime());
+          break; 
         }
       }},
       {text: 'create Text', icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
-        for (var i = 0; ; i++) {
-          if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
-            continue;
-          } else {
-            _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt', ''
-              , {encoding:'utf8'}, function(err) {
-                if (err) console.log(err);
-              });
-            return;
-          }
-        }
+        /* for (var i = 0; ; i++) { */
+          // if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
+            // continue;
+          // } else {
+            // _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt', ''
+              // , {encoding:'utf8'}, function(err) {
+                // if (err) console.log(err);
+              // });
+            // return;
+          // }
+        /* } */
+        // change to demo-rio's API
+        _global._dataOP.createFileOnDesk(function(err_, ret_) {
+          if(err_) return console.log(err_);
+          _this._c['layout'].getCurView()._controller.onAddFile(ret_[0], ret_[1]);
+        });
       }},
       {text: 'script', subMenu: [
         {header: 'script'}
@@ -809,21 +822,30 @@ var GridView = WidgetView.extend({
     //handle item transfer (not support chinese) 
     var _items = ev.dataTransfer.items;
     if (_items.length != 0 && typeof s_widget == 'undefined') {
-      _items[0].getAsString(function(data){
-        for (var i = 0; ; i++) {
-          if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
-            continue;
-          } else {
-            var iconv = require('iconv-lite');
-            var buf = iconv.encode(data,'ucs2');
-            var str = iconv.decode(buf,'ucs2');
-            _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt'
-              , str, {encoding:'utf8'}, function(err) {
-                if (err) throw err;
-              });
-            return ;
-          }
-        };
+      _items[0].getAsString(function(data) {
+        // using demo-ris's API to create this file
+        var _this = this,
+            iconv = require('iconv-lite'),
+            buf = iconv.encode(data,'ucs2'),
+            str = iconv.decode(buf,'ucs2');
+        _global._dataOP.createFileOnDesk(function(err_, ret_) {
+          if(err_) return console.log(err_);
+          _this._controller.onAddFile(ret[0], ret[1]);
+        });
+        /* for (var i = 0; ; i++) { */
+          // if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
+            // continue;
+          // } else {
+            // var iconv = require('iconv-lite');
+            // var buf = iconv.encode(data,'ucs2');
+            // var str = iconv.decode(buf,'ucs2');
+            // _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt'
+              // , str, {encoding:'utf8'}, function(err) {
+                // if (err) throw err;
+              // });
+            // return ;
+          // }
+        /* }; */
       });
     };
 
