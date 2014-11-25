@@ -56,6 +56,12 @@ var GridController = WidgetController.extend({
     var desktop = _global.get('desktop'),
         entry = FileEntryModel('id-' + inode_, this._model, path_, desktop._position);
     _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
+  },
+
+  onDockAppDrop: function(widget_) {
+    var CP = _global.get('theCP');
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.unlinkFromDock));
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.linkToDesktop));
   }
 });
 
@@ -168,6 +174,18 @@ var DockEntryController = EntryController.extend({
           , this._model.unlinkFromDock));
   }
 });
+
+var DockController = Controller.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onAppDrop: function(widget_) {
+    var CP = _global.get('theCP');
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.unlinkFromDesktop));
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.linkToDock));
+  }
+})
 
 var LoginController = Controller.extend({
   init: function(view_) {

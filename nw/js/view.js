@@ -269,17 +269,18 @@ var DesktopView = View.extend({
         e.stopPropagation();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
-      {text:'delete' , icon: 'icon-cancel-circled2', action:function(e){
+      {text: 'delete', icon: 'icon-cancel-circled2', action: function(e) {
         e.preventDefault();
         /* var _path = desktop._widgets[ctxMenu._rightObjId]._path; */
         /* utilIns.entryUtil.removeFile(_path); */
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onEntryDelete();
       }},
-      {text:'property',action:function(e){
+      {text:'property', action: function(e) {
         e.preventDefault();
-        var _property = Property.create(ctxMenu._rightObjId);
-        _property.showAppProperty();
-        _property.show();
+        var layout = _global.get('desktop').getCOMById('layout').getCurLayout();
+        PropertyView.create(ctxMenu._rightObjId
+          , layout.getWidgetById(ctxMenu._rightObjId)
+          , layout).show();
       }}
     ]);
     ctxMenu.addCtxMenu([
@@ -779,11 +780,13 @@ var GridView = WidgetView.extend({
         alert("The app has been registed in desktop");
         return ;
       }
-      var _name = dockApp.getFilename(),
-          _src = dock._dockWatch.getBaseDir() + '/' + _name,
-          _dst = desktop._desktopWatch.getBaseDir() + '/' + _name;
+      /* var _name = dockApp.getFilename(), */
+          // _src = dock._dockWatch.getBaseDir() + '/' + _name,
+          /* _dst = desktop._desktopWatch.getBaseDir() + '/' + _name; */
       dockApp.setPosition({x: _target_col, y: _target_row});
-      _global._fs.rename(_src, _dst, function() {});
+      // change to link and unlink
+      this._controller.onDockAppDrop(dockApp);
+      // _global._fs.rename(_src, _dst, function() {});
       return ;
     }
 
@@ -806,16 +809,15 @@ var GridView = WidgetView.extend({
     //handle item transfer (not support chinese) 
     var _items = ev.dataTransfer.items;
     if (_items.length != 0 && typeof s_widget == 'undefined') {
-      var _fs = require('fs');
       _items[0].getAsString(function(data){
         for (var i = 0; ; i++) {
-          if(_fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
+          if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
             continue;
           } else {
             var iconv = require('iconv-lite');
             var buf = iconv.encode(data,'ucs2');
             var str = iconv.decode(buf,'ucs2');
-            _fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt'
+            _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt'
               , str, {encoding:'utf8'}, function(err) {
                 if (err) throw err;
               });
@@ -1895,6 +1897,7 @@ var DockView = View.extend({
     this.initAction(this.$view);
     this.initCtxMenu();
     this._c = [];
+    this._controller = DockController.create(this);
   },
 
   registObservers: function() {
@@ -1969,7 +1972,7 @@ var DockView = View.extend({
       {text: 'property', action: function(e) {
         e.preventDefault();
         var id_ = /([\w-_\s\.]+)-dock$/.exec(ctxMenu._rightObjId);
-        PropertyView.create(id_[0], _this._model.getCOMById(id_[1])).show();
+        PropertyView.create(id_[0], _this._model.getCOMById(id_[1]), _this._model).show();
       }},
       {text: 'add reflect', action: function() {
         _this.addReflect();
@@ -2057,25 +2060,29 @@ var DockView = View.extend({
           break ;
         }
       }
-      if(typeof widget !== 'undefined' && widget.getType() == 'app') {
+      if(typeof widget !== 'undefined'
+          && (widget.getType() == 'app' || widget.getType() == 'inside-app')) {
         /* if(typeof dockApp !== 'undefined') { */
           // alert("The App has been registed in dock");
           // return ;
         /* } */
         
-        var _filename = widget.getFilename();
+        // var _filename = widget.getFilename();
         widget.setIdx(idx);
-        _global._fs.rename(desktop._desktopWatch.getBaseDir() + '/' + _filename
-            , dock._dockWatch.getBaseDir() + '/' + _filename
-            , function() {});
+        /* _global._fs.rename(desktop._desktopWatch.getBaseDir() + '/' + _filename */
+            // , dock._dockWatch.getBaseDir() + '/' + _filename
+            /* , function() {}); */
+        // change to unlink and link
+        this._controller.onAppDrop(widget);
       } else if(ev.dataTransfer.files.length != 0) {
-        var _files = ev.dataTransfer.files;
-        for(var i = 0; i < _files.length; ++i) {
-          var dst = dock._dockWatch.getBaseDir() + '/' + _files[i].name;
-          if(_files[i].path == dst) continue;
-          _global._fs.rename(_files[i].path, dst, function() {});
-        }
-        return ;
+        // TODO: what for?
+        /* var _files = ev.dataTransfer.files; */
+        // for(var i = 0; i < _files.length; ++i) {
+          // var dst = dock._dockWatch.getBaseDir() + '/' + _files[i].name;
+          // if(_files[i].path == dst) continue;
+          // _global._fs.rename(_files[i].path, dst, function() {});
+        // }
+        /* return ; */
       }
     }
   }
@@ -2232,8 +2239,9 @@ var DockEntryView = View.extend({
     if(typeof dockApp !== 'undefined') {
       // drag to change a dockApp entry's position in dock
       _source = ((typeof _id[0] === 'undefined') ? $('#' + __id + '-dock') : $('#' + __id));
-    } else if((typeof widget != 'undefined' && widget.getType() == 'app')
-        || ev.dataTransfer.files.length != 0) {
+    } else if((typeof widget != 'undefined'
+        && (widget.getType() == 'app' || widget.getType() == 'inside-app'))
+        /* || ev.dataTransfer.files.length != 0 */) {
       // drag a desktop entry to dock
       if (typeof $('#insert')[0] == 'undefined') {
         _source = $('<div>', {
@@ -2490,9 +2498,10 @@ var PropertyView = View.extend({
         height: box_height,
         left: left_property
       }, 500, function() {
-        if(_this._model.getType() == 'app')
-          _this.setAppProperty();
-        _this.setBasicProperty();
+        var type = _this._model.getType();
+        if(type == 'app' || type == 'inside-app')
+          _this.setAppProperty(type);
+        _this.setBasicProperty(type);
         _this._tab.setShowByTab('basic');
       });
     }
@@ -2502,73 +2511,84 @@ var PropertyView = View.extend({
     this.$view.remove();
   },
 
-  setAppProperty: function() {
-    this.$view.find('.basicinfocontent')
-      .append("<p>▪名称:  <span id='name'>" + this._model.getName() + "</span></p>")
-      .append("<p>▪命令:  <span id='cmd'>" + this._model.getCmd() + "</span></p>")
-      .append("<p>▪描述:  <span id='comment'>" + this._model.getComment() + "</span></p>")
-      .append("<p>▪备注:  <span id='gname'>" + this._model.getGenericName() + "</span></p>")
-      .append("<p>▪位置:  <span id='path'>" + this._model.getPath() + "</span></p>");
+  setAppProperty: function(type_) {
+    if(type_ == 'inside-app') {
+      this.$view.find('.basicinfocontent')
+        .append("<p>▪名称:  <span id='name'>" + this._model.getName() + "</span></p>")
+        .append("<p>▪类型:  <span id='type'>" + type_ + "</span></p>")
+        .append("<p>▪位置:  <span id='path'>" + this._model.getPath() + "</span></p>");
+    } else {
+      this.$view.find('.basicinfocontent')
+        .append("<p>▪名称:  <span id='name'>" + this._model.getName() + "</span></p>")
+        .append("<p>▪命令:  <span id='cmd'>" + this._model.getCmd() + "</span></p>")
+        .append("<p>▪描述:  <span id='comment'>" + this._model.getComment() + "</span></p>")
+        .append("<p>▪备注:  <span id='gname'>" + this._model.getGenericName() + "</span></p>")
+        .append("<p>▪位置:  <span id='path'>" + this._model.getPath() + "</span></p>");
+    }
     this.$view.find('.imgcontent').attr('src', this._model.getImgPath());
   },
 
-  setBasicProperty: function() {
-    var _this = this;
-    //get some basic inform and access inform
-    _global.get('utilIns').entryUtil.getProperty(_this._model.getPath(), function(err_, attr_) {
-      if(typeof attr_ == 'undefined') {
-        console.log('get Property err');
-        return ;
-      }
-      var fileType = null;
-      switch(attr_['access'][0]){
-        case '-': 
-          fileType = '普通文件';
-          break ;
-        case 'd':
-          fileType = '文件夹';
-          break ;
-        case 'b':
-          fileType = '块特殊文件';
-          break;
-        case 'c':
-          fileType = '字符特殊文件';
-          break ;
-        case 'l':
-          fileType = '连接';
-          break ;
-        case 'p':
-          fileType = '命名管道（FIFO）';
-          break ;
-        default:
-          break ;
-      }
-      _this.$view.find('.basicinfocontent')
-        .append("<p><span>▪</span>文件大小:  " + attr_['size'] + "</p>")
-        .append("<p><span>▪</span>文件类型:  " + fileType + "</p>")
-        .append("<p><span>▪</span>访问时间:  " + attr_['access_time'] + "</p>")
-        .append("<p><span>▪</span>修改时间:  " + attr_['modify_time'] + "</p>");
-
-      var power = '',
-          _access = attr_['access'],
-          checkPower = function(power_) {
-            power = '';
-            if (power_[0] == 'r') {power += '读'}
-            if (power_[1] == 'w') {power += '写'};
-            if (power_[2] == 'x') {power += '执行'}
-            else if (power_[2] == 's') {power += '超级执行'};
-            if (power != '') {power += '权限'};
-          };
-      checkPower(_access.substr(1, 3));
-      _this._tab.addDivByTab("<p><span>▪</span>所有者:  " + attr_['uid'] + "</p>",'power');
-      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
-      checkPower(_access.substr(4, 3));
-      _this._tab.addDivByTab("<p><span>▪</span>用户组:  " + attr_['gid'] + "</p>",'power');
-      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
-      checkPower(_access.substr(7, 3));
-      _this._tab.addDivByTab("<p><span>▪</span> 其他:  </p>", 'power');
-      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>", 'power');
-    });
+  setBasicProperty: function(type_) {
+    if(type_ != 'inside-app') {
+      var _this = this;
+      //get some basic inform and access inform
+      _global.get('utilIns').entryUtil.getProperty(_this._model.getPath(), function(err_, attr_) {
+        if(typeof attr_ == 'undefined') {
+          console.log('get Property err');
+          return ;
+        }
+        var fileType = null;
+        switch(attr_['access'][0]){
+          case '-': 
+            fileType = '普通文件';
+            break ;
+          case 'd':
+            fileType = '文件夹';
+            break ;
+          case 'b':
+            fileType = '块特殊文件';
+            break;
+          case 'c':
+            fileType = '字符特殊文件';
+            break ;
+          case 'l':
+            fileType = '连接';
+            break ;
+          case 'p':
+            fileType = '命名管道（FIFO）';
+            break ;
+          default:
+            break ;
+        }
+        _this.$view.find('.basicinfocontent')
+          .append("<p><span>▪</span>文件大小:  " + attr_['size'] + "</p>")
+          .append("<p><span>▪</span>文件类型:  " + fileType + "</p>")
+          .append("<p><span>▪</span>访问时间:  " + attr_['access_time'] + "</p>")
+          .append("<p><span>▪</span>修改时间:  " + attr_['modify_time'] + "</p>");
+        
+        var power = '',
+            _access = attr_['access'],
+            checkPower = function(power_) {
+              power = '';
+              if (power_[0] == 'r') {power += '读'}
+              if (power_[1] == 'w') {power += '写'};
+              if (power_[2] == 'x') {power += '执行'}
+              else if (power_[2] == 's') {power += '超级执行'};
+              if (power != '') {power += '权限'};
+            };
+        checkPower(_access.substr(1, 3));
+        _this._tab.addDivByTab("<p><span>▪</span>所有者:  " + attr_['uid'] + "</p>", 'power');
+        _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " + power + "</p>",'power');
+        checkPower(_access.substr(4, 3));
+        _this._tab.addDivByTab("<p><span>▪</span>用户组:  " + attr_['gid'] + "</p>", 'power');
+        _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " + power + "</p>", 'power');
+        checkPower(_access.substr(7, 3));
+        _this._tab.addDivByTab("<p><span>▪</span> 其他:  </p>", 'power');
+        _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " + power + "</p>", 'power');
+      });
+    } else {
+      this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限: 可执行</p>", 'power');
+    }
   }
 });
 
