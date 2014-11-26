@@ -389,29 +389,29 @@ var DesktopView = View.extend({
         utilIns = _global.get('utilIns');
     ctxMenu.attachToMenu('body', ctxMenu.getMenuByHeader('desktop')
         , function() {
-          // TODO: change to get from launcher
           ctxMenu._rightObjId = undefined;
-          var _DIR = _global.$home + '/.gnome2/nemo-scripts';
-          console.log(_DIR);
-          var _menu = ctxMenu.getMenuByHeader('script');
-          if (typeof _menu !== 'undefined') {
-            var _items = _menu.children('li');
-            for (var i = 0; i < _items.length; i++) {
-            if(!$(_items[i]).hasClass('nav-header'))
-              $(_items[i]).remove();
-            };
-          }
-          _global._fs.readdir(_DIR, function(err_, files_) {
-            for(var i = 0; i < files_.length; i++) {
-              var _names = files_[i].split('.');
-              if(_names[_names.length - 1] == 'desktop') {
-                _global.get('utilIns').entryUtil.getItemFromApp(_DIR + '/' + files_[i]
-                  , function(err_, item_) {
-                    ctxMenu.addItem(_menu, item_);
-                  });
-              };
-            };
-          });
+          // if need, change to get from a file
+          /* var _DIR = _global.$home + '/.gnome2/nemo-scripts'; */
+          // console.log(_DIR);
+          // var _menu = ctxMenu.getMenuByHeader('script');
+          // if (typeof _menu !== 'undefined') {
+            // var _items = _menu.children('li');
+            // for (var i = 0; i < _items.length; i++) {
+            // if(!$(_items[i]).hasClass('nav-header'))
+              // $(_items[i]).remove();
+            // };
+          // }
+          // _global._fs.readdir(_DIR, function(err_, files_) {
+            // for(var i = 0; i < files_.length; i++) {
+              // var _names = files_[i].split('.');
+              // if(_names[_names.length - 1] == 'desktop') {
+                // _global.get('utilIns').entryUtil.getItemFromApp(_DIR + '/' + files_[i]
+                  // , function(err_, item_) {
+                    // ctxMenu.addItem(_menu, item_);
+                  // });
+              // };
+            // };
+          /* }); */
 
           // get layout switch motion
           var motions = _this._c['layout'].getMotions(),
@@ -1186,11 +1186,41 @@ var DEntryView = WidgetView.extend({
 
     var ctxMenu = _global.get('ctxMenu'),
         type = this._model.getType();
-    if(type != 'app' && type != 'theme' && type != 'inside-app') type = 'file';
-    else if(type == 'inside-app') type = 'app';
-    ctxMenu.attachToMenu('#' + this.getID()
-        , ctxMenu.getMenuByHeader(type + '-entry')
-        , function(id_) {ctxMenu._rightObjId = id_;});
+    if(type == 'app' || type == 'theme' || type == 'inside-app'/*  || type == 'dir' */) {
+      if(type == 'inside-app') type = 'app';
+      ctxMenu.attachToMenu('#' + this.getID()
+          , ctxMenu.getMenuByHeader(type + '-entry')
+          , function(id_) {ctxMenu._rightObjId = id_;});
+    } else {
+      ctxMenu.attachToMenu('#' + this.getID()
+          , ctxMenu.getMenuByHeader('file-entry')
+          , function(id_, $menu_) {
+            desktop._rightObjId = id_;
+            var _menu = desktop._ctxMenu.getMenuByHeader('Open with'),
+                layout = desktop.getCOMById('layout').getCurLayout(),
+                model = layout.getWidgetById(ctxMenu._rightObjId),
+                utilIns = _global.get('utilIns');
+            if (typeof _menu !== 'undefined') {
+              var _items = _menu.children('li');
+              for(var i = 1; i < _items.length; i++) {
+                // if(!$(_items[i]).hasClass('nav-header'))
+                  $(_items[i]).remove();
+              }
+            }
+            utilIns.entryUtil.getMimeType(model.getPath(), function(err_, mimeType_) {
+              if(err_)
+                return console.log('getMimeType: ' + err_);
+              var type = mimeType_ || 'text/plain';
+              if(type == '') type = 'text/plain';
+              var types = type.split('/'),
+                  apps = desktop._DEFAULT_APP[types[0]][types[1]] || [];
+              for(var i = 0; i < apps.length; ++i) {
+                var item = getItemFromApp(apps[i]);
+                if(item != null) ctxMenu.addItem(_menu, item);
+              }
+            });
+          });
+    }
   },
 
   show: function() {

@@ -247,7 +247,11 @@ var DesktopModel = Model.extend({
       _global._dataOP.readDesktopConfig(function(err_, ret_) {
         if(err_) return console.log(err_);
         _this._USER_CONFIG = ret_;
-        cb_(null);
+        _global._dataOP.readDesktopConfig(function(err_, ret_) {
+          if(err_) return console.log(err_);
+          _this._DEFAULT_APP = ret_;
+          cb_(null);
+        }, 'defaults.list');
       }, 'Widget.conf');
       /* _global._fs.readFile(_global.$xdg_data_home + "/widget.conf" */
         // , 'utf-8', function(err, data) {
@@ -452,37 +456,19 @@ var DockModel = Model.extend({
         // , _this._dockWatch, _this);
     /* }); */
 
-    var lastSave = [];
+    // var lastSave = [];
     for(var key in conf_) {
-      if(conf_[key].type == 'inside-app') {
-        var model,
-            launcher = _global.get('desktop').getCOMById('launcher');
-        try {
-          model = launcher.get(conf_[key].id);
-        } catch(e) {
-          model = launcher.createAModel(/* { */
-            // '0': conf_.insideApp[key].id,
-            // '1': conf_.insideApp[key].path,
-            // '2': conf_.insideApp[key].iconPath,
-            // '3': conf_.insideApp[key].name,
-            // '4': conf_.insideApp[key].type,
-            // '5': conf_.insideApp[key].idx,
-            // '6': conf_.insideApp[key].position
-          /* } */conf_.insideApp[key], 'inside-app');
-        }
-        this.add(model);
-      } else {
-        lastSave[conf_[key].id] = {
-          path: conf_[key].path,
-          x: conf_[key].position.x,
-          y: conf_[key].position.y,
-          type: conf_[key].type,
-          idx: conf_[key].idx
-        }
+      var model,
+          launcher = _global.get('desktop').getCOMById('launcher');
+      try {
+        model = launcher.get(conf_[key].id);
+      } catch(e) {
+        model = launcher.createAModel(conf_.insideApp[key], conf_[key].type);
       }
+      this.add(model);
     }
-    _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir()
-      , this._dockWatch, this);
+    /* _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir() */
+      /* , this._dockWatch, this); */
   },
 
   save: function() {
@@ -891,14 +877,11 @@ var AppEntryModel = EntryModel.extend({
       }
       var file_ = appFile_['[Desktop Entry]'];
       // get launch commad
-      if(typeof file_['Exec'] === 'undefined') {
-        return ;
-      }
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
       // get icon
       // TODO: change to get icon path from cache
-      utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
+      _global._dataOP.getIconPath(function(err_, imgPath_) {
         if(err_) {
           console.log(err_);
           callback_.call(this, err_);
@@ -907,7 +890,9 @@ var AppEntryModel = EntryModel.extend({
           _this.setImgPath(imgPath_[0]);
           callback_.call(this, null);
         }
-      });
+      }, file_['Icon'], 48);
+      /* utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) { */
+      /* }); */
       // get name
       if(typeof file_['Name[zh_CN]'] !== "undefined") {
         _this.setName(file_['Name[zh_CN]']);
@@ -1056,43 +1041,62 @@ var FileEntryModel = EntryModel.extend({
   realInit: function(callback_) {
     var cb_ = callback_ || function() {};
     var _this = this,
-        utilIns = _global.get('utilIns');
+        utilIns = _global.get('utilIns'),
+        desktop = _global.get('desktop');
     utilIns.entryUtil.getMimeType(_this._path, function(err_, mimeType_) {
       // TODO: try to get icon from cache first
-      utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48
-        , function(err_, imgPath_) {
-          if(err_) {
-            utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) {
-              if(err_) {
-                console.log(err_);
-                return ;
-              }
-              // TODO: try to get icon from cache first
-              // utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
-              _global._dataOP.readDesktopConfig(function(err_, appFile_) {
-                if(err_) {
-                  console.log(err_);
-                  return ;
-                }
-                var file_ = appFile_['[Desktop Entry]'];
-                utilIns.entryUtil.getIconPath(file_['Icon'], 48
-                  , function(err_, imgPath_) {
-                    if(err_) {
-                      console.log(err_);
-                      cb_(err_);
-                      return ;
-                    } else {
-                      _this.setImgPath(imgPath_[0]);
-                      cb_(null);
-                    }
-                });
-              }, appFile_.match('[^\/]*$')[0]);
-            });
+      if(err_) return console.log(err_);
+      var type = mimeType_ || 'text/plain';
+      if(type == '') type = 'text/plain';
+      _global._dataOP.getIconPath(function(err_, imgPath_) {
+        if(err_) {
+          var types = mimeType_.split('/'),
+              apps = desktop._DEFAULT_APP[types[0]][types[1]] || [],
+              launcher = desktop.getCOMById('launcher'),
+              model = launcher.getCOMByAttr(apps[0]);
+          if(model == null) {
+            _global._dataOP.getIconPath(function(err_, imgPath_) {
+              _this.setImgPath(imgPath_[0]);
+            }, 'text-plain', 48);
+            /* utilIns.entryUtil.getIconPath('text-plain', 48, function(err_, imgPath_) { */
+            /* }); */
           } else {
-            _this.setImgPath(imgPath_[0]);
-            cb_(null);
+            _this.setImgPath(model.getImgPath());
           }
-        });
+          /* utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) { */
+            // if(err_) {
+              // console.log(err_);
+              // return ;
+            // }
+            // // TODO: try to get icon from cache first
+            // // utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+            // _global._dataOP.readDesktopConfig(function(err_, appFile_) {
+              // if(err_) {
+                // console.log(err_);
+                // return ;
+              // }
+              // var file_ = appFile_['[Desktop Entry]'];
+              // utilIns.entryUtil.getIconPath(file_['Icon'], 48
+                // , function(err_, imgPath_) {
+                  // if(err_) {
+                    // console.log(err_);
+                    // cb_(err_);
+                    // return ;
+                  // } else {
+                    // _this.setImgPath(imgPath_[0]);
+                    // cb_(null);
+                  // }
+              // });
+            // }, appFile_.match('[^\/]*$')[0]);
+          /* }); */
+        } else {
+          _this.setImgPath(imgPath_[0]);
+          cb_(null);
+        }
+      }, mimeType_.replace('/', '-'), 48);
+      /* utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48 */
+        // , function(err_, imgPath_) {
+        /* }); */
     });
   },
 
@@ -1103,22 +1107,27 @@ var FileEntryModel = EntryModel.extend({
           _this = this;
       this.setPath(_match[1] + name_);
       _match = /(.*)[\.]([^\.].*)$/.exec(name_);
-      this._filename = name_;
-      _global._fs.rename(oldPath, this._path, function(err) {
-        if(err) console.log(err);
-        if(_match != null && _match[2] != _this._type) {
-          _this._type = _match[2];
-          // reparse the file type
-          _this.realInit();
-        }
+      /* _global._fs.rename(oldPath, this._path, function(err) { */
+        // if(err) console.log(err);
+        // if(_match != null && _match[2] != _this._type) {
+          // _this._type = _match[2];
+          // // reparse the file type
+          // _this.realInit();
+        // }
+        // _this._filename = name_;
+        // _this.setName(name_);
+      /* }); */
+      // replace with demo-rio's API
+      _global._dataOP.renameFileOnDesk(function(err_, ret_) {
+        if(err_ || ret_ == 'EXIST') return console.log(err_);
+        _this._filename = name_;
         _this.setName(name_);
-      });
+      }, this.getName(), name_);
     }
   },
 
   open: function() {
     // TODO: replace by API ourselves
-    // _global._exec('xdg-open ' + this._path.replace(/ /g, '\\ ')
     _global._dataOP.shellExec(function(err, stdout, stderr) {
       if(err) console.log(err);
     }, 'xdg-open ' + this._path.replace(/ /g, '\\ '));
@@ -1138,8 +1147,13 @@ var DirEntryModel = EntryModel.extend({
     this._c[model_.getID()] = {
       'path': model_.getPath()
     };
-    if(model_.getType() == 'dir')
+    if(model_.getType() == 'dir') {
+      model_.setPath(this.getPath() + '/' + model_.getName());
+      // TODO: setTag for every file under this folder
       this._c[model_.getID()].list = model_.getList();
+    } else {
+      model_.setTag(this._path.replace(/\//g, '$'));
+    }
   },
 
   getList: function() {return this._c;},
@@ -1165,10 +1179,7 @@ var DirEntryModel = EntryModel.extend({
         // replace this API
         _global._dataOP.moveToDesktopSingle(clip_.files[i].path, function(err_, ret_) {
           if(err_) return console.log(err_);
-          _this.add(FileEntryModel.create(ret_[1], _this, ret_[0], undefined
-              , function() {
-                this.setTag(_this._path.replace(/\//g, '$'));
-              }));
+          _this.add(FileEntryModel.create(ret_[1], _this, ret_[0]));
         });
         /* _global._fs.rename(clip_.files[i].path, this._path + '/' + filename, function(err) { */
           // if(err) {
@@ -1185,7 +1196,7 @@ var DirEntryModel = EntryModel.extend({
       var desktop = _global.get('desktop'),
           item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
       if(entryIds_[i] == this._id || typeof item === 'undefined' ) continue;
-      item.setTag(this._path.replace(/\//g, '$'));
+      // item.setTag(this._path.replace(/\//g, '$'));
       this.add(item);
     }
     return true;
@@ -1245,7 +1256,7 @@ var ThemeEntryModel = EntryModel.extend({
   realInit: function(callback_) {
     var cb = callback_ || function() {},
         _this = this;
-    _global.get('utilIns').entryUtil.getIconPath(_this._iconName, 48, function(err_, iconPath_) {
+    _global._dataOP.getIconPath(function(err_, iconPath_) {
       if(err_) {
         console.log(err_);
         cb(err_);
@@ -1254,7 +1265,9 @@ var ThemeEntryModel = EntryModel.extend({
         _this.setImgPath(iconPath_[0]);
         cb(null);
       }
-    });
+    }, _this._iconName, 48);
+    /* _global.get('utilIns').entryUtil.getIconPath(_this._iconName, 48, function(err_, iconPath_) { */
+    /* }); */
   },
 
   setPosition: function(pos_) {
