@@ -313,9 +313,9 @@ var Global = Class.extend({
     this.Series.series([
       {
         fn: function(pera_, cb_) {
-          //TODO: change the nodejs'API to ourselves
-          _this._fs = require('fs');
-          _this._exec = require('child_process').exec;
+          // replace the nodejs'API with ourselves
+          // _this._fs = require('fs');
+          // _this._exec = require('child_process').exec;
           WDC.requireAPI(['device_service', 'IM', 'data'/* , 'account' */]
             , function(dev, imV, data/* , acc */) {
               _this._device = dev;
@@ -539,7 +539,6 @@ var EntryUtil = Event.extend({
             + ' -regextype \"posix-egrep\" -regex \".*'
              + ((index_ < _this._iconSearchPath.length - 1)
             ? size_ : '') + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
-          // _global._exec(tmp, function(err, stdout, stderr) {
           _global._dataOP.shellExec(function(err, stdout, stderr) {
             if(stdout == '') {
               _global._fs.readFile(_path + '/index.theme'
@@ -778,49 +777,64 @@ var EntryUtil = Event.extend({
 	},
 /**
  * [getItemFromApp : read .desktop then  get name and exec to build Item]
- * @param  {string} path_
+ * @param  {string} filename_
  * @param  {function} callback_(err, Item);
  * @return {callback_}
  */
-	getItemFromApp:function(path_, callback_){
-		this.parseDesktopFile(path_, function(err_, file_){
-			if(err_) throw err_;
-			//get launch commad
-			var _execCmd = undefined,
-          layout = _global.get('desktop').getCOMById('layout'),
-          ctxMenu = _global.get('ctxMenu');
-			if (typeof layout.getWidgetById(ctxMenu._rightObjId) !== 'undefined') {
-				_execCmd = file_['Exec']
-					.replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g
-						, '\''+layout.getWidgetById(ctxMenu._rightObjId).getPath()+'\'')
-					.replace(/\\\\/g, '\\');
-			}else{
-				_execCmd = file_['Exec']
-					.replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
-					.replace(/\\\\/g, '\\');
-			}
-			var _name = undefined; 
-			if(typeof file_['Name[zh_CN]'] !== "undefined") {
-				_name = file_['Name[zh_CN]'];
-			} else {
-				_name = file_['Name'];
-			}
-			if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
-				return callback_.call(this, 'Unknown name or cmd!');
-			};
-						
-			var _item = {
-        text: _name,
+	getItemFromApp: function(filename_, callback_) {
+    var launcher = _global.get('desktop').getCOMById('launcher'),
+        model = launcher.getCOMByAttr('_filename', filename_);
+    if(model) {
+      return {
+        text: model.getName(),
         action: function(e) {
           e.preventDefault();
-          // _global._exec(_execCmd ,function(err){
           _global._dataOP.shellExec(function(err) {
             console.log(err);
-          }, _execCmd);
-			  }
+          }, model.getCmd());
+        }
       };
-			return callback_.call(this, null, _item);
-		});
+    } else {
+      return null;
+    }
+		/* this.parseDesktopFile(path_, function(err_, file_){ */
+			// if(err_) throw err_;
+			// //get launch commad
+			// var _execCmd = undefined,
+          // layout = _global.get('desktop').getCOMById('layout'),
+          // ctxMenu = _global.get('ctxMenu');
+			// if (typeof layout.getWidgetById(ctxMenu._rightObjId) !== 'undefined') {
+				// _execCmd = file_['Exec']
+					// .replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g
+						// , '\''+layout.getWidgetById(ctxMenu._rightObjId).getPath()+'\'')
+					// .replace(/\\\\/g, '\\');
+			// }else{
+				// _execCmd = file_['Exec']
+					// .replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+					// .replace(/\\\\/g, '\\');
+			// }
+			// var _name = undefined; 
+			// if(typeof file_['Name[zh_CN]'] !== "undefined") {
+				// _name = file_['Name[zh_CN]'];
+			// } else {
+				// _name = file_['Name'];
+			// }
+			// if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
+				// return callback_.call(this, 'Unknown name or cmd!');
+			// };
+						
+			// var _item = {
+        // text: _name,
+        // action: function(e) {
+          // e.preventDefault();
+          // // _global._exec(_execCmd ,function(err){
+          // _global._dataOP.shellExec(function(err) {
+            // console.log(err);
+          // }, _execCmd);
+				// }
+      // };
+			// return callback_.call(this, null, _item);
+		/* }); */
 	}
 });
 
@@ -971,7 +985,7 @@ var WindowManager = Model.extend({
 
   focusOnAWindow: function(wID_) {
     for(var key in this._c) {
-      if(wID == key) {
+      if(wID_ == key) {
         this._c[key].focus();
         // TODO: change the sequence of windows in _s
       } else {

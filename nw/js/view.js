@@ -61,33 +61,46 @@ var DesktopView = View.extend({
 
   initCtxMenu: function() {
     var desktop = this._model,
-        ctxMenu = _global.get('ctxMenu');
+        ctxMenu = _global.get('ctxMenu'),
+        _this = this;
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
       {text: 'create Dir', icon: 'icon-folder-1', action: function(e) {
         e.preventDefault();
+        var layout = desktop.getCOMById('layout').getCurLayout();
         for (var i = 0; ; i++) {
-          if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) {
-            continue;
-          } else {
-            _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
-            return;
-          }
+          /* if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { */
+            // continue;
+          // } else {
+            // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
+            // return;
+          /* } */
+          // replace with logistic directory
+          if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
+          var d = new Date();
+          _this._c['layout'].getCurView()._controller.onAddFolder('/desktop/New Folder ' + i
+            , 'folder' + d.getTime());
+          break; 
         }
       }},
       {text: 'create Text', icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
-        for (var i = 0; ; i++) {
-          if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
-            continue;
-          } else {
-            _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt', ''
-              , {encoding:'utf8'}, function(err) {
-                if (err) console.log(err);
-              });
-            return;
-          }
-        }
+        /* for (var i = 0; ; i++) { */
+          // if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
+            // continue;
+          // } else {
+            // _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt', ''
+              // , {encoding:'utf8'}, function(err) {
+                // if (err) console.log(err);
+              // });
+            // return;
+          // }
+        /* } */
+        // change to demo-rio's API
+        _global._dataOP.createFileOnDesk(function(err_, ret_) {
+          if(err_) return console.log(err_);
+          _this._c['layout'].getCurView()._controller.onAddFile(ret_[0], ret_[1]);
+        });
       }},
       {text: 'script', subMenu: [
         {header: 'script'}
@@ -126,16 +139,34 @@ var DesktopView = View.extend({
           width: 700,
           fadeSpeed: 500,
           animate: false
+        }, function() {
+          this.getID = function() {return this._id;};
+          _global._openingWindows.add(this);
+          var _this = this;
+          this.bindCloseButton(function() {
+            _global._openingWindows.remove(_this);
+          });
+        }).onfocus(function() {
+          _global._openingWindows.focusOnAWindow(this._id);
         });
       }},
       {text: 'window2', action: function() {
-        Window.create('newWin','Test Window2!', {
+        Window.create('newWin2','Test Window2!', {
           left:400,
           top:300,
           height: 500,
           width: 800,
           fadeSpeed: 500,
           animate: true
+        }, function() {
+          this.getID = function() {return this._id;};
+          _global._openingWindows.add(this);
+          var _this = this;
+          this.bindCloseButton(function() {
+            _global._openingWindows.remove(_this);
+          });
+        }).onfocus(function() {
+          _global._openingWindows.focusOnAWindow(this._id);
         });
       }},
       {text: 'app-plugin', icon: 'icon-plus', subMenu: [
@@ -251,16 +282,18 @@ var DesktopView = View.extend({
         e.stopPropagation();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
-      {text:'delete' , icon: 'icon-cancel-circled2', action:function(e){
+      {text: 'delete', icon: 'icon-cancel-circled2', action: function(e) {
         e.preventDefault();
-        var _path = desktop._widgets[ctxMenu._rightObjId]._path;
-        utilIns.entryUtil.removeFile(_path);
+        /* var _path = desktop._widgets[ctxMenu._rightObjId]._path; */
+        /* utilIns.entryUtil.removeFile(_path); */
+        _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onEntryDelete();
       }},
-      {text:'property',action:function(e){
+      {text:'property', action: function(e) {
         e.preventDefault();
-        var _property = Property.create(ctxMenu._rightObjId);
-        _property.showAppProperty();
-        _property.show();
+        var layout = _global.get('desktop').getCOMById('layout').getCurLayout();
+        PropertyView.create(ctxMenu._rightObjId
+          , layout.getWidgetById(ctxMenu._rightObjId)
+          , layout).show();
       }}
     ]);
     ctxMenu.addCtxMenu([
@@ -356,29 +389,29 @@ var DesktopView = View.extend({
         utilIns = _global.get('utilIns');
     ctxMenu.attachToMenu('body', ctxMenu.getMenuByHeader('desktop')
         , function() {
-          // TODO: change to get from launcher
           ctxMenu._rightObjId = undefined;
-          var _DIR = _global.$home + '/.gnome2/nemo-scripts';
-          console.log(_DIR);
-          var _menu = ctxMenu.getMenuByHeader('script');
-          if (typeof _menu !== 'undefined') {
-            var _items = _menu.children('li');
-            for (var i = 0; i < _items.length; i++) {
-            if(!$(_items[i]).hasClass('nav-header'))
-              $(_items[i]).remove();
-            };
-          }
-          _global._fs.readdir(_DIR, function(err_, files_) {
-            for(var i = 0; i < files_.length; i++) {
-              var _names = files_[i].split('.');
-              if(_names[_names.length - 1] == 'desktop') {
-                _global.get('utilIns').entryUtil.getItemFromApp(_DIR + '/' + files_[i]
-                  , function(err_, item_) {
-                    ctxMenu.addItem(_menu, item_);
-                  });
-              };
-            };
-          });
+          // if need, change to get from a file
+          /* var _DIR = _global.$home + '/.gnome2/nemo-scripts'; */
+          // console.log(_DIR);
+          // var _menu = ctxMenu.getMenuByHeader('script');
+          // if (typeof _menu !== 'undefined') {
+            // var _items = _menu.children('li');
+            // for (var i = 0; i < _items.length; i++) {
+            // if(!$(_items[i]).hasClass('nav-header'))
+              // $(_items[i]).remove();
+            // };
+          // }
+          // _global._fs.readdir(_DIR, function(err_, files_) {
+            // for(var i = 0; i < files_.length; i++) {
+              // var _names = files_[i].split('.');
+              // if(_names[_names.length - 1] == 'desktop') {
+                // _global.get('utilIns').entryUtil.getItemFromApp(_DIR + '/' + files_[i]
+                  // , function(err_, item_) {
+                    // ctxMenu.addItem(_menu, item_);
+                  // });
+              // };
+            // };
+          /* }); */
 
           // get layout switch motion
           var motions = _this._c['layout'].getMotions(),
@@ -760,11 +793,13 @@ var GridView = WidgetView.extend({
         alert("The app has been registed in desktop");
         return ;
       }
-      var _name = dockApp.getFilename(),
-          _src = dock._dockWatch.getBaseDir() + '/' + _name,
-          _dst = desktop._desktopWatch.getBaseDir() + '/' + _name;
+      /* var _name = dockApp.getFilename(), */
+          // _src = dock._dockWatch.getBaseDir() + '/' + _name,
+          /* _dst = desktop._desktopWatch.getBaseDir() + '/' + _name; */
       dockApp.setPosition({x: _target_col, y: _target_row});
-      _global._fs.rename(_src, _dst, function() {});
+      // change to link and unlink
+      this._controller.onDockAppDrop(dockApp);
+      // _global._fs.rename(_src, _dst, function() {});
       return ;
     }
 
@@ -775,7 +810,11 @@ var GridView = WidgetView.extend({
       for(var i = 0; i < _files.length; ++i) {
         var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
         if(_files[i].path == dst) continue;
-        _global._fs.rename(_files[i].path, dst, function() {});
+        // _global._fs.rename(_files[i].path, dst, function() {});
+        _global._dataOP.moveToDesktopSingle(function(err_, ret_) {
+          if(err_) return console.log(err_);
+          this._controller.onAddFile(ret[0], ret[1]);
+        }, _files[i].path);
       }
       return ;
     }
@@ -783,22 +822,30 @@ var GridView = WidgetView.extend({
     //handle item transfer (not support chinese) 
     var _items = ev.dataTransfer.items;
     if (_items.length != 0 && typeof s_widget == 'undefined') {
-      var _fs = require('fs');
-      _items[0].getAsString(function(data){
-        for (var i = 0; ; i++) {
-          if(_fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
-            continue;
-          } else {
-            var iconv = require('iconv-lite');
-            var buf = iconv.encode(data,'ucs2');
-            var str = iconv.decode(buf,'ucs2');
-            _fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt'
-              , str, {encoding:'utf8'}, function(err) {
-                if (err) throw err;
-              });
-            return ;
-          }
-        };
+      _items[0].getAsString(function(data) {
+        // using demo-ris's API to create this file
+        var _this = this,
+            iconv = require('iconv-lite'),
+            buf = iconv.encode(data,'ucs2'),
+            str = iconv.decode(buf,'ucs2');
+        _global._dataOP.createFileOnDesk(function(err_, ret_) {
+          if(err_) return console.log(err_);
+          _this._controller.onAddFile(ret[0], ret[1]);
+        });
+        /* for (var i = 0; ; i++) { */
+          // if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
+            // continue;
+          // } else {
+            // var iconv = require('iconv-lite');
+            // var buf = iconv.encode(data,'ucs2');
+            // var str = iconv.decode(buf,'ucs2');
+            // _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt'
+              // , str, {encoding:'utf8'}, function(err) {
+                // if (err) throw err;
+              // });
+            // return ;
+          // }
+        /* }; */
       });
     };
 
@@ -1139,10 +1186,41 @@ var DEntryView = WidgetView.extend({
 
     var ctxMenu = _global.get('ctxMenu'),
         type = this._model.getType();
-    if(type != 'app' && type != 'theme' && type != 'inside-app') type = 'file';
-    ctxMenu.attachToMenu('#' + this.getID()
-        , ctxMenu.getMenuByHeader(type + '-entry')
-        , function(id_) {ctxMenu._rightObjId = id_;});
+    if(type == 'app' || type == 'theme' || type == 'inside-app'/*  || type == 'dir' */) {
+      if(type == 'inside-app') type = 'app';
+      ctxMenu.attachToMenu('#' + this.getID()
+          , ctxMenu.getMenuByHeader(type + '-entry')
+          , function(id_) {ctxMenu._rightObjId = id_;});
+    } else {
+      ctxMenu.attachToMenu('#' + this.getID()
+          , ctxMenu.getMenuByHeader('file-entry')
+          , function(id_, $menu_) {
+            desktop._rightObjId = id_;
+            var _menu = desktop._ctxMenu.getMenuByHeader('Open with'),
+                layout = desktop.getCOMById('layout').getCurLayout(),
+                model = layout.getWidgetById(ctxMenu._rightObjId),
+                utilIns = _global.get('utilIns');
+            if (typeof _menu !== 'undefined') {
+              var _items = _menu.children('li');
+              for(var i = 1; i < _items.length; i++) {
+                // if(!$(_items[i]).hasClass('nav-header'))
+                  $(_items[i]).remove();
+              }
+            }
+            utilIns.entryUtil.getMimeType(model.getPath(), function(err_, mimeType_) {
+              if(err_)
+                return console.log('getMimeType: ' + err_);
+              var type = mimeType_ || 'text/plain';
+              if(type == '') type = 'text/plain';
+              var types = type.split('/'),
+                  apps = desktop._DEFAULT_APP[types[0]][types[1]] || [];
+              for(var i = 0; i < apps.length; ++i) {
+                var item = getItemFromApp(apps[i]);
+                if(item != null) ctxMenu.addItem(_menu, item);
+              }
+            });
+          });
+    }
   },
 
   show: function() {
@@ -1293,6 +1371,9 @@ var LauncherView = View.extend({
           var _this = this;
           this.bindCloseButton(function() {
             _global._openingWindows.remove(_this);
+          });
+          this.onfocus(function() {
+            _global._openingWindows.focusOnAWindow(this._id);
           });
         })/* .appendHtml(model_.getPath() + '/index.html') */; 
       },
@@ -1868,6 +1949,7 @@ var DockView = View.extend({
     this.initAction(this.$view);
     this.initCtxMenu();
     this._c = [];
+    this._controller = DockController.create(this);
   },
 
   registObservers: function() {
@@ -1942,13 +2024,16 @@ var DockView = View.extend({
       {text: 'property', action: function(e) {
         e.preventDefault();
         var id_ = /([\w-_\s\.]+)-dock$/.exec(ctxMenu._rightObjId);
-        PropertyView.create(id_[0], _this._model.getCOMById(id_[1])).show();
+        PropertyView.create(id_[0], _this._model.getCOMById(id_[1]), _this._model).show();
       }},
       {text: 'add reflect', action: function() {
         _this.addReflect();
       }},
       {text: 'remove reflect', action: function() {
         _this.removeReflect();
+      }},
+      {text: 'delete', action: function() {
+        _this._c[ctxMenu._rightObjId]._controller.onEntryDelete();
       }}
     ]);
   },
@@ -2027,25 +2112,29 @@ var DockView = View.extend({
           break ;
         }
       }
-      if(typeof widget !== 'undefined' && widget.getType() == 'app') {
+      if(typeof widget !== 'undefined'
+          && (widget.getType() == 'app' || widget.getType() == 'inside-app')) {
         /* if(typeof dockApp !== 'undefined') { */
           // alert("The App has been registed in dock");
           // return ;
         /* } */
         
-        var _filename = widget.getFilename();
+        // var _filename = widget.getFilename();
         widget.setIdx(idx);
-        _global._fs.rename(desktop._desktopWatch.getBaseDir() + '/' + _filename
-            , dock._dockWatch.getBaseDir() + '/' + _filename
-            , function() {});
+        /* _global._fs.rename(desktop._desktopWatch.getBaseDir() + '/' + _filename */
+            // , dock._dockWatch.getBaseDir() + '/' + _filename
+            /* , function() {}); */
+        // change to unlink and link
+        this._controller.onAppDrop(widget);
       } else if(ev.dataTransfer.files.length != 0) {
-        var _files = ev.dataTransfer.files;
-        for(var i = 0; i < _files.length; ++i) {
-          var dst = dock._dockWatch.getBaseDir() + '/' + _files[i].name;
-          if(_files[i].path == dst) continue;
-          _global._fs.rename(_files[i].path, dst, function() {});
-        }
-        return ;
+        // TODO: what for?
+        /* var _files = ev.dataTransfer.files; */
+        // for(var i = 0; i < _files.length; ++i) {
+          // var dst = dock._dockWatch.getBaseDir() + '/' + _files[i].name;
+          // if(_files[i].path == dst) continue;
+          // _global._fs.rename(_files[i].path, dst, function() {});
+        // }
+        /* return ; */
       }
     }
   }
@@ -2202,8 +2291,9 @@ var DockEntryView = View.extend({
     if(typeof dockApp !== 'undefined') {
       // drag to change a dockApp entry's position in dock
       _source = ((typeof _id[0] === 'undefined') ? $('#' + __id + '-dock') : $('#' + __id));
-    } else if((typeof widget != 'undefined' && widget.getType() == 'app')
-        || ev.dataTransfer.files.length != 0) {
+    } else if((typeof widget != 'undefined'
+        && (widget.getType() == 'app' || widget.getType() == 'inside-app'))
+        /* || ev.dataTransfer.files.length != 0 */) {
       // drag a desktop entry to dock
       if (typeof $('#insert')[0] == 'undefined') {
         _source = $('<div>', {
@@ -2460,9 +2550,10 @@ var PropertyView = View.extend({
         height: box_height,
         left: left_property
       }, 500, function() {
-        if(_this._model.getType() == 'app')
-          _this.setAppProperty();
-        _this.setBasicProperty();
+        var type = _this._model.getType();
+        if(type == 'app' || type == 'inside-app')
+          _this.setAppProperty(type);
+        _this.setBasicProperty(type);
         _this._tab.setShowByTab('basic');
       });
     }
@@ -2472,73 +2563,86 @@ var PropertyView = View.extend({
     this.$view.remove();
   },
 
-  setAppProperty: function() {
-    this.$view.find('.basicinfocontent')
-      .append("<p>▪名称:  <span id='name'>" + this._model.getName() + "</span></p>")
-      .append("<p>▪命令:  <span id='cmd'>" + this._model.getCmd() + "</span></p>")
-      .append("<p>▪描述:  <span id='comment'>" + this._model.getComment() + "</span></p>")
-      .append("<p>▪备注:  <span id='gname'>" + this._model.getGenericName() + "</span></p>")
-      .append("<p>▪位置:  <span id='path'>" + this._model.getPath() + "</span></p>");
+  setAppProperty: function(type_) {
+    if(type_ == 'inside-app') {
+      this.$view.find('.basicinfocontent')
+        .append("<p>▪名称:  <span id='name'>" + this._model.getName() + "</span></p>")
+        .append("<p>▪类型:  <span id='type'>" + type_ + "</span></p>")
+        .append("<p>▪位置:  <span id='path'>" + this._model.getPath() + "</span></p>");
+    } else {
+      this.$view.find('.basicinfocontent')
+        .append("<p>▪名称:  <span id='name'>" + this._model.getName() + "</span></p>")
+        .append("<p>▪命令:  <span id='cmd'>" + this._model.getCmd() + "</span></p>")
+        .append("<p>▪描述:  <span id='comment'>" + this._model.getComment() + "</span></p>")
+        .append("<p>▪备注:  <span id='gname'>" + this._model.getGenericName() + "</span></p>")
+        .append("<p>▪位置:  <span id='path'>" + this._model.getPath() + "</span></p>");
+    }
     this.$view.find('.imgcontent').attr('src', this._model.getImgPath());
   },
 
-  setBasicProperty: function() {
-    var _this = this;
-    //get some basic inform and access inform
-    _global.get('utilIns').entryUtil.getProperty(_this._model.getPath(), function(err_, attr_) {
-      if(typeof attr_ == 'undefined') {
-        console.log('get Property err');
-        return ;
-      }
-      var fileType = null;
-      switch(attr_['access'][0]){
-        case '-': 
-          fileType = '普通文件';
-          break ;
-        case 'd':
-          fileType = '文件夹';
-          break ;
-        case 'b':
-          fileType = '块特殊文件';
-          break;
-        case 'c':
-          fileType = '字符特殊文件';
-          break ;
-        case 'l':
-          fileType = '连接';
-          break ;
-        case 'p':
-          fileType = '命名管道（FIFO）';
-          break ;
-        default:
-          break ;
-      }
-      _this.$view.find('.basicinfocontent')
-        .append("<p><span>▪</span>文件大小:  " + attr_['size'] + "</p>")
-        .append("<p><span>▪</span>文件类型:  " + fileType + "</p>")
-        .append("<p><span>▪</span>访问时间:  " + attr_['access_time'] + "</p>")
-        .append("<p><span>▪</span>修改时间:  " + attr_['modify_time'] + "</p>");
-
-      var power = '',
-          _access = attr_['access'],
-          checkPower = function(power_) {
-            power = '';
-            if (power_[0] == 'r') {power += '读'}
-            if (power_[1] == 'w') {power += '写'};
-            if (power_[2] == 'x') {power += '执行'}
-            else if (power_[2] == 's') {power += '超级执行'};
-            if (power != '') {power += '权限'};
-          };
-      checkPower(_access.substr(1, 3));
-      _this._tab.addDivByTab("<p><span>▪</span>所有者:  " + attr_['uid'] + "</p>",'power');
-      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
-      checkPower(_access.substr(4, 3));
-      _this._tab.addDivByTab("<p><span>▪</span>用户组:  " + attr_['gid'] + "</p>",'power');
-      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>",'power');
-      checkPower(_access.substr(7, 3));
-      _this._tab.addDivByTab("<p><span>▪</span> 其他:  </p>", 'power');
-      _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " +  power + "</p>", 'power');
-    });
+  setBasicProperty: function(type_) {
+    if(type_ != 'inside-app') {
+      var _this = this;
+      //get some basic inform and access inform
+      _global.get('utilIns').entryUtil.getProperty(
+          _global.$home + '/.resources/desktop/data/applications/' + _this._model.getPath()
+          , function(err_, attr_) {
+        if(typeof attr_ == 'undefined') {
+          console.log('get Property err');
+          return ;
+        }
+        var fileType = null;
+        switch(attr_['access'][0]){
+          case '-': 
+            fileType = '普通文件';
+            break ;
+          case 'd':
+            fileType = '文件夹';
+            break ;
+          case 'b':
+            fileType = '块特殊文件';
+            break;
+          case 'c':
+            fileType = '字符特殊文件';
+            break ;
+          case 'l':
+            fileType = '连接';
+            break ;
+          case 'p':
+            fileType = '命名管道（FIFO）';
+            break ;
+          default:
+            break ;
+        }
+        _this.$view.find('.basicinfocontent')
+          .append("<p><span>▪</span>文件大小:  " + attr_['size'] + "</p>")
+          .append("<p><span>▪</span>文件类型:  " + fileType + "</p>")
+          .append("<p><span>▪</span>访问时间:  " + attr_['access_time'] + "</p>")
+          .append("<p><span>▪</span>修改时间:  " + attr_['modify_time'] + "</p>");
+        
+        var power = '',
+            _access = attr_['access'],
+            checkPower = function(power_) {
+              power = '';
+              if (power_[0] == 'r') {power += '读'}
+              if (power_[1] == 'w') {power += '写'};
+              if (power_[2] == 'x') {power += '执行'}
+              else if (power_[2] == 's') {power += '超级执行'};
+              if (power != '') {power += '权限'};
+            };
+        checkPower(_access.substr(1, 3));
+        _this._tab.addDivByTab("<p><span>▪</span>所有者:  " + attr_['uid'] + "</p>", 'power');
+        _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " + power + "</p>",'power');
+        checkPower(_access.substr(4, 3));
+        _this._tab.addDivByTab("<p><span>▪</span>用户组:  " + attr_['gid'] + "</p>", 'power');
+        _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " + power + "</p>", 'power');
+        checkPower(_access.substr(7, 3));
+        _this._tab.addDivByTab("<p><span>▪</span> 其他:  </p>", 'power');
+        _this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限:  " + power + "</p>", 'power');
+      });
+    } else {
+      this._tab.addDivByTab("<p>&nbsp;&nbsp;&nbsp;权限: 可执行</p>", 'power');
+    }
   }
 });
 
@@ -2779,7 +2883,7 @@ var FlipperView = View.extend({
     this._tabIdx = -1;
     this._needSelector = needSelector_ || false;
     this._controller = FlipperController.create(this);
-    this._curMotion = 'normal';
+    this._curMotion = 'fold';
     this._main = 0;
   },
 
@@ -3061,7 +3165,17 @@ var FlipperView = View.extend({
 var EditBox = Class.extend({
   init: function( toAccountInfo_,imChatWinList_) {
     var toAccount = toAccountInfo_.toAccount;
-    var imWindow = Window.create('imChat_' + toAccount, toAccount);
+    var imWindow = Window.create('imChat_' + toAccount, toAccount, function() {
+      this.getID = function() {return this._id;};
+      _global._openingWindows.add(this);
+      this.onfocus(function() {
+        _global._openingWindows.focusOnAWindow(this._id);
+      });
+      var _this = this;
+      this.bindCloseButton(function() {
+        _global._openingWindows.remove(_this);
+      });
+    });
     var toIP;
     var toUID;
     var localAccount ;
@@ -3279,6 +3393,16 @@ var LoginView = View.extend({
       fadeSpeed: 500,
       animate: false,
       hide: false
+    }, function() {
+      this.getID = function() {return this._id;};
+      _global._openingWindows.add(this);
+      this.onfocus(function() {
+        _global._openingWindows.focusOnAWindow(this._id);
+      });
+      var _this = this;
+      this.bindCloseButton(function() {
+        _global._openingWindows.remove(_this);
+      });
     }).append($view);
     $view.parent().css('position', 'initial');
     this.initAction(width);

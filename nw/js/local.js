@@ -50,6 +50,27 @@ var FlipperController = Controller.extend({
 var GridController = WidgetController.extend({
   init: function(view_) {
     this.callSuper(view_);
+  },
+
+  onAddFile: function(path_, inode_) {
+    var desktop = _global.get('desktop'),
+        entry = FileEntryModel.create('id-' + inode_, this._model, path_, desktop._position);
+    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
+  },
+
+  onAddFolder: function(path_, id_, list_) {
+    var desktop = _global.get('desktop'),
+        l = list_ || [],
+        entry = DirEntryModel.create(id_, this._model, path_, desktop._position, function() {
+          this.setList(l);
+        });
+    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
+  },
+
+  onDockAppDrop: function(widget_) {
+    var CP = _global.get('theCP');
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.unlinkFromDock));
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.linkToDesktop));
   }
 });
 
@@ -117,6 +138,14 @@ var EntryController = WidgetController.extend({
   onDblclick: function() {
     var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open);
     _global.get('theCP').perform(cmd);
+  },
+
+  onEntryDelete: function() {
+    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec'
+          , this._model.unlinkFromDesktop));
+  },
+
+  onFileDelete: function() {
   }
 });
 
@@ -147,8 +176,25 @@ var DockEntryController = EntryController.extend({
 
   onClick: function() {
     this.onDblclick();
+  },
+
+  onEntryDelete: function() {
+    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec'
+          , this._model.unlinkFromDock));
   }
 });
+
+var DockController = Controller.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onAppDrop: function(widget_) {
+    var CP = _global.get('theCP');
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.unlinkFromDesktop));
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.linkToDock));
+  }
+})
 
 var LoginController = Controller.extend({
   init: function(view_) {
