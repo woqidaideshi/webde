@@ -539,7 +539,6 @@ var EntryUtil = Event.extend({
             + ' -regextype \"posix-egrep\" -regex \".*'
              + ((index_ < _this._iconSearchPath.length - 1)
             ? size_ : '') + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
-          // _global._exec(tmp, function(err, stdout, stderr) {
           _global._dataOP.shellExec(function(err, stdout, stderr) {
             if(stdout == '') {
               _global._fs.readFile(_path + '/index.theme'

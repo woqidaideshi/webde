@@ -875,6 +875,8 @@ var AppEntryModel = EntryModel.extend({
         callback_.call(this, err_);
         return ;
       }
+      if(_this._filename == 'gufw.desktop')
+        console.log();
       var file_ = appFile_['[Desktop Entry]'];
       // get launch commad
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')

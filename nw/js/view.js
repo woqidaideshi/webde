@@ -2584,7 +2584,9 @@ var PropertyView = View.extend({
     if(type_ != 'inside-app') {
       var _this = this;
       //get some basic inform and access inform
-      _global.get('utilIns').entryUtil.getProperty(_this._model.getPath(), function(err_, attr_) {
+      _global.get('utilIns').entryUtil.getProperty(
+          _global.$home + '/.resources/desktop/data/applications/' + _this._model.getPath()
+          , function(err_, attr_) {
         if(typeof attr_ == 'undefined') {
           console.log('get Property err');
           return ;
