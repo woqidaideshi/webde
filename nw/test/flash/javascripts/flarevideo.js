@@ -343,12 +343,6 @@ FlareVideo.fn.setupNative = function(){
   this.video.setCurrentTime = function(val){ this.currentTime = val; }
   this.video.getVolume      = function(){ return this.volume; };
   this.video.setVolume      = function(val){ this.volume = val; };
-  /*this.video.enterFullScreen = function(){ 
-    // Because we don't know when full screen is exited
-    self.inFullScreen = false;
-    this.webkitEnterFullScreen(); 
-  };
-  this.video.exitFullScreen  = function(){ this.webkitExitFullScreen(); };*/
   
   this.videoElement.dblclick($.proxy(function(){
     this.toggleFullScreen();
@@ -461,11 +455,22 @@ FlareVideo.fn.setupButtons = function(){
   }, this));
   this.controls.append(pause);
 
-  var fullScreen = $("<div />");
+  var fullScreen = $("<div> <a class='icon-resize-full'></a><a class='icon-repeat'></a></div>");
   fullScreen.addClass("fullScreen");
-  fullScreen.text("Full Screen");
-  fullScreen.click($.proxy(this.toggleFullScreen, this));
-  if (!this.options.useFullScreen) fullScreen.addClass("disabled");
+  //fullScreen.text("Full Screen");
+  $(fullScreen.children('a')[0]).click($.proxy(this.toggleFullScreen, this));
+  var _loop = $(fullScreen.children('a')[1]);
+  _loop.click($.proxy(function(){
+    if(!this.video.loop){
+      this.video.loop = true;
+      _loop.removeClass('icon-repeat');
+      _loop.addClass('icon-list');
+    }else {
+      this.video.loop = false;
+      _loop.removeClass('icon-list');
+      _loop.addClass('icon-repeat');
+    }
+  },this));
   this.controls.append(fullScreen);
 };
 

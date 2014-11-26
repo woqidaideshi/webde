@@ -516,8 +516,22 @@ var Window = Class.extend({
    * @return {[type]}      [description]
    */
   appendHtml:function(src_){
+    var _this = this ;
+    function iframeClick(){
+      _this._windowContent.contents().find("body")[0].onclick = function(){
+        _this.focus();
+        if (_this._options._focusCallback) {
+          _this._options._focusCallback.call(_this);
+        };
+      }
+    }
     if(this._options.iframe){
+      this._windowContent[0].onload = function(){
+        iframeClick();
+      }
       this._windowContent[0].src = src_;
+    }else {
+      return 0;
     }
   },
   /**

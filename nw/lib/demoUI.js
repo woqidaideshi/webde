@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-11-21
+/*! ui-lib - v0.0.1 - 2014-11-25
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -1395,13 +1395,13 @@ var ListView = Class.extend({
     if (typeof data.id !== 'undefined'){
       $item.attr('id', data.id);
     }
-    if (data.href === 'undefined' || data.href === ''){
+    if (typeof data.href === 'undefined' || data.href === ''){
       $item.append('<a href="#"></a>');
     }
     else{
       $item.append('<a href="' + data.href + '"></a>');
     }
-    if (data.img !== 'undefined' && data.img !== ''){
+    if (typeof data.img !== 'undefined' && data.img !== ''){
       $item.find('a').append('<img src="' + data.img + '" />');
     }
     $item.find('a').append(data.text);
@@ -4209,8 +4209,22 @@ var Window = Class.extend({
    * @return {[type]}      [description]
    */
   appendHtml:function(src_){
+    var _this = this ;
+    function iframeClick(){
+      _this._windowContent.contents().find("body")[0].onclick = function(){
+        _this.focus();
+        if (_this._options._focusCallback) {
+          _this._options._focusCallback.call(_this);
+        };
+      }
+    }
     if(this._options.iframe){
+      this._windowContent[0].onload = function(){
+        iframeClick();
+      }
       this._windowContent[0].src = src_;
+    }else {
+      return 0;
     }
   },
   /**

@@ -672,8 +672,7 @@ ul.messenger .messenger-spinner {
   z-index: 100;
 }
 .listview li a {
-  background-color: #d4d5d8;
-  color: #000;
+  color: #cccccc;
   display: block;
   font-size: 12px;
   font-weight: bold;
@@ -694,8 +693,16 @@ ul.messenger .messenger-spinner {
   background: #d4d5d8 url("../img/down.gif") no-repeat;
 }
 .listview li a:hover {
-  background-color: #bcbdc1;
+  background-color: rgba(0.0.0.0.7);
+  color: #fff;
+  font-size: 14px;
 }
+
+.listview li a:active {
+  background-color: rgba(100.100.100.0.7);
+  color: #3f8;
+}
+
 .listview li a + img {
   background: url("../img/up.gif") no-repeat;
   cursor: pointer;
@@ -712,6 +719,7 @@ ul.messenger .messenger-spinner {
 }
 .listview a.sub:active {
   background: #bcbdc1;
+  color: #d2d6d9;
   outline: 0;
 }
 .listview a:focus ~ ul li {

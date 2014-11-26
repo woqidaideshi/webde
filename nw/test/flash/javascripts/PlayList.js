@@ -1,5 +1,5 @@
 var PlayList = Class.extend({
-  init:function(list_,options_){
+  init:function(options_, list_){
     this._options = {
       search: true,
       title : 'video list:',
@@ -8,17 +8,17 @@ var PlayList = Class.extend({
     }
     if (options_) {
       for(var key in options_)
-        this._options[key] = options_[key]
+        this._options[key] = options_[key];
     };
     this._playList = {};
     if (list_) {
       this._playList = list_;
     }
     this._bkgDiv = $('<div>', {
-      'class': "post__toc-trigger"
+      'class': "playList-trigger"
     });
     this._listviewContent = $('<div>',{
-      'class' : 'post__toc'
+      'class' : 'playList'
     });
     this._bkgDiv.append(this._listviewContent);
     if (this._options.search) {
@@ -34,13 +34,16 @@ var PlayList = Class.extend({
     };
     this._listview = ListView.create('playlist');
     this._listview.attach(this._listviewContent);
-    this.setPlayList();
+    this._bottom = $('<div>',{
+      'class' : 'playList-bottom'
+    });
+    this._listviewContent.append(this._bottom);
     $('body').append(this._bkgDiv);
   },
 
   addTitle:function(obj_){
     var _span = $('<span>',{
-      'class' : 'post__toc-title'
+      'class' : 'playList-title'
     });
     this._listviewContent.append(_span);
     if (typeof obj_ === 'string') {
@@ -48,6 +51,21 @@ var PlayList = Class.extend({
     } else {
       _span.append(obj_);
     }
+  },
+
+  setList: function(list_){
+    var getName = function(path_){
+      var _Arr = path_.split('/');
+      return _Arr[_Arr.length - 1];
+    }
+
+    if (typeof list_ === 'object') {
+      for(var key in list_){
+        var _name = getName(list_[key]);
+        this._playList[_name] = list_[key];
+      }
+    };
+    this.setPlayList();
   },
 
   setPlayList:function(){
@@ -84,11 +102,6 @@ var PlayList = Class.extend({
       maxItemsToShow:6,
       selectFirst: true
     });
-  },
-
-  getName:function(path_){
-    var _Arr = path.split('\\');
-    return _Arr[_Arr.length - 1];
   }
 });
 
