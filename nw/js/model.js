@@ -875,24 +875,51 @@ var AppEntryModel = EntryModel.extend({
         callback_.call(this, err_);
         return ;
       }
-      if(_this._filename == 'gufw.desktop')
-        console.log();
       var file_ = appFile_['[Desktop Entry]'];
+      // get category
+      if(file_['NoDisplay'] != 'true') {
+        var cgs = file_['Categories'].split(';'),
+          cg = 'Other';
+        for(var i = 0; i < cgs.length; ++i) {
+          if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
+            cg = cgs[i];
+            break;
+          }
+        }
+        _this.setCategory(cg);
+        _this.setNoDisplay(false);
+      } else {
+        // TODO: should not show this entry
+        return _this.setNoDisplay(true);
+      }
       // get launch commad
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
       // get icon
       // TODO: change to get icon path from cache
-      _global._dataOP.getIconPath(function(err_, imgPath_) {
-        if(err_) {
-          console.log(err_);
-          callback_.call(this, err_);
-          return ;
+      if(typeof file_['Icon'] === 'undefined')
+        return console.log();
+      if(file_['Icon'][0] == '/') {
+        // already is full path
+        _this.setImgPath(file_['Icon']);
+      } else {
+        var iconName = /(.*)\.(png|svg|xpm)$/.exec(file_['Icon']);
+        if(iconName == null) {
+          iconName = file_['Icon'];
         } else {
-          _this.setImgPath(imgPath_[0]);
-          callback_.call(this, null);
+          iconName = iconName[0];
         }
-      }, file_['Icon'], 48);
+        _global._dataOP.getIconPath(function(err_, imgPath_) {
+          if(err_) {
+            console.log(err_);
+            callback_.call(this, err_);
+            return ;
+          } else {
+            _this.setImgPath(imgPath_[0]);
+            callback_.call(this, null);
+          }
+        }, iconName, 48);
+      }
       /* utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) { */
       /* }); */
       // get name
@@ -908,22 +935,6 @@ var AppEntryModel = EntryModel.extend({
         _this._genericName = file_['GenericName[zh_CN]'];
       } else {
         _this._genericName = file_['GenericName'];
-      }
-      // get category
-      if(file_['NoDisplay'] != 'true') {
-        var cgs = file_['Categories'].split(';'),
-          cg = 'Other';
-        for(var i = 0; i < cgs.length; ++i) {
-          if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
-            cg = cgs[i];
-            break;
-          }
-        }
-        _this.setCategory(cg);
-        _this.setNoDisplay(false);
-      } else {
-        // TODO: should not show this entry
-        _this.setNoDisplay(true);
       }
     }, _this._path.match('[^\/]*$')[0]);
   },
