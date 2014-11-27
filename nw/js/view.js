@@ -1420,10 +1420,12 @@ var LauncherView = View.extend({
       {text: 'add to Desktop', action: function(e) {
         e.preventDefault();
         _this._views[ctxMenu._rightObjId]._controller.onAddToDesktop();
+        _this.toggle();
       }},
       {text: 'add to Dock', action: function(e) {
         e.preventDefault();
         _this._views[ctxMenu._rightObjId]._controller.onAddToDock();
+        _this.toggle();
       }}
     ]);
   },
