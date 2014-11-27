@@ -316,11 +316,12 @@ var Global = Class.extend({
           //TODO: change the nodejs'API to ourselves
           _this._fs = require('fs');
           _this._exec = require('child_process').exec;
-          WDC.requireAPI(['device_service', 'IM', 'data'/* , 'account' */]
-            , function(dev, imV, data/* , acc */) {
+          WDC.requireAPI(['device_service', 'IM', 'data','fileTransfer_app'/* , 'account' */]
+            , function(dev, imV, data,fileTransferApp/* , acc */) {
               _this._device = dev;
               _this._imV = imV;
               _this._dataOP = data;
+              _this._imFileTransfer=fileTransferApp;
               // _this._account = acc;
               cb_(null);
             });
@@ -734,82 +735,82 @@ var EntryUtil = Event.extend({
       if(err) throw 'util.js-rmFile: bad path';
     }, 'rm '+path_);
   },
-	/**
-	 * [getRelevantAppName : get relevant app's name ]
-	 * @param  {string} mimeTypes_: xdg type
-	 * @param  {function} callback_(err, name);
-	 * @return {callbask_}
-	 */
-	getRelevantAppName: function(mimeTypes_, callback_) {
-		var _path = '/usr/share/applications/';
-		this.parseDesktopFile(_path + 'mimeinfo.cache', function(err_, file_) {
-			if(err_) { 
-				console.log(err_);
-				return ;
-			}
-			var _relevantAppNames = [];
-			for(var i = 0; i < mimeTypes_.length; i++) {
-				if(typeof file_[mimeTypes_[i]] !== 'undefined') {
-					var _appNames = file_[mimeTypes_[i]].split(';');
-					$.merge(_relevantAppNames, _appNames);
-				}
-			};
-			$.unique(_relevantAppNames);
-			if(_relevantAppNames.length == 0) 
-				return callback_.call(this, 'Unknown relevant App!');
-			return callback_.call(this, null, _relevantAppNames);
-		});
-	},
+  /**
+   * [getRelevantAppName : get relevant app's name ]
+   * @param  {string} mimeTypes_: xdg type
+   * @param  {function} callback_(err, name);
+   * @return {callbask_}
+   */
+  getRelevantAppName: function(mimeTypes_, callback_) {
+    var _path = '/usr/share/applications/';
+    this.parseDesktopFile(_path + 'mimeinfo.cache', function(err_, file_) {
+      if(err_) { 
+        console.log(err_);
+        return ;
+      }
+      var _relevantAppNames = [];
+      for(var i = 0; i < mimeTypes_.length; i++) {
+        if(typeof file_[mimeTypes_[i]] !== 'undefined') {
+          var _appNames = file_[mimeTypes_[i]].split(';');
+          $.merge(_relevantAppNames, _appNames);
+        }
+      };
+      $.unique(_relevantAppNames);
+      if(_relevantAppNames.length == 0) 
+        return callback_.call(this, 'Unknown relevant App!');
+      return callback_.call(this, null, _relevantAppNames);
+    });
+  },
 /**
  * [isTextFile : check file is text or not]
  * @param  {string}  path_
  * @param  {function}  callback_(err, isText)
  * @return {callbask_}
  */
-	isTextFile:function(path_, callback_){
-		// this._exec('file '+ path_ + " | grep -E 'text|empty'", function(err_, out_ ,stderr_) {
-		_global._dataOP.shellExec(function(err_, out_ ,stderr_) {
-			if (out_ !== '' ) {
-				return callback_.call(this, null , true);
-			}else {
-				return callback_.call(this,null, false);
-			}
-		}, 'file '+ path_ + " | grep -E 'text|empty'");
-	},
+  isTextFile:function(path_, callback_){
+    // this._exec('file '+ path_ + " | grep -E 'text|empty'", function(err_, out_ ,stderr_) {
+    _global._dataOP.shellExec(function(err_, out_ ,stderr_) {
+      if (out_ !== '' ) {
+        return callback_.call(this, null , true);
+      }else {
+        return callback_.call(this,null, false);
+      }
+    }, 'file '+ path_ + " | grep -E 'text|empty'");
+  },
 /**
  * [getItemFromApp : read .desktop then  get name and exec to build Item]
  * @param  {string} path_
  * @param  {function} callback_(err, Item);
  * @return {callback_}
  */
-	getItemFromApp:function(path_, callback_){
-		this.parseDesktopFile(path_, function(err_, file_){
-			if(err_) throw err_;
-			//get launch commad
-			var _execCmd = undefined,
+  getItemFromApp:function(path_, callback_){
+    this.parseDesktopFile(path_, function(err_, file_){
+      if(err_) throw err_;
+      //get launch commad
+      var _execCmd = undefined,
           layout = _global.get('desktop').getCOMById('layout'),
           ctxMenu = _global.get('ctxMenu');
-			if (typeof layout.getWidgetById(ctxMenu._rightObjId) !== 'undefined') {
-				_execCmd = file_['Exec']
-					.replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g
-						, '\''+layout.getWidgetById(ctxMenu._rightObjId).getPath()+'\'')
-					.replace(/\\\\/g, '\\');
-			}else{
-				_execCmd = file_['Exec']
-					.replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
-					.replace(/\\\\/g, '\\');
-			}
-			var _name = undefined; 
-			if(typeof file_['Name[zh_CN]'] !== "undefined") {
-				_name = file_['Name[zh_CN]'];
-			} else {
-				_name = file_['Name'];
-			}
-			if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
-				return callback_.call(this, 'Unknown name or cmd!');
-			};
-						
-			var _item = {
+      if (typeof layout.getWidgetById(ctxMenu._rightObjId) !== 'undefined') {
+        _execCmd = file_['Exec']
+          .replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g
+            , '\''+layout.getWidgetById(ctxMenu._rightObjId).getPath()+'\'')
+          .replace(/\\\\/g, '\\');
+      }else{
+        _execCmd = file_['Exec']
+          .replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+          .replace(/\\\\/g, '\\');
+      }
+      var _name = undefined; 
+      if(typeof file_['Name[zh_CN]'] !== "undefined") {
+        _name = file_['Name[zh_CN]'];
+      } else {
+        _name = file_['Name'];
+      }
+      if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
+        return callback_.call(this, 'Unknown name or cmd!');
+      };
+            
+      var _item = {
         text: _name,
         action: function(e) {
           e.preventDefault();
@@ -817,11 +818,11 @@ var EntryUtil = Event.extend({
           _global._dataOP.shellExec(function(err) {
             console.log(err);
           }, _execCmd);
-			  }
+        }
       };
-			return callback_.call(this, null, _item);
-		});
-	}
+      return callback_.call(this, null, _item);
+    });
+  }
 });
 
 // The base class for all command classes

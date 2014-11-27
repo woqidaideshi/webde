@@ -1395,66 +1395,71 @@ var DeviceListModel = Model.extend({
       // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     /* }); */
     // TODO: for IM, emit 'message' event when recive a message
-    /*_global._imV.StartIMService(function(done) {
-      if(!done)
-        return;
-      _global._imV.RegisterApp(function(recMsg) {
-        var toAccount = recMsg.Msgobj.from;
-        var curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
-        var fileMsg = recMsg.Msgobj.message;
-        try {
-          fileMsg = JSON.parse(recMsg.Msgobj.message);
-        } catch (e) {
-          console.log('just talk==================');
-        }
-        if (curEditBox === undefined) {
-          if (fileMsg.file === undefined) {
-            Messenger().post({
-              message: toAccount + '给你发新消息啦！',
-              type: 'info',
-              actions: {
-                close: {
-                  label: '取消闪烁',
-                  action: function() {
-                    Messenger().hideAll()
-                  }
-                },
-                open: {
-                  label: '查看',
-                  action: function() {
-                    Messenger().hideAll();
-                    var toAccountInfo = {};
-                    toAccountInfo['toAccount'] = toAccount;
-                    toAccountInfo['toIP'] = recMsg.IP;
-                    toAccountInfo['toUID'] = recMsg.msgobj.uuid;
-                    toAccountInfo['msg'] = fileMsg;
-                    curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
-                    _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
-                  }
+    _global._imV.RegisterApp(function(recMsg) {
+      var toAccount = recMsg.MsgObj.from;
+      var curEditBox = _this._imChatWinList['imChatWin_' + toAccount + recMsg.MsgObj.uuid];
+      var toUid;
+      if (curEditBox === undefined) {
+        curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
+        toUid = '';
+      } else {
+        toUid = recMsg.MsgObj.uuid;
+      }
+      var fileMsg = recMsg.MsgObj.message;
+      var toAccountInfo = {};
+      toAccountInfo['toAccount'] = toAccount;
+      toAccountInfo['toIP'] = recMsg.IP;
+      toAccountInfo['toUID'] = toUid;
+      try {
+        fileMsg = JSON.parse(recMsg.MsgObj.message);
+      } catch (e) {}
+      toAccountInfo['msg'] = fileMsg;
+      if (curEditBox === undefined) {
+        if (fileMsg.type === undefined) {
+          Messenger().post({
+            message: toAccount + '给你发新消息啦！',
+            type: 'info',
+            actions: {
+              close: {
+                label: '取消闪烁',
+                action: function() {
+                  Messenger().hideAll()
+                }
+              },
+              open: {
+                label: '查看',
+                action: function() {
+                  Messenger().hideAll();
+                  curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
+                  _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
                 }
               }
-            });
-          } else {
+            }
+          });
+        } else {
+          if (fileMsg.type === 'file') {
             Messenger().post({
-              message: toAccount + '给你发文件\n' + fileMsg.file,
+              message: toAccount + '给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
               type: 'info',
               actions: {
                 close: {
                   label: '拒绝',
                   action: function() {
                     Messenger().hideAll();
-                    // _global._imV.img();//////////////////
+                    fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
+                    var sendMsg = {};
+                    sendMsg['IP'] = toAccountInfo_.toIP;
+                    sendMsg['UID'] = toAccountInfo_.toUID;
+                    sendMsg['Account'] = toAccountInfo_.toAccount;
+                    sendMsg['Msg'] = JSON.stringify(fileMsg);
+                    sendMsg['App'] = 'imChat';
+                    _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
                   }
                 },
                 open: {
                   label: '接收',
                   action: function() {
                     Messenger().hideAll();
-                    var toAccountInfo = {};
-                    toAccountInfo['toAccount'] = toAccount;
-                    toAccountInfo['toIP'] = recMsg.IP;
-                    toAccountInfo['toUID'] = recMsg.MsgObj.uuid;
-                    toAccountInfo['msg'] = fileMsg;
                     curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
                     _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
                   }
@@ -1462,10 +1467,11 @@ var DeviceListModel = Model.extend({
               }
             });
           }
-        } else {
-          curEditBox.showRec(toAccount, fileMsg, curEditBox);
         }
-      }, 'imV');*/
+      } else {
+        curEditBox.showRec(toAccountInfo, curEditBox);
+      }
+    }, 'imChat');
   }
 });
 
@@ -1489,6 +1495,20 @@ var AccountEntryModel = EntryModel.extend({
   },
 
   open: function() {
+    var toAccount = this._position['txt'][1];
+    var toAccountInfo = {};
+    toAccountInfo['toAccount'] = toAccount;
+    toAccountInfo['toIP'] = this._position['address'];
+    toAccountInfo['toUID'] = '';
+    var toAccInfo={};
+    toAccInfo['toAccount']=toAccount;
+    toAccInfo['toUID']=this._position['txt'][2];
+    toAccInfo['toIP']=this._position['address'];
+    var toAccounts=[];
+    toAccounts[0]=toAccInfo;
+    toAccountInfo['toAccList']=toAccounts;
+    var curEditBox = UEditBox.create( toAccountInfo,this._parent._imChatWinList);
+    this._parent._imChatWinList['imChatWin_'+toAccount] = curEditBox;
   },
 
   copyTo: function() {
@@ -1516,13 +1536,20 @@ var DeviceEntryModel = EntryModel.extend({
 
   // TODO: show something about this device
   open: function() {
-    var toAccount = this._position['txt'][5];
+    var toAccount = this._position['txt'][1];
     var toAccountInfo = {};
-    toAccountInfo['toAccount'] = this._position['txt'][5];;
-    toAccountInfo['toIP'] = this._position['txt'][4];
-    toAccountInfo['toUID'] = this._position['txt'][1];
-    var curEditBox = UEditBox.create( toAccountInfo,this._parent._imChatWinList);
-    this._parent._imChatWinList['imChatWin_'+toAccount] = curEditBox;
+    toAccountInfo['toAccount'] = toAccount;
+    toAccountInfo['toIP'] = this._position['address'];
+    toAccountInfo['toUID'] = this._position['txt'][2];
+    var toAccInfo={};
+    toAccInfo['toAccount']=toAccount;
+    toAccInfo['toUID']=this._position['txt'][2];
+    toAccInfo['toIP']=this._position['address'];
+    var toAccounts=[];
+    toAccounts[0]=toAccInfo;
+    toAccountInfo['toAccList']=toAccounts;
+    var curEditBox = UEditBox.create( toAccountInfo,this._parent._parent._imChatWinList);
+    this._parent._parent._imChatWinList['imChatWin_'+toAccount+this._position['txt'][2]] = curEditBox;
   },
 
   // send a file to remote device

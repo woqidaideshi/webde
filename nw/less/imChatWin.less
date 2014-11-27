@@ -1,6 +1,6 @@
 .imChat{
   height:550px;
-  width:590px;
+  width:630px;
 }
 .imLeftDiv{
   float:left;
@@ -71,18 +71,24 @@
   border-width:1px;
   border-left-color:#ffe;
   border-top-color:#fff;
-  width: 135px; 
+  width: 175px; 
   height: 535px; 
   float:left;
 }
-.chat03_title { background: url('../img/title_bg.jpg') repeat-x 0 0; height:30px; position: relative;}
-.chat03_title_t { background: url('../img/icon.png') no-repeat 0px -370px; position: absolute; padding-left: 25px; top: 8px; left: 20px; display: block; width: auto; height: 15px; font-size:12px; font-weight:bold; }
-.chat03_content { text-align: left; font-size: 12px; color: #333; margin: 8px 0px; }
-.chat03_name { color: #333; position: absolute; top: 9px; left: 40px; display: block; }
-.chat03_content ul {  }
-.chat03_content ul li { position: relative; padding: 3px 6px; height: 31px; _padding-bottom:0px; }
-.chat03_content ul li.hover{ background: #ebeef3; } 
-.chat03_content ul li.choosed{ background: #ebeef3; } 
-.chat03_content ul li a {  }
-.chat03_content ul img { width: 30px; height: 30px; }
-.chat03_content li label { display: block; position: absolute; width: 9px; height: 9px; left: 27px; }
+.chatList{
+  width: 175px; 
+  height: 535px; 
+}
+.chatList_title { background: url('../img/title_bg.jpg') repeat-x 0 0; height:30px; position: relative;}
+.chatList_mem_t { background: url('../img/icon.png') no-repeat 0px -370px; position: absolute; padding-left: 25px; top: 8px; left: 20px; display: block; width: auto; height: 15px; font-size:12px; font-weight:bold;}
+.chatList_acc_t { background: url('../img/icon.png') no-repeat 0px -430px; position: absolute; padding-left: 25px; top: 8px; left: 20px; display: block; width: auto; height: 15px; font-size:12px; font-weight:bold; }
+.chatList_content { text-align: left; font-size: 12px; color: #333; margin: 0px 0px;height:505px;overflow-y:auto; }
+.chatList_name { color: #333; position: absolute; top: 9px; left: 40px; display: block; }
+.chatList_content ul { list-style-type :none;float:left; margin:0; padding:0;}
+.chatList_content ul li { position: relative; margin:2px 1px 1px 5px; padding:0; height: 70px;float:left; width:165px}
+.chatList_content ul li a {}
+.chatList_content ul img { width: 25px; height: 25px;}
+.chatList_content li label { display: block; position: absolute; width: 9px; height: 9px; left: 27px; }
+.chatList_btn {
+  float:right;
+}
