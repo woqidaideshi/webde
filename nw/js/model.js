@@ -872,27 +872,79 @@ var AppEntryModel = EntryModel.extend({
     _global._dataOP.readDesktopConfig(function(err_, appFile_) {
       if(err_) {
         console.log(err_);
-        callback_.call(this, err_);
-        return ;
+        return callback_.call(this, err_);
       }
-      if(_this._filename == 'gufw.desktop')
-        console.log();
-      var file_ = appFile_['[Desktop Entry]'];
+      var file_ = appFile_['[Desktop Entry]'],
+          mustShow = null;
+      // check if need to show
+      if(typeof file_['OnlyShowIn'] !== 'undefined') {
+        var tmp = file_['OnlyShowIn'].split(';');
+        mustShow = false;
+        for(var i = 0; i < tmp.length; ++i) {
+          if(tmp[i] == _global.$xdg_current_desktop) mustShow = true;
+        }
+        if(!mustShow) return _this.setNoDisplay(true);
+      }
+      if(typeof file_['NotShowIn'] !== 'undefined') {
+        var tmp = file_['NotShowIn'].split(';'),
+            show = true;
+        for(var i = 0; i < tmp.length; ++i) {
+          if(tmp[i] == _global.$xdg_current_desktop) show = false;
+        }
+        if(!show) return _this.setNoDisplay(true);
+      }
+      // get category
+      if(mustShow || file_['NoDisplay'] != 'true') {
+        var cgss = file_['Categories'] || '';
+            cgs = cgss.split(';'),
+            cg = 'Other';
+        for(var i = 0; i < cgs.length; ++i) {
+          if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
+            cg = cgs[i];
+            break;
+          }
+        }
+        _this.setCategory(cg);
+        _this.setNoDisplay(false);
+      } else {
+        // TODO: should not show this entry
+        return _this.setNoDisplay(true);
+      }
       // get launch commad
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
       // get icon
       // TODO: change to get icon path from cache
-      _global._dataOP.getIconPath(function(err_, imgPath_) {
-        if(err_) {
-          console.log(err_);
-          callback_.call(this, err_);
-          return ;
+      if(typeof file_['Icon'] === 'undefined')
+        return _this.setNoDisplay(true);
+      if(file_['Icon'][0] == '/') {
+        // already is full path
+        // console.log(file_['Icon'].match(/(\/.+)+/));
+        _this.setImgPath(file_['Icon']);
+      } else {
+        var iconName = /(.*)\.(png|svg|xpm)$/.exec(file_['Icon']);
+        if(iconName == null) {
+          iconName = file_['Icon'];
         } else {
-          _this.setImgPath(imgPath_[0]);
-          callback_.call(this, null);
+          iconName = iconName[1];
         }
-      }, file_['Icon'], 48);
+        _global._dataOP.getIconPath(function(err_, imgPath_) {
+          if(err_) {
+            _global._dataOP.getIconPath(function(err_, imgPath_) {
+              if(err_) {
+                console.log(err_);
+                return callback_.call(this, err_);
+              } else {
+                _this.setImgPath(imgPath_[0]);
+                callback_.call(this, null);
+              }
+            }, iconName, '(24|128)');
+          } else {
+            _this.setImgPath(imgPath_[0]);
+            callback_.call(this, null);
+          }
+        }, iconName, '(48|64|scalable)');
+      }
       /* utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) { */
       /* }); */
       // get name
@@ -908,22 +960,6 @@ var AppEntryModel = EntryModel.extend({
         _this._genericName = file_['GenericName[zh_CN]'];
       } else {
         _this._genericName = file_['GenericName'];
-      }
-      // get category
-      if(file_['NoDisplay'] != 'true') {
-        var cgs = file_['Categories'].split(';'),
-          cg = 'Other';
-        for(var i = 0; i < cgs.length; ++i) {
-          if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
-            cg = cgs[i];
-            break;
-          }
-        }
-        _this.setCategory(cg);
-        _this.setNoDisplay(false);
-      } else {
-        // TODO: should not show this entry
-        _this.setNoDisplay(true);
       }
     }, _this._path.match('[^\/]*$')[0]);
   },
