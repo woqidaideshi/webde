@@ -925,7 +925,7 @@ var AppEntryModel = EntryModel.extend({
             _this.setImgPath(imgPath_[0]);
             callback_.call(this, null);
           }
-        }, iconName, '(48|64)');
+        }, iconName, '(48|64|scalable)');
       }
       /* utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) { */
       /* }); */
