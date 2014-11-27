@@ -334,8 +334,10 @@ var Global = Class.extend({
               console.log(err);
               callback_(err);
             } else {
-              _this.$home = stdout.substr(0, stdout.length - 1);
-              _this.$xdg_data_home = _this.$home + '/.local/share/webde';
+              var tmp = stdout.substr(0, stdout.length - 1).split(' ');
+              _this.$home = tmp[0];
+              _this.$xdg_current_desktop = tmp[1]; 
+              _this.$xdg_data_home = _this.$home + '/.resources/desktop/data';
               // _this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
               _this._dataOP.shellExec(function(err, stdout, stderr) {
                 if(err) {
@@ -347,12 +349,11 @@ var Global = Class.extend({
                     _this.$xdg_data_dirs[i] 
                       = _this.$xdg_data_dirs[i].replace(/[\/]$/, '');
                   }
-      
                   cb_(null);
                 }
               }, 'echo $XDG_DATA_DIRS');
             }
-          }, 'echo $HOME');
+          }, 'echo $HOME $XDG_CURRENT_DESKTOP');
         }
       }
     ], function(err_, rets_) {

@@ -872,14 +872,31 @@ var AppEntryModel = EntryModel.extend({
     _global._dataOP.readDesktopConfig(function(err_, appFile_) {
       if(err_) {
         console.log(err_);
-        callback_.call(this, err_);
-        return ;
+        return callback_.call(this, err_);
       }
-      var file_ = appFile_['[Desktop Entry]'];
+      var file_ = appFile_['[Desktop Entry]'],
+          mustShow = null;
+      // check if need to show
+      if(typeof file_['OnlyShowIn'] !== 'undefined') {
+        var tmp = file_['OnlyShowIn'].split(';');
+        mustShow = false;
+        for(var i = 0; i < tmp.length; ++i) {
+          if(tmp[i] == _global.$xdg_current_desktop) mustShow = true;
+        }
+        if(!mustShow) return _this.setNoDisplay(true);
+      }
+      if(typeof file_['NotShowIn'] !== 'undefined') {
+        var tmp = file_['NotShowIn'].split(';'),
+            show = true;
+        for(var i = 0; i < tmp.length; ++i) {
+          if(tmp[i] == _global.$xdg_current_desktop) show = false;
+        }
+        if(!show) return _this.setNoDisplay(true);
+      }
       // get category
-      if(file_['NoDisplay'] != 'true') {
+      if(mustShow || file_['NoDisplay'] != 'true') {
         var cgs = file_['Categories'].split(';'),
-          cg = 'Other';
+            cg = 'Other';
         for(var i = 0; i < cgs.length; ++i) {
           if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
             cg = cgs[i];
@@ -898,7 +915,7 @@ var AppEntryModel = EntryModel.extend({
       // get icon
       // TODO: change to get icon path from cache
       if(typeof file_['Icon'] === 'undefined')
-        return console.log();
+        return _this.setNoDisplay(true);
       if(file_['Icon'][0] == '/') {
         // already is full path
         // console.log(file_['Icon'].match(/(\/.+)+/));
