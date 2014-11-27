@@ -895,7 +895,8 @@ var AppEntryModel = EntryModel.extend({
       }
       // get category
       if(mustShow || file_['NoDisplay'] != 'true') {
-        var cgs = file_['Categories'].split(';'),
+        var cgss = file_['Categories'] || '';
+            cgs = cgss.split(';'),
             cg = 'Other';
         for(var i = 0; i < cgs.length; ++i) {
           if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
