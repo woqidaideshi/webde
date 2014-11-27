@@ -901,24 +901,31 @@ var AppEntryModel = EntryModel.extend({
         return console.log();
       if(file_['Icon'][0] == '/') {
         // already is full path
+        // console.log(file_['Icon'].match(/(\/.+)+/));
         _this.setImgPath(file_['Icon']);
       } else {
         var iconName = /(.*)\.(png|svg|xpm)$/.exec(file_['Icon']);
         if(iconName == null) {
           iconName = file_['Icon'];
         } else {
-          iconName = iconName[0];
+          iconName = iconName[1];
         }
         _global._dataOP.getIconPath(function(err_, imgPath_) {
           if(err_) {
-            console.log(err_);
-            callback_.call(this, err_);
-            return ;
+            _global._dataOP.getIconPath(function(err_, imgPath_) {
+              if(err_) {
+                console.log(err_);
+                return callback_.call(this, err_);
+              } else {
+                _this.setImgPath(imgPath_[0]);
+                callback_.call(this, null);
+              }
+            }, iconName, '(24|128)');
           } else {
             _this.setImgPath(imgPath_[0]);
             callback_.call(this, null);
           }
-        }, iconName, 48);
+        }, iconName, '(48|64)');
       }
       /* utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) { */
       /* }); */
