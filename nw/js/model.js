@@ -247,7 +247,11 @@ var DesktopModel = Model.extend({
       _global._dataOP.readDesktopConfig(function(err_, ret_) {
         if(err_) return console.log(err_);
         _this._USER_CONFIG = ret_;
-        cb_(null);
+        _global._dataOP.readDesktopConfig(function(err_, ret_) {
+          if(err_) return console.log(err_);
+          _this._DEFAULT_APP = ret_;
+          cb_(null);
+        }, 'defaults.list');
       }, 'Widget.conf');
       /* _global._fs.readFile(_global.$xdg_data_home + "/widget.conf" */
         // , 'utf-8', function(err, data) {
@@ -371,7 +375,7 @@ var DesktopModel = Model.extend({
       var /* _path = _desktop._desktopWatch.getBaseDir() + '/' + filename, */
           _layout = _desktop.getCOMById('layout').getAllWidgets();
       for(var i = 0; i < _layout.length; ++i) {
-        var _entry = _layout[i].getWidgetByAttr('_filename', filename);
+        var _entry = _layout[i].getWidgetByAttr('_filename', filename.match(/[^\/]*$/));
         if(_entry == null) {
           console.log('Can not find this widget');
           continue;
@@ -452,37 +456,19 @@ var DockModel = Model.extend({
         // , _this._dockWatch, _this);
     /* }); */
 
-    var lastSave = [];
+    // var lastSave = [];
     for(var key in conf_) {
-      if(conf_[key].type == 'inside-app') {
-        var model,
-            launcher = _global.get('desktop').getCOMById('launcher');
-        try {
-          model = launcher.get(conf_[key].id);
-        } catch(e) {
-          model = launcher.createAModel(/* { */
-            // '0': conf_.insideApp[key].id,
-            // '1': conf_.insideApp[key].path,
-            // '2': conf_.insideApp[key].iconPath,
-            // '3': conf_.insideApp[key].name,
-            // '4': conf_.insideApp[key].type,
-            // '5': conf_.insideApp[key].idx,
-            // '6': conf_.insideApp[key].position
-          /* } */conf_.insideApp[key], 'inside-app');
-        }
-        this.add(model);
-      } else {
-        lastSave[conf_[key].id] = {
-          path: conf_[key].path,
-          x: conf_[key].position.x,
-          y: conf_[key].position.y,
-          type: conf_[key].type,
-          idx: conf_[key].idx
-        }
+      var model,
+          launcher = _global.get('desktop').getCOMById('launcher');
+      try {
+        model = launcher.get(conf_[key].id);
+      } catch(e) {
+        model = launcher.createAModel(conf_.insideApp[key], conf_[key].type);
       }
+      this.add(model);
     }
-    _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir()
-      , this._dockWatch, this);
+    /* _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir() */
+      /* , this._dockWatch, this); */
   },
 
   save: function() {
@@ -555,7 +541,7 @@ var DockModel = Model.extend({
     this._dockWatch.on('delete', function(filename) {
       //console.log('delete:', filename);
       // var _path = _this._dockWatch.getBaseDir() + '/' + filename;
-      var _dockApp = _this.getCOMByAttr('_filename', filename);
+      var _dockApp = _this.getCOMByAttr('_filename', filename.match(/[^\/]*$/));
       if(_dockApp == null) {
         console.log('Can not find this widget');
         return ;
@@ -770,7 +756,24 @@ var EntryModel = WidgetModel.extend({
 
   copyTo: function() {},
 
-  open: function() {}
+  open: function() {},
+
+  getTag: function() {return this._tag;},
+
+  setTag: function(tag_) {
+    this._tag = tag_;
+    // TODO: call the demo-rio's API
+  },
+
+  toJSON: function() {
+    return {
+      'id': this._id,
+      'path': this._path,
+      'type': this._type,
+      'position': this._position,
+      'idx': this._idx
+    };
+  }
 });
 
 // The model for inside app
@@ -836,6 +839,14 @@ var InsideAppEntryModel = EntryModel.extend({
 
   unlinkFromDock: function() {
     _global.get('desktop').getCOMById('dock').remove(this);
+  },
+
+  rename: function(name_) {
+    if(name_ != this._name) {
+      // TODO: rename a app entry
+      //    send new name to Data Layer and rename this entry
+      this.setName(name_);
+    }
   }
 })
 
@@ -861,25 +872,81 @@ var AppEntryModel = EntryModel.extend({
     _global._dataOP.readDesktopConfig(function(err_, appFile_) {
       if(err_) {
         console.log(err_);
-        callback_.call(this, err_);
-        return ;
+        return callback_.call(this, err_);
       }
-      var file_ = appFile_['[Desktop Entry]'];
+      var file_ = appFile_['[Desktop Entry]'],
+          mustShow = null;
+      // check if need to show
+      if(typeof file_['OnlyShowIn'] !== 'undefined') {
+        var tmp = file_['OnlyShowIn'].split(';');
+        mustShow = false;
+        for(var i = 0; i < tmp.length; ++i) {
+          if(tmp[i] == _global.$xdg_current_desktop) mustShow = true;
+        }
+        if(!mustShow) return _this.setNoDisplay(true);
+      }
+      if(typeof file_['NotShowIn'] !== 'undefined') {
+        var tmp = file_['NotShowIn'].split(';'),
+            show = true;
+        for(var i = 0; i < tmp.length; ++i) {
+          if(tmp[i] == _global.$xdg_current_desktop) show = false;
+        }
+        if(!show) return _this.setNoDisplay(true);
+      }
+      // get category
+      if(mustShow || file_['NoDisplay'] != 'true') {
+        var cgss = file_['Categories'] || '';
+            cgs = cgss.split(';'),
+            cg = 'Other';
+        for(var i = 0; i < cgs.length; ++i) {
+          if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
+            cg = cgs[i];
+            break;
+          }
+        }
+        _this.setCategory(cg);
+        _this.setNoDisplay(false);
+      } else {
+        // TODO: should not show this entry
+        return _this.setNoDisplay(true);
+      }
       // get launch commad
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
       // get icon
       // TODO: change to get icon path from cache
-      utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) {
-        if(err_) {
-          console.log(err_);
-          callback_.call(this, err_);
-          return ;
+      if(typeof file_['Icon'] === 'undefined')
+        return _this.setNoDisplay(true);
+      if(file_['Icon'][0] == '/') {
+        // already is full path
+        // console.log(file_['Icon'].match(/(\/.+)+/));
+        _this.setImgPath(file_['Icon']);
+      } else {
+        var iconName = /(.*)\.(png|svg|xpm)$/.exec(file_['Icon']);
+        if(iconName == null) {
+          iconName = file_['Icon'];
         } else {
-          _this.setImgPath(imgPath_[0]);
-          callback_.call(this, null);
+          iconName = iconName[1];
         }
-      });
+        _global._dataOP.getIconPath(function(err_, imgPath_) {
+          if(err_) {
+            _global._dataOP.getIconPath(function(err_, imgPath_) {
+              if(err_) {
+                console.log(err_);
+                return callback_.call(this, err_);
+              } else {
+                _this.setImgPath(imgPath_[0]);
+                callback_.call(this, null);
+              }
+            }, iconName, '(24|128)');
+          } else {
+            _this.setImgPath(imgPath_[0]);
+            callback_.call(this, null);
+          }
+        }, iconName, '(48|64|scalable)');
+      }
+      /* utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) { */
+      /* }); */
       // get name
       if(typeof file_['Name[zh_CN]'] !== "undefined") {
         _this.setName(file_['Name[zh_CN]']);
@@ -893,22 +960,6 @@ var AppEntryModel = EntryModel.extend({
         _this._genericName = file_['GenericName[zh_CN]'];
       } else {
         _this._genericName = file_['GenericName'];
-      }
-      // get category
-      if(file_['NoDisplay'] != 'true') {
-        var cgs = file_['Categories'].split(';'),
-          cg = 'Other';
-        for(var i = 0; i < cgs.length; ++i) {
-          if(typeof _global._App_Cate[cgs[i]] !== 'undefined') {
-            cg = cgs[i];
-            break;
-          }
-        }
-        _this.setCategory(cg);
-        _this.setNoDisplay(false);
-      } else {
-        // TODO: should not show this entry
-        _this.setNoDisplay(true);
       }
     }, _this._path.match('[^\/]*$')[0]);
   },
@@ -1010,7 +1061,7 @@ var AppEntryModel = EntryModel.extend({
   },
 
   unlinkFromDock: function() {
-    _global._dataOP.linkAppToDesktop(function() {}, '/desktop/' + this._filename);
+    _global._dataOP.unlinkApp(function() {}, '/dock/' + this._filename);
   }
 });
 
@@ -1028,43 +1079,62 @@ var FileEntryModel = EntryModel.extend({
   realInit: function(callback_) {
     var cb_ = callback_ || function() {};
     var _this = this,
-        utilIns = _global.get('utilIns');
+        utilIns = _global.get('utilIns'),
+        desktop = _global.get('desktop');
     utilIns.entryUtil.getMimeType(_this._path, function(err_, mimeType_) {
       // TODO: try to get icon from cache first
-      utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48
-        , function(err_, imgPath_) {
-          if(err_) {
-            utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) {
-              if(err_) {
-                console.log(err_);
-                return ;
-              }
-              // TODO: try to get icon from cache first
-              // utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
-              _global._dataOP.readDesktopConfig(function(err_, appFile_) {
-                if(err_) {
-                  console.log(err_);
-                  return ;
-                }
-                var file_ = appFile_['[Desktop Entry]'];
-                utilIns.entryUtil.getIconPath(file_['Icon'], 48
-                  , function(err_, imgPath_) {
-                    if(err_) {
-                      console.log(err_);
-                      cb_(err_);
-                      return ;
-                    } else {
-                      _this.setImgPath(imgPath_[0]);
-                      cb_(null);
-                    }
-                });
-              }, appFile_.match('[^\/]*$')[0]);
-            });
+      if(err_) return console.log(err_);
+      var type = mimeType_ || 'text/plain';
+      if(type == '') type = 'text/plain';
+      _global._dataOP.getIconPath(function(err_, imgPath_) {
+        if(err_) {
+          var types = mimeType_.split('/'),
+              apps = desktop._DEFAULT_APP[types[0]][types[1]] || [],
+              launcher = desktop.getCOMById('launcher'),
+              model = launcher.getCOMByAttr(apps[0]);
+          if(model == null) {
+            _global._dataOP.getIconPath(function(err_, imgPath_) {
+              _this.setImgPath(imgPath_[0]);
+            }, 'text-plain', 48);
+            /* utilIns.entryUtil.getIconPath('text-plain', 48, function(err_, imgPath_) { */
+            /* }); */
           } else {
-            _this.setImgPath(imgPath_[0]);
-            cb_(null);
+            _this.setImgPath(model.getImgPath());
           }
-        });
+          /* utilIns.entryUtil.getDefaultApp(mimeType_, function(err_, appFile_) { */
+            // if(err_) {
+              // console.log(err_);
+              // return ;
+            // }
+            // // TODO: try to get icon from cache first
+            // // utilIns.entryUtil.parseDesktopFile(appFile_, function(err_, file_) {
+            // _global._dataOP.readDesktopConfig(function(err_, appFile_) {
+              // if(err_) {
+                // console.log(err_);
+                // return ;
+              // }
+              // var file_ = appFile_['[Desktop Entry]'];
+              // utilIns.entryUtil.getIconPath(file_['Icon'], 48
+                // , function(err_, imgPath_) {
+                  // if(err_) {
+                    // console.log(err_);
+                    // cb_(err_);
+                    // return ;
+                  // } else {
+                    // _this.setImgPath(imgPath_[0]);
+                    // cb_(null);
+                  // }
+              // });
+            // }, appFile_.match('[^\/]*$')[0]);
+          /* }); */
+        } else {
+          _this.setImgPath(imgPath_[0]);
+          cb_(null);
+        }
+      }, mimeType_.replace('/', '-'), 48);
+      /* utilIns.entryUtil.getIconPath(mimeType_.replace('/', '-'), 48 */
+        // , function(err_, imgPath_) {
+        /* }); */
     });
   },
 
@@ -1075,87 +1145,140 @@ var FileEntryModel = EntryModel.extend({
           _this = this;
       this.setPath(_match[1] + name_);
       _match = /(.*)[\.]([^\.].*)$/.exec(name_);
-      this._filename = name_;
-      _global._fs.rename(oldPath, this._path, function(err) {
-        if(err) console.log(err);
-        if(_match != null && _match[2] != _this._type) {
-          _this._type = _match[2];
-          // reparse the file type
-          _this.realInit();
-        }
+      /* _global._fs.rename(oldPath, this._path, function(err) { */
+        // if(err) console.log(err);
+        // if(_match != null && _match[2] != _this._type) {
+          // _this._type = _match[2];
+          // // reparse the file type
+          // _this.realInit();
+        // }
+        // _this._filename = name_;
+        // _this.setName(name_);
+      /* }); */
+      // replace with demo-rio's API
+      _global._dataOP.renameFileOnDesk(function(err_, ret_) {
+        if(err_ || ret_ == 'EXIST') return console.log(err_);
+        _this._filename = name_;
         _this.setName(name_);
-      });
+      }, this.getName(), name_);
     }
   },
 
   open: function() {
     // TODO: replace by API ourselves
-    // _global._exec('xdg-open ' + this._path.replace(/ /g, '\\ ')
     _global._dataOP.shellExec(function(err, stdout, stderr) {
       if(err) console.log(err);
     }, 'xdg-open ' + this._path.replace(/ /g, '\\ '));
   }
 });
 
-var DirEntryModel = FileEntryModel.extend({
+var DirEntryModel = EntryModel.extend({
   init: function(id_, parent_, path_, position_, callback_) {
     this.callSuper(id_, parent_, path_, position_);
     this._type = 'dir';
+    this.setImgPath('img/folder.png');
+    this.setName(path_.match(/[^\/]*$/)[0]);
+    if(typeof callback_ !== 'undefined') callback_.call(this);
   },
 
-  // TODO: copy file to this dir
-  copyTo: function() {},
+  add: function(model_) {
+    this._c[model_.getID()] = {
+      'path': model_.getPath()
+    };
+    if(model_.getType() == 'dir') {
+      model_.setPath(this.getPath() + '/' + model_.getName());
+      // TODO: setTag for every file under this folder
+      this._c[model_.getID()].list = model_.getList();
+    } else {
+      model_.setTag(this._path.replace(/\//g, '$'));
+    }
+  },
 
-  // TODO: move file to this dir
-  moveTo: function(clip_, entryIds_) {
+  getList: function() {return this._c;},
+
+  setList: function(list_) {
+    this._c = list_;
+  },
+
+  // send a signal to show models belong to
+  open: function() {
+    this.emit('open', null, this.getAllCOMs());
+    console.log(this.toJSON());
+  },
+
+  // copy files or entrys to this dir
+  copyTo: function(clip_, entryIds_) {
     // handle file move
     if(clip_.files.length != 0) {
       for(var i = 0; i < clip_.files.length; ++i) {
         if(clip_.files[i].path == this._path) continue;
-        var filename = clip_.files[i].path.match(/[^\/]*$/)[0];
-        // TODO: replace this API
-        _global._fs.rename(clip_.files[i].path, this._path + '/' + filename, function(err) {
-          if(err) {
-            console.log(err);
-          }
+        var filename = clip_.files[i].path.match(/[^\/]*$/)[0],
+            _this = this;
+        // replace this API
+        _global._dataOP.moveToDesktopSingle(clip_.files[i].path, function(err_, ret_) {
+          if(err_) return console.log(err_);
+          _this.add(FileEntryModel.create(ret_[1], _this, ret_[0]));
         });
+        /* _global._fs.rename(clip_.files[i].path, this._path + '/' + filename, function(err) { */
+          // if(err) {
+            // console.log(err);
+          // }
+        /* }); */
       }
-      return ;
+      return true;
     }
     // handle entry move
     if(entryIds_.length == 0)
       entryIds_.push(clip_.getData('ID'));
     for(var i = 0; i < entryIds_.length; ++i) {
       var desktop = _global.get('desktop'),
-          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]),
-          type = item.getType(),
-          srcP = null;
-      if(entryIds_[i] == this._id/*  || typeof item === 'undefined' */) return ;
-      if(item.getType() == 'app') {
-        srcP = desktop._desktopWatch.getBaseDir() + '/' + item.getFilename();
+          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
+      if(entryIds_[i] == this._id || typeof item === 'undefined' ) continue;
+      // item.setTag(this._path.replace(/\//g, '$'));
+      this.add(item);
+    }
+    return true;
+  },
+
+  // move files or entrys to this dir
+  //      remove models to be moved from old parents and add to this dir model
+  moveTo: function(clip_, entryIds_) {
+    this.copyTo(clip_, entryIds_);
+    // handle entry move
+    if(entryIds_.length == 0)
+      entryIds_.push(clip_.getData('ID'));
+    for(var i = 0; i < entryIds_.length; ++i) {
+      var desktop = _global.get('desktop'),
+          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
+      if(entryIds_[i] == this._id || typeof item === 'undefined' ) continue;
+      var type = item.getType();
+      if(type == 'app' || type == 'inside-app') {
+        item.unlinkFromDesktop();
       } else {
-        srcP = item.getPath();
+        item.getParent().remove(item);
       }
-      // TODO: replace this API
-      _global._fs.rename(srcP, this._path + '/' + item.getFilename(), function(err) {
-        if(err) {
-          console.log(err);
-        }
-      });
     }
   },
 
   rename: function(name_) {
     if(name_ != this._name) {
       this.setName(name_);
-      var _match = /(.*[\/])([^\/].*)$/.exec(this._path),
-          oldPath = this._path;
+      var _match = /(.*[\/])([^\/].*)$/.exec(this._path)/* , */
+          /* oldPath = this._path */;
       this.setPath(_match[1] + this._name);
+      // for now, the dir just a logistic entry
       this._filename = name_;
-      _global._fs.rename(oldPath, this._path, function(err) {
-        if(err) console.log(err);
-      });
+      // TODO: change tags of files saving in this directory
+      /* _global._fs.rename(oldPath, this._path, function(err) { */
+        // if(err) console.log(err);
+      /* }); */
     }
+  },
+
+  toJSON: function() {
+    var ret = this.callSuper();
+    ret.list = this.getList();
+    return ret;
   }
 });
 
@@ -1171,7 +1294,7 @@ var ThemeEntryModel = EntryModel.extend({
   realInit: function(callback_) {
     var cb = callback_ || function() {},
         _this = this;
-    _global.get('utilIns').entryUtil.getIconPath(_this._iconName, 48, function(err_, iconPath_) {
+    _global._dataOP.getIconPath(function(err_, iconPath_) {
       if(err_) {
         console.log(err_);
         cb(err_);
@@ -1180,7 +1303,9 @@ var ThemeEntryModel = EntryModel.extend({
         _this.setImgPath(iconPath_[0]);
         cb(null);
       }
-    });
+    }, _this._iconName, 48);
+    /* _global.get('utilIns').entryUtil.getIconPath(_this._iconName, 48, function(err_, iconPath_) { */
+    /* }); */
   },
 
   setPosition: function(pos_) {
@@ -1327,6 +1452,7 @@ var DeviceListModel = Model.extend({
   release: function() {
     // TODO: release device monitor server
     // _global._device.removeDeviceListener(this.__handler);
+    _global._device.removeListener(this._hID);
     _global._device.deviceDown();
   },
   
@@ -1350,12 +1476,13 @@ var DeviceListModel = Model.extend({
   __handler: function(pera_) {
     var _this = _global.get('desktop').getCOMById('device-list'),
         info = pera_.info,
-        account_id_ = info.txt[1];
+        len = info.txt.length,
+        account_id_ = info.txt[len - 1];
         dev_id_ = info.address + ':' + info.port;
     switch(pera_.flag) {
       case 'up':
         if(!_this.has(account_id_)) {
-          _this.add(AccountEntryModel.create(account_id_, _this, info.txt[0], info));
+          _this.add(AccountEntryModel.create(account_id_, _this, info.txt[len - 2], info));
         }
         var ac = _this.getCOMById(account_id_);
         ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
@@ -1383,7 +1510,7 @@ var DeviceListModel = Model.extend({
       // }
     /* }); */
     var _this = this;
-    _global._device.addListener(this.__handler);
+    _this._hID = _global._device.addListener(this.__handler);
     _global._device.startMdnsService(function(state_) {
       if(state_) {
         console.log('start MDNS Service success');
@@ -1486,6 +1613,7 @@ var AccountEntryModel = EntryModel.extend({
     this._type = 'account';
     this._imgPath = 'img/user.png';
     this.realInit(callback_);
+    this._imChatWinList = {}; 
   },
 
   realInit: function(cb_) {
@@ -1770,10 +1898,23 @@ var WidgetManager = Model.extend({
         // idx: conf_.dentry[key].idx
       /* } */
       var model;
-      try {
-        model = launcher.get(conf_.dentry[key].id);
-      } catch(e) {
-        model = launcher.createAModel(conf_.dentry[key], conf_.dentry[key].type);
+      switch(conf_.dentry[key].type) {
+        case 'app':
+          try {
+            model = launcher.get(conf_.dentry[key].id);
+          } catch(e) {
+            model = launcher.createAModel(conf_.dentry[key], conf_.dentry[key].type);
+          }
+          break;
+        case 'dir':
+          model = DirEntryModel.create(conf_.dentry[key].id, this, conf_.dentry[key].path
+              , conf_.dentry[key].position, function() {
+                this.setList(conf_.dentry[key].list);
+              });
+          break;
+        default:
+          // TODO: handle File entry model
+          break;
       }
       this.add(model);
     }
@@ -1831,13 +1972,7 @@ var WidgetManager = Model.extend({
         continue;
       } else {
         // save dentrys
-        dentry[id] = {
-          'id': id,
-          'path': models[key].getPath(),
-          'type': type,
-          'position': models[key].getPosition(),
-          'idx': models[key].getIdx()
-        };
+        dentry[id] = models[key].toJSON();
       }
     }
     conf_.insideApp = insideApp;

@@ -335,8 +335,10 @@ var Global = Class.extend({
               console.log(err);
               callback_(err);
             } else {
-              _this.$home = stdout.substr(0, stdout.length - 1);
-              _this.$xdg_data_home = _this.$home + '/.local/share/webde';
+              var tmp = stdout.substr(0, stdout.length - 1).split(' ');
+              _this.$home = tmp[0];
+              _this.$xdg_current_desktop = tmp[1]; 
+              _this.$xdg_data_home = _this.$home + '/.resources/desktop/data';
               // _this._exec('echo $XDG_DATA_DIRS', function(err, stdout, stderr) {
               _this._dataOP.shellExec(function(err, stdout, stderr) {
                 if(err) {
@@ -348,12 +350,11 @@ var Global = Class.extend({
                     _this.$xdg_data_dirs[i] 
                       = _this.$xdg_data_dirs[i].replace(/[\/]$/, '');
                   }
-      
                   cb_(null);
                 }
               }, 'echo $XDG_DATA_DIRS');
             }
-          }, 'echo $HOME');
+          }, 'echo $HOME $XDG_CURRENT_DESKTOP');
         }
       }
     ], function(err_, rets_) {
@@ -540,7 +541,6 @@ var EntryUtil = Event.extend({
             + ' -regextype \"posix-egrep\" -regex \".*'
              + ((index_ < _this._iconSearchPath.length - 1)
             ? size_ : '') + '.*/' +iconName_ + '\.(svg|png|xpm)$\"';
-          // _global._exec(tmp, function(err, stdout, stderr) {
           _global._dataOP.shellExec(function(err, stdout, stderr) {
             if(stdout == '') {
               _global._fs.readFile(_path + '/index.theme'
@@ -779,50 +779,65 @@ var EntryUtil = Event.extend({
   },
 /**
  * [getItemFromApp : read .desktop then  get name and exec to build Item]
- * @param  {string} path_
+ * @param  {string} filename_
  * @param  {function} callback_(err, Item);
  * @return {callback_}
  */
-  getItemFromApp:function(path_, callback_){
-    this.parseDesktopFile(path_, function(err_, file_){
-      if(err_) throw err_;
-      //get launch commad
-      var _execCmd = undefined,
-          layout = _global.get('desktop').getCOMById('layout'),
-          ctxMenu = _global.get('ctxMenu');
-      if (typeof layout.getWidgetById(ctxMenu._rightObjId) !== 'undefined') {
-        _execCmd = file_['Exec']
-          .replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g
-            , '\''+layout.getWidgetById(ctxMenu._rightObjId).getPath()+'\'')
-          .replace(/\\\\/g, '\\');
-      }else{
-        _execCmd = file_['Exec']
-          .replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
-          .replace(/\\\\/g, '\\');
-      }
-      var _name = undefined; 
-      if(typeof file_['Name[zh_CN]'] !== "undefined") {
-        _name = file_['Name[zh_CN]'];
-      } else {
-        _name = file_['Name'];
-      }
-      if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
-        return callback_.call(this, 'Unknown name or cmd!');
-      };
-            
-      var _item = {
-        text: _name,
+	getItemFromApp: function(filename_, callback_) {
+    var launcher = _global.get('desktop').getCOMById('launcher'),
+        model = launcher.getCOMByAttr('_filename', filename_);
+    if(model) {
+      return {
+        text: model.getName(),
         action: function(e) {
           e.preventDefault();
-          // _global._exec(_execCmd ,function(err){
           _global._dataOP.shellExec(function(err) {
             console.log(err);
-          }, _execCmd);
+          }, model.getCmd());
         }
       };
-      return callback_.call(this, null, _item);
-    });
-  }
+    } else {
+      return null;
+    }
+		/* this.parseDesktopFile(path_, function(err_, file_){ */
+			// if(err_) throw err_;
+			// //get launch commad
+			// var _execCmd = undefined,
+          // layout = _global.get('desktop').getCOMById('layout'),
+          // ctxMenu = _global.get('ctxMenu');
+			// if (typeof layout.getWidgetById(ctxMenu._rightObjId) !== 'undefined') {
+				// _execCmd = file_['Exec']
+					// .replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g
+						// , '\''+layout.getWidgetById(ctxMenu._rightObjId).getPath()+'\'')
+					// .replace(/\\\\/g, '\\');
+			// }else{
+				// _execCmd = file_['Exec']
+					// .replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
+					// .replace(/\\\\/g, '\\');
+			// }
+			// var _name = undefined; 
+			// if(typeof file_['Name[zh_CN]'] !== "undefined") {
+				// _name = file_['Name[zh_CN]'];
+			// } else {
+				// _name = file_['Name'];
+			// }
+			// if (typeof _name == 'undefined' || typeof _execCmd == 'undefined') {
+				// return callback_.call(this, 'Unknown name or cmd!');
+			// };
+						
+			// var _item = {
+        // text: _name,
+        // action: function(e) {
+          // e.preventDefault();
+          // // _global._exec(_execCmd ,function(err){
+          // _global._dataOP.shellExec(function(err) {
+            // console.log(err);
+          // }, _execCmd);
+				// }
+      // };
+			// return callback_.call(this, null, _item);
+		/* }); */
+	}
 });
 
 // The base class for all command classes
@@ -972,7 +987,7 @@ var WindowManager = Model.extend({
 
   focusOnAWindow: function(wID_) {
     for(var key in this._c) {
-      if(wID == key) {
+      if(wID_ == key) {
         this._c[key].focus();
         // TODO: change the sequence of windows in _s
       } else {

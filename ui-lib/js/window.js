@@ -44,7 +44,6 @@ var Window = Class.extend({
     this._saveWinContentCss = '';
     this._focusCallback = undefined;    //获取聚焦时的回调函数
     this._INDEX = 100;
-    this._interval = undefined;
 
     this._window = $('<div>',{
       'id': this._id,
@@ -407,9 +406,6 @@ var Window = Class.extend({
    */
   closeWindow:function(windowObj_){
     var _this = windowObj_;
-    if (_this._interval) {
-      clearInterval(_this._interval);
-    }
     if (_this._options.animate) {
       _this._window.fadeOut(_this._options.fadeSpeed,function(){
         _this._window.remove();
@@ -531,7 +527,7 @@ var Window = Class.extend({
     }
     if(this._options.iframe){
       this._windowContent[0].onload = function(){
-        _this._interval = setInterval(iframeClick,1);
+        iframeClick();
       }
       this._windowContent[0].src = src_;
     }else {
