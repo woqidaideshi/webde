@@ -239,11 +239,13 @@ var DesktopModel = Model.extend({
     this._inputer = Inputer.create('d-inputer');
     this._DESKTOP_DIR = '/data/desktop';
     var _this = this;
-    _global._dataOP.CreateWatcher(function(err_, watcher_) { 
-      if(err_) {
-        return console.log(err_);
-      }
-      _this.initDesktopWatcher(watcher_);
+    // remove the Watcher
+    // TODO: remove these code when not needed
+    /* _global._dataOP.CreateWatcher(function(err_, watcher_) {  */
+      // if(err_) {
+        // return console.log(err_);
+      // }
+      /* _this.initDesktopWatcher(watcher_); */
       _global._dataOP.readDesktopConfig(function(err_, ret_) {
         if(err_) return console.log(err_);
         _this._USER_CONFIG = ret_;
@@ -263,7 +265,7 @@ var DesktopModel = Model.extend({
             // cb_(null);
           // }
         /* }); */
-    }, this._DESKTOP_DIR); 
+    // }, this._DESKTOP_DIR); 
   },
 
   // The cb_ should be called at the end of this function
@@ -322,7 +324,8 @@ var DesktopModel = Model.extend({
 
   initDesktopWatcher: function(watcher_) {
     var _desktop = this;
-    // TODO: change to API our own
+    // change to API our own
+    // TODO: remove these code when not needed
     // this._DESKTOP_DIR = _global.$xdg_data_home + '/desktop';
     // this._desktopWatch = Watcher.create(this._DESKTOP_DIR);
     this._desktopWatch = watcher_;
@@ -412,10 +415,12 @@ var DockModel = Model.extend({
     this._DOCK_DIR = '/data/dock';
 
     var _this = this;
-    _global._dataOP.CreateWatcher(function(err_, watcher_) {
-      if(err_) return console.log(err_);
-      _this.initWatcher(watcher_);
-    }, this._DOCK_DIR);
+    // remove the Watcher
+    // TODO: remove these code when not needed
+    /* _global._dataOP.CreateWatcher(function(err_, watcher_) { */
+      // if(err_) return console.log(err_);
+      // _this.initWatcher(watcher_);
+    /* }, this._DOCK_DIR); */
   },
 
   load: function(conf_) {
@@ -505,6 +510,7 @@ var DockModel = Model.extend({
     this._dockWatch.close();
   },
 
+  // TODO: remove these code when not needed
   initWatcher: function(watcher_) {
     // this._DOCK_DIR = _global.$xdg_data_home + '/dock';
     // this._dockWatch = Watcher.create(this._DOCK_DIR);
@@ -1049,20 +1055,38 @@ var AppEntryModel = EntryModel.extend({
   },
 
   linkToDesktop: function() {
-    _global._dataOP.linkAppToDesktop(function() {}, this._filename, 'desktop');
+    _global.get('desktop').getCOMById('layout').getCurLayout().add(this);
   },
 
   unlinkFromDesktop: function() {
-    _global._dataOP.unlinkApp(function() {}, '/desktop/' + this._filename);
+    _global.get('desktop').getCOMById('layout').getCurLayout().remove(this);
   },
 
   linkToDock:function() {
-    _global._dataOP.linkAppToDesktop(function() {}, this._filename, 'dock');
+    _global.get('desktop').getCOMById('dock').add(this);
   },
 
   unlinkFromDock: function() {
-    _global._dataOP.unlinkApp(function() {}, '/dock/' + this._filename);
-  }
+    _global.get('desktop').getCOMById('dock').remove(this);
+  }/* , */
+  // remove the API relied on the watcher
+  // TODO: remove these code when not needed
+  //
+  // linkToDesktop: function() {
+    // _global._dataOP.linkAppToDesktop(function() {}, this._filename, 'desktop');
+  // },
+
+  // unlinkFromDesktop: function() {
+    // _global._dataOP.unlinkApp(function() {}, '/desktop/' + this._filename);
+  // },
+
+  // linkToDock:function() {
+    // _global._dataOP.linkAppToDesktop(function() {}, this._filename, 'dock');
+  // },
+
+  // unlinkFromDock: function() {
+    // _global._dataOP.unlinkApp(function() {}, '/dock/' + this._filename);
+  /* } */
 });
 
 var FileEntryModel = EntryModel.extend({
@@ -1453,7 +1477,7 @@ var DeviceListModel = Model.extend({
     // TODO: release device monitor server
     // _global._device.removeDeviceListener(this.__handler);
     _global._device.removeListener(this._hID);
-    _global._device.deviceDown();
+    // _global._device.deviceDown();
   },
   
   // replace with new API
@@ -1511,11 +1535,11 @@ var DeviceListModel = Model.extend({
     /* }); */
     var _this = this;
     _this._hID = _global._device.addListener(this.__handler);
-    _global._device.startMdnsService(function(state_) {
-      if(state_) {
-        console.log('start MDNS Service success');
-      }
-    });
+    /* _global._device.startMdnsService(function(state_) { */
+      // if(state_) {
+        // console.log('start MDNS Service success');
+      // }
+    /* }); */
     // replace with new API
     /* _global._device.addDeviceListener(this.__handler); */
     // _global._device.createServer(function() {

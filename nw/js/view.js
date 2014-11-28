@@ -1417,13 +1417,20 @@ var LauncherView = View.extend({
         ctxMenu = _global.get('ctxMenu');
     ctxMenu.addCtxMenu([
       {header: 'launcher'},
-      {text: 'add to Desktop', action: function(e) {
+      {text: 'Open', action: function(e) {
+        e.preventDefault();
+        _this._views[ctxMenu._rightObjId]._controller.onClick();
+        _this.toggle();
+      }},
+      {text: 'Add to Desktop', action: function(e) {
         e.preventDefault();
         _this._views[ctxMenu._rightObjId]._controller.onAddToDesktop();
+        _this.toggle();
       }},
-      {text: 'add to Dock', action: function(e) {
+      {text: 'Add to Dock', action: function(e) {
         e.preventDefault();
         _this._views[ctxMenu._rightObjId]._controller.onAddToDock();
+        _this.toggle();
       }}
     ]);
   },
