@@ -239,6 +239,7 @@ var DesktopModel = Model.extend({
     this._inputer = Inputer.create('d-inputer');
     this._DESKTOP_DIR = '/data/desktop';
     var _this = this;
+    // remove the Watcher
     /* _global._dataOP.CreateWatcher(function(err_, watcher_) {  */
       // if(err_) {
         // return console.log(err_);
@@ -322,7 +323,7 @@ var DesktopModel = Model.extend({
 
   initDesktopWatcher: function(watcher_) {
     var _desktop = this;
-    // TODO: change to API our own
+    // change to API our own
     // this._DESKTOP_DIR = _global.$xdg_data_home + '/desktop';
     // this._desktopWatch = Watcher.create(this._DESKTOP_DIR);
     this._desktopWatch = watcher_;
@@ -412,6 +413,7 @@ var DockModel = Model.extend({
     this._DOCK_DIR = '/data/dock';
 
     var _this = this;
+    // remove the Watcher
     /* _global._dataOP.CreateWatcher(function(err_, watcher_) { */
       // if(err_) return console.log(err_);
       // _this.initWatcher(watcher_);
@@ -1063,7 +1065,8 @@ var AppEntryModel = EntryModel.extend({
   unlinkFromDock: function() {
     _global.get('desktop').getCOMById('dock').remove(this);
   }/* , */
-
+  // remove the API relied on the watcher
+  //
   // linkToDesktop: function() {
     // _global._dataOP.linkAppToDesktop(function() {}, this._filename, 'desktop');
   // },
