@@ -1537,6 +1537,13 @@ var DeviceListModel = Model.extend({
       toAccountInfo['toAccount'] = toAccount;
       toAccountInfo['toIP'] = recMsg.IP;
       toAccountInfo['toUID'] = toUid;
+      var toAccInfo={};
+      toAccInfo['toAccount']=toAccount;
+      toAccInfo['toUID']=recMsg.MsgObj.uuid;
+      toAccInfo['toIP']=recMsg.IP;
+      var toAccounts=[];
+      toAccounts[0]=toAccInfo;
+      toAccountInfo['toAccList']=toAccounts;
       try {
         fileMsg = JSON.parse(recMsg.MsgObj.message);
       } catch (e) {}
@@ -1565,6 +1572,11 @@ var DeviceListModel = Model.extend({
           });
         } else {
           if (fileMsg.type === 'file') {
+            var sendMsg = {};
+            sendMsg['IP'] = toAccountInfo_.toIP;
+            sendMsg['UID'] = toAccountInfo_.toUID;
+            sendMsg['Account'] = toAccountInfo_.toAccount;
+            sendMsg['App'] = 'imChat';
             Messenger().post({
               message: toAccount + '给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
               type: 'info',
@@ -1573,13 +1585,8 @@ var DeviceListModel = Model.extend({
                   label: '拒绝',
                   action: function() {
                     Messenger().hideAll();
-                    fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-                    var sendMsg = {};
-                    sendMsg['IP'] = toAccountInfo_.toIP;
-                    sendMsg['UID'] = toAccountInfo_.toUID;
-                    sendMsg['Account'] = toAccountInfo_.toAccount;
+                    fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
                     sendMsg['Msg'] = JSON.stringify(fileMsg);
-                    sendMsg['App'] = 'imChat';
                     _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
                   }
                 },
@@ -1587,8 +1594,13 @@ var DeviceListModel = Model.extend({
                   label: '接收',
                   action: function() {
                     Messenger().hideAll();
-                    curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
-                    _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+                    fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
+                    sendMsg['Msg'] = JSON.stringify(fileMsg);
+                    _global._imV.SendAppMsg(function(mmm) {
+                      curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
+                      _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+                    }, sendMsg);
+                    
                   }
                 }
               }

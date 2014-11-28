@@ -3370,7 +3370,7 @@ var UEditBox = Class.extend({
       } else {}
     });
     if (toAccountInfo_.msg !== undefined) {
-      _this.showRec(toAccountInfo_, _this, false);
+      _this.showRecDetail(toAccountInfo_, _this, false);
     }
   },
   showRec: function(toAccountInfo_, curEditBox_) {
@@ -3445,6 +3445,7 @@ var UEditBox = Class.extend({
         { //收到发送端取消传输文件的请求   
           console.log('transferCancel ' + JSON.stringify(msg));
           _global._imFileTransfer.transferCancelReciever(function() {
+            curEditBox_.fileItemTransRemove(curEditBox_._fileTransList, msg.key, toIdentity);
             var ratioLable = '对方中止了传输文件 ："' + msg.fileName + '"(大小：' + msg.fileSize + ')。';
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
@@ -3484,11 +3485,13 @@ var UEditBox = Class.extend({
     console.log('sender transfer go on');
     if (flag_) {
       $('li').not('#fileTransItem_' + msg.key );
+    }else{
+      $('#memList_' + toIdentity).hide();
+      $('#fileTransShow_' + toIdentity).show();
     }
     var output = '/media/fyf/BACKUP/' + msg.fileName;
     curEditBox_._fileTransList[msg.key] = output;
-    $('#memList_' + toIdentity).hide();
-    $('#fileTransShow_' + toIdentity).show();
+    
     $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg.key + '">\
                 <a href="javascript:;">\
                 <img src="img/uploadFile.png"/></a><a href="javascript:;" class="chatList_name">' + msg.fileName + '<br/>大小：' + msg.fileSize + '</a><br/>\
