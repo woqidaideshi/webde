@@ -1518,6 +1518,7 @@ var DeviceListModel = Model.extend({
         break;
       case 'down':
         var ac = _this.getCOMById(account_id_);
+        if(typeof ac === 'undefined') return;
         if(ac.size() == 1) {
           _this.remove(ac);
         } else {
@@ -1540,21 +1541,21 @@ var DeviceListModel = Model.extend({
     /* }); */
     var _this = this,
         ws = _global.get('ws');
-    _this._hID = _global._device.addListener(this.__handler, ws.getConnection());
+    _global._device.getUserList(function(list_) {
+      for(var i = 0; i < list_.length; ++i) {
+        _global._device.getDeviceByAccount(function(devs_) {
+          for(var j = 0; j < devs_.length; ++j) {
+            _this.__handler({
+              flag: 'up',
+              info: devs_[j]
+            });
+          }
+        }, list_[i]);
+      }
+      _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
+    });
     if(!ws.isLocal()) {
       ws.on('device', this.__handler);
-      _global._device.getUserList(function(list_) {
-        for(var i = 0; i < list_.length; ++i) {
-          _global._device.getDeviceByAccount(function(devs_) {
-            for(var j = 0; j < devs_.length; ++j) {
-              _this.__handler({
-                flag: 'up',
-                info: devs_[j]
-              });
-            }
-          }, list_[i]);
-        }
-      });
     }
     /* _global._device.startMdnsService(function(state_) { */
       // if(state_) {
