@@ -1556,7 +1556,7 @@ var DeviceListModel = Model.extend({
       } else {
         toUid = recMsg.MsgObj.uuid;
       }
-      var fileMsg = recMsg.MsgObj.message;
+      var fileMsg = recMsg.MsgObj['message'];
       var toAccountInfo = {};
       toAccountInfo['toAccount'] = toAccount;
       toAccountInfo['toIP'] = recMsg.IP;
@@ -1569,7 +1569,7 @@ var DeviceListModel = Model.extend({
       toAccounts[0]=toAccInfo;
       toAccountInfo['toAccList']=toAccounts;
       try {
-        fileMsg = JSON.parse(recMsg.MsgObj.message);
+        fileMsg = JSON.parse(fileMsg);
       } catch (e) {}
       toAccountInfo['msg'] = fileMsg;
       if (curEditBox === undefined) {
@@ -1597,9 +1597,9 @@ var DeviceListModel = Model.extend({
         } else {
           if (fileMsg.type === 'file') {
             var sendMsg = {};
-            sendMsg['IP'] = toAccountInfo_.toIP;
-            sendMsg['UID'] = toAccountInfo_.toUID;
-            sendMsg['Account'] = toAccountInfo_.toAccount;
+            sendMsg['IP'] = toAccountInfo.toIP;
+            sendMsg['UID'] = toAccountInfo.toUID;
+            sendMsg['Account'] = toAccountInfo.toAccount;
             sendMsg['App'] = 'imChat';
             Messenger().post({
               message: toAccount + '给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
@@ -1621,10 +1621,10 @@ var DeviceListModel = Model.extend({
                     fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
                     sendMsg['Msg'] = JSON.stringify(fileMsg);
                     _global._imV.SendAppMsg(function(mmm) {
+                      delete fileMsg['state'];
                       curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
                       _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
-                    }, sendMsg);
-                    
+                    }, sendMsg);     
                   }
                 }
               }
@@ -1674,7 +1674,6 @@ var AccountEntryModel = EntryModel.extend({
     var curEditBox = UEditBox.create( toAccountInfo,this._parent._imChatWinList);
     this._parent._imChatWinList['imChatWin_'+toAccount] = curEditBox;
   },
-
   copyTo: function() {
   }
 });
