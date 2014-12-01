@@ -1510,11 +1510,15 @@ var DeviceListModel = Model.extend({
         dev_id_ = info.address + ':' + info.port;
     switch(pera_.flag) {
       case 'up':
-        if(!_this.has(account_id_)) {
-          _this.add(AccountEntryModel.create(account_id_, _this, info.txt[len - 2], info));
+        try {
+          if(!_this.has(account_id_)) {
+            _this.add(AccountEntryModel.create(account_id_, _this, info.txt[len - 2], info));
+          }
+          var ac = _this.getCOMById(account_id_);
+          ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
+        } catch(e) {
+          console.log(e);
         }
-        var ac = _this.getCOMById(account_id_);
-        ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
         break;
       case 'down':
         var ac = _this.getCOMById(account_id_);
