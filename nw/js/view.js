@@ -808,8 +808,9 @@ var GridView = WidgetView.extend({
     var _files = ev.dataTransfer.files;
     if(_files.length != 0) {
       for(var i = 0; i < _files.length; ++i) {
-        var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
-        if(_files[i].path == dst) continue;
+        // TODO: remove these code when not needed
+        // var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
+        // if(_files[i].path == dst) continue;
         // _global._fs.rename(_files[i].path, dst, function() {});
         _global._dataOP.moveToDesktopSingle(function(err_, ret_) {
           if(err_) return console.log(err_);
@@ -1679,6 +1680,7 @@ var DeviceListView = View.extend({
     }));
     this._c = [];
     this.initAction();
+    this._shown = false;
   },
   
   registObservers: function() {
@@ -1721,15 +1723,32 @@ var DeviceListView = View.extend({
         'left': _this._left
       }, 300);
     }
-    this.$view.on('mouseenter', function(e) {
-      enter();
-    }).on('mouseleave', function(e) {
-      leave();
-    }).on('dragenter', function(e) {
-      enter();
-    }).on('dragleave', function(e) {
+    var toggle = function(ev) {
+      if(_this._shown) {
+        if(ev.clientX > _this.$view.width()) {
+          leave();
+          _this._shown = false;
+        }
+      } else {
+        if(ev.clientX < _this.$view.position().left + _this.$view.width()) {
+          enter();
+          _this._shown = true;
+        }
+      }
+    }
+    $(document).on('mousemove', function(ev) {
+      toggle(ev);
+    });
+    this.$view/* .on('mouseenter', function(e) { */
+      // enter();
+    // }).on('mouseleave', function(e) {
       // leave();
-    }).on('mousewheel', function(e) {
+    /* }) */.on('dragenter', function(e) {
+      enter();
+    })/* .on('dragleave', function(e) {   */
+      // leave();
+      // _this._shown = false;
+    /* }) */.on('mousewheel', function(e) {
       var _scroll = this;
       if(typeof _this._wheel === 'undefined') {
         $(_scroll).css('overflow', 'auto');
