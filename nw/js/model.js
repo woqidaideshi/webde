@@ -1476,7 +1476,11 @@ var DeviceListModel = Model.extend({
   release: function() {
     // TODO: release device monitor server
     // _global._device.removeDeviceListener(this.__handler);
-    _global._device.removeListener(this._hID);
+    var ws = _global.get('ws');
+    _global._device.removeListener(this._hID, ws.getConnection());
+    if(!ws.isLocal()) {
+      ws.off('device', this.__handler);
+    }
     // _global._device.deviceDown();
   },
   
@@ -1498,6 +1502,7 @@ var DeviceListModel = Model.extend({
   /* }, */
 
   __handler: function(pera_) {
+    if(typeof pera_ !== 'object') return console.log(pera_);
     var _this = _global.get('desktop').getCOMById('device-list'),
         info = pera_.info,
         len = info.txt.length,
@@ -1505,14 +1510,19 @@ var DeviceListModel = Model.extend({
         dev_id_ = info.address + ':' + info.port;
     switch(pera_.flag) {
       case 'up':
-        if(!_this.has(account_id_)) {
-          _this.add(AccountEntryModel.create(account_id_, _this, info.txt[len - 2], info));
+        try {
+          if(!_this.has(account_id_)) {
+            _this.add(AccountEntryModel.create(account_id_, _this, info.txt[len - 2], info));
+          }
+          var ac = _this.getCOMById(account_id_);
+          ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
+        } catch(e) {
+          console.log(e);
         }
-        var ac = _this.getCOMById(account_id_);
-        ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
         break;
       case 'down':
         var ac = _this.getCOMById(account_id_);
+        if(typeof ac === 'undefined') return;
         if(ac.size() == 1) {
           _this.remove(ac);
         } else {
@@ -1533,8 +1543,24 @@ var DeviceListModel = Model.extend({
         // _this.add(device);
       // }
     /* }); */
-    var _this = this;
-    _this._hID = _global._device.addListener(this.__handler);
+    var _this = this,
+        ws = _global.get('ws');
+    _global._device.getUserList(function(list_) {
+      for(var i = 0; i < list_.length; ++i) {
+        _global._device.getDeviceByAccount(function(devs_) {
+          for(var j = 0; j < devs_.length; ++j) {
+            _this.__handler({
+              flag: 'up',
+              info: devs_[j]
+            });
+          }
+        }, list_[i]);
+      }
+      _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
+    });
+    if(!ws.isLocal()) {
+      ws.on('device', this.__handler);
+    }
     /* _global._device.startMdnsService(function(state_) { */
       // if(state_) {
         // console.log('start MDNS Service success');

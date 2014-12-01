@@ -13,6 +13,10 @@ $(document).ready(function() {
       'class': Util,
       'serialize': false 
     }, {
+      'name': 'ws',
+      'class': RemoteObserver,
+      'serialize': true,
+    }, {
       'name': 'desktop',
       'class': DesktopModel,
       'serialize': true
