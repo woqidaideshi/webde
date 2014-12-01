@@ -287,7 +287,7 @@ var DesktopModel = Model.extend({
     this.getCOMById('device-list').start();
     var _this = this;
     setTimeout(function() {
-      //_this.getCOMById('launcher').load();
+      _this.getCOMById('launcher').load();
       cb_(null);
     }, 2000);
   },
