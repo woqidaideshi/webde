@@ -287,7 +287,7 @@ var DesktopModel = Model.extend({
     this.getCOMById('device-list').start();
     var _this = this;
     setTimeout(function() {
-      _this.getCOMById('launcher').load();
+      //_this.getCOMById('launcher').load();
       cb_(null);
     }, 2000);
   },
@@ -1621,7 +1621,7 @@ var DeviceListModel = Model.extend({
             }
           });
         } else {
-          if (fileMsg.type === 'file') {
+          if (fileMsg.type === 'file'&&fileMsg.option===0x0000) {
             var sendMsg = {};
             sendMsg['IP'] = toAccountInfo.toIP;
             sendMsg['UID'] = toAccountInfo.toUID;
