@@ -3728,6 +3728,19 @@ var UEditBox = Class.extend({
       curEditBox_._imWindow.closeWindow(curEditBox_._imWindow);
       delete imChatWinList_['imChatWin_' + toIdentity];
     }
+  },
+  deviceUpFunc: function( info_) {
+    var toIdentity= info_._position['txt'][1];
+    $('#memInfoList_' + toIdentity).append('<li>\
+                                <label class="online">\
+                                </label>\
+                                <a href="javascript:;">\
+                                    <img src="img/2016.jpg"/></a><a href="javascript:;" class="chatList_name">' + info_._position['txt'][1]+ '<br/>' + info_._position['txt'][2]+ '<br/>' + info_._position['address']+ '</a>\
+                            </li>');
+  },
+  deviceDownFunc: function( info_) {
+    var toIdentity= info_._position['txt'][1]+ info_._position['txt'][2];
+    $('li').not('#memList_' + toIdentity);
   }
 });
 

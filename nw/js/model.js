@@ -1516,12 +1516,18 @@ var DeviceListModel = Model.extend({
           }
           var ac = _this.getCOMById(account_id_);
           ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
+          var curEditBox = _this._imChatWinList['imChatWin_' + info._position['txt'][1]];
+          if(curEditBox!==undefined)
+            curEditBox.deviceUpFunc(info);
         } catch(e) {
           console.log(e);
         }
         break;
       case 'down':
         var ac = _this.getCOMById(account_id_);
+        var curEditBox = _this._imChatWinList['imChatWin_' + info._position['txt'][1]];
+          if(curEditBox!==undefined)
+            curEditBox.deviceDownFunc(info_);
         if(typeof ac === 'undefined') return;
         if(ac.size() == 1) {
           _this.remove(ac);
@@ -1690,18 +1696,23 @@ var AccountEntryModel = EntryModel.extend({
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = '';
-    var toAccInfo={};
-    toAccInfo['toAccount']=toAccount;
-    toAccInfo['toUID']=this._position['txt'][2];
-    toAccInfo['toIP']=this._position['address'];
-    var toAccounts=[];
-    toAccounts[0]=toAccInfo;
-    toAccountInfo['toAccList']=toAccounts;
-    var curEditBox = UEditBox.create( toAccountInfo,this._parent._imChatWinList);
-    this._parent._imChatWinList['imChatWin_'+toAccount] = curEditBox;
+    var toAccounts = [];
+    var toAccInfo = {};
+    var test = this.getAllCOMs();
+    var count=0;
+    for (var key in test) {
+      var accountItem = test[key];
+      toAccInfo['toAccount'] = accountItem._position['txt'][1];
+      toAccInfo['toUID'] = accountItem._position['txt'][2];
+      toAccInfo['toIP'] =accountItem._position['address'];
+      toAccounts[count++] = toAccInfo;
+    }
+    console.log(count);
+    toAccountInfo['toAccList'] = toAccounts;
+    var curEditBox = UEditBox.create(toAccountInfo, this._parent._imChatWinList);
+    this._parent._imChatWinList['imChatWin_' + toAccount] = curEditBox;
   },
-  copyTo: function() {
-  }
+  copyTo: function() {}
 });
 
 var DeviceEntryModel = EntryModel.extend({
