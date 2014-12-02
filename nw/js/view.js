@@ -3181,22 +3181,40 @@ var UEditBox = Class.extend({
     var msgtime;
     var _this = this;
     this._imWindow = Window.create('imChat_' + toIdentity, toAccount, {
-        height: 600,
-        width: 640
-      }
-      ,function(){
-      this.getID = function() {return this._id;};
+      height: 600,
+      width: 640
+    }, function() {
+      /*var titleButton =this._titleButton[0];
+      var closeBtn=titleButton.children[2];
+      var closeBtnId=closeBtn.id;*/
+      this.getID = function() {
+        return this._id;
+      };
       _global._openingWindows.add(this);
       this.onfocus(function() {
         _global._openingWindows.focusOnAWindow(this._id);
       });
-    //  var _thisW = this;
-      this.bindCloseButton(function() {
-        //_global._openingWindows.remove(_thisW);
-        _this.closeBtnFunc(_this,toAccountInfo_,imChatWinList_);
+      var idstr = '#' + 'window-' +this._id+'-close';
+      $(idstr).unbind();
+      $(idstr).bind('mousedown',function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
       });
-    }
-    );
+      $(idstr).bind('click',function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+      });
+      $(idstr).bind('mouseup',function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        _this.closeBtnFunc(_this, toAccountInfo_, imChatWinList_);
+      });
+      //  var _thisW = this;
+      //this.bindCloseButton(function() {
+        //_global._openingWindows.remove(_thisW);
+        //_this.closeBtnFunc(_this, toAccountInfo_, imChatWinList_);
+      //});
+    });
     this.$view = $('<div class="imChat">').html('<div class="imLeftDiv">\
     <div class ="upLoadFile" ><input type="file" id="file_' + toIdentity + '" style="display:none"/>\
     <input type="image"  src="img/uploadFile.png" width=25px  height=25px id="file_button_' + toIdentity + '" /></div>\
