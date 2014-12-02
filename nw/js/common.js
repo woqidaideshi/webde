@@ -996,3 +996,50 @@ var WindowManager = Model.extend({
     }
   }
 });
+
+// A remote observer based on web socket
+//
+var RemoteObserver = Model.extend({
+  // param:
+  //  [address_]: websocket server's address 
+  //  callback_: callback function
+  //
+  init: function() {
+    this.callSuper('ws');
+    var addr = ((arguments.length == 1) ? ('ws://' + location.host + '/ws') : arguments[0]);
+    this._local = ((location.host == '') ? true : false);
+    try {
+      this._ws = new WebSocket(addr);
+      this._ws.onopen = function() {
+        console.log('WebSocket established successfully.');
+      };
+      this._ws.onclose = function() {
+        console.log('The WebSocket connection has been closed.');
+      };
+      var _this = this;
+      this._ws.onmessage = function(ev) {
+        console.log(ev.data);
+        try {
+          _this.__dispacher(JSON.parse(ev.data));
+        } catch(e) {
+          return console.log(e);
+        }
+      };
+      this._ws.onerror = function(e) {
+        console.log('Error: ', e);
+      };
+    } catch(e) {
+      console.log(e);
+    }
+    arguments[arguments.length - 1].call(this, null);
+  },
+
+  getConnection: function() {return this._ws;},
+
+  __dispacher: function(msg) {
+    if(msg.Status == 'error') return console.log(msg.Data);
+    this.emit(msg.Event, msg.Data);
+  },
+
+  isLocal: function() {return this._local;}
+});
