@@ -1516,18 +1516,18 @@ var DeviceListModel = Model.extend({
           }
           var ac = _this.getCOMById(account_id_);
           ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
-          var curEditBox = _this._imChatWinList['imChatWin_' + info._position['txt'][1]];
-          if(curEditBox!==undefined)
-            curEditBox.deviceUpFunc(info);
+          var curDevEditBox = _this._imChatWinList['imChatWin_' + info._position['txt'][1]];
+          if(curDevEditBox!==undefined)
+            curDevEditBox.deviceUpFunc(info);
         } catch(e) {
           console.log(e);
         }
         break;
       case 'down':
         var ac = _this.getCOMById(account_id_);
-        var curEditBox = _this._imChatWinList['imChatWin_' + info._position['txt'][1]];
-          if(curEditBox!==undefined)
-            curEditBox.deviceDownFunc(info_);
+        var curDevEditBox = _this._imChatWinList['imChatWin_' + info._position['txt'][1]];
+          if(curDevEditBox!==undefined)
+            curDevEditBox.deviceDownFunc(info_);
         if(typeof ac === 'undefined') return;
         if(ac.size() == 1) {
           _this.remove(ac);
