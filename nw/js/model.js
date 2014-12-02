@@ -198,7 +198,8 @@ var DesktopModel = Model.extend({
       },
       {
         fn: function(pera_, cb_) {
-          _this.start(cb_);
+          _this.login(cb_);
+          // _this.start(cb_);
         }
       },
       {
@@ -206,12 +207,12 @@ var DesktopModel = Model.extend({
           callback_.call(this, null);
           cb_(null);
         }
-      },
-      {
-        fn: function(pera_, cb_) {
-          _this.postStart(cb_);
-        }
-      }
+      }/* ,change the start sequence */
+      // {
+        // fn: function(pera_, cb_) {
+          // _this.postStart(cb_);
+        // }
+      /* } */
     ]);
   },
 
@@ -220,7 +221,7 @@ var DesktopModel = Model.extend({
     for(var key in this._c) {
       this._c[key].release();
     }
-    this._desktopWatch.close();
+    // this._desktopWatch.close();
   },
 
   // Put codes needed run before starting in this function
@@ -237,45 +238,48 @@ var DesktopModel = Model.extend({
     this.add(LauncherModel.create(this));
     // this.initDesktopWatcher();
     this._inputer = Inputer.create('d-inputer');
-    this._DESKTOP_DIR = '/data/desktop';
+    cb_.call(this, null);
+  },
+
+  login: function(cb_) {
+    console.log('login');
+    // TODO: read a default conf, then create a temp layout model,
+    // and delete it after login successfully
     var _this = this;
-    // remove the Watcher
-    // TODO: remove these code when not needed
-    /* _global._dataOP.CreateWatcher(function(err_, watcher_) {  */
-      // if(err_) {
-        // return console.log(err_);
-      // }
-      /* _this.initDesktopWatcher(watcher_); */
-      _global._dataOP.readDesktopConfig(function(err_, ret_) {
-        if(err_) return console.log(err_);
-        _this._USER_CONFIG = ret_;
-        _global._dataOP.readDesktopConfig(function(err_, ret_) {
-          if(err_) return console.log(err_);
-          _this._DEFAULT_APP = ret_;
-          cb_(null);
-        }, 'defaults.list');
-      }, 'Widget.conf');
-      /* _global._fs.readFile(_global.$xdg_data_home + "/widget.conf" */
-        // , 'utf-8', function(err, data) {
-          // if(err) {
-            // console.log(err);
-            // cb_(err);
-          // } else {
-            // _this._USER_CONFIG = data;
-            // cb_(null);
-          // }
-        /* }); */
-    // }, this._DESKTOP_DIR); 
+    _global._dataOP.readDesktopConfig(function(err_, ret_) {
+      if(err_) return console.log(err_);
+      _this.getCOMById('layout').load(ret_.layout);
+      if(typeof cb_ === 'function') cb_.call(_this, null);
+    }, 'Default.conf');
+    /* this._c['launcher'].createAModel({ */
+      // id: 'login-app',
+      // path: '',
+      // iconpath: 'img/launcher.png',
+      // name: 'Login',
+      // type: 'inside-app'
+    // }, 'inside-app');
+    /* this._c['launcher'].get('login-app').open(); */
   },
 
   // The cb_ should be called at the end of this function
   //
   start: function(cb_) {
     console.log('starting');
-    // Load contents to all components EXCEPT Launcher and DeciceList
-    this.getCOMById('layout').load(this._USER_CONFIG.layout);
-    this.getCOMById('dock').load(this._USER_CONFIG.dock);
-    cb_(null);
+    this._DESKTOP_DIR = '/data/desktop';
+    var _this = this;
+    _global._dataOP.readDesktopConfig(function(err_, ret_) {
+      if(err_) return console.log(err_);
+      _this._USER_CONFIG = ret_;
+      // Load contents to all components EXCEPT Launcher and DeciceList
+      _this.getCOMById('layout').load(_this._USER_CONFIG.layout);
+      _this.getCOMById('dock').load(_this._USER_CONFIG.dock);
+      _global._dataOP.readDesktopConfig(function(err_, ret_) {
+        if(err_) return console.log(err_);
+        _this._DEFAULT_APP = ret_;
+        _global._login.setCurState(true);
+        cb_.call(_this, null);
+      }, 'defaults.list');
+    }, 'Widget.conf');
   },
 
   // Put codes needed run afert started in this function
@@ -288,8 +292,15 @@ var DesktopModel = Model.extend({
     var _this = this;
     setTimeout(function() {
       _this.getCOMById('launcher').load();
-      cb_(null);
+      if(typeof cb_ === 'function') cb_.call(_this, null);
     }, 2000);
+  },
+
+  logout: function() {
+    for(var key in this._c) {
+      this._c[key].release();
+    }
+    this.login();
   },
 
   save: function() {
@@ -303,7 +314,6 @@ var DesktopModel = Model.extend({
   },
 
   initLayout: function() {
-    
   },
 
   getLayoutType: function() {return this._layoutType;},
@@ -507,7 +517,10 @@ var DockModel = Model.extend({
   },
 
   release: function() {
-    this._dockWatch.close();
+    // this._dockWatch.close();
+    for(var key in this._c) {
+      this.remove(this._c[key]);
+    }
   },
 
   // TODO: remove these code when not needed
@@ -1358,6 +1371,21 @@ var LauncherModel = Model.extend({
   init: function(parent_) {
     this.callSuper('launcher', parent_);
     // this._appCache = Cache.create(); // caches app models
+    var _this = this;
+    this.__h = function(err_, last_, state_) {
+      if(err_) {
+        console.log(err_);
+        return ;
+      }
+      var loginM = _this.getCOMById('login-app');
+      if(state_) {
+        loginM.setImgPath('img/Logout-icon.png');
+        loginM.setName('Logout');
+      } else {
+        loginM.setImgPath('img/Login-icon.png');
+        loginM.setName('Login');
+      }
+    };
   },
 
   load: function() {
@@ -1396,6 +1424,9 @@ var LauncherModel = Model.extend({
 
   release: function() {
     // TODO: release all child conponts
+    for(var key in this._c) {
+      this.remove(this._c[key]);
+    }
   },
 
   show: function() {
@@ -1405,46 +1436,19 @@ var LauncherModel = Model.extend({
   createAModel: function(attr_, type_) {
     var model = null;
     if(type_ == 'app') {
-      // attr_:
-      // 0 -> id
-      // 1 -> path
-      // 2 -> index in dock(if have)
-      // 3 -> position in desktop(if have)
       model = AppEntryModel.create(attr_.id, this, attr_.path, attr_.idx, attr_.position);
       this.set(model);
     } else if(type_ == 'inside-app') {
-      // attr_:
-      // 0 -> id
-      // 1 -> path of app package
-      // 2 -> iconpath
-      // 3 -> name of app
-      // 4 -> type
-      // 5 -> index in dock(if have)
-      // 6 -> position in desktop(if have)
       switch(attr_.id) {
         case 'launcher-app':
-          // var launcher = _global.get('desktop').getCOMById('launcher');
           model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
               this, this.show, [], attr_.name, attr_.idx, attr_.position);
           break;
-        case 'login-app': 
-          var login = LoginModel.create();
+        case 'login-app':
+          var login = _global._login;
           this.emit('add-login-app', null, login);
           var _this = this;
-          login.on('login-state', function(err_, state_) {
-            if(err_) {
-              console.log(err_);
-              return ;
-            }
-            var loginM = _this.getCOMById('login-app');
-            if(state_) {
-              loginM.setImgPath('img/Logout-icon.png');
-              loginM.setName('Logout');
-            } else {
-              loginM.setImgPath('img/Login-icon.png');
-              loginM.setName('Login');
-            }
-          });
+          login.off('login-state', _this.__h).on('login-state', _this.__h);
           model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
               login, login.login, [], attr_.name, attr_.idx, attr_.position);
           break; 
@@ -1480,6 +1484,9 @@ var DeviceListModel = Model.extend({
     _global._device.removeListener(this._hID, ws.getConnection());
     if(!ws.isLocal()) {
       ws.off('device', this.__handler);
+    }
+    for(var key in this._c) {
+      this.remove(this._c[key]);
     }
     // _global._device.deviceDown();
   },
@@ -1700,8 +1707,6 @@ var LayoutModel = WidgetModel.extend({
     this._height = 0;//$(document).height() * 0.9;
   },
 
-  release: function() {},
-
   getType: function() {return this._type;},
 
   add: function(widget_) {
@@ -1782,9 +1787,6 @@ var WidgetManager = Model.extend({
   },
 
   load: function(conf_) {
-    // load theme entry
-    _global.get('theme').loadThemeEntry(this);
-   
     // load inside app entry, just a temporary solution.
     // should load all user config data on desktop._USER_CONFIG
     // and get data by key-value style.
@@ -1795,70 +1797,10 @@ var WidgetManager = Model.extend({
       try {
         model = launcher.get(conf_.insideApp[key].id);
       } catch(e) {
-        model = launcher.createAModel(/* { */
-          // '0': conf_.insideApp[key].id,
-          // '1': conf_.insideApp[key].path,
-          // '2': conf_.insideApp[key].iconPath,
-          // '3': conf_.insideApp[key].name,
-          // '4': conf_.insideApp[key].type,
-          // '5': conf_.insideApp[key].idx,
-          // '6': conf_.insideApp[key].position
-        /* } */conf_.insideApp[key], conf_.insideApp[key].type);
+        model = launcher.createAModel(conf_.insideApp[key], conf_.insideApp[key].type);
       }
       this.add(model);
     }
-    // replace with demo-rio's API
-    /* var _this = this; */
-    // _global._fs.readFile(_global.$xdg_data_home + "/inside-app.conf"
-      // , 'utf-8', function(err, data) {
-        // if(err) {
-          // console.log(err);
-        // } else {
-          // var model,
-              // launcher = _global.get('desktop').getCOMById('launcher'),
-              // apps = data.split('\n');
-          // for(var i = 0; i < apps.length; ++i) {
-            // if(apps[i].match('[\s,\t]*#+') != null || apps[i] == "") continue;
-            // var pera = apps[i].split('$');
-            // try {
-              // model = launcher.get(pera[0]);
-            // } catch(e) {
-              // model = launcher.createAModel(pera, 'inside-app');
-            // }
-            // _this.add(model);
-          // }
-        // }
-      /* }); */
-    
-    // load desktop entry
-    // replace with demo-rio's API
-    /* var _lastSave = [], */
-        // desktop = _global.get('desktop'),
-        // lines = desktop._USER_CONFIG.split('\n');
-    // for(var i = 0; i < lines.length; ++i) {
-      // if(lines[i].match('[\s,\t]*#+') != null) continue;
-      // if(lines[i] == "") continue;
-      // var attr = lines[i].split('$');
-      // if(attr.length != 5) continue;
-      // var _plugin = null;
-      // switch(attr[4]) {
-        // case "ClockPlugin":
-        // case "ImagePlugin":
-          // _plugin = DPluginModel.create(attr[0], this._parent, attr[1], attr[4]
-              // , {x: attr[2], y: attr[3]});
-          // break;
-        // default:
-          // _lastSave[attr[0]] = {
-            // path: attr[1],
-            // x: attr[2],
-            // y: attr[3],
-            // type: attr[4]
-          // };  
-      // }
-      // if (_plugin != null) {
-        // this.add(_plugin);  
-      // } 
-    /* } */
 
     // handle plugins
     for(var key in conf_.plugin) {
@@ -1909,22 +1851,6 @@ var WidgetManager = Model.extend({
   },
 
   save: function(conf_) {
-    /* var data = ""; */
-    // for(var key in this._c) {
-      // if(typeof theme._theme[key] !== 'undefined') continue;
-      // data += key + "$" + this._c[key]._path + "$"
-         // + this._c[key]._position.x + "$"
-         // + this._c[key]._position.y + "$"
-        // + this._c[key]._type + '\n';
-    // }
-    // //console.log(data);
-    // this._fs.writeFile(_global.$xdg_data_home + "/widget.conf"
-        // , data, function(err) {
-      // if(err) {
-        // console.log(err);
-      // }
-    /* }); */
-
     // save theme entry
     _global.get('theme').saveConfig();
     
@@ -1980,8 +1906,6 @@ var GridModel = LayoutModel.extend({
     this._row_num = 0; //Math.floor(this._height / this._row);
     this._grid = [];
   },
-
-  release: function() {},
 
   setSize: function(size_) {
     this.callSuper(size_);
@@ -2207,9 +2131,12 @@ var LayoutManager = Model.extend({
           this.add(grid, true);
           grid.load(conf_.widget[i]);
         }
-        var layout = desktop.getCOMById('layout');
-        layout.setMain(conf_.main);
-        layout.setCur(conf_.main);
+        // var layout = desktop.getCOMById('layout');
+        this._parent.setMain(conf_.main);
+        this._parent.setCur(conf_.main);
+        
+        // load theme entry
+        _global.get('theme').loadThemeEntry(this);
         break;
       default:
         break;
@@ -2246,8 +2173,24 @@ var LayoutManager = Model.extend({
     this.emit('add', null, layout_, init_);
   },
 
-  remove: function(idx_) {
-    this._c.splice(idx_, 1);
+  remove: function(layout_) {
+    this.emit('remove', null, layout_);
+    var id = layout_.getID();
+    for(var i = 0; i < this._c.length; ++i) {
+      if(this._c[i].getID() == id) {
+        this._c.splice(i, 1);
+        if(this._c.length != 0) {
+          if(i < this._c.length) {
+            this._parent.setCur(i);
+          } else {
+            this._parent.setCur(i - 1);
+          }
+        } else {
+          this._parent.setCur(-1);
+        }
+        break;
+      }
+    }
   }
 });
 
@@ -2256,6 +2199,12 @@ var FlipperModel = LayoutModel.extend({
     this.callSuper(id_, parent_, Manager_, 'flipper');
     this._cur = -1;
     this._main = 0;
+  },
+
+  release: function() {
+    while(this._wm._c.length != 0) {
+      this.remove(this._wm._c[0]);
+    }
   },
 
   getCur: function() {return this._cur;},
@@ -2305,25 +2254,34 @@ var LoginModel = Model.extend({
   },
 
   doLogin: function(account_, password_) {
-    // TODO: call API to login
-    var _this = this;
-    _global._account.accountLogin(function(ret_) {
-      if(ret_.type == 'error') return console.log('login error:', ret_.msg);
-      if(ret_.state == 1) {
-        _this.setCurState(true);
-      } else {
-        _this.emit('login-state', null, false, ret_.msg);
-      }
-    }, {
-      'account': account_,
-      'passwd': password_
-    });
+    // call API to login
+    /* var _this = this; */
+    // _global._account.accountLogin(function(ret_) {
+      // if(ret_.type == 'error') return console.log('login error:', ret_.msg);
+      // if(ret_.state == 1) {
+        // _this.setCurState(true);
+        // var desktop = _global.get('desktop'),
+        /*     launcher = desktop.getCOMById('launcher'); */
+        // desktop.start.call(desktop, desktop.postStart);
+        // launcher.remove(launcher.get('login-app'));
+        /* this.off(); */
+      // } else {
+        // _this.emit('login-state', null, false, ret_.msg);
+      // }
+    // }, {
+      // 'account': account_,
+      // 'passwd': password_
+    /* }); */
     // replace with real API
-    /* console.log(account_, password_); */
-    // var _this = this;
-    // _this._to = setTimeout(function() {
-      // _this.setCurState(true);
-    /* }, 3000); */
+    console.log(account_, password_); 
+    var _this = this;
+    _this._to = setTimeout(function() {
+      _this.setCurState(true);
+      var desktop = _global.get('desktop');
+      desktop.getCOMById('layout').release();
+      // _this.off();
+      desktop.start.call(desktop, desktop.postStart);
+    }, 3000); 
   },
 
   cancelLogin: function() {
@@ -2334,6 +2292,9 @@ var LoginModel = Model.extend({
   doLogout: function() {
     // TODO: call API to logout
     this.setCurState(false);
+    // this.off();
+    var desktop = _global.get('desktop');
+    desktop.logout.call(desktop);
   },
 
   doRegist: function(account_, password_) {
@@ -2361,8 +2322,8 @@ var LoginModel = Model.extend({
   getCurState: function() {return this._login;},
 
   setCurState: function(state_) {
+    this.emit('login-state', null, this._login, state_);
     this._login = state_;
-    this.emit('login-state', null, this._login);
   }
 });
 

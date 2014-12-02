@@ -304,9 +304,9 @@ var Global = Class.extend({
       'Utility': 'Utility',
       'Other': 'Other'
     };
-    this._logining = false;
     // manage opened inside-app windows
     this._openingWindows = WindowManager.create();
+    this._login = LoginModel.create();
     this.objects = [];
     
     var _this = this;

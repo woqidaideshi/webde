@@ -745,6 +745,10 @@ var GridView = WidgetView.extend({
     });
   },
 
+  hide: function() {
+    this.$view.remove();
+  },
+
   drag: function(ev) {
     console.log("grid is not allowed to drag");
     ev.stopPropagation();
@@ -1334,6 +1338,7 @@ var LauncherView = View.extend({
         }
         var id_ = app_.getID() + '-launcher',
             cg_ = app_.getCategory();
+        if(typeof _this._views[id_] === 'undefined') return ;
         _this._views[id_].hide();
         _this._views[id_] = null;
         delete _this._views[id_];
@@ -2924,7 +2929,7 @@ var FlipperView = View.extend({
         var init = init_ || false;
         switch(widget_.getType()) {
           case 'grid':
-            var l = _this._c.push(GridView.create('grid-view', widget_, _this));
+            var l = _this._c.push(GridView.create(widget_.getID(), widget_, _this));
             _this._c[l - 1].show(_this.$view, init);
             _this.addASwitcher(_this._c[l - 1].getView(), init);
             break;
@@ -2937,6 +2942,21 @@ var FlipperView = View.extend({
           console.log(err_);
           return ;
         }
+        switch(widget_.getType()) {
+          case 'grid':
+            var id = widget_.getID();
+            for(var i = 0; i < _this._c.length; ++i) {
+              if(id == _this._c[i].getID()) {
+                _this._c[i].hide();
+                _this.removeASwitcher(i);
+                _this._c.splice(i, 1);
+                break;
+              }
+            }
+            break;
+          default:
+            break;
+        }
       },
       'layout_size': function(err_, size_) {
         // redraw the layout container's size
@@ -2946,7 +2966,7 @@ var FlipperView = View.extend({
         });
       },
       'cur': function(err_, from_, to_) {
-        if(err_) {
+        if(err_ || to_ == -1) {
           console.log(err_);
           return ;
         }
@@ -3163,6 +3183,8 @@ var FlipperView = View.extend({
   },
 
   removeASwitcher: function(idx_) {
+    var $ss = this.$view.find('.view-switcher');
+    $($ss[idx_]).remove();
   },
 
   getMotions: function() {return this._switchMotion;},
@@ -3331,7 +3353,7 @@ var LoginView = View.extend({
         }
         _this.show(state_);
       },
-      'login-state': function(err_, state_, msg_) {
+      'login-state': function(err_, last_, state_, msg_) {
         if(err_) {
           console.log(err_);
           return ;
@@ -3340,8 +3362,12 @@ var LoginView = View.extend({
         if(state_) {
           $('#' + _this._id + '-window').remove();
         } else {
-          _this.toggleLogin(false);
-          _this.$loginView.find('#msg1').html('登陆失败：' + msg_);
+          if(last_) {
+            $('#' + _this._id + '-window').remove();
+          } else {
+            _this.toggleLogin(false);
+            _this.$loginView.find('#msg1').html('登陆失败：' + msg_);
+          }
         }
         // _this._win.closeWindow(_this._win);
       },
