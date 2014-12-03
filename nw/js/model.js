@@ -219,8 +219,18 @@ var DesktopModel = Model.extend({
     // this.save();
     for(var key in this._c) {
       this._c[key].release();
+      this.remove(this._c[key]);
     }
     // this._desktopWatch.close();
+    var ws = _global.get('ws');
+    /* if(ws.isLocal()) { */
+      // ws.send({
+        // Action: 'notify',
+        // Event: 'shutdown',
+        // Data: 'shutdown'
+      // });
+    /* } */
+    ws.close();
   },
 
   // Put codes needed run before starting in this function
@@ -230,6 +240,17 @@ var DesktopModel = Model.extend({
     console.log('pre start');
     // TODO: move to Global
     this._view = DesktopView.create(this);
+    // register to server
+    var ws = _global.get('ws');
+    ws.send({ 
+      Action: 'on',
+      Event: 'shutdown'
+    }).on('shutdown', function(msg) {
+      if(!ws.isLocal() && msg == 'shutdown') {
+        alert('远程系统已关闭，该页面将关闭');
+        window.close();
+      }
+    }); 
     // get user config data, create all components(Launcher, Layout, Dock, DeviceList)
     this.add(FlipperModel.create('layout', this, LayoutManager));
     this.add(DeviceListModel.create(this));
