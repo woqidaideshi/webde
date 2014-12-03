@@ -304,18 +304,18 @@ var Global = Class.extend({
       'Utility': 'Utility',
       'Other': 'Other'
     };
-    this._logining = false;
     // manage opened inside-app windows
     this._openingWindows = WindowManager.create();
+    this._login = LoginModel.create();
     this.objects = [];
     
     var _this = this;
     this.Series.series([
       {
         fn: function(pera_, cb_) {
-          //TODO: change the nodejs'API to ourselves
-          _this._fs = require('fs');
-          _this._exec = require('child_process').exec;
+          // change the nodejs'API to ourselves
+          /* _this._fs = require('fs'); */
+          /* _this._exec = require('child_process').exec; */
           WDC.requireAPI(['device_service', 'IM', 'data','fileTransfer_app'/* , 'account' */]
             , function(dev, imV, data,fileTransferApp/* , acc */) {
               _this._device = dev;
