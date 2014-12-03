@@ -2,7 +2,6 @@
 //
 
 //This class contains all theme relevant data and service.
-//TODO: replace the nodejs apis to ourselves.
 //
 var ThemeModel = Model.extend({
   init: function(callback_) {
