@@ -3249,8 +3249,8 @@ var UEditBox = Class.extend({
                             成员列表</label>\
                     </div>\
                     <div class="chatList_content">\
-                        <ul  id="memInfoList_' + toIdentity + '">\
-                        </ul>\
+                        <div  id="memInfoList_' + toIdentity + '">\
+                        </div>\
                     </div>\
                 </div>\
              <div class="chatList" id="fileTransShow_' + toIdentity + '"  style="display:none">\
@@ -3266,7 +3266,7 @@ var UEditBox = Class.extend({
             </div>');
     this._imWindow.append(this.$view);
     var toAccInfo;
-    for (var i = 0; i < toAccountInfo_.toAccList.length; i++) {
+/*    for (var i = 0; i < toAccountInfo_.toAccList.length; i++) {
       toAccInfo = toAccountInfo_.toAccList[i];
       $('#memInfoList_' + toIdentity).append('<li>\
                                 <label class="online">\
@@ -3274,7 +3274,21 @@ var UEditBox = Class.extend({
                                 <a href="javascript:;">\
                                     <img src="img/2016.jpg"/></a><a href="javascript:;" class="chatList_name">' + toAccInfo['toAccount'] + '<br/>' + toAccInfo['toUID'] + '<br/>' + toAccInfo['toIP'] + '</a>\
                             </li>');
+    }*/
+    var deviceItems = [];
+    for (var i = 0; i < toAccountInfo_.toAccList.length; i++) {
+      toAccInfo = toAccountInfo_.toAccList[i];
+      deviceItems[i] = {
+        id: 'memItem_' + toAccInfo.toAccount + toAccInfo.toUID,
+        type: "item",
+        href: "",
+        img: "img/2016.jpg",
+        text: toAccInfo.toAccount +  toAccInfo.toUID,
+        clkaction: function() {}
+      };
     }
+    this._memListView = ListView.create('memInfoList_'+toIdentity, {'width':165});
+    this._memListView.addItems(deviceItems);
     this._um = UE.getEditor('myEditor_' + toIdentity, {
       //这里可以选择自己需要的工具按钮名称
       toolbars: [
