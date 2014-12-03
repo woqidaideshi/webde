@@ -3203,9 +3203,6 @@ var UEditBox = Class.extend({
       height: 600,
       width: 640
     }, function() {
-      /*var titleButton =this._titleButton[0];
-      var closeBtn=titleButton.children[2];
-      var closeBtnId=closeBtn.id;*/
       this.getID = function() {
         return this._id;
       };
@@ -3228,11 +3225,6 @@ var UEditBox = Class.extend({
         ev.stopPropagation();
         _this.closeBtnFunc(_this, toAccountInfo_, imChatWinList_);
       });
-      //  var _thisW = this;
-      //this.bindCloseButton(function() {
-        //_global._openingWindows.remove(_thisW);
-        //_this.closeBtnFunc(_this, toAccountInfo_, imChatWinList_);
-      //});
     });
     this.$view = $('<div class="imChat">').html('<div class="imLeftDiv">\
     <div class ="upLoadFile" ><input type="file" id="file_' + toIdentity + '" style="display:none"/>\
@@ -3248,9 +3240,7 @@ var UEditBox = Class.extend({
                         <label class="chatList_mem_t">\
                             成员列表</label>\
                     </div>\
-                    <div class="chatList_content">\
-                        <div  id="memInfoList_' + toIdentity + '">\
-                        </div>\
+                    <div class="chatList_content" id="memInfoCtn_' + toIdentity + '">\
                     </div>\
                 </div>\
              <div class="chatList" id="fileTransShow_' + toIdentity + '"  style="display:none">\
@@ -3258,7 +3248,7 @@ var UEditBox = Class.extend({
                         <label class="chatList_acc_t">\
                             正在传输文件...</label>\
                     </div>\
-                    <div class="chatList_content">\
+                    <div class="chatList_content" id="fileTransCtn_' + toIdentity + '">\
                         <ul id="fileTransList_' + toIdentity + '">\
                         </ul>\
                     </div>\
@@ -3283,12 +3273,13 @@ var UEditBox = Class.extend({
         type: "item",
         href: "",
         img: "img/2016.jpg",
-        text: toAccInfo.toAccount +  toAccInfo.toUID,
+        text: toAccInfo.toAccount + '<br/>'+ toAccInfo.toUID,
         clkaction: function() {}
       };
     }
-    this._memListView = ListView.create('memInfoList_'+toIdentity, {'width':165});
+    this._memListView = ListView.create('memInfoList_'+toIdentity, {'width':175});
     this._memListView.addItems(deviceItems);
+    this._memListView.attach('memInfoCtn_'+toIdentity); 
     this._um = UE.getEditor('myEditor_' + toIdentity, {
       //这里可以选择自己需要的工具按钮名称
       toolbars: [
@@ -3743,18 +3734,21 @@ var UEditBox = Class.extend({
       delete imChatWinList_['imChatWin_' + toIdentity];
     }
   },
-  deviceUpFunc: function( info_) {
-    var toIdentity= info_._position['txt'][1];
-    $('#memInfoList_' + toIdentity).append('<li>\
-                                <label class="online">\
-                                </label>\
-                                <a href="javascript:;">\
-                                    <img src="img/2016.jpg"/></a><a href="javascript:;" class="chatList_name">' + info_._position['txt'][1]+ '<br/>' + info_._position['txt'][2]+ '<br/>' + info_._position['address']+ '</a>\
-                            </li>');
+  deviceUpFunc: function(curEditBox_, info_) {
+    var memItemId= info_['txt'][1]+ info_['txt'][2];
+    var deviceItem = {
+        id: 'memItem_' + memItemId,
+        type: "item",
+        href: "",
+        img: "img/2016.jpg",
+        text: info_['txt'][1]+ info_['txt'][2],
+        clkaction: function() {}
+      };
+    curEditBox_._memListView.addItem(deviceItem);
   },
-  deviceDownFunc: function( info_) {
-    var toIdentity= info_._position['txt'][1]+ info_._position['txt'][2];
-    $('li').not('#memList_' + toIdentity);
+  deviceDownFunc: function(curEditBox_,info_) {
+    var memItemId= info_['txt'][1]+ info_['txt'][2];
+    curEditBox_._memListView.remove('memItem_'+memItemId);
   }
 });
 
