@@ -316,13 +316,13 @@ var Global = Class.extend({
           // change the nodejs'API to ourselves
           /* _this._fs = require('fs'); */
           /* _this._exec = require('child_process').exec; */
-          WDC.requireAPI(['device_service', 'IM', 'data','fileTransfer_app' , 'account' ]
-            , function(dev, imV, data,fileTransferApp, acc ) {
+          WDC.requireAPI(['device_service', 'IM', 'data','fileTransfer_app'/* , 'account' */]
+            , function(dev, imV, data,fileTransferApp/* , acc */) {
               _this._device = dev;
               _this._imV = imV;
               _this._dataOP = data;
               _this._imFileTransfer=fileTransferApp;
-               _this._account = acc;
+              // _this._account = acc;
               cb_(null);
             });
         }
