@@ -3224,7 +3224,8 @@ var UEditBox = Class.extend({
     var _this = this;
     this._imWindow = Window.create('imChat_' + toIdentity, toAccount, {
       height: 600,
-      width: 640
+      width: 640,
+      max:false
     }, function() {
       this.getID = function() {
         return this._id;
