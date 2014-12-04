@@ -3662,7 +3662,8 @@ var UEditBox = Class.extend({
       'fileSize':msg_.fileSize
     };
     if (flag_) {
-      $('li').not('#fileTransItem_' + msg_.key);
+      $('#fileTransItem_' + msg_.key).remove();
+      //$('li').not('#fileTransItem_' + msg_.key);
     } else {
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
@@ -3680,7 +3681,8 @@ var UEditBox = Class.extend({
     _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
   },
   fileItemTransRemove: function(fileTransList_, key, toIdentity) {
-    $('li').not('#fileTransItem_' + key);
+    $('#fileTransItem_'+key).remove();
+  //  $('li').not('#fileTransItem_' + key);
     delete fileTransList_[key];
     if (Object.keys(fileTransList_).length === 0) {
       $('#fileTransShow_' + toIdentity).hide();
