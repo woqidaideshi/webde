@@ -78,6 +78,18 @@ var Event = Class.extend({
   },
 
   off: function(event_, handler_) {
+    if(arguments.length == 0) {
+      for(var key in this._handlers) {
+        this._handlers[key] = null;
+        delete this._handlers[key];
+      }
+      return this;
+    }
+    if(arguments.length == 1 && typeof this._handlers[event_] !== 'undefined') {
+      this._handlers[event_] = null;
+      delete this._handlers[event_];
+      return this;
+    }
     for(var idx = 0; idx < this._handlers[event_].length; ++idx) {
       if(handler_ == this._handlers[event_][idx]) {
         this._handlers[event_].splice(idx, 1);
