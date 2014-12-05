@@ -745,6 +745,10 @@ var GridView = WidgetView.extend({
     });
   },
 
+  hide: function() {
+    this.$view.remove();
+  },
+
   drag: function(ev) {
     console.log("grid is not allowed to drag");
     ev.stopPropagation();
@@ -805,7 +809,8 @@ var GridView = WidgetView.extend({
 
     // handle file transfer
     //
-    var _files = ev.dataTransfer.files;
+    var _files = ev.dataTransfer.files,
+        _this = this;
     if(_files.length != 0) {
       for(var i = 0; i < _files.length; ++i) {
         // TODO: remove these code when not needed
@@ -814,7 +819,7 @@ var GridView = WidgetView.extend({
         // _global._fs.rename(_files[i].path, dst, function() {});
         _global._dataOP.moveToDesktopSingle(function(err_, ret_) {
           if(err_) return console.log(err_);
-          this._controller.onAddFile(ret[0], ret[1]);
+          _this._controller.onAddFile(ret_[0], ret_[1]);
         }, _files[i].path);
       }
       return ;
@@ -1334,6 +1339,7 @@ var LauncherView = View.extend({
         }
         var id_ = app_.getID() + '-launcher',
             cg_ = app_.getCategory();
+        if(typeof _this._views[id_] === 'undefined') return ;
         _this._views[id_].hide();
         _this._views[id_] = null;
         delete _this._views[id_];
@@ -2924,7 +2930,7 @@ var FlipperView = View.extend({
         var init = init_ || false;
         switch(widget_.getType()) {
           case 'grid':
-            var l = _this._c.push(GridView.create('grid-view', widget_, _this));
+            var l = _this._c.push(GridView.create(widget_.getID(), widget_, _this));
             _this._c[l - 1].show(_this.$view, init);
             _this.addASwitcher(_this._c[l - 1].getView(), init);
             break;
@@ -2937,6 +2943,21 @@ var FlipperView = View.extend({
           console.log(err_);
           return ;
         }
+        switch(widget_.getType()) {
+          case 'grid':
+            var id = widget_.getID();
+            for(var i = 0; i < _this._c.length; ++i) {
+              if(id == _this._c[i].getID()) {
+                _this._c[i].hide();
+                _this.removeASwitcher(i);
+                _this._c.splice(i, 1);
+                break;
+              }
+            }
+            break;
+          default:
+            break;
+        }
       },
       'layout_size': function(err_, size_) {
         // redraw the layout container's size
@@ -2946,7 +2967,7 @@ var FlipperView = View.extend({
         });
       },
       'cur': function(err_, from_, to_) {
-        if(err_) {
+        if(err_ || to_ == -1) {
           console.log(err_);
           return ;
         }
@@ -3163,6 +3184,8 @@ var FlipperView = View.extend({
   },
 
   removeASwitcher: function(idx_) {
+    var $ss = this.$view.find('.view-switcher');
+    $($ss[idx_]).remove();
   },
 
   getMotions: function() {return this._switchMotion;},
@@ -3201,11 +3224,9 @@ var UEditBox = Class.extend({
     var _this = this;
     this._imWindow = Window.create('imChat_' + toIdentity, toAccount, {
       height: 600,
-      width: 640
+      width: 640,
+      max:false
     }, function() {
-      /*var titleButton =this._titleButton[0];
-      var closeBtn=titleButton.children[2];
-      var closeBtnId=closeBtn.id;*/
       this.getID = function() {
         return this._id;
       };
@@ -3228,11 +3249,6 @@ var UEditBox = Class.extend({
         ev.stopPropagation();
         _this.closeBtnFunc(_this, toAccountInfo_, imChatWinList_);
       });
-      //  var _thisW = this;
-      //this.bindCloseButton(function() {
-        //_global._openingWindows.remove(_thisW);
-        //_this.closeBtnFunc(_this, toAccountInfo_, imChatWinList_);
-      //});
     });
     this.$view = $('<div class="imChat">').html('<div class="imLeftDiv">\
     <div class ="upLoadFile" ><input type="file" id="file_' + toIdentity + '" style="display:none"/>\
@@ -3248,9 +3264,7 @@ var UEditBox = Class.extend({
                         <label class="chatList_mem_t">\
                             成员列表</label>\
                     </div>\
-                    <div class="chatList_content">\
-                        <div  id="memInfoList_' + toIdentity + '">\
-                        </div>\
+                    <div class="chatList_content" id="memInfoCtn_' + toIdentity + '">\
                     </div>\
                 </div>\
              <div class="chatList" id="fileTransShow_' + toIdentity + '"  style="display:none">\
@@ -3258,7 +3272,7 @@ var UEditBox = Class.extend({
                         <label class="chatList_acc_t">\
                             正在传输文件...</label>\
                     </div>\
-                    <div class="chatList_content">\
+                    <div class="chatList_content" id="fileTransCtn_' + toIdentity + '">\
                         <ul id="fileTransList_' + toIdentity + '">\
                         </ul>\
                     </div>\
@@ -3283,12 +3297,13 @@ var UEditBox = Class.extend({
         type: "item",
         href: "",
         img: "img/2016.jpg",
-        text: toAccInfo.toAccount +  toAccInfo.toUID,
+        text: toAccInfo.toAccount + '<br/>'+ toAccInfo.toUID,
         clkaction: function() {}
       };
     }
-    this._memListView = ListView.create('memInfoList_'+toIdentity, {'width':165});
+    this._memListView = ListView.create('memInfoList_'+toIdentity, {'width':175});
     this._memListView.addItems(deviceItems);
+    this._memListView.attach('memInfoCtn_'+toIdentity); 
     this._um = UE.getEditor('myEditor_' + toIdentity, {
       //这里可以选择自己需要的工具按钮名称
       toolbars: [
@@ -3352,7 +3367,7 @@ var UEditBox = Class.extend({
                     <span id="fileRatio_' + fileMsg.key + '"><span><br/><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button>\
                     </li>');
                 $('#cancelFileItem_' + fileMsg.key).on('click', function() {
-                  _global._imFileTransfer.transferCancelSender(function(rst) {
+                  _global._imV.transferCancelSender(function(rst) {
                     _this.fileItemTransRemove(_this._fileTransList, fileMsg.key, toIdentity);
                     var ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
                     var msgtime = new Date();
@@ -3384,7 +3399,7 @@ var UEditBox = Class.extend({
           sendMsg['Msg'] = val;
           sendMsg['App'] = 'imChat';
           //_global._imV.sendIMMsg(sendIMFileCb, ipset, toAccount, JSON.stringify(msgJson));
-          _global._imFileTransfer.sendFileTransferRequest(function(err, fileTransMsg) {
+          _global._imV.sendFileTransferRequest(function(err, fileTransMsg) {
             sendIMFileCb(err, fileTransMsg, val);
           }, sendMsg);
         }
@@ -3511,7 +3526,7 @@ var UEditBox = Class.extend({
           if (curEditBox_._fileTransList[msg.key] === undefined) {
             return;
           }
-          _global._imFileTransfer.transferCancelReciever(function() {
+          _global._imV.transferCancelReciever(function() {
             curEditBox_.fileItemTransRemove(curEditBox_._fileTransList, msg.key, toIdentity);
             var ratioLable = '对方中止了传输文件 ："' + msg.fileName + '"(大小：' + msg.fileSize + ')。';
             var msgtime = new Date();
@@ -3532,7 +3547,7 @@ var UEditBox = Class.extend({
       return;
     }
     if (msg.state === '1') {
-      _global._imFileTransfer.sendFileTransferStart(function(err, fileTransMsg) {
+      _global._imV.sendFileTransferStart(function(err, fileTransMsg) {
         sendMsg['Msg'] = JSON.stringify(fileTransMsg);
         if (err) {
           _global._imV.SendAppMsg(function(mmm) {
@@ -3565,7 +3580,7 @@ var UEditBox = Class.extend({
       'fileName':msg.fileName,
       'fileSize':msg.fileSize
     };
-    _global._imFileTransfer.transferFileProcess(function(err, rst) { //传输文件
+    _global._imV.transferFileProcess(function(err, rst) { //传输文件
       if (curEditBox_._fileTransList[msg.key] === undefined || (curEditBox_._fileTransList[msg.key] !== undefined && curEditBox_._fileTransList[msg.key].flag !== 1)) {
         return;
       }
@@ -3601,7 +3616,7 @@ var UEditBox = Class.extend({
     if (curEditBox_._fileTransList[msg.key] === undefined || (curEditBox_._fileTransList[msg.key] !== undefined && curEditBox_._fileTransList[msg.key].flag !== 2)) {
       return;
     }
-    _global._imFileTransfer.transferProcessing(function() {
+    _global._imV.transferProcessing(function() {
       if (msg.state === 1) {
         console.log('transferProcessing--okkkkkkkkk------' + msg.key + ' ' + ' ' + msg.ratio);
         $('#fileRatio_' + msg.key).text((msg.ratio.toFixed(4) * 100) + '%');
@@ -3647,7 +3662,7 @@ var UEditBox = Class.extend({
       'fileSize':msg_.fileSize
     };
     if (flag_) {
-      $('li').not('#fileTransItem_' + msg_.key);
+      $('#fileTransItem_' + msg_.key).remove();
     } else {
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
@@ -3658,14 +3673,14 @@ var UEditBox = Class.extend({
                 <span id="fileRatio_' + msg_.key + '"></span><br/><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button>\
                 </li>');
     $('#cancelFileItem_' + msg_.key).on('click', function() {
-      _global._imFileTransfer.transferCancelReciever(function() {}, msg_.key);
+      _global._imV.transferCancelReciever(function() {}, msg_.key);
     });
     msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
     sendMsg_['Msg'] = JSON.stringify(msg_);
     _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
   },
   fileItemTransRemove: function(fileTransList_, key, toIdentity) {
-    $('li').not('#fileTransItem_' + key);
+    $('#fileTransItem_'+key).remove();
     delete fileTransList_[key];
     if (Object.keys(fileTransList_).length === 0) {
       $('#fileTransShow_' + toIdentity).hide();
@@ -3714,12 +3729,12 @@ var UEditBox = Class.extend({
                     break;
                   case 1:
                     {
-                      _global._imFileTransfer.transferCancelReciever(function() {}, key);
+                      _global._imV.transferCancelReciever(function() {}, key);
                     }
                     break;
                   case 2:
                     {
-                      _global._imFileTransfer.transferCancelSender(function(rst) {
+                      _global._imV.transferCancelSender(function(rst) {
                         curEditBox_.fileItemTransRemove(curEditBox_._fileTransList, key, toIdentity);
                         sendMsg['Msg'] = JSON.stringify(rst);
                         _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
@@ -3743,18 +3758,21 @@ var UEditBox = Class.extend({
       delete imChatWinList_['imChatWin_' + toIdentity];
     }
   },
-  deviceUpFunc: function( info_) {
-    var toIdentity= info_._position['txt'][1];
-    $('#memInfoList_' + toIdentity).append('<li>\
-                                <label class="online">\
-                                </label>\
-                                <a href="javascript:;">\
-                                    <img src="img/2016.jpg"/></a><a href="javascript:;" class="chatList_name">' + info_._position['txt'][1]+ '<br/>' + info_._position['txt'][2]+ '<br/>' + info_._position['address']+ '</a>\
-                            </li>');
+  deviceUpFunc: function(curEditBox_, info_) {
+    var memItemId= info_['txt'][1]+ info_['txt'][2];
+    var deviceItem = {
+        id: 'memItem_' + memItemId,
+        type: "item",
+        href: "",
+        img: "img/2016.jpg",
+        text: info_['txt'][1]+ info_['txt'][2],
+        clkaction: function() {}
+      };
+    curEditBox_._memListView.addItem(deviceItem);
   },
-  deviceDownFunc: function( info_) {
-    var toIdentity= info_._position['txt'][1]+ info_._position['txt'][2];
-    $('li').not('#memList_' + toIdentity);
+  deviceDownFunc: function(curEditBox_,info_) {
+    var memItemId= info_['txt'][1]+ info_['txt'][2];
+    curEditBox_._memListView.remove('memItem_'+memItemId);
   }
 });
 
@@ -3836,7 +3854,7 @@ var LoginView = View.extend({
         }
         _this.show(state_);
       },
-      'login-state': function(err_, state_, msg_) {
+      'login-state': function(err_, last_, state_, msg_) {
         if(err_) {
           console.log(err_);
           return ;
@@ -3845,8 +3863,12 @@ var LoginView = View.extend({
         if(state_) {
           $('#' + _this._id + '-window').remove();
         } else {
-          _this.toggleLogin(false);
-          _this.$loginView.find('#msg1').html('登陆失败：' + msg_);
+          if(last_) {
+            $('#' + _this._id + '-window').remove();
+          } else {
+            _this.toggleLogin(false);
+            _this.$loginView.find('#msg1').html('登陆失败：' + msg_);
+          }
         }
         // _this._win.closeWindow(_this._win);
       },
