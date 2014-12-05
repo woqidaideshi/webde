@@ -3663,7 +3663,6 @@ var UEditBox = Class.extend({
     };
     if (flag_) {
       $('#fileTransItem_' + msg_.key).remove();
-      //$('li').not('#fileTransItem_' + msg_.key);
     } else {
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
@@ -3682,7 +3681,6 @@ var UEditBox = Class.extend({
   },
   fileItemTransRemove: function(fileTransList_, key, toIdentity) {
     $('#fileTransItem_'+key).remove();
-  //  $('li').not('#fileTransItem_' + key);
     delete fileTransList_[key];
     if (Object.keys(fileTransList_).length === 0) {
       $('#fileTransShow_' + toIdentity).hide();
