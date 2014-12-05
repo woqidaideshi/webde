@@ -3367,7 +3367,7 @@ var UEditBox = Class.extend({
                     <span id="fileRatio_' + fileMsg.key + '"><span><br/><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button>\
                     </li>');
                 $('#cancelFileItem_' + fileMsg.key).on('click', function() {
-                  _global._imFileTransfer.transferCancelSender(function(rst) {
+                  _global._imV.transferCancelSender(function(rst) {
                     _this.fileItemTransRemove(_this._fileTransList, fileMsg.key, toIdentity);
                     var ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
                     var msgtime = new Date();
@@ -3399,7 +3399,7 @@ var UEditBox = Class.extend({
           sendMsg['Msg'] = val;
           sendMsg['App'] = 'imChat';
           //_global._imV.sendIMMsg(sendIMFileCb, ipset, toAccount, JSON.stringify(msgJson));
-          _global._imFileTransfer.sendFileTransferRequest(function(err, fileTransMsg) {
+          _global._imV.sendFileTransferRequest(function(err, fileTransMsg) {
             sendIMFileCb(err, fileTransMsg, val);
           }, sendMsg);
         }
@@ -3526,7 +3526,7 @@ var UEditBox = Class.extend({
           if (curEditBox_._fileTransList[msg.key] === undefined) {
             return;
           }
-          _global._imFileTransfer.transferCancelReciever(function() {
+          _global._imV.transferCancelReciever(function() {
             curEditBox_.fileItemTransRemove(curEditBox_._fileTransList, msg.key, toIdentity);
             var ratioLable = '对方中止了传输文件 ："' + msg.fileName + '"(大小：' + msg.fileSize + ')。';
             var msgtime = new Date();
@@ -3547,7 +3547,7 @@ var UEditBox = Class.extend({
       return;
     }
     if (msg.state === '1') {
-      _global._imFileTransfer.sendFileTransferStart(function(err, fileTransMsg) {
+      _global._imV.sendFileTransferStart(function(err, fileTransMsg) {
         sendMsg['Msg'] = JSON.stringify(fileTransMsg);
         if (err) {
           _global._imV.SendAppMsg(function(mmm) {
@@ -3580,7 +3580,7 @@ var UEditBox = Class.extend({
       'fileName':msg.fileName,
       'fileSize':msg.fileSize
     };
-    _global._imFileTransfer.transferFileProcess(function(err, rst) { //传输文件
+    _global._imV.transferFileProcess(function(err, rst) { //传输文件
       if (curEditBox_._fileTransList[msg.key] === undefined || (curEditBox_._fileTransList[msg.key] !== undefined && curEditBox_._fileTransList[msg.key].flag !== 1)) {
         return;
       }
@@ -3616,7 +3616,7 @@ var UEditBox = Class.extend({
     if (curEditBox_._fileTransList[msg.key] === undefined || (curEditBox_._fileTransList[msg.key] !== undefined && curEditBox_._fileTransList[msg.key].flag !== 2)) {
       return;
     }
-    _global._imFileTransfer.transferProcessing(function() {
+    _global._imV.transferProcessing(function() {
       if (msg.state === 1) {
         console.log('transferProcessing--okkkkkkkkk------' + msg.key + ' ' + ' ' + msg.ratio);
         $('#fileRatio_' + msg.key).text((msg.ratio.toFixed(4) * 100) + '%');
@@ -3674,7 +3674,7 @@ var UEditBox = Class.extend({
                 <span id="fileRatio_' + msg_.key + '"></span><br/><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button>\
                 </li>');
     $('#cancelFileItem_' + msg_.key).on('click', function() {
-      _global._imFileTransfer.transferCancelReciever(function() {}, msg_.key);
+      _global._imV.transferCancelReciever(function() {}, msg_.key);
     });
     msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
     sendMsg_['Msg'] = JSON.stringify(msg_);
@@ -3731,12 +3731,12 @@ var UEditBox = Class.extend({
                     break;
                   case 1:
                     {
-                      _global._imFileTransfer.transferCancelReciever(function() {}, key);
+                      _global._imV.transferCancelReciever(function() {}, key);
                     }
                     break;
                   case 2:
                     {
-                      _global._imFileTransfer.transferCancelSender(function(rst) {
+                      _global._imV.transferCancelSender(function(rst) {
                         curEditBox_.fileItemTransRemove(curEditBox_._fileTransList, key, toIdentity);
                         sendMsg['Msg'] = JSON.stringify(rst);
                         _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
