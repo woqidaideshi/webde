@@ -317,13 +317,17 @@ var Global = Class.extend({
           /* _this._fs = require('fs'); */
           /* _this._exec = require('child_process').exec; */
           WDC.requireAPI(['device_service', 'IM', 'data', 'app'/* , 'account' */]
-            , function(dev, imV, data,fileTransferApp, app/* , acc */) {
+            , function(dev, imV, data, app/* , acc */) {
               _this._device = dev;
               _this._imV = imV;
               _this._dataOP = data;
               _this._app = app;
               // _this._account = acc;
-              cb_(null);
+
+              app.getBasePath(function(err_, basePath_) {
+                _this._appBase = basePath_;
+                cb_(null);
+              });
             });
         }
       },

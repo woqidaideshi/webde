@@ -839,7 +839,7 @@ var InsideAppEntryModel = EntryModel.extend({
       throw 'Bad type of startUpPera_, should be undefined or Array';
     }
     this.callSuper(id_, parent_, path_, position_);
-    this.setImgPath(iconPath_);
+    this.setImgPath(_global._appBase + '/' + iconPath_);
     this._startUpCtx = startUpContext_ || this;
     this._startUp = startUp_;
     this._startUpPera = startUpPera_ || [];
@@ -1501,12 +1501,15 @@ var LauncherModel = Model.extend({
   },
 
   startUp: function(id_) {
-    this.emit('start-up', null, this.getCOMById(id_));
-    _global._app.startAppByID(function(obj) {
-      if(obj) {
-        // TODO: add this window to window manager
-      }
-    }, id_, null);
+    // this.emit('start-up', null, this.getCOMById(id_));
+    _global._app.getRegisteredAppInfo(function(err_, info_) {
+      if(err_) return console.log(err_);
+      _global._app.startAppByID(function(obj) {
+        if(obj) {
+          // TODO: add this window to window manager
+        }
+      }, id_, {info: info_});
+    }, id_)
   }
 });
 
