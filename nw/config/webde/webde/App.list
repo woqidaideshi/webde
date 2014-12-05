@@ -1,0 +1,32 @@
+{
+  "flash-app": {
+    "id": "flash-app",
+    "path": "demo-webde/nw/test/flash",
+    "iconPath": "demo-webde/nw/test/flash/img/video.png",
+    "name": "flash"
+  },
+  "sina-app": {
+    "id": "sina-app",
+    "path": "demo-webde/nw/test/test-app",
+    "iconPath": "demo-webde/nw/test/test-app/img/test-app2.png",
+    "name": "sina-app"
+  },
+  "wiki-app": {
+    "id": "wiki-app",
+    "path": "demo-webde/nw/test/wiki-app",
+    "iconPath": "demo-webde/nw/test/wiki-app/img/icon.jpg",
+    "name": "wiki-app"
+  },
+  "datamgr-app": {
+    "id": "datamgr-app",
+    "path": "demo-rio/datamgr",
+    "iconPath": "demo-rio/datamgr/images/htmlbg.png",
+    "name": "data manager"
+  },
+  "viewerPDF-app": {
+    "id": "viewerPDF-app",
+    "path": "demo-rio/viewerPDF",
+    "iconPath": "demo-rio/datamgr/lib/img/cat.jpg",
+    "name": "viewerPDF"
+  }
+}
