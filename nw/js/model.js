@@ -1410,6 +1410,7 @@ var LauncherModel = Model.extend({
 
   load: function() {
     var _this = this;
+    // load all installed normal App
     _global._dataOP.getAllDesktopFile(function(err_, files_) {
       if(err_) return console.log(err_);
       for(var key in files_) {
@@ -1424,6 +1425,19 @@ var LauncherModel = Model.extend({
         }
       }
     });
+    // load all register HTML5 App
+    _global._app.getRegisteredApp(function(err_, list_) {
+      if(err_) return console.log(err_);
+      for(var i = 0; i < list_.length; ++i) {
+        try {
+          _this.get(list_[i]);
+        } catch(e) {
+          _global._app.getRegisteredAppInfo(function(err_, info_) {
+            _this.createAModel(info_, 'inside-app');
+          }, list_[i]);
+        }
+      }
+    })
   },
 
   get: function(id_) {
@@ -1488,6 +1502,11 @@ var LauncherModel = Model.extend({
 
   startUp: function(id_) {
     this.emit('start-up', null, this.getCOMById(id_));
+    _global._app.startAppByID(function(obj) {
+      if(obj) {
+        // TODO: add this window to window manager
+      }
+    }, id_, null);
   }
 });
 
