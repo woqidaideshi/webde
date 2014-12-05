@@ -5,8 +5,8 @@
   "nodejs": true,
   "window": {
     "title": "test",
-    "toolbar": false,
-    "show_in_taskbar": false,
+    "toolbar": true,
+    "show_in_taskbar": true,
     "as_desktop": true,
     "frame": true
   },

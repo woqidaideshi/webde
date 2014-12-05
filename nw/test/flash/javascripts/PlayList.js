@@ -37,6 +37,7 @@ var PlayList = Class.extend({
     this._bottom = $('<div>',{
       'class' : 'playList-bottom'
     });
+    this._firstVideo = undefined;
     this._listviewContent.append(this._bottom);
     $('body').append(this._bkgDiv);
   },
@@ -54,15 +55,44 @@ var PlayList = Class.extend({
   },
 
   setList: function(list_){
+    var _isLocal = undefined;
+    try{
+      require("nw.gui")
+      _isLocal = true;
+    }catch(e){
+      _isLocal = false;
+    }
+    var _location = undefined;
     var getName = function(path_){
       var _Arr = path_.split('/');
       return _Arr[_Arr.length - 1];
+    }
+    var changePath = function(path_){
+      if (window !== top) {
+        try{
+            _location = parent.window.location;
+          if (_location) {
+            var webPath = _location.host;
+            var path = 'http://'+webPath+ path_;
+            return path;
+          }    
+        }catch(e){
+          console.log(e);
+        }
+      };    
     }
 
     if (typeof list_ === 'object') {
       for(var key in list_){
         var _name = getName(list_[key]);
-        this._playList[_name] = list_[key];
+        if (_isLocal) {
+          this._playList[_name] = list_[key];
+        }else {
+          this._playList[_name] = changePath(list_[key]);
+        }
+        if (!this._firstVideo) {
+          this._firstVideo = this._playList[_name];
+        };
       }
     };
     this.setPlayList();

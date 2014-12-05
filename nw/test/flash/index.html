@@ -34,6 +34,11 @@
     }
     if (videos_) {
       playlist.setList(videos_);
+      fv.load([
+          {
+            src: playlist._firstVideo
+          }
+        ]);
     } else {
       console.log('video is null');
     }
@@ -53,6 +58,7 @@
         play(src_);
       }
     });
+    fv = $("#video").flareVideo();
     var _global = undefined;
     if (window != top) {
     try{
@@ -66,13 +72,6 @@
     }else{
       playlist.setPlayList();
     }
-
-    fv = $("#video").flareVideo();
-    fv.load([
-      {
-        src:  'http://video-js.zencoder.com/oceans-clip.webm'
-      }
-    ]);
     fv.fullWindow();
   })
   </script>
