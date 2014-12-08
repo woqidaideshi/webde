@@ -324,10 +324,13 @@ var Global = Class.extend({
               _this._app = app;
               // _this._account = acc;
 
-              app.getBasePath(function(err_, basePath_) {
-                _this._appBase = basePath_;
-                cb_(null);
-              });
+              data.initDesktop(function(err_, success_) {
+                if(err_) return console.log(err_);
+                app.getBasePath(function(err_, basePath_) {
+                  _this._appBase = basePath_;
+                  cb_(null);
+                });
+              })
             });
         }
       },
