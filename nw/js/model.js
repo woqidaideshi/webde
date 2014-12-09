@@ -1433,6 +1433,7 @@ var LauncherModel = Model.extend({
           _this.get(list_[i]);
         } catch(e) {
           _global._app.getRegisteredAppInfo(function(err_, info_) {
+            if(err_) return console.log(err_);
             _this.createAModel(info_, 'inside-app');
           }, list_[i]);
         }
@@ -1504,12 +1505,12 @@ var LauncherModel = Model.extend({
     // this.emit('start-up', null, this.getCOMById(id_));
     _global._app.getRegisteredAppInfo(function(err_, info_) {
       if(err_) return console.log(err_);
-      _global._app.startAppByID(function(obj) {
+      _global._app.startApp/* ByID */(function(obj) {
         if(obj) {
           // TODO: add this window to window manager
         }
-      }, id_, {info: info_});
-    }, id_)
+      }, info_, null);
+    }, id_);
   }
 });
 
