@@ -5,6 +5,7 @@ var Unslider = Class.extend({
       speed: false,
       delay: 3000,
       complete: false,
+      begin:false,
       keys: true,
       dots: false,
       fluid: false
@@ -86,12 +87,17 @@ var Unslider = Class.extend({
     var _target = _this._items.eq(index_);
     var _hobj = {height: '100%'};
     var speed = cb_ ? 5 :_this._options.speed;
-
+    if(_this._options.begin){
+      _this._options.begin(index_);
+    }
     if (!this._ul.is(':animated')) {
       _this._obj.find('.dot:eq(' + index_ + ')').addClass('active').siblings().removeClass('active');
       _this._obj.animate(_hobj, speed);
       _this._ul.animate({left: '-' + index_ + '00%', height: '100%'}, speed, function(data){
         _this._current = index_;
+        if (_this._options.complete) {
+          _this._options.complete(index_);
+        };
       });
     };
   },
