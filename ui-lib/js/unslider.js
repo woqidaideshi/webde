@@ -56,7 +56,11 @@ var Unslider = Class.extend({
     })
     if (this._options.delay !== false) {
       _this.start();
-      _this._obj.hover(_this.stop,_this.start);
+      _this._obj.hover(function(){
+        _this.stop(_this);
+      },function(){
+        _this.start(_this);
+      });
     };
     _this._options.keys && _this.keys();
     _this._options.dots && _this.dots();
@@ -92,15 +96,21 @@ var Unslider = Class.extend({
     };
   },
 
-  start:function(){
+  start:function(this_){
     var _this = this;
+    if (this_) {
+      _this = this_;
+    };
     _this._interval = setInterval(function(){
       _this.move(_this._current +1);
     }, _this._options.delay);
   },
 
-  stop:function(){
+  stop:function(this_){
     var _this = this;
+    if (this_) {
+      _this = this_;
+    };
     _this._interval = clearInterval(_this._interval);
   },
 
