@@ -1632,8 +1632,9 @@ var DeviceListModel = Model.extend({
       toAccInfo['toAccount'] = toAccount;
       toAccInfo['toUID'] = recMsg.MsgObj.uuid;
       toAccInfo['toIP'] = recMsg.IP;
-      var toAccounts = [];
-      toAccounts[0] = toAccInfo;
+      toAccInfo['onLineFlag'] = 1;
+      var toAccounts = {};
+      toAccounts[toAccount+recMsg.MsgObj.uuid] = toAccInfo;
       toAccountInfo['toAccList'] = toAccounts;
       try {
         fileMsg = JSON.parse(fileMsg);
@@ -1696,16 +1697,16 @@ var AccountEntryModel = EntryModel.extend({
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = '';
-    var toAccounts = [];
+    var toAccounts = {};
     var toAccInfo = {};
-    var test = this.getAllCOMs();
-    var count = 0;
-    for (var key in test) {
-      var accountItem = test[key];
+    var deviceList = this.getAllCOMs();
+    for (var key in deviceList) {
+      var accountItem = deviceList[key];
       toAccInfo['toAccount'] = accountItem._position['txt'][1];
       toAccInfo['toUID'] = accountItem._position['txt'][2];
       toAccInfo['toIP'] = accountItem._position['address'];
-      toAccounts[count++] = toAccInfo;
+      toAccInfo['onLineFlag'] = 1;
+      toAccounts[accountItem._position['txt'][1]+accountItem._position['txt'][2]] = toAccInfo;
     }
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
@@ -1769,8 +1770,9 @@ var DeviceEntryModel = EntryModel.extend({
     toAccInfo['toAccount'] = toAccount;
     toAccInfo['toUID'] = this._position['txt'][2];
     toAccInfo['toIP'] = this._position['address'];
-    var toAccounts = [];
-    toAccounts[0] = toAccInfo;
+    toAccInfo['onLineFlag'] = 1;
+    var toAccounts = {};
+    toAccounts[toAccount+this._position['txt'][2]] = toAccInfo;
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
   }

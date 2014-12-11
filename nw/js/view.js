@@ -65,27 +65,37 @@ var DesktopView = View.extend({
         _this = this;
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
-      // TODO: comment for temporary
-      /* {text: 'create Dir', icon: 'icon-folder-1', action: function(e) { */
-        // e.preventDefault();
-        // var layout = desktop.getCOMById('layout').getCurLayout();
-        // for (var i = 0; ; i++) {
-          // [> if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { <]
-            // // continue;
-          // // } else {
-            // // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
-            // // return;
-          // [> } <]
-          // // replace with logistic directory
-          // if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
-          // var d = new Date();
-          // _this._c['layout'].getCurView()._controller.onAddFolder('/desktop/New Folder ' + i
-            // , 'folder' + d.getTime());
-          // break; 
-        // }
-      /* }}, */
+      {text: 'create Dir', icon: 'icon-folder-1', action: function(e) {
+        e.preventDefault();
+        var layout = desktop.getCOMById('layout').getCurLayout();
+        for (var i = 0; ; i++) {
+          /* if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { */
+            // continue;
+          // } else {
+            // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
+            // return;
+          /* } */
+          // replace with logistic directory
+          if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
+          var d = new Date();
+          _this._c['layout'].getCurView()._controller.onAddFolder('/desktop/New Folder ' + i
+            , 'folder' + d.getTime());
+          break; 
+        }
+      }},
       {text: 'create Text', icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
+        /* for (var i = 0; ; i++) { */
+          // if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
+            // continue;
+          // } else {
+            // _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt', ''
+              // , {encoding:'utf8'}, function(err) {
+                // if (err) console.log(err);
+              // });
+            // return;
+          // }
+        /* } */
         // change to demo-rio's API
         _global._dataOP.createFileOnDesk(function(err_, ret_) {
           if(err_) return console.log(err_);
@@ -98,6 +108,7 @@ var DesktopView = View.extend({
       {divider: true},
       {text: 'terminal', icon: 'icon-terminal', action: function(e) {
         e.preventDefault();
+        // _global._exec("gnome-terminal", function(err, stdout, stderr) {
         _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
@@ -105,6 +116,7 @@ var DesktopView = View.extend({
       }},
       {text:'gedit', icon: 'icon-edit', action:function(e){
         e.preventDefault();
+        // _global._exec("gedit", function(err, stdout, stderr) {
         _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
@@ -1189,8 +1201,8 @@ var DEntryView = WidgetView.extend({
       ctxMenu.attachToMenu('#' + this.getID()
           , ctxMenu.getMenuByHeader('file-entry')
           , function(id_, $menu_) {
-            ctxMenu._rightObjId = id_;
-            var _menu = ctxMenu.getMenuByHeader('Open with'),
+            desktop._rightObjId = id_;
+            var _menu = desktop._ctxMenu.getMenuByHeader('Open with'),
                 layout = desktop.getCOMById('layout').getCurLayout(),
                 model = layout.getWidgetById(ctxMenu._rightObjId),
                 utilIns = _global.get('utilIns');
@@ -1209,7 +1221,7 @@ var DEntryView = WidgetView.extend({
               var types = type.split('/'),
                   apps = desktop._DEFAULT_APP[types[0]][types[1]] || [];
               for(var i = 0; i < apps.length; ++i) {
-                var item = utilIns.entryUtil.getItemFromApp(apps[i]);
+                var item = getItemFromApp(apps[i]);
                 if(item != null) ctxMenu.addItem(_menu, item);
               }
             });
@@ -1782,7 +1794,7 @@ var DeviceListView = View.extend({
             }
           }
         } else {
-          curEditBox._imWindow.onfocus();
+          curEditBox._imWindow.focus();
           curEditBox.showRec(toAccountInfo_, curEditBox);
         }
       }
@@ -3335,6 +3347,7 @@ var UEditBox = Class.extend({
     this._fileTransList = {};
     this._toIdentity = toAccountInfo_.toAccount + toAccountInfo_.toUID;
     this._title = toAccountInfo_.toAccount;
+    this._onLineCount=0;
     if (toAccountInfo_.toUID.length !== 0) {
       this._title += '--' + toAccountInfo_.toUID;
     }
@@ -3445,8 +3458,10 @@ var UEditBox = Class.extend({
                             </li>');
     }*/
     var deviceItems = [];
-    for (var i = 0; i < toAccountInfo_.toAccList.length; i++) {
-      toAccInfo = toAccountInfo_.toAccList[i];
+    var i=0;
+    for (var toAccListKey in toAccountInfo_.toAccList) {
+      toAccInfo = toAccountInfo_.toAccList[toAccListKey];
+      _this._onLineCount+=toAccInfo.onLineFlag;
       deviceItems[i] = {
         id: 'memItem_' + toAccInfo.toAccount + toAccInfo.toUID,
         type: "item",
@@ -3469,10 +3484,11 @@ var UEditBox = Class.extend({
             devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_,_this._selector); 
             imChatWinList_['imChatWin_' + toAccInfo.toAccount+toAccInfo.toUID] = devEditBoxItem;
           } else{
-            devEditBoxItem._imWindow.onfocus();
+            devEditBoxItem._imWindow.focus();
           }    
         }
       };
+      i++;
     }
     this._memListView = ListView.create('memInfoList_' + _this._toIdentity, {
       'width': 175
@@ -3517,6 +3533,10 @@ var UEditBox = Class.extend({
         document.getElementById("file_" + _this._toIdentity).dispatchEvent(a);
       }
       $('#file_' + _this._toIdentity).on('change', function() {
+        if(_this._onLineCount===0){
+          Messenger().post('当前没有设备在线，您将不能发送文件！');
+          return;
+        }
         var fileUp = $('#file_' + _this._toIdentity);
         fileUp.after(fileUp.clone().val(''));
         fileUp.remove();
@@ -3527,6 +3547,10 @@ var UEditBox = Class.extend({
       });
     });
     $('#send_button_' + _this._toIdentity).on('click', function() {
+      if(_this._onLineCount===0){
+          Messenger().post('当前没有设备在线，您将不能发送信息！');
+          return;
+        }
       if (_this._um.hasContents()) {
         var msg = _this._um.getContent();
         console.log('--------send_button_----------' + msg)
@@ -3968,6 +3992,8 @@ var UEditBox = Class.extend({
 
   deviceUpFunc: function(curEditBox_, info_) {
     var memItemId = info_['txt'][1] + info_['txt'][2];
+    curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag=1;
+    curEditBox_._onLineCount+=1;
     var deviceItem = {
       id: 'memItem_' + memItemId,
       type: "item",
@@ -3981,6 +4007,8 @@ var UEditBox = Class.extend({
 
   deviceDownFunc: function(curEditBox_, info_) {
     var memItemId = info_['txt'][1] + info_['txt'][2];
+    curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag=0;
+    curEditBox_._onLineCount-=1;
     curEditBox_._memListView.remove('memItem_' + memItemId);
   },
 
@@ -4307,4 +4335,3 @@ var LoginView = View.extend({
     }
   }
 });
-
