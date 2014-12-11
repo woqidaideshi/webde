@@ -1473,7 +1473,6 @@ var LauncherModel = Model.extend({
 var DeviceListModel = Model.extend({
   init: function(parent_) {
     this.callSuper('device-list', parent_);
-    this._imChatWinList = {}; 
   },
 
   release: function() {
@@ -1522,9 +1521,6 @@ var DeviceListModel = Model.extend({
           }
           var ac = _this.getCOMById(account_id_);
           ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
-          var curDevEditBox = _this._imChatWinList['imChatWin_' + info['txt'][1]];
-          if(curDevEditBox!==undefined)
-            curDevEditBox.deviceUpFunc(curDevEditBox,info);
         } catch(e) {
           console.log(e);
         }
@@ -1537,9 +1533,6 @@ var DeviceListModel = Model.extend({
         } else {
           ac.remove(ac.getCOMById(dev_id_));
         }
-        var curDevEditBox = _this._imChatWinList['imChatWin_' + info['txt'][1]];
-        if(curDevEditBox!==undefined)
-          curDevEditBox.deviceDownFunc(curDevEditBox,info);
         break;
       default:
         break;
@@ -1586,92 +1579,23 @@ var DeviceListModel = Model.extend({
     // TODO: for IM, emit 'message' event when recive a message
     _global._imV.RegisterApp(function(recMsg) {
       var toAccount = recMsg.MsgObj.from;
-      var curEditBox = _this._imChatWinList['imChatWin_' + toAccount + recMsg.MsgObj.uuid];
-      var toUid;
-      if (curEditBox === undefined) {
-        curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
-        toUid = '';
-      } else {
-        toUid = recMsg.MsgObj.uuid;
-      }
       var fileMsg = recMsg.MsgObj['message'];
       var toAccountInfo = {};
       toAccountInfo['toAccount'] = toAccount;
       toAccountInfo['toIP'] = recMsg.IP;
-      toAccountInfo['toUID'] = toUid;
-      var toAccInfo={};
-      toAccInfo['toAccount']=toAccount;
-      toAccInfo['toUID']=recMsg.MsgObj.uuid;
-      toAccInfo['toIP']=recMsg.IP;
-      var toAccounts=[];
-      toAccounts[0]=toAccInfo;
-      toAccountInfo['toAccList']=toAccounts;
+      toAccountInfo['toUID'] = recMsg.MsgObj.uuid;
+      var toAccInfo = {};
+      toAccInfo['toAccount'] = toAccount;
+      toAccInfo['toUID'] = recMsg.MsgObj.uuid;
+      toAccInfo['toIP'] = recMsg.IP;
+      var toAccounts = [];
+      toAccounts[0] = toAccInfo;
+      toAccountInfo['toAccList'] = toAccounts;
       try {
         fileMsg = JSON.parse(fileMsg);
       } catch (e) {}
       toAccountInfo['msg'] = fileMsg;
-      if (curEditBox === undefined) {
-        if (fileMsg.type === undefined) {
-          Messenger().post({
-            message: toAccount + '给你发新消息啦！',
-            type: 'info',
-            actions: {
-              close: {
-                label: '取消闪烁',
-                action: function() {
-                  Messenger().hideAll()
-                }
-              },
-              open: {
-                label: '查看',
-                action: function() {
-                  Messenger().hideAll();
-                  curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
-                  _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
-                }
-              }
-            }
-          });
-        } else {
-          if (fileMsg.type === 'file'&&fileMsg.option===0x0000) {
-            var sendMsg = {};
-            sendMsg['IP'] = toAccountInfo.toIP;
-            sendMsg['UID'] = toAccountInfo.toUID;
-            sendMsg['Account'] = toAccountInfo.toAccount;
-            sendMsg['App'] = 'imChat';
-            Messenger().post({
-              message: toAccount + '给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
-              type: 'info',
-              actions: {
-                close: {
-                  label: '拒绝',
-                  action: function() {
-                    Messenger().hideAll();
-                    fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
-                    sendMsg['Msg'] = JSON.stringify(fileMsg);
-                    _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
-                  }
-                },
-                open: {
-                  label: '接收',
-                  action: function() {
-                    Messenger().hideAll();
-                    fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-                    sendMsg['Msg'] = JSON.stringify(fileMsg);
-                    _global._imV.SendAppMsg(function(mmm) {
-                      delete fileMsg['state'];
-                      curEditBox = UEditBox.create(toAccountInfo, _this._imChatWinList);
-                      _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
-                    }, sendMsg);     
-                  }
-                }
-              }
-            });
-          }
-        }
-      } else {
-        curEditBox.showRec(toAccountInfo, curEditBox);
-      }
+      _this.emit('imMsg', toAccountInfo);
     }, 'imChat');
   }
 });
@@ -1687,7 +1611,6 @@ var AccountEntryModel = EntryModel.extend({
     this._type = 'account';
     this._imgPath = 'img/user.png';
     this.realInit(callback_);
-    this._imChatWinList = {}; 
   },
 
   realInit: function(cb_) {
@@ -1696,7 +1619,34 @@ var AccountEntryModel = EntryModel.extend({
     cb(null);
   },
 
-  open: function() {
+  open: function(cb_) {
+    var _this = this;
+    _this.initImChatParseFunc(function(toAccountInfo) {
+      _this.emit('openImChat', toAccountInfo, cb_);
+    });
+  },
+
+  copyTo: function(dataTransfer, entryIds_, cb_) {
+    var filePaths = [];
+    if (dataTransfer.files.length != 0) {
+      for (var i = 0; i < dataTransfer.files.length; ++i) {
+        filePaths.push(dataTransfer.files[i].path);
+      }
+      cb_(filePaths);
+      return;
+    }
+
+    if (entryIds_.length == 0)
+      entryIds_.push(dataTransfer.getData('ID'));
+    for (var i = 0; i < entryIds_.length; ++i) {
+      var desktop = _global.get('desktop'),
+      item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
+      filePaths.push(item.getPath());
+    }
+    cb_(filePaths);
+  },
+
+  initImChatParseFunc: function(cb_) {
     var toAccount = this._position['txt'][1];
     var toAccountInfo = {};
     toAccountInfo['toAccount'] = toAccount;
@@ -1705,20 +1655,17 @@ var AccountEntryModel = EntryModel.extend({
     var toAccounts = [];
     var toAccInfo = {};
     var test = this.getAllCOMs();
-    var count=0;
+    var count = 0;
     for (var key in test) {
       var accountItem = test[key];
       toAccInfo['toAccount'] = accountItem._position['txt'][1];
       toAccInfo['toUID'] = accountItem._position['txt'][2];
-      toAccInfo['toIP'] =accountItem._position['address'];
+      toAccInfo['toIP'] = accountItem._position['address'];
       toAccounts[count++] = toAccInfo;
     }
-    console.log(count);
     toAccountInfo['toAccList'] = toAccounts;
-    var curEditBox = UEditBox.create(toAccountInfo, this._parent._imChatWinList);
-    this._parent._imChatWinList['imChatWin_' + toAccount] = curEditBox;
-  },
-  copyTo: function() {}
+    cb_(toAccountInfo);
+  }
 });
 
 var DeviceEntryModel = EntryModel.extend({
@@ -1741,41 +1688,47 @@ var DeviceEntryModel = EntryModel.extend({
   },
 
   // TODO: show something about this device
-  open: function() {
+  open: function(cb_) {
+    var _this = this;
+    _this.initImChatParseFunc(function(toAccountInfo) {
+      _this.emit('openImChat', toAccountInfo, cb_);
+    });
+  },
+
+  // send a file to remote device
+  copyTo: function(dataTransfer, entryIds_, cb_) {
+    var filePaths = [];
+    if (dataTransfer.files.length != 0) {
+      for (var i = 0; i < dataTransfer.files.length; ++i) {
+        filePaths.push(dataTransfer.files[i].path);
+      }
+      cb_(filePaths);
+      return;
+    }
+
+    if (entryIds_.length == 0)
+      entryIds_.push(dataTransfer.getData('ID'));
+    for (var i = 0; i < entryIds_.length; ++i) {
+      var desktop = _global.get('desktop'),
+      item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
+      filePaths.push(item.getPath());
+    }
+    cb_(filePaths);
+  },
+  initImChatParseFunc: function(cb_) {
     var toAccount = this._position['txt'][1];
     var toAccountInfo = {};
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = this._position['txt'][2];
-    var toAccInfo={};
-    toAccInfo['toAccount']=toAccount;
-    toAccInfo['toUID']=this._position['txt'][2];
-    toAccInfo['toIP']=this._position['address'];
-    var toAccounts=[];
-    toAccounts[0]=toAccInfo;
-    toAccountInfo['toAccList']=toAccounts;
-    var curEditBox = UEditBox.create( toAccountInfo,this._parent._parent._imChatWinList);
-    this._parent._parent._imChatWinList['imChatWin_'+toAccount+this._position['txt'][2]] = curEditBox;
-  },
-
-  // send a file to remote device
-  copyTo: function(dataTransfer, entryIds_) {
-    if(dataTransfer.files.length != 0) {
-      for(var i = 0; i < dataTransfer.files.length; ++i) {
-        Messenger().post(dataTransfer.files[i].path);
-        // TODO: use api from lower layer
-      }
-      return ;
-    }
-   
-    if(entryIds_.length == 0) 
-      entryIds_.push(dataTransfer.getData('ID'));
-    for(var i = 0; i < entryIds_.length; ++i) {
-      var desktop = _global.get('desktop'),
-          item = desktop.getCOMById('layout').getCurLayout().getWidgetById(entryIds_[i]);
-      Messenger().post(item.getPath());
-      // TODO: use api from lower layer
-    }
+    var toAccInfo = {};
+    toAccInfo['toAccount'] = toAccount;
+    toAccInfo['toUID'] = this._position['txt'][2];
+    toAccInfo['toIP'] = this._position['address'];
+    var toAccounts = [];
+    toAccounts[0] = toAccInfo;
+    toAccountInfo['toAccList'] = toAccounts;
+    cb_(toAccountInfo);
   }
 });
 

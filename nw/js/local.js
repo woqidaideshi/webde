@@ -226,3 +226,29 @@ var LoginController = Controller.extend({
     _global.get('theCP').perform(cmd); 
   }
 });
+
+var DevEntryController = EntryController.extend({
+  init: function(view_) {
+    this.callSuper(view_);
+  },
+
+  onDrop: function(ev, tArr, cb_) {
+    var cmd, tarIdArr = [],
+      tarArr = tArr || [];
+    for (var i = 0; i < tarArr.length; ++i) {
+      if (tarArr[i] != null)
+        tarIdArr.push(tarArr[i].getID());
+    }
+    if (ev.ctrlKey || this._model.getType() == 'dev' || this._model.getType() == 'app' || this._model.getType() == 'account') {
+      cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo, ev.originalEvent.dataTransfer, tarIdArr, cb_);
+    } else {
+      cmd = NoUndoCommand.create(this._model, 'exec', this._model.moveTo, ev.originalEvent.dataTransfer, tarIdArr, cb_);
+    }
+    _global.get('theCP').perform(cmd);
+  },
+
+  onDblclick: function(cb_) {
+    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open, cb_);
+    _global.get('theCP').perform(cmd);
+  },
+});
