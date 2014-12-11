@@ -502,8 +502,8 @@ var DockModel = Model.extend({
       }
       this.add(model);
     }
-    /* _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir() */
-      /* , this._dockWatch, this); */
+    
+    // TODO: watch on app's unregister event
   },
 
   save: function() {
@@ -541,6 +541,7 @@ var DockModel = Model.extend({
     for(var key in this._c) {
       this.remove(this._c[key]);
     }
+    // TODO: unwatch on app's unregister event
   },
 
   // TODO: remove these code when not needed
@@ -1409,7 +1410,8 @@ var LauncherModel = Model.extend({
   },
 
   load: function() {
-    var _this = this;
+    var _this = this,
+        ws = _global.get('ws');
     // load all installed normal App
     _global._dataOP.getAllDesktopFile(function(err_, files_) {
       if(err_) return console.log(err_);
@@ -1438,7 +1440,26 @@ var LauncherModel = Model.extend({
           }, list_[i]);
         }
       }
-    })
+    });
+    // register a listener for app
+    _this.__appListener = function(data_) {
+      if(typeof data_ !== 'object') return console.log(data_);
+      // add or remove a new app in launcher
+      if(data_.event == 'register') {
+        _global._app.getRegisteredAppInfo(function(err_, info_) {
+          if(err_) return console.log(err_);
+          _this.createAModel(info_, 'inside-app');
+        }, data_.appID);
+      } else if(data_.event == 'unregister') {
+        _this.remove(_this._c[data_.appID]);
+      }
+    };
+    _global._app.addListener(function(err_) {
+      if(err_) console.log('add listener for app:', err_);
+    }, _this.__appListener, ws.getConnection());
+    if(!ws.isLocal()) {
+      ws.on('app', _this.__appListener);
+    }
   },
 
   get: function(id_) {
@@ -1461,6 +1482,12 @@ var LauncherModel = Model.extend({
     // TODO: release all child conponts
     for(var key in this._c) {
       this.remove(this._c[key]);
+    }
+    _global._app.removeListener(function(err_) {
+      if(err_) console.log('remove listener for app:', err_);
+    }, _this.__appListener, ws.getConnection());
+    if(!ws.isLocal()) {
+      ws.off('app', _this.__appListener);
     }
   },
 
@@ -1975,8 +2002,8 @@ var WidgetManager = Model.extend({
       }
       this.add(model);
     }
-    /* _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()    */
-        /* , desktop._desktopWatch, this._parent);    */
+    
+    // TODO: watch on app's unregister event
   },
 
   save: function(conf_) {
@@ -2020,6 +2047,8 @@ var WidgetManager = Model.extend({
     conf_.plugin = plugin;
     conf_.dentry = dentry;
   }
+    
+  // TODO: unwatch on app's unregister event
 });
 
 var GridModel = LayoutModel.extend({
