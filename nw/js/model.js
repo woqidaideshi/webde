@@ -290,7 +290,7 @@ var DesktopModel = Model.extend({
     this.getCOMById('device-list').start();
     var _this = this;
     setTimeout(function() {
-      _this.getCOMById('launcher').load();
+      //_this.getCOMById('launcher').load();
       if(typeof cb_ === 'function') cb_.call(_this, null);
     }, 2000);
   },

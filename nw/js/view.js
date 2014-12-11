@@ -1794,7 +1794,7 @@ var DeviceListView = View.extend({
             }
           }
         } else {
-          curEditBox._imWindow.focus();
+          curEditBox._imWindow.onfocus();
           curEditBox.showRec(toAccountInfo_, curEditBox);
         }
       }
@@ -3481,7 +3481,7 @@ var UEditBox = Class.extend({
             devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_,_this._selector); 
             imChatWinList_['imChatWin_' + toAccInfo.toAccount+toAccInfo.toUID] = devEditBoxItem;
           } else{
-            devEditBoxItem._imWindow.focus();
+            devEditBoxItem._imWindow.onfocus();
           }    
         }
       };
