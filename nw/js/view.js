@@ -65,37 +65,27 @@ var DesktopView = View.extend({
         _this = this;
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
-      {text: 'create Dir', icon: 'icon-folder-1', action: function(e) {
-        e.preventDefault();
-        var layout = desktop.getCOMById('layout').getCurLayout();
-        for (var i = 0; ; i++) {
-          /* if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { */
-            // continue;
-          // } else {
-            // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
-            // return;
-          /* } */
-          // replace with logistic directory
-          if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
-          var d = new Date();
-          _this._c['layout'].getCurView()._controller.onAddFolder('/desktop/New Folder ' + i
-            , 'folder' + d.getTime());
-          break; 
-        }
-      }},
+      // TODO: comment for temporary
+      /* {text: 'create Dir', icon: 'icon-folder-1', action: function(e) { */
+        // e.preventDefault();
+        // var layout = desktop.getCOMById('layout').getCurLayout();
+        // for (var i = 0; ; i++) {
+          // [> if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { <]
+            // // continue;
+          // // } else {
+            // // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
+            // // return;
+          // [> } <]
+          // // replace with logistic directory
+          // if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
+          // var d = new Date();
+          // _this._c['layout'].getCurView()._controller.onAddFolder('/desktop/New Folder ' + i
+            // , 'folder' + d.getTime());
+          // break; 
+        // }
+      /* }}, */
       {text: 'create Text', icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
-        /* for (var i = 0; ; i++) { */
-          // if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt')) {
-            // continue;
-          // } else {
-            // _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt', ''
-              // , {encoding:'utf8'}, function(err) {
-                // if (err) console.log(err);
-              // });
-            // return;
-          // }
-        /* } */
         // change to demo-rio's API
         _global._dataOP.createFileOnDesk(function(err_, ret_) {
           if(err_) return console.log(err_);
@@ -108,7 +98,6 @@ var DesktopView = View.extend({
       {divider: true},
       {text: 'terminal', icon: 'icon-terminal', action: function(e) {
         e.preventDefault();
-        // _global._exec("gnome-terminal", function(err, stdout, stderr) {
         _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
@@ -116,7 +105,6 @@ var DesktopView = View.extend({
       }},
       {text:'gedit', icon: 'icon-edit', action:function(e){
         e.preventDefault();
-        // _global._exec("gedit", function(err, stdout, stderr) {
         _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
@@ -1201,8 +1189,8 @@ var DEntryView = WidgetView.extend({
       ctxMenu.attachToMenu('#' + this.getID()
           , ctxMenu.getMenuByHeader('file-entry')
           , function(id_, $menu_) {
-            desktop._rightObjId = id_;
-            var _menu = desktop._ctxMenu.getMenuByHeader('Open with'),
+            ctxMenu._rightObjId = id_;
+            var _menu = ctxMenu.getMenuByHeader('Open with'),
                 layout = desktop.getCOMById('layout').getCurLayout(),
                 model = layout.getWidgetById(ctxMenu._rightObjId),
                 utilIns = _global.get('utilIns');
@@ -1221,7 +1209,7 @@ var DEntryView = WidgetView.extend({
               var types = type.split('/'),
                   apps = desktop._DEFAULT_APP[types[0]][types[1]] || [];
               for(var i = 0; i < apps.length; ++i) {
-                var item = getItemFromApp(apps[i]);
+                var item = utilIns.entryUtil.getItemFromApp(apps[i]);
                 if(item != null) ctxMenu.addItem(_menu, item);
               }
             });

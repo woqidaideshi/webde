@@ -1,0 +1,12 @@
+{
+  "main": "index.html",
+  "name": "应用注册/注销",
+  "window": {
+    "title": "应用注册/注销",
+    "icon": "img/register_icon_3.jpg",
+    "toolbar": false,
+    "frame": true,
+    "width": 500,
+    "height": 275
+  }
+}

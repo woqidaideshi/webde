@@ -219,8 +219,18 @@ var DesktopModel = Model.extend({
     // this.save();
     for(var key in this._c) {
       this._c[key].release();
+      this.remove(this._c[key]);
     }
     // this._desktopWatch.close();
+    var ws = _global.get('ws');
+    /* if(ws.isLocal()) { */
+      // ws.send({
+        // Action: 'notify',
+        // Event: 'shutdown',
+        // Data: 'shutdown'
+      // });
+    /* } */
+    ws.close();
   },
 
   // Put codes needed run before starting in this function
@@ -230,6 +240,17 @@ var DesktopModel = Model.extend({
     console.log('pre start');
     // TODO: move to Global
     this._view = DesktopView.create(this);
+    // register to server
+    var ws = _global.get('ws');
+    ws.send({ 
+      Action: 'on',
+      Event: 'shutdown'
+    }).on('shutdown', function(msg) {
+      if(!ws.isLocal() && msg == 'shutdown') {
+        alert('远程系统已关闭，该页面将关闭');
+        window.close();
+      }
+    }); 
     // get user config data, create all components(Launcher, Layout, Dock, DeviceList)
     this.add(FlipperModel.create('layout', this, LayoutManager));
     this.add(DeviceListModel.create(this));
@@ -818,7 +839,7 @@ var InsideAppEntryModel = EntryModel.extend({
       throw 'Bad type of startUpPera_, should be undefined or Array';
     }
     this.callSuper(id_, parent_, path_, position_);
-    this.setImgPath(iconPath_);
+    this.setImgPath(_global._appBase + '/' + iconPath_);
     this._startUpCtx = startUpContext_ || this;
     this._startUp = startUp_;
     this._startUpPera = startUpPera_ || [];
@@ -1389,6 +1410,7 @@ var LauncherModel = Model.extend({
 
   load: function() {
     var _this = this;
+    // load all installed normal App
     _global._dataOP.getAllDesktopFile(function(err_, files_) {
       if(err_) return console.log(err_);
       for(var key in files_) {
@@ -1403,6 +1425,20 @@ var LauncherModel = Model.extend({
         }
       }
     });
+    // load all register HTML5 App
+    _global._app.getRegisteredApp(function(err_, list_) {
+      if(err_) return console.log(err_);
+      for(var i = 0; i < list_.length; ++i) {
+        try {
+          _this.get(list_[i]);
+        } catch(e) {
+          _global._app.getRegisteredAppInfo(function(err_, info_) {
+            if(err_) return console.log(err_);
+            _this.createAModel(info_, 'inside-app');
+          }, list_[i]);
+        }
+      }
+    })
   },
 
   get: function(id_) {
@@ -1466,7 +1502,15 @@ var LauncherModel = Model.extend({
   },
 
   startUp: function(id_) {
-    this.emit('start-up', null, this.getCOMById(id_));
+    // this.emit('start-up', null, this.getCOMById(id_));
+    _global._app.getRegisteredAppInfo(function(err_, info_) {
+      if(err_) return console.log(err_);
+      _global._app.startApp/* ByID */(function(obj) {
+        if(obj) {
+          // TODO: add this window to window manager
+        }
+      }, info_, null);
+    }, id_);
   }
 });
 
