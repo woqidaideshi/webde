@@ -65,24 +65,24 @@ var DesktopView = View.extend({
         _this = this;
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
-       // TODO: comment for temporary
+      // TODO: comment for temporary
       /* {text: 'create Dir', icon: 'icon-folder-1', action: function(e) { */
-      // e.preventDefault();
-      // var layout = desktop.getCOMById('layout').getCurLayout();
-      // for (var i = 0; ; i++) {
-      // [> if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { <]
-      // // continue;
-      // // } else {
-      // // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
-      // // return;
-      // [> } <]
-      // // replace with logistic directory
-      // if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
-      // var d = new Date();
-      // _this._c['layout'].getCurView()._controller.onAddFolder('/desktop/New Folder ' + i
-      // , 'folder' + d.getTime());
-      // break;
-      // }
+        // e.preventDefault();
+        // var layout = desktop.getCOMById('layout').getCurLayout();
+        // for (var i = 0; ; i++) {
+            // [> if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { <]
+              // // continue;
+            // // } else {
+                // // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
+                // // return;
+              // [> } <]
+              // // replace with logistic directory
+              // if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
+              // var d = new Date();
+              // _this._c['layout'].getCurView()._controller.onAddFolder('/desktop/New Folder ' + i
+                // , 'folder' + d.getTime());
+              // break;
+          // }
       /* }}, */
       {text: 'create Text', icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
