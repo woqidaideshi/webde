@@ -1782,7 +1782,7 @@ var DeviceListView = View.extend({
             }
           }
         } else {
-          curEditBox._imWindow.focus();
+          _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
           curEditBox.showRec(toAccountInfo_, curEditBox);
         }
       }
@@ -1945,7 +1945,7 @@ var AccountEntryView = View.extend({
           curEditBox=curEditBoxTmp;
         });
       }else{
-        curEditBox._imWindow.focus();
+        _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
       }
       _this._controller.onDrop(e, _this._parent._parent._c['layout']._selector.getSelectedItems(),function(filePaths){
         for (var i = 0; i < filePaths.length; ++i) {
@@ -1959,7 +1959,7 @@ var AccountEntryView = View.extend({
         _this._controller.onDblclick(function(curEditBox){
         });
       }else{
-        curEditBox._imWindow.focus();
+        _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
       }
     });
   },
@@ -2059,7 +2059,7 @@ var DevEntryView = View.extend({
           curEditBox = curEditBoxTmp;
         });
       }else{
-        curEditBox._imWindow.focus();
+        _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
       }
       _this._controller.onDrop(e, _this._parent._parent._parent._c['layout']._selector.getSelectedItems(), function(filePaths) {
         for (var i = 0; i < filePaths.length; ++i) {
@@ -2072,7 +2072,7 @@ var DevEntryView = View.extend({
       if (curEditBox === undefined) {
         _this._controller.onDblclick(function(curEditBox) {});
       }else{
-        curEditBox._imWindow.focus();
+        _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
       }
     });
   },
@@ -3402,6 +3402,7 @@ var UEditBox = Class.extend({
                 </div>\
             </div>');
     this._imWindow.append(this.$view);
+    _global._openingWindows.focusOnAWindow(_this._imWindow._id);
     _this.$view.on('dragenter', function(e) {
       e.stopPropagation();
       e.preventDefault();
@@ -3417,24 +3418,6 @@ var UEditBox = Class.extend({
       e.stopPropagation();
       e.preventDefault();
     });
-    /*$('#myEditor_'+_this._toIdentity).on('dragleave', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }).on('dragover', function(ev) {
-      ev.stopPropagation();
-      ev.preventDefault();
-      ev.originalEvent.dataTransfer.dropEffect = 'copy';
-    }).on('drop', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      Messenger().post('who knows');
-    //  _this._controller.onDrop(e
-   //     , _this._parent._parent._parent._c['layout']._selector.getSelectedItems());
-    }).on('dragleave', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-    });*/
-    //$('#editor_'+this._toIdentity).unbind('dragover');
     var toAccInfo;
     /*    for (var i = 0; i < toAccountInfo_.toAccList.length; i++) {
       toAccInfo = toAccountInfo_.toAccList[i];
@@ -3473,7 +3456,7 @@ var UEditBox = Class.extend({
             devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_, _this._selector);
             imChatWinList_['imChatWin_' + toAccInfo.toAccount + toAccInfo.toUID] = devEditBoxItem;
           } else {
-            devEditBoxItem._imWindow.focus();
+            _global._openingWindows.focusOnAWindow(devEditBoxItem._imWindow._id);
           }
         }
       };
@@ -3508,6 +3491,25 @@ var UEditBox = Class.extend({
       elementPathEnabled: false,
       tableDragable: false
       //autoClearEmptyNode : false
+    });
+    $('.edui-editor-iframeholder edui-default').unbind();
+    $(document).off('drop', '.edui-editor-iframeholder edui-default');
+    $('.edui-editor-iframeholder').on('dragleave', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }).on('dragover', function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      ev.originalEvent.dataTransfer.dropEffect = 'copy';
+    }).on('drop', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      Messenger().post('who knows');
+    //  _this._controller.onDrop(e
+   //     , _this._parent._parent._parent._c['layout']._selector.getSelectedItems());
+    }).on('dragleave', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
     });
     $('#close_button_' + _this._toIdentity).on('click', function() {
       _this.closeBtnFunc(_this, imChatWinList_);
