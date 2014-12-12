@@ -3347,7 +3347,7 @@ var UEditBox = Class.extend({
     this._fileTransList = {};
     this._toIdentity = toAccountInfo_.toAccount + toAccountInfo_.toUID;
     this._title = toAccountInfo_.toAccount;
-    this._onLineCount=0;
+    this._onLineCount = 0;
     if (toAccountInfo_.toUID.length !== 0) {
       this._title += '--' + toAccountInfo_.toUID;
     }
@@ -3458,34 +3458,35 @@ var UEditBox = Class.extend({
                             </li>');
     }*/
     var deviceItems = [];
-    var i=0;
+    var i = 0;
     for (var toAccListKey in toAccountInfo_.toAccList) {
       toAccInfo = toAccountInfo_.toAccList[toAccListKey];
-      _this._onLineCount+=toAccInfo.onLineFlag;
+      _this._onLineCount += toAccInfo.onLineFlag;
       deviceItems[i] = {
         id: 'memItem_' + toAccInfo.toAccount + toAccInfo.toUID,
         type: "item",
         img: "img/device.png",
         text: toAccInfo.toAccount + '<br/>' + toAccInfo.toUID,
         clkaction: function() {
-          var devEditBoxItem = imChatWinList_['imChatWin_' + toAccInfo.toAccount+toAccInfo.toUID];
-          if(devEditBoxItem===undefined){
+          var devEditBoxItem = imChatWinList_['imChatWin_' + toAccInfo.toAccount + toAccInfo.toUID];
+          if (devEditBoxItem === undefined) {
             var toAccountInfoItem = {};
             toAccountInfoItem['toAccount'] = toAccInfo.toAccount;
             toAccountInfoItem['toIP'] = toAccInfo.toIP;
             toAccountInfoItem['toUID'] = toAccInfo.toUID;
-            var toAccounts = [];
-            var toAccListItem={};
+            var toAccounts = {};
+            var toAccListItem = {};
             toAccListItem['toAccount'] = toAccInfo.toAccount;
             toAccListItem['toIP'] = toAccInfo.toIP;
             toAccListItem['toUID'] = toAccInfo.toUID;
-            toAccounts[0] = toAccListItem;
+            toAccListItem['onLineFlag'] = toAccInfo.onLineFlag;
+            toAccounts[toAccInfo.toAccount + toAccInfo.toUID] = toAccListItem;
             toAccountInfoItem['toAccList'] = toAccounts;
-            devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_,_this._selector); 
-            imChatWinList_['imChatWin_' + toAccInfo.toAccount+toAccInfo.toUID] = devEditBoxItem;
-          } else{
+            devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_, _this._selector);
+            imChatWinList_['imChatWin_' + toAccInfo.toAccount + toAccInfo.toUID] = devEditBoxItem;
+          } else {
             devEditBoxItem._imWindow.focus();
-          }    
+          }
         }
       };
       i++;
@@ -3533,24 +3534,28 @@ var UEditBox = Class.extend({
         document.getElementById("file_" + _this._toIdentity).dispatchEvent(a);
       }
       $('#file_' + _this._toIdentity).on('change', function() {
-        if(_this._onLineCount===0){
-          Messenger().post('当前没有设备在线，您将不能发送文件！');
-          return;
-        }
         var fileUp = $('#file_' + _this._toIdentity);
         fileUp.after(fileUp.clone().val(''));
         fileUp.remove();
         var val = fileUp.val();
         if (val !== '' && val !== undefined && val !== null) {
+          if (_this._onLineCount === 0) {
+            Messenger().post('当前没有设备在线，您将不能发送文件！');
+            return;
+          }
+          if(Object.keys(_this._toAccountInfo.toAccList).length>1){
+            Messenger().post('请先选择对方的设备，再发送文件！');
+            return;
+          }
           _this.fileUpload(_this, val);
         }
       });
     });
     $('#send_button_' + _this._toIdentity).on('click', function() {
-      if(_this._onLineCount===0){
-          Messenger().post('当前没有设备在线，您将不能发送信息！');
-          return;
-        }
+      if (_this._onLineCount === 0) {
+        Messenger().post('当前没有设备在线，您将不能发送信息！');
+        return;
+      }
       if (_this._um.hasContents()) {
         var msg = _this._um.getContent();
         console.log('--------send_button_----------' + msg)
@@ -3569,12 +3574,13 @@ var UEditBox = Class.extend({
         sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
         //_global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
         var sendMsg = {};
-        sendMsg['IP'] = toAccountInfo_.toIP;
-        sendMsg['UID'] = toAccountInfo_.toUID;
+        //sendMsg['IP'] = toAccountInfo_.toIP;
+        //sendMsg['UID'] = toAccountInfo_.toUID;
+        sendMsg['toAccList'] = toAccountInfo_.toAccList;
         sendMsg['Account'] = toAccountInfo_.toAccount;
         sendMsg['Msg'] = msg;
         sendMsg['App'] = 'imChat';
-        _global._imV.SendAppMsg(function(mmm) {
+        _global._imV.SendAppMsgByAccount(function(mmm) {
           sendIMMsgCb();
         }, sendMsg);
       } else {
@@ -3992,8 +3998,8 @@ var UEditBox = Class.extend({
 
   deviceUpFunc: function(curEditBox_, info_) {
     var memItemId = info_['txt'][1] + info_['txt'][2];
-    curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag=1;
-    curEditBox_._onLineCount+=1;
+    curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag = 1;
+    curEditBox_._onLineCount += 1;
     var deviceItem = {
       id: 'memItem_' + memItemId,
       type: "item",
@@ -4007,12 +4013,20 @@ var UEditBox = Class.extend({
 
   deviceDownFunc: function(curEditBox_, info_) {
     var memItemId = info_['txt'][1] + info_['txt'][2];
-    curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag=0;
-    curEditBox_._onLineCount-=1;
+    curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag = 0;
+    curEditBox_._onLineCount -= 1;
     curEditBox_._memListView.remove('memItem_' + memItemId);
   },
 
   onDropFile: function(curEditBox_, ev_, tArr_) {
+    if (curEditBox_._onLineCount === 0) {
+      Messenger().post('当前没有设备在线，您将不能发送文件！');
+      return;
+    }
+    if(Object.keys(curEditBox_._toAccountInfo.toAccList).length>1){
+      Messenger().post('请先选择对方的设备，再发送文件！');
+      return;
+    }
     var filePaths = [];
     var dataTransfer = ev_.originalEvent.dataTransfer;
     if (dataTransfer.files.length != 0) {
