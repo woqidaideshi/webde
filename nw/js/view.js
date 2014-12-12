@@ -817,15 +817,21 @@ var GridView = WidgetView.extend({
     var _items = ev.dataTransfer.items;
     if (_items.length != 0 && typeof s_widget == 'undefined') {
       _items[0].getAsString(function(data) {
-        // using demo-ris's API to create this file
-        var _this = this,
-            iconv = require('iconv-lite'),
-            buf = iconv.encode(data,'ucs2'),
-            str = iconv.decode(buf,'ucs2');
-        _global._dataOP.createFileOnDesk(function(err_, ret_) {
-          if(err_) return console.log(err_);
-          _this._controller.onAddFile(ret[0], ret[1]);
-        });
+        if(data.match(/^http:\/\/.*/) != null) {
+          _global._app.generateAppByURL(function(err_) {
+            if(err_) return console.log(err_);
+          }, data);
+        } else {
+          // using demo-ris's API to create this file
+          var _this = this,
+              iconv = require('iconv-lite'),
+              buf = iconv.encode(data,'ucs2'),
+              str = iconv.decode(buf,'ucs2');
+          _global._dataOP.createFileOnDesk(function(err_, ret_) {
+            if(err_) return console.log(err_);
+            _this._controller.onAddFile(ret[0], ret[1]);
+          });
+        }
         /* for (var i = 0; ; i++) { */
           // if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
             // continue;
