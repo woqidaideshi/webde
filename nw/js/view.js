@@ -23,7 +23,7 @@ var DesktopView = View.extend({
         var id = component_.getID();
         switch(id) {
           case 'launcher':
-            // TODO: create a launcher view(split create and init into two functions, and
+            // create a launcher view(split create and init into two functions, and
             //  here just create a view object)
             _this._c[id] = LauncherView.create(component_, _this);
             _this._c[id].show(_this.$view);
@@ -48,7 +48,6 @@ var DesktopView = View.extend({
       'remove': function(err_, component_) {
       },
       'layout': function(err_, viewType_, layoutModel_) {
-        // TODO: 
         //  reset desktop layout
         if(_this._c['layout'].getCurView() != -1) {
         }
@@ -70,12 +69,6 @@ var DesktopView = View.extend({
         // e.preventDefault();
         // var layout = desktop.getCOMById('layout').getCurLayout();
         // for (var i = 0; ; i++) {
-          // [> if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir() + '/newDir' + i)) { <]
-            // // continue;
-          // // } else {
-            // // _global._fs.mkdir(desktop._desktopWatch.getBaseDir() + '/newDir' + i, function() {});
-            // // return;
-          // [> } <]
           // // replace with logistic directory
           // if(layout.getWidgetByAttr('_name', 'New Folder ' + i) != null) continue;
           // var d = new Date();
@@ -818,9 +811,12 @@ var GridView = WidgetView.extend({
     if (_items.length != 0 && typeof s_widget == 'undefined') {
       _items[0].getAsString(function(data) {
         if(data.match(/^http:\/\/.*/) != null) {
-          _global._app.generateAppByURL(function(err_) {
+          _global._app.generateAppByURL(function(err_, appID_) {
             if(err_) return console.log(err_);
-          }, data);
+          }, data, {
+            desktop: true,
+            pos: {x: _target_col, y: _target_row}
+          });
         } else {
           // using demo-ris's API to create this file
           var _this = this,
@@ -832,20 +828,6 @@ var GridView = WidgetView.extend({
             _this._controller.onAddFile(ret[0], ret[1]);
           });
         }
-        /* for (var i = 0; ; i++) { */
-          // if(_global._fs.existsSync(desktop._desktopWatch.getBaseDir()+'/newFile'+i+'.txt')) {
-            // continue;
-          // } else {
-            // var iconv = require('iconv-lite');
-            // var buf = iconv.encode(data,'ucs2');
-            // var str = iconv.decode(buf,'ucs2');
-            // _global._fs.writeFile(desktop._desktopWatch.getBaseDir() + '/newFile' + i + '.txt'
-              // , str, {encoding:'utf8'}, function(err) {
-                // if (err) throw err;
-              // });
-            // return ;
-          // }
-        /* }; */
       });
     };
 
