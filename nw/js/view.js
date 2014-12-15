@@ -818,15 +818,16 @@ var GridView = WidgetView.extend({
             pos: {x: _target_col, y: _target_row}
           });
         } else {
-          // using demo-ris's API to create this file
-          var _this = this,
+          alert('目前不支持https协议的网址，尽情期待..');
+          // TODO: using demo-ris's API to create this file
+          /*var _this = this,
               iconv = require('iconv-lite'),
               buf = iconv.encode(data,'ucs2'),
               str = iconv.decode(buf,'ucs2');
           _global._dataOP.createFileOnDesk(function(err_, ret_) {
             if(err_) return console.log(err_);
             _this._controller.onAddFile(ret[0], ret[1]);
-          });
+          });*/
         }
       });
     };
