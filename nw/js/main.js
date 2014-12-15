@@ -15,7 +15,7 @@ $(document).ready(function() {
     }, {
       'name': 'ws',
       'class': RemoteObserver,
-      'serialize': true,
+      'serialize': false,
     }, {
       'name': 'desktop',
       'class': DesktopModel,

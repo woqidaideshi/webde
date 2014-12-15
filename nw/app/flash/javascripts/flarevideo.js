@@ -91,7 +91,9 @@ var FlareVideo = function(parent, options){
   
   this.ready($.proxy(function(){
     this.setupEvents();
-    this.setupControls();
+    if (!this.options.controls) {
+      this.setupControls();
+    }
     this.change("initial");
     this.load();
     
@@ -689,7 +691,9 @@ FlareVideo.fn.setupEvents = function(){
   
   this.oncanplay($.proxy(function(){
     this.canPlay = true;
-    this.controls.removeClass("disabled");
+    if (!this.options.controls) {
+      this.controls.removeClass("disabled");
+    }
   }, this));
   
   if (this.options.keyShortcut);

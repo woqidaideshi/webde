@@ -219,8 +219,18 @@ var DesktopModel = Model.extend({
     // this.save();
     for(var key in this._c) {
       this._c[key].release();
+      this.remove(this._c[key]);
     }
     // this._desktopWatch.close();
+    var ws = _global.get('ws');
+    /* if(ws.isLocal()) { */
+      // ws.send({
+        // Action: 'notify',
+        // Event: 'shutdown',
+        // Data: 'shutdown'
+      // });
+    /* } */
+    ws.close();
   },
 
   // Put codes needed run before starting in this function
@@ -230,6 +240,17 @@ var DesktopModel = Model.extend({
     console.log('pre start');
     // TODO: move to Global
     this._view = DesktopView.create(this);
+    // register to server
+    var ws = _global.get('ws');
+    ws.send({ 
+      Action: 'on',
+      Event: 'shutdown'
+    }).on('shutdown', function(msg) {
+      if(!ws.isLocal() && msg == 'shutdown') {
+        alert('远程系统已关闭，该页面将关闭');
+        window.close();
+      }
+    }); 
     // get user config data, create all components(Launcher, Layout, Dock, DeviceList)
     this.add(FlipperModel.create('layout', this, LayoutManager));
     this.add(DeviceListModel.create(this));
@@ -481,8 +502,8 @@ var DockModel = Model.extend({
       }
       this.add(model);
     }
-    /* _global.get('utilIns').entryUtil.loadEntrys(lastSave, this._dockWatch.getBaseDir() */
-      /* , this._dockWatch, this); */
+    
+    // TODO: watch on app's unregister event
   },
 
   save: function() {
@@ -520,6 +541,7 @@ var DockModel = Model.extend({
     for(var key in this._c) {
       this.remove(this._c[key]);
     }
+    // TODO: unwatch on app's unregister event
   },
 
   // TODO: remove these code when not needed
@@ -818,7 +840,7 @@ var InsideAppEntryModel = EntryModel.extend({
       throw 'Bad type of startUpPera_, should be undefined or Array';
     }
     this.callSuper(id_, parent_, path_, position_);
-    this.setImgPath(iconPath_);
+    this.setImgPath(_global._appBase + '/' + iconPath_);
     this._startUpCtx = startUpContext_ || this;
     this._startUp = startUp_;
     this._startUpPera = startUpPera_ || [];
@@ -1388,7 +1410,9 @@ var LauncherModel = Model.extend({
   },
 
   load: function() {
-    var _this = this;
+    var _this = this,
+        ws = _global.get('ws');
+    // load all installed normal App
     _global._dataOP.getAllDesktopFile(function(err_, files_) {
       if(err_) return console.log(err_);
       for(var key in files_) {
@@ -1403,6 +1427,51 @@ var LauncherModel = Model.extend({
         }
       }
     });
+    // load all register HTML5 App
+    _global._app.getRegisteredApp(function(err_, list_) {
+      if(err_) return console.log(err_);
+      for(var i = 0; i < list_.length; ++i) {
+        try {
+          _this.get(list_[i]);
+        } catch(e) {
+          _global._app.getRegisteredAppInfo(function(err_, info_) {
+            if(err_) return console.log(err_);
+            _this.createAModel(info_, 'inside-app');
+          }, list_[i]);
+        }
+      }
+    });
+    // register a listener for app
+    _this.__appListener = function(data_) {
+      if(typeof data_ !== 'object') return console.log(data_);
+      // add or remove a new app in launcher
+      if(data_.event == 'register') {
+        _global._app.getRegisteredAppInfo(function(err_, info_) {
+          if(err_) return console.log(err_);
+          var model = _this.createAModel(info_, 'inside-app');
+          if(data_.option.desktop) {
+            model.setPosition(data_.option.pos);
+            model.linkToDesktop();
+          }
+          if(data_.option.dock) model.linkToDock();
+        }, data_.appID);
+      } else if(data_.event == 'unregister') {
+        var model = _this._c[data_.appID],
+            layout = _this._parent.getCOMById('layout').getLayouts(),
+            dock = _this._parent.getCOMById('dock');
+        for(var key in layout) {
+          layout[key].remove(model);
+        }
+        dock.remove(model);
+        _this.remove(model);
+      }
+    };
+    _global._app.addListener(function(err_) {
+      if(err_) console.log('add listener for app:', err_);
+    }, _this.__appListener, ws.getConnection());
+    if(!ws.isLocal()) {
+      ws.on('app', _this.__appListener);
+    }
   },
 
   get: function(id_) {
@@ -1422,9 +1491,15 @@ var LauncherModel = Model.extend({
   },
 
   release: function() {
-    // TODO: release all child conponts
+    // release all child conponts
     for(var key in this._c) {
       this.remove(this._c[key]);
+    }
+    _global._app.removeListener(function(err_) {
+      if(err_) console.log('remove listener for app:', err_);
+    }, _this.__appListener, ws.getConnection());
+    if(!ws.isLocal()) {
+      ws.off('app', _this.__appListener);
     }
   },
 
@@ -1466,7 +1541,15 @@ var LauncherModel = Model.extend({
   },
 
   startUp: function(id_) {
-    this.emit('start-up', null, this.getCOMById(id_));
+    // this.emit('start-up', null, this.getCOMById(id_));
+    _global._app.getRegisteredAppInfo(function(err_, info_) {
+      if(err_) return console.log(err_);
+      _global._app.startApp/* ByID */(function(obj) {
+        if(obj) {
+          // TODO: add this window to window manager
+        }
+      }, info_, null);
+    }, id_);
   }
 });
 
@@ -1931,8 +2014,8 @@ var WidgetManager = Model.extend({
       }
       this.add(model);
     }
-    /* _global.get('utilIns').entryUtil.loadEntrys(_lastSave, desktop._desktopWatch.getBaseDir()    */
-        /* , desktop._desktopWatch, this._parent);    */
+    
+    // TODO: watch on app's unregister event
   },
 
   save: function(conf_) {
@@ -1976,6 +2059,8 @@ var WidgetManager = Model.extend({
     conf_.plugin = plugin;
     conf_.dentry = dentry;
   }
+    
+  // TODO: unwatch on app's unregister event
 });
 
 var GridModel = LayoutModel.extend({
@@ -2301,7 +2386,9 @@ var FlipperModel = LayoutModel.extend({
     this._cur = cur_;
   },
 
-  getNum: function() {return this._wm._c;},
+  getNum: function() {return this._wm._c.length;},
+
+  getLayouts: function() {return this._wm._c;},
 
   getCurLayout: function() {
     return this._wm._c[this._cur];

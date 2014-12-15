@@ -1,11 +1,12 @@
 {
   "name": "demo-webde",
+  "name[zh_CN]": "桌面管理器",
   "main": "index.html",
   "version": "0.0.1",
   "nodejs": true,
   "window": {
     "title": "test",
-    "toolbar": false,
+    "toolbar": true,
     "show_in_taskbar": false,
     "as_desktop": true,
     "frame": true
