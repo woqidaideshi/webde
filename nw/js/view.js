@@ -3373,11 +3373,12 @@ var UEditBox = Class.extend({
       });
     });
     this.$view = $('<div class="imChat">').html('<div class="imLeftDiv">\
-    <div class ="upLoadFile" ><input type="file" id="file_' + _this._toIdentity + '" style="display:none"/>\
-    <input type="image"  src="img/uploadFile.png" width=25px  height=25px id="file_button_' + _this._toIdentity + '" /></div>\
+    <div class ="upLoadFile" >\
+    <input type="file" id="file_' + _this._toIdentity + '" style="display:none"/>\
+    <img id="file_button_' + _this._toIdentity + '"  src="img/uploadFile.png"  width=25px  height=25px title="发送文件" />\
+    </div>\
     <div  id="disp_text_' + _this._toIdentity + '" class="imChat_dataDiv"></div>\
     <div class="imChat_ueditorDiv" id="myEditor_' + _this._toIdentity + '" ></div>\
-    <div  id="inputErrTip_' + _this._toIdentity + '" ></div>\
     <div class="imChat_btnDiv"> \
     <button type="button" class="imCloseBtn" id="close_button_' + _this._toIdentity + '">关闭</button> \
     <button type="button" class="imSendBtn" id="send_button_' + _this._toIdentity + '">发送</button></div></div>\
@@ -3492,9 +3493,23 @@ var UEditBox = Class.extend({
       tableDragable: false
       //autoClearEmptyNode : false
     });
-    $('.edui-editor-iframeholder edui-default').unbind();
+    /* UE.dom.on(_this._ue.body, 'dragover', function (e) {
+                            e.preventDefault();
+                            Messenger().post('dnhczxczxczxczxczsadhask');
+                      
+                    });
+    var iframeBody = $('myEditor_' + _this._toIdentity).find('iframe').find('body');
+   iframeBody.append('test');
+    iframeBody.unbind();
+    $('.edui-editor-iframeholder edui-default').unbind('drop');
     $(document).off('drop', '.edui-editor-iframeholder edui-default');
-    $('.edui-editor-iframeholder').on('dragleave', function(e) {
+    iframeBody.bind('drop',function(){
+      Messenger().post('dnhsadhask');
+    });
+    iframeBody.bind('click',function(){
+      Messenger().post('dnhsadhask');
+    });
+    iframeBody.on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
     }).on('dragover', function(ev) {
@@ -3510,7 +3525,7 @@ var UEditBox = Class.extend({
     }).on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
-    });
+    });*/
     $('#close_button_' + _this._toIdentity).on('click', function() {
       _this.closeBtnFunc(_this, imChatWinList_);
     });
@@ -3548,8 +3563,6 @@ var UEditBox = Class.extend({
       }
       if (_this._um.hasContents()) {
         var msg = _this._um.getContent();
-        console.log('--------send_button_----------' + msg)
-
         function sendIMMsgCb() {
           $('#disp_text_' + _this._toIdentity).append('<span class="accountFont"> ' + _this._localAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
           $('#disp_text_' + _this._toIdentity).scrollTop($('#disp_text_' + _this._toIdentity).height());
@@ -3623,7 +3636,7 @@ var UEditBox = Class.extend({
               $('#fileTransShow_' + toIdentity).show();
               $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
                   <a href="javascript:;">\
-                  <img src="img/uploadFile.png"/></a><a href="javascript:;" class="chatList_name">' + msg_.fileName + '<br/>大小：' + msg_.fileSize + '</a><br/>\
+                  <img src="img/uploadFile.png"/></a><span title="'+msg_.fileName+'" class="chatList_name">' + msg_.fileName.substr(0,12) + '...<br/>大小：' + msg_.fileSize + '</span><br/>\
                   <button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
                   <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button>\
                   </li>');
@@ -3647,8 +3660,7 @@ var UEditBox = Class.extend({
           if (curEditBox_._fileTransList[msg_.key] === undefined) {
             return;
           }
-          if (msg_.state === '0') { //不可以传输了------------界面显示  
-            console.log('sender transfer file cancelled');
+          if (msg_.state === '0') { //不可以传输了------------界面显示 
             curEditBox_.fileItemTransRemove(curEditBox_, msg._key);
             var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
             var msgtime = new Date();
@@ -3666,8 +3678,7 @@ var UEditBox = Class.extend({
         }
         break;
       case 0x0003:
-        { //收到发送端取消传输文件的请求   
-          console.log('transferCancel ' + JSON.stringify(msg_));
+        { //收到发送端取消传输文件的请求 
           if (curEditBox_._fileTransList[msg_.key] === undefined) {
             return;
           }
@@ -3712,10 +3723,13 @@ var UEditBox = Class.extend({
           $('#memList_' + toIdentity).hide();
           $('#fileTransShow_' + toIdentity).show();
           $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + fileMsg.key + '">\
-                    <a href="javascript:;">\
-                    <img src="img/uploadFile.png"/></a><a href="javascript:;" class="chatList_name">' + fileMsg.fileName + '<br/>大小：' + fileMsg.fileSize + '</a><br/>\
-                    <span id="fileRatio_' + fileMsg.key + '"><span><br/><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button>\
+                    <img src="img/uploadFile.png"/><span  title="'+fileMsg.fileName+'" class="chatList_name">' + fileMsg.fileName.substr(0,12) + '...<br/>大小：' + fileMsg.fileSize + '</span><br/>\
+                    <span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_'+fileMsg.key+'"></div>\
+                    <button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button>\
                     </li>');
+          $('#fileRatio_' + fileMsg.key).text('0%');
+          var _gauge = Gauge.create();
+          _gauge.add($("#fileGaugeDiv_"+fileMsg.key), {width:170, height:1,name: 'fileGauge_'+fileMsg.key, limit: true, gradient: true, scale: 10, colors:['#ff0000','#00ff00'], values:[0,1]});
           $('#cancelFileItem_' + fileMsg.key).on('click', function() {
             _global._imV.transferCancelSender(function(rst) {
               curEditBox_.fileItemTransRemove(curEditBox_, fileMsg.key);
@@ -3766,7 +3780,8 @@ var UEditBox = Class.extend({
             $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
           }, sendMsg_);
         } else {
-          _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
+          _global._imV.SendAppMsg(function(mmm) {
+          }, sendMsg_);
         }
       }, msg_, curEditBox_._fileTransList[msg_.key].path);
     } else {
@@ -3781,7 +3796,6 @@ var UEditBox = Class.extend({
 
   recieverFileTransBegin: function(curEditBox_, msg_, sendMsg_, flag_) {
     var toIdentity = curEditBox_._toIdentity;
-    console.log('sender transfer go on');
     _global._imV.transferFileProcess(function(err, rst) { //传输文件
       if (curEditBox_._fileTransList[msg_.key] === undefined || (curEditBox_._fileTransList[msg_.key] !== undefined && curEditBox_._fileTransList[msg_.key].flag !== 1)) {
         return;
@@ -3798,19 +3812,14 @@ var UEditBox = Class.extend({
         if (rst.option === 0x0002) {
           sendMsg_['Msg'] = JSON.stringify(rst);
           if (msg_.state === 1) {
-            console.log('transferProcessing--okkkkkkkkk------' + msg_.key + ' ' + ' ' + msg_.ratio);
             $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
+            var _gauge = Gauge.create();
+            _gauge.modify($('#fileGauge_'+msg_.key)[0],{values: [msg_.ratio.toFixed(4),1]});
           } else {
             var ratioLabel;
+            var filePath = curEditBox_._fileTransList[msg_.key].path;
             if (msg_.ratio === 1) {
               ratioLable = '您已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
-              _global._dataOP.loadFile(function(err, result) {
-                if (err) {
-                  Messenger().post('err' + result);
-                } else {
-                  Messenger().post('done' + result);
-                }
-              }, curEditBox_._fileTransList[msg_.key].path);
             } else {
               if (msg_.state === 0) {
                 ratioLable = '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
@@ -3818,8 +3827,15 @@ var UEditBox = Class.extend({
                 ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
               }
             }
+            _global._dataOP.loadFile(function(err, result) {
+              if (err) {
+                //Messenger().post('err' + result);
+              } else {
+                _global._imV.deleteTmpFile(function(err,deleteRst){
+                },filePath);
+              }
+            }, filePath);
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
-            console.log('_fileTransList================' + Object.keys(curEditBox_._fileTransList).length);
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
             $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
@@ -3828,20 +3844,19 @@ var UEditBox = Class.extend({
           _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
         }
       }
-
     }, msg_);
   },
 
   showFileItemRatio: function(curEditBox_, msg_) {
     var toIdentity = curEditBox_._toIdentity;
-    console.log('ininitransferFileProcessing ' + JSON.stringify(msg_));
     if (curEditBox_._fileTransList[msg_.key] === undefined || (curEditBox_._fileTransList[msg_.key] !== undefined && curEditBox_._fileTransList[msg_.key].flag !== 2)) {
       return;
     }
     _global._imV.transferProcessing(function() {
       if (msg_.state === 1) {
-        console.log('transferProcessing--okkkkkkkkk------' + msg_.key + ' ' + ' ' + msg_.ratio);
         $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
+        var _gauge = Gauge.create();
+        _gauge.modify($('#fileGauge_'+msg_.key)[0],{values: [msg_.ratio.toFixed(4),1]});
       } else {
         var ratioLabel;
         if (msg_.ratio === 1) {
@@ -3854,7 +3869,6 @@ var UEditBox = Class.extend({
           }
         }
         curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
-        console.log('_fileTransList================' + Object.keys(curEditBox_._fileTransList).length);
         var msgtime = new Date();
         var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
         $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
@@ -3864,12 +3878,10 @@ var UEditBox = Class.extend({
   },
 
   refuseFileItemTransfer: function(msg_, sendMsg_) {
-    console.log('==============refuseFileItemTransfer');
     var toIdentity = sendMsg_.Account + sendMsg_.UID;
     msg_['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
     sendMsg_['Msg'] = JSON.stringify(msg_);
     _global._imV.SendAppMsg(function(mmm) {
-      console.log('==++++++++++++++++++=======refuseFileItemTransfer');
       var ratioLable = '您拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
       var msgtime = new Date();
       var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
@@ -3888,21 +3900,24 @@ var UEditBox = Class.extend({
     };
     if (flag_) {
       $('#fileTransItem_' + msg_.key).remove();
+      msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
+      sendMsg_['Msg'] = JSON.stringify(msg_);
+      _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
     } else {
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
     }
     $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
-                <a href="javascript:;">\
-                <img src="img/uploadFile.png"/></a><a href="javascript:;" class="chatList_name">' + msg_.fileName + '<br/>大小：' + msg_.fileSize + '</a><br/>\
-                <span id="fileRatio_' + msg_.key + '"></span><br/><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button>\
+                <img src="img/uploadFile.png"/><span title="'+msg_.fileName+'" class="chatList_name">' + msg_.fileName.substr(0,12) + '...<br/>大小：' + msg_.fileSize + '</span><br/>\
+                <span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_'+msg_.key+'"></div>\
+                <button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button>\
                 </li>');
     $('#cancelFileItem_' + msg_.key).on('click', function() {
       _global._imV.transferCancelReciever(function() {}, msg_.key);
     });
-    msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-    sendMsg_['Msg'] = JSON.stringify(msg_);
-    _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
+    $('#fileRatio_' + msg_.key).text('0%');
+    var _gauge = Gauge.create();
+    _gauge.add($("#fileGaugeDiv_"+msg_.key), {width:170, height:1,name: 'fileGauge_'+msg_.key, limit: true, gradient: true, scale: 10, colors:['#ff0000','#00ff00'], values:[0,1]});
   },
 
   fileItemTransRemove: function(curEditBox_, key_) {
