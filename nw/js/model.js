@@ -1448,10 +1448,22 @@ var LauncherModel = Model.extend({
       if(data_.event == 'register') {
         _global._app.getRegisteredAppInfo(function(err_, info_) {
           if(err_) return console.log(err_);
-          _this.createAModel(info_, 'inside-app');
+          var model = _this.createAModel(info_, 'inside-app');
+          if(data_.option.desktop) {
+            model.setPosition(data_.option.pos);
+            model.linkToDesktop();
+          }
+          if(data_.option.dock) model.linkToDock();
         }, data_.appID);
       } else if(data_.event == 'unregister') {
-        _this.remove(_this._c[data_.appID]);
+        var model = _this._c[data_.appID],
+            layout = _this._parent.getCOMById('layout').getLayouts(),
+            dock = _this._parent.getCOMById('dock');
+        for(var key in layout) {
+          layout[key].remove(model);
+        }
+        dock.remove(model);
+        _this.remove(model);
       }
     };
     _global._app.addListener(function(err_) {
@@ -1479,7 +1491,7 @@ var LauncherModel = Model.extend({
   },
 
   release: function() {
-    // TODO: release all child conponts
+    // release all child conponts
     for(var key in this._c) {
       this.remove(this._c[key]);
     }
@@ -2374,7 +2386,9 @@ var FlipperModel = LayoutModel.extend({
     this._cur = cur_;
   },
 
-  getNum: function() {return this._wm._c;},
+  getNum: function() {return this._wm._c.length;},
+
+  getLayouts: function() {return this._wm._c;},
 
   getCurLayout: function() {
     return this._wm._c[this._cur];
