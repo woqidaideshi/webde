@@ -45,14 +45,14 @@ function show() {
     class: 'app-container'
   }).html(
     '<div class="content-row center">' +
-    '<div>ID</div>：<input class="right-content" type="text" name="app-id">' +
-    '</div>' +
-    '<div class="content-row center">' +
     '<div>路径</div>：<div class="right-content">' +
     '<input style="display:none" type="file" name="file-selector" nwdirectory>' +
     '<input style="width:81.1%" type="text" name="app-path">' +
     '<button class="btn active" id="choose">选择</button>' +
     '</div>' +
+    '</div>' +
+    '<div class="content-row center">' +
+    '<div>ID</div>：<input class="right-content" type="text" name="app-id">' +
     '</div>' +
     /* '<div class="content-row center">' + */
     // '路径为repo/workspace/app的相对路径(如: demo-rio/datamgr)' +
@@ -97,6 +97,8 @@ function initAction() {
   $fileSelectoer.on('change', function(v) {
     if(this.value) {
       $appPath.val(this.value);
+      $appID.val('app-' + this.value.match(/[^\/]*$/)[0].replace(/[\.:]/g, '-'));
+      onInput();
       $appPath.attr('title', this.value);
     }
   });

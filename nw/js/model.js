@@ -840,7 +840,9 @@ var InsideAppEntryModel = EntryModel.extend({
       throw 'Bad type of startUpPera_, should be undefined or Array';
     }
     this.callSuper(id_, parent_, path_, position_);
-    this.setImgPath(_global._appBase + '/' + iconPath_);
+    iconPath_ = path_ + '/' +  iconPath_;
+    if(path_.match(/^[\/]/) == null) iconPath_ = _global._appBase + '/' + iconPath_;
+    this.setImgPath(iconPath_);
     this._startUpCtx = startUpContext_ || this;
     this._startUp = startUp_;
     this._startUpPera = startUpPera_ || [];
@@ -1495,6 +1497,8 @@ var LauncherModel = Model.extend({
     for(var key in this._c) {
       this.remove(this._c[key]);
     }
+    var _this = this,
+        ws = _global.get('ws');
     _global._app.removeListener(function(err_) {
       if(err_) console.log('remove listener for app:', err_);
     }, _this.__appListener, ws.getConnection());
