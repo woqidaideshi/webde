@@ -107,7 +107,7 @@ var Window = Class.extend({
     this.setOptions();
     if (options_['title_align'] !== undefined && options_['title_align'] === 'left'){
       this._titleText.addClass('window-title-left');
-      this._titleText.css('padding-left', '56px');
+      this._titleText.css('padding-left', '68px');
       if (options_['left_top_color']  === undefined){
         this._titleText.css('padding-left', '16px');
       }
@@ -302,21 +302,6 @@ var Window = Class.extend({
         };
         _this._isMouseResizeDown = true;
         _this._window.fadeTo(20, 0.9);
-      }).mousemove(function(ev){
-        if (_this._isMouseResizeDown){
-          var _width = ev.clientX - _this._window.position().left + 10;
-          var _height = ev.clientY - _this._window.position().top + 10;
-          if (_width < _this._options.minWidth){
-            _width = _this._options.minWidth;
-          } 
-          if (_height < _this._options.minHeight) {
-            _height = _this._options.minHeight;
-          }
-          _this._options.width = _width;
-          _this._options.height = _height;
-          _this.resizeWindow(_this._options);
-          _this._dragDiv.css('cursor', 'se-resize');
-        }
       })
       $(document).mouseup(function(ev){
         if (!_this._isMouseResizeDown) {
@@ -327,8 +312,24 @@ var Window = Class.extend({
         _this._options.height = _this._window.height();
         _this.resizeWindow(_this._options);
         _this._window.fadeTo(20, 1);
-        _this._dragDiv.css('cursor', 'default');
       });
+      $(document).mousemove(function(ev){
+        ev.stopPropagation();
+        ev.preventDefault();
+        if (_this._isMouseResizeDown){
+          var _width = ev.clientX - _this._window.position().left + 3;
+          var _height = ev.clientY - _this._window.position().top + 3;
+          if (_width < _this._options.minWidth){
+            _width = _this._options.minWidth;
+          } 
+          if (_height < _this._options.minHeight) {
+            _height = _this._options.minHeight;
+          }
+          _this._options.width = _width;
+          _this._options.height = _height;
+          _this.resizeWindow(_this._options);
+        }
+      })
     }
 
     if (_this._options.fullscreen) {

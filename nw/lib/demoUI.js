@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-12-15
+/*! ui-lib - v0.0.1 - 2014-12-16
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -3428,6 +3428,7 @@ var Unslider = Class.extend({
       speed: false,
       delay: 3000,
       complete: false,
+      begin:false,
       keys: true,
       dots: false,
       fluid: false
@@ -3479,7 +3480,11 @@ var Unslider = Class.extend({
     })
     if (this._options.delay !== false) {
       _this.start();
-      _this._obj.hover(_this.stop,_this.start);
+      _this._obj.hover(function(){
+        _this.stop(_this);
+      },function(){
+        _this.start(_this);
+      });
     };
     _this._options.keys && _this.keys();
     _this._options.dots && _this.dots();
@@ -3505,25 +3510,36 @@ var Unslider = Class.extend({
     var _target = _this._items.eq(index_);
     var _hobj = {height: '100%'};
     var speed = cb_ ? 5 :_this._options.speed;
-
+    if(_this._options.begin){
+      _this._options.begin(index_);
+    }
     if (!this._ul.is(':animated')) {
       _this._obj.find('.dot:eq(' + index_ + ')').addClass('active').siblings().removeClass('active');
       _this._obj.animate(_hobj, speed);
       _this._ul.animate({left: '-' + index_ + '00%', height: '100%'}, speed, function(data){
         _this._current = index_;
+        if (_this._options.complete) {
+          _this._options.complete(index_);
+        };
       });
     };
   },
 
-  start:function(){
+  start:function(this_){
     var _this = this;
+    if (this_) {
+      _this = this_;
+    };
     _this._interval = setInterval(function(){
       _this.move(_this._current +1);
     }, _this._options.delay);
   },
 
-  stop:function(){
+  stop:function(this_){
     var _this = this;
+    if (this_) {
+      _this = this_;
+    };
     _this._interval = clearInterval(_this._interval);
   },
 
@@ -3802,7 +3818,7 @@ var Window = Class.extend({
     this.setOptions();
     if (options_['title_align'] !== undefined && options_['title_align'] === 'left'){
       this._titleText.addClass('window-title-left');
-      this._titleText.css('padding-left', '56px');
+      this._titleText.css('padding-left', '68px');
       if (options_['left_top_color']  === undefined){
         this._titleText.css('padding-left', '16px');
       }
@@ -3997,21 +4013,6 @@ var Window = Class.extend({
         };
         _this._isMouseResizeDown = true;
         _this._window.fadeTo(20, 0.9);
-      }).mousemove(function(ev){
-        if (_this._isMouseResizeDown){
-          var _width = ev.clientX - _this._window.position().left + 10;
-          var _height = ev.clientY - _this._window.position().top + 10;
-          if (_width < _this._options.minWidth){
-            _width = _this._options.minWidth;
-          } 
-          if (_height < _this._options.minHeight) {
-            _height = _this._options.minHeight;
-          }
-          _this._options.width = _width;
-          _this._options.height = _height;
-          _this.resizeWindow(_this._options);
-          _this._dragDiv.css('cursor', 'se-resize');
-        }
       })
       $(document).mouseup(function(ev){
         if (!_this._isMouseResizeDown) {
@@ -4022,8 +4023,24 @@ var Window = Class.extend({
         _this._options.height = _this._window.height();
         _this.resizeWindow(_this._options);
         _this._window.fadeTo(20, 1);
-        _this._dragDiv.css('cursor', 'default');
       });
+      $(document).mousemove(function(ev){
+        ev.stopPropagation();
+        ev.preventDefault();
+        if (_this._isMouseResizeDown){
+          var _width = ev.clientX - _this._window.position().left + 3;
+          var _height = ev.clientY - _this._window.position().top + 3;
+          if (_width < _this._options.minWidth){
+            _width = _this._options.minWidth;
+          } 
+          if (_height < _this._options.minHeight) {
+            _height = _this._options.minHeight;
+          }
+          _this._options.width = _width;
+          _this._options.height = _height;
+          _this.resizeWindow(_this._options);
+        }
+      })
     }
 
     if (_this._options.fullscreen) {
