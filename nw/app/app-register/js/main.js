@@ -45,14 +45,18 @@ function show() {
     class: 'app-container'
   }).html(
     '<div class="content-row center">' +
-    '<div>ID</div>：<input type="text" name="app-id">' +
+    '<div>ID</div>：<input class="right-content" type="text" name="app-id">' +
     '</div>' +
     '<div class="content-row center">' +
-    '<div>路径</div>：<input type="text" name="app-path">' +
+    '<div>路径</div>：<div class="right-content">' +
+    '<input style="display:none" type="file" name="file-selector" nwdirectory>' +
+    '<input style="width:81.1%" type="text" name="app-path">' +
+    '<button class="btn active" id="choose">选择</button>' +
     '</div>' +
-    '<div class="content-row center">' +
-    '路径为repo/workspace/app的相对路径(如: demo-rio/datamgr)' +
     '</div>' +
+    /* '<div class="content-row center">' + */
+    // '路径为repo/workspace/app的相对路径(如: demo-rio/datamgr)' +
+    /* '</div>' + */
     '<div class="content-row center">' +
     '<button class="btn disable" id="register">注册</button>' +
     '</div>'
@@ -77,7 +81,9 @@ function show() {
 
 function initAction() {
   var $appID = $view.find('input[name="app-id"]'),
+      $fileSelectoer = $view.find('input[name="file-selector"]'),
       $appPath = $view.find('input[name="app-path"]'),
+      $btnChoose = $view.find('#choose'),
       $btnRegister = $view.find('#register'),
       onInput = function() {
         if($appID.val() != '' && $appPath.val() != '') {
@@ -88,6 +94,17 @@ function initAction() {
       };
   $appID.on('input', onInput);
   $appPath.on('input', onInput);
+  $fileSelectoer.on('change', function(v) {
+    if(this.value) {
+      $appPath.val(this.value);
+      $appPath.attr('title', this.value);
+    }
+  });
+  $btnChoose.on('click', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    $fileSelectoer[0].click()
+  });
   $btnRegister.on('click', function(e) {
     e.stopPropagation();
     e.preventDefault();
