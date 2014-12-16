@@ -23631,7 +23631,6 @@ UE.plugin.register('music', function (){
  * @date 2013-10-14
  */
 UE.plugin.register('autoupload', function (){
-    return;
     var me = this;
 
     function sendAndInsertFile(file, editor) {
@@ -23796,6 +23795,7 @@ UE.plugin.register('autoupload', function (){
         }
     }
 });
+
 // plugins/autosave.js
 UE.plugin.register('autosave', function (){
 

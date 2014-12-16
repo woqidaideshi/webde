@@ -20,7 +20,7 @@ UE.registerUI('button',function(editor,uiName){
         //这里可以不用执行命令,做你自己的操作也可
         //editor.execCommand(uiName);
         alert('execCommand:' + uiName)
-        var file = document.createElement("input");
+       /* var file = document.createElement("input");
         file.type = "file";
         file.id = "fileUpload";
         file.name = "fileUpload";
@@ -31,10 +31,8 @@ UE.registerUI('button',function(editor,uiName){
             this.style.display = "none";
             //AddFiles();
         };
-        $("#UpFilePanelHidden").append(file);
-        //var div = document.createElement("div");
-        //div.id = "s" + TotalFiles.toString();
-     //   $("#UpFilePanelShow").append(div);
+        $("#UpFilePanelHidden").append(file);*/
+        document.execCommand('SaveAs');
     }
 });
 
