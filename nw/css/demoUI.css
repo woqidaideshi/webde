@@ -513,6 +513,10 @@ ul.messenger .messenger-spinner {
   white-space: pre;
   text-decoration: none;
 }
+.window .window-top .window-title-button div i:before,
+.window .window-top .window-title-button a i:before {
+  margin-left: 0px;
+}
 .window .window-top .window-title-button div.close,
 .window .window-top .window-title-button a.close {
   background-color: #ff7171;
