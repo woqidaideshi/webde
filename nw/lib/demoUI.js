@@ -3771,7 +3771,7 @@ var Window = Class.extend({
     this._leftTop = $('<div>', {
       'class': 'window-left-top',
     });
-    if (options_['left_top_color'] !== undefined){
+    if (options_ && options_['left_top_color'] !== undefined){
       this._leftTop.css({
         'background-color': options_['left_top_color']
       });
@@ -3816,7 +3816,7 @@ var Window = Class.extend({
     append(this._window);
     
     this.setOptions();
-    if (options_['title_align'] !== undefined && options_['title_align'] === 'left'){
+    if (options_ && options_['title_align'] !== undefined && options_['title_align'] === 'left'){
       this._titleText.addClass('window-title-left');
       this._titleText.css('padding-left', '68px');
       if (options_['left_top_color']  === undefined){
