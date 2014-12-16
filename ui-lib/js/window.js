@@ -282,7 +282,10 @@ var Window = Class.extend({
       _this._isMouseOnTitleDown = false;
       _this._window.fadeTo(20, 1);
       _this._titleDiv.css('cursor','default');
-    }).mousemove(function(ev){
+    }).dblclick(function(){
+      _this.toggleMaxWindow();
+    });
+    $(document).mousemove(function(ev){
       if(_this._isMouseOnTitleDown){ 
         var x = ev.clientX - _this._offsetX; 
         var y = ev.clientY - _this._offsetY; 
@@ -290,9 +293,7 @@ var Window = Class.extend({
         _this._options.top = y;
         _this._options.left = x;
       }
-    }).dblclick(function(){
-      _this.toggleMaxWindow();
-    })
+    });
 
     //resize window
     if (typeof this._dragDiv !== 'undefined') {
