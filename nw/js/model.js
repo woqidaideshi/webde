@@ -1662,23 +1662,36 @@ var DeviceListModel = Model.extend({
     // TODO: for IM, emit 'message' event when recive a message
     _global._imV.RegisterApp(function(recMsg) {
       var toAccount = recMsg.MsgObj.from;
-      var fileMsg = recMsg.MsgObj['message'];
+      var msg = recMsg.MsgObj['message'];
       var toAccountInfo = {};
       toAccountInfo['toAccount'] = toAccount;
       toAccountInfo['toIP'] = recMsg.IP;
       toAccountInfo['toUID'] = recMsg.MsgObj.uuid;
       var toAccInfo = {};
-      toAccInfo['toAccount'] = toAccount;
-      toAccInfo['toUID'] = recMsg.MsgObj.uuid;
-      toAccInfo['toIP'] = recMsg.IP;
-      toAccInfo['onLineFlag'] = 1;
       var toAccounts = {};
-      toAccounts[toAccount+recMsg.MsgObj.uuid] = toAccInfo;
-      toAccountInfo['toAccList'] = toAccounts;
       try {
-        fileMsg = JSON.parse(fileMsg);
+        msg = JSON.parse(msg);
       } catch (e) {}
-      toAccountInfo['msg'] = fileMsg;
+      if(msg.group){
+        _global._device.getDeviceByAccount(function(devs_) {
+          for(var j = 0; j < devs_.length; ++j) {
+            toAccInfo['toAccount'] = devs_[j].txt[1];
+            toAccInfo['toUID'] = devs_[j].txt[2];
+            toAccInfo['toIP'] = devs_[j].address;
+            toAccInfo['onLineFlag'] = 1;
+            toAccounts[devs_[j].txt[1]+devs_[j].txt[2]] = toAccInfo;
+          }
+        }, toAccount);
+      }else{
+        toAccInfo['toAccount'] = toAccount;
+        toAccInfo['toUID'] = recMsg.MsgObj.uuid;
+        toAccInfo['toIP'] = recMsg.IP;
+        toAccInfo['onLineFlag'] = 1;
+        toAccounts[toAccount+recMsg.MsgObj.uuid] = toAccInfo;
+      }
+      toAccountInfo['toAccList'] = toAccounts;
+      toAccountInfo['msg'] = msg;
+      toAccountInfo['group'] = msg.group;
       _this.emit('imMsg', toAccountInfo);
     }, 'imChat');
   }
@@ -1736,6 +1749,7 @@ var AccountEntryModel = EntryModel.extend({
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = '';
+    toAccountInfo['group'] = true;
     var toAccounts = {};
     var toAccInfo = {};
     var deviceList = this.getAllCOMs();
@@ -1805,6 +1819,7 @@ var DeviceEntryModel = EntryModel.extend({
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = this._position['txt'][2];
+    toAccountInfo['group'] = false;
     var toAccInfo = {};
     toAccInfo['toAccount'] = toAccount;
     toAccInfo['toUID'] = this._position['txt'][2];

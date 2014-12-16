@@ -1703,14 +1703,14 @@ var DeviceListView = View.extend({
       },
       'imMsg': function(toAccountInfo_) {
         var toAccount = toAccountInfo_.toAccount;
-        var curEditBox = _this._imChatWinList['imChatWin_' + toAccount + toAccountInfo_.toUID];
-        if (curEditBox === undefined) {
+        var curEditBox;
+        if(toAccountInfo_.group){
           curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
-          toAccountInfo_['toUID'] = '';
-        } else {
-          toAccountInfo_['toUID'] = toAccountInfo_.toUID;
+        }else{
+          curEditBox = _this._imChatWinList['imChatWin_' + toAccount + toAccountInfo_.toUID]; 
         }
-        var fileMsg = toAccountInfo_['msg'];
+        var msg = toAccountInfo_['msg'];
+        var fileMsg = msg.msg;
         if (curEditBox === undefined) {
           if (fileMsg.type === undefined) {
             Messenger().post({
@@ -1749,7 +1749,7 @@ var DeviceListView = View.extend({
                     action: function() {
                       Messenger().hideAll();
                       fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
-                      sendMsg['Msg'] = JSON.stringify(fileMsg);
+                      sendMsg['Msg'] = JSON.stringify(msg);
                       _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
                     }
                   },
@@ -1758,7 +1758,7 @@ var DeviceListView = View.extend({
                     action: function() {
                       Messenger().hideAll();
                       fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-                      sendMsg['Msg'] = JSON.stringify(fileMsg);
+                      sendMsg['Msg'] = JSON.stringify(msg);
                       _global._imV.SendAppMsg(function(mmm) {
                         delete fileMsg['state'];
                         curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList,_this._parent._c['layout']._selector);
@@ -3322,13 +3322,16 @@ var UEditBox = Class.extend({
   init: function(toAccountInfo_, imChatWinList_, selector_) {
     this._selector = selector_;
     this._fileTransList = {};
-    this._toIdentity = toAccountInfo_.toAccount + toAccountInfo_.toUID;
+    this._toIdentity = toAccountInfo_.toAccount ;
     this._title = toAccountInfo_.toAccount;
     this._onLineCount = 0;
-    if (toAccountInfo_.toUID.length !== 0) {
+    this._group=toAccountInfo_.group;
+    if (!(toAccountInfo_.group)) {
       this._title += '--' + toAccountInfo_.toUID;
+      this._toIdentity+= toAccountInfo_.toUID;
     }
     this._localAccount;
+    this._localUID;
     this._toAccountInfo = toAccountInfo_;
     var sendTime;
     var msgtime;
@@ -3435,6 +3438,7 @@ var UEditBox = Class.extend({
             toAccountInfoItem['toAccount'] = toAccInfo.toAccount;
             toAccountInfoItem['toIP'] = toAccInfo.toIP;
             toAccountInfoItem['toUID'] = toAccInfo.toUID;
+            toAccountInfoItem['group'] = false;
             var toAccounts = {};
             var toAccListItem = {};
             toAccListItem['toAccount'] = toAccInfo.toAccount;
@@ -3536,26 +3540,27 @@ var UEditBox = Class.extend({
       if (_this._um.hasContents()) {
         var msg = _this._um.getContent();
         function sendIMMsgCb() {
-          $('#disp_text_' + _this._toIdentity).append('<span class="accountFont"> ' + _this._localAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
+          $('#disp_text_' + _this._toIdentity).append('<span class="accountFont"> ' + _this._localAccount + '('+_this._localUID+')&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
           $('#disp_text_' + _this._toIdentity).scrollTop($('#disp_text_' + _this._toIdentity).height());
           _this._um.setContent('');
         }
         if (_this._localAccount === undefined) {
           _global._imV.getLocalData(function(localData) {
             _this._localAccount = localData.account;
+            _this._localUID = localData.UID;
           });
         }
         msgtime = new Date();
         sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-        //_global._imV.sendIMMsg(sendIMMsgCb, ipset, toAccount, msg);
         var sendMsg = {};
-        //sendMsg['IP'] = toAccountInfo_.toIP;
-        //sendMsg['UID'] = toAccountInfo_.toUID;
+        sendMsg['IP'] = toAccountInfo_.toIP;
+        sendMsg['UID'] = toAccountInfo_.toUID;
         sendMsg['toAccList'] = toAccountInfo_.toAccList;
         sendMsg['Account'] = toAccountInfo_.toAccount;
-        sendMsg['Msg'] = msg;
+        sendMsg['group'] =  _this._group;
+        sendMsg['Msg'] = JSON.stringify({'group':_this._group,'msg':msg});
         sendMsg['App'] = 'imChat';
-        _global._imV.SendAppMsgByAccount(function(mmm) {
+        _global._imV.sendIMMsg(function(mmm) {
           sendIMMsgCb();
         }, sendMsg);
       } else {
@@ -3572,17 +3577,18 @@ var UEditBox = Class.extend({
   },
 
   showRecDetail: function(toAccountInfo_, curEditBox_, flag_) {
-    var msg = toAccountInfo_.msg;
+    var msg = toAccountInfo_.msg.msg;
     var toIdentity = curEditBox_._toIdentity;
     if (msg.type === undefined) {
       var msgtime = new Date();
       var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-      $('#disp_text_' + toIdentity).append('<span  class="accountFont">' + toAccountInfo_.toAccount + '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
+      $('#disp_text_' + toIdentity).append('<span  class="accountFont">' + toAccountInfo_.toAccount + '('+toAccountInfo_.toUID+')&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
       $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
     } else {
       var sendMsg = {};
       sendMsg['IP'] = toAccountInfo_.toIP;
       sendMsg['UID'] = toAccountInfo_.toUID;
+      sendMsg['toAccList'] = toAccountInfo_.toAccList;
       sendMsg['Account'] = toAccountInfo_.toAccount;
       sendMsg['App'] = 'imChat';
       if (msg.type === 'file') {
@@ -3690,7 +3696,7 @@ var UEditBox = Class.extend({
           'fileSize': fileMsg.fileSize
         };
         fileTransMsg.Msg = JSON.stringify(fileMsg);
-        _global._imV.SendAppMsg(function(mmm) {
+        _global._imV.SendApp(function(mmm) {
           $('#memList_' + toIdentity).hide();
           $('#fileTransShow_' + toIdentity).show();
           $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + fileMsg.key + '">\
@@ -3712,8 +3718,10 @@ var UEditBox = Class.extend({
               var sendMsg = {};
               sendMsg['IP'] = toAccountInfo_.toIP;
               sendMsg['UID'] = toAccountInfo_.toUID;
+              sendMsg['toAccList'] = toAccountInfo_.toAccList;
               sendMsg['Account'] = toAccountInfo_.toAccount;
-              sendMsg['Msg'] = JSON.stringify(rst);
+              sendMsg['group']  = curEditBox_._group;
+              sendMsg['Msg'] = JSON.stringify({'group':curEditBox_._group,'msg':rst});
               sendMsg['App'] = 'imChat';
               _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
             }, fileMsg);
