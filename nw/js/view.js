@@ -3399,11 +3399,11 @@ var UEditBox = Class.extend({
     }).on('dragover', function(ev) {
       ev.stopPropagation();
       ev.preventDefault();
-      ev.originalEvent.dataTransfer.dropEffect = 'copy';
+      //ev.originalEvent.dataTransfer.dropEffect = 'copy';
     }).on('drop', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      _this.onDropFile(_this, e, _this._selector.getSelectedItems());
+     // _this.onDropFile(_this, e, _this._selector.getSelectedItems());
     }).on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
@@ -3427,7 +3427,7 @@ var UEditBox = Class.extend({
         id: 'memItem_' + toAccInfo.toAccount + toAccInfo.toUID,
         type: "item",
         img: "img/device.png",
-        text: toAccInfo.toAccount + '<br/>' + toAccInfo.toUID,
+        text: toAccInfo.toAccount + '<br/>UID:' + toAccInfo.toUID,
         clkaction: function() {
           var devEditBoxItem = imChatWinList_['imChatWin_' + toAccInfo.toAccount + toAccInfo.toUID];
           if (devEditBoxItem === undefined) {
@@ -3482,22 +3482,7 @@ var UEditBox = Class.extend({
       tableDragable: false
       //autoClearEmptyNode : false
     });
-    /* UE.dom.on(_this._ue.body, 'dragover', function (e) {
-                            e.preventDefault();
-                            Messenger().post('dnhczxczxczxczxczsadhask');
-                      
-                    });
-    var iframeBody = $('myEditor_' + _this._toIdentity).find('iframe').find('body');
-   iframeBody.append('test');
-    iframeBody.unbind();
-    $('.edui-editor-iframeholder edui-default').unbind('drop');
-    $(document).off('drop', '.edui-editor-iframeholder edui-default');
-    iframeBody.bind('drop',function(){
-      Messenger().post('dnhsadhask');
-    });
-    iframeBody.bind('click',function(){
-      Messenger().post('dnhsadhask');
-    });
+    var iframeBody=_this.$view.find('iframe').contents().find('body');
     iframeBody.on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
@@ -3508,13 +3493,11 @@ var UEditBox = Class.extend({
     }).on('drop', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      Messenger().post('who knows');
-    //  _this._controller.onDrop(e
-   //     , _this._parent._parent._parent._c['layout']._selector.getSelectedItems());
+      _this.onDropFile(_this, e, _this._selector.getSelectedItems());
     }).on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
-    });*/
+    });
     $('#close_button_' + _this._toIdentity).on('click', function() {
       _this.closeBtnFunc(_this, imChatWinList_);
     });
@@ -3999,7 +3982,7 @@ var UEditBox = Class.extend({
       type: "item",
       href: "",
       img: "img/device.png",
-      text: info_['txt'][1] + '<br/>' + info_['txt'][2],
+      text: info_['txt'][1] + '<br/>UID:' + info_['txt'][2],
       clkaction: function() {}
     };
     curEditBox_._memListView.addItem(deviceItem);
