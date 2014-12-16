@@ -1727,7 +1727,7 @@ var DeviceListView = View.extend({
                   label: '查看',
                   action: function() {
                     Messenger().hideAll();
-                    curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList);
+                    curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList,_this._parent._c['layout']._selector);
                     _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
                   }
                 }
@@ -1761,7 +1761,7 @@ var DeviceListView = View.extend({
                       sendMsg['Msg'] = JSON.stringify(fileMsg);
                       _global._imV.SendAppMsg(function(mmm) {
                         delete fileMsg['state'];
-                        curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList);
+                        curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList,_this._parent._c['layout']._selector);
                         _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
                       }, sendMsg);
                     }
@@ -3624,10 +3624,9 @@ var UEditBox = Class.extend({
               $('#memList_' + toIdentity).hide();
               $('#fileTransShow_' + toIdentity).show();
               $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
-                  <a href="javascript:;">\
-                  <img src="img/uploadFile.png"/></a><span title="'+msg_.fileName+'" class="chatList_name">' + msg_.fileName.substr(0,12) + '...<br/>大小：' + msg_.fileSize + '</span><br/>\
-                  <button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
-                  <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button>\
+                  <div><img src="img/uploadFile.png"/><span title="'+msg_.fileName+'" class="chatList_name">' + msg_.fileName.substr(0,12) + '...<br/>大小：' + msg_.fileSize + '</span><br/><br/></div>\
+                  <div><button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
+                  <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button></div>\
                   </li>');
               $('#refuseFileItem_' + msg_.key).on('click', function() {
                 curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
@@ -3712,9 +3711,9 @@ var UEditBox = Class.extend({
           $('#memList_' + toIdentity).hide();
           $('#fileTransShow_' + toIdentity).show();
           $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + fileMsg.key + '">\
-                    <img src="img/uploadFile.png"/><span  title="'+fileMsg.fileName+'" class="chatList_name">' + fileMsg.fileName.substr(0,12) + '...<br/>大小：' + fileMsg.fileSize + '</span><br/>\
-                    <span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_'+fileMsg.key+'"></div>\
-                    <button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button>\
+                    <div><img src="img/uploadFile.png"/><span  title="'+fileMsg.fileName+'" class="chatList_name">' + fileMsg.fileName.substr(0,12) + '...<br/>大小：' + fileMsg.fileSize + '</span></div>\
+                    <div><span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_'+fileMsg.key+'"></div></div>\
+                    <div><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button></div>\
                     </li>');
           $('#fileRatio_' + fileMsg.key).text('0%');
           var _gauge = Gauge.create();
@@ -3798,6 +3797,7 @@ var UEditBox = Class.extend({
           'fileSize': msg_.fileSize
         };
       } else {
+        console.log('===>>>>>'+JSON.stringify(rst));
         if (rst.option === 0x0002) {
           sendMsg_['Msg'] = JSON.stringify(rst);
           if (msg_.state === 1) {
@@ -3897,9 +3897,9 @@ var UEditBox = Class.extend({
       $('#fileTransShow_' + toIdentity).show();
     }
     $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
-                <img src="img/uploadFile.png"/><span title="'+msg_.fileName+'" class="chatList_name">' + msg_.fileName.substr(0,12) + '...<br/>大小：' + msg_.fileSize + '</span><br/>\
-                <span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_'+msg_.key+'"></div>\
-                <button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button>\
+                <div><img src="img/uploadFile.png"/><span title="'+msg_.fileName+'" class="chatList_name">' + msg_.fileName.substr(0,12) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
+                <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_'+msg_.key+'"></div></div>\
+                <div><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button></div>\
                 </li>');
     $('#cancelFileItem_' + msg_.key).on('click', function() {
       _global._imV.transferCancelReciever(function() {}, msg_.key);
