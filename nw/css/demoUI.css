@@ -593,15 +593,6 @@ ul.messenger .messenger-spinner {
   text-shadow: 1px 1px 1px #444444;
   background-color: #afafaf;
 }
-.window .window-top .window-title-button div.active,
-.window .window-top .window-title-button a.active {
-  color: #333333;
-}
-.window .window-top .window-title-button div.active:hover,
-.window .window-top .window-title-button a.active:hover {
-  color: #ffffff;
-  text-shadow: 1px 1px 1px #444444;
-}
 .window .window-top .window-title-button div.disable,
 .window .window-top .window-title-button a.disable {
   color: #ababab;
