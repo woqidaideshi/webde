@@ -1704,19 +1704,14 @@ var DeviceListView = View.extend({
       'imMsg': function(toAccountInfo_) {
         var toAccount = toAccountInfo_.toAccount;
         var curEditBox;
-        var editBoxID;
-        if(toAccountInfo_.group===''){
-          editBoxID = toAccountInfo_.toUID;
-        }else{
-          editBoxID =  toAccountInfo_.group;
-        }
+        var editBoxID=toAccountInfo_.group===''?toAccountInfo_.toUID:toAccountInfo_.group;
         curEditBox = _this._imChatWinList['imChatWin_' + editBoxID];
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
           if (fileMsg.type === undefined) {
             Messenger().post({
-              message: toAccount + '给你发新消息啦！',
+              message: toAccount + '('+toAccountInfo_.toUID+')给你发新消息啦！',
               type: 'info',
               actions: {
                 close: {
@@ -1743,7 +1738,7 @@ var DeviceListView = View.extend({
               sendMsg['Account'] = toAccount;
               sendMsg['App'] = 'imChat';
               Messenger().post({
-                message: toAccount + '给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
+                message: toAccount +  '('+toAccountInfo_.toUID+')给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
                 type: 'info',
                 actions: {
                   close: {
@@ -3533,10 +3528,10 @@ var UEditBox = Class.extend({
             Messenger().post('当前没有设备在线，您将不能发送文件！');
             return;
           }
-          if(Object.keys(_this._toAccountInfo.toAccList).length>1){
+          /*if(Object.keys(_this._toAccountInfo.toAccList).length>1){
             Messenger().post('请先选择对方的设备，再发送文件！');
             return;
-          }
+          }*/
           _this.fileUpload(_this, val);
         }
       });
@@ -3657,7 +3652,7 @@ var UEditBox = Class.extend({
         break;
       case 0x0002:
         { //收到接收文件端的传输文件进度      
-          curEditBox_.showFileItemRatio(curEditBox_, msg_);
+          curEditBox_.showFileItemRatio(curEditBox_, msg_,sendMsg_);
         }
         break;
       case 0x0003:
@@ -3667,7 +3662,8 @@ var UEditBox = Class.extend({
           }
           _global._imV.transferCancelReciever(function() {
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
-            var ratioLable = '对方中止了传输文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+            var  fromAcc=curEditBox_._group===''?'对方':sendMsg_.Account+'('+sendMsg_.UID+')';
+            var ratioLable =fromAcc+ '中止了传输文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
             $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
@@ -3797,8 +3793,9 @@ var UEditBox = Class.extend({
         curEditBox_.transferCancelSender(msg_,true,curEditBox_,sendMsg_,curFile,sendMsg_.UID,function(){
         });
       }
+      var  fromAcc=curEditBox_._group===''?'对方':sendMsg_.Account+'('+sendMsg_.UID+')';
       curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
-      var ratioLable = '对方拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+      var ratioLable = fromAcc+'拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
       var msgtime = new Date();
       var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
       $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
@@ -3860,11 +3857,12 @@ var UEditBox = Class.extend({
     }, msg_);
   },
 
-  showFileItemRatio: function(curEditBox_, msg_) {
+  showFileItemRatio: function(curEditBox_, msg_,sendMsg_) {
     var toIdentity = curEditBox_._toIdentity;
     if (curEditBox_._fileTransList[msg_.key] === undefined || (curEditBox_._fileTransList[msg_.key] !== undefined && curEditBox_._fileTransList[msg_.key].flag !== 2)) {
       return;
     }
+    var  fromAcc=curEditBox_._group===''?'对方':sendMsg_.Account+'('+sendMsg_.UID+')';
     _global._imV.transferProcessing(function() {
       if (msg_.state === 1) {
         $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
@@ -3873,12 +3871,12 @@ var UEditBox = Class.extend({
       } else {
         var ratioLabel;
         if (msg_.ratio === 1) {
-          ratioLable = '对方成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+          ratioLable = fromAcc+'成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
         } else {
           if (msg_.state === 0) {
             ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
           } else {
-            ratioLable = '对方取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+            ratioLable = fromAcc+'取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
           }
         }
         curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
@@ -3989,9 +3987,10 @@ var UEditBox = Class.extend({
 
   closeBtnFunc: function(curEditBox_, imChatWinList_) {
     var toIdentity = curEditBox_._toIdentity;
+    var uidDetail = curEditBox_._toAccountInfo.toUID===''?'':'('+curEditBox_._toAccountInfo.toUID+')';
     if (Object.keys(curEditBox_._fileTransList).length !== 0) {
       Messenger().post({
-        message: '如果关闭窗口，将中断与' + curEditBox_._toAccountInfo.toAccount + '之间的文件传输。！是否关闭窗口？',
+        message: '如果关闭窗口，将中断与' + curEditBox_._toAccountInfo.toAccount + uidDetail+'之间的文件传输。！是否关闭窗口？',
         type: 'info',
         actions: {
           close: {
@@ -4086,10 +4085,10 @@ var UEditBox = Class.extend({
       Messenger().post('当前没有设备在线，您将不能发送文件！');
       return;
     }
-    if(Object.keys(curEditBox_._toAccountInfo.toAccList).length>1){
+    /*if(Object.keys(curEditBox_._toAccountInfo.toAccList).length>1){
       Messenger().post('请先选择对方的设备，再发送文件！');
       return;
-    }
+    }*/
     var filePaths = [];
     var dataTransfer = ev_.originalEvent.dataTransfer;
     if (dataTransfer.files.length != 0) {
