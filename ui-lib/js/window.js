@@ -21,7 +21,9 @@ var Window = Class.extend({
       resize: false,           //设置是否可重新调整窗口的大小
       minWidth: 200,            //设置窗口的最小宽度
       minHeight:200,            //设置窗口的最小高度
-      fullScreen: false        //双击内容全屏显示
+      fullScreen: false,        //双击内容全屏显示
+      left_top_color: 'grey',    //标题栏左上角的颜色
+      title_align: 'center'      //标题对齐方式，left或者center
     };
 
     //set options
@@ -55,9 +57,21 @@ var Window = Class.extend({
     });
     this._window.append(this._titleDiv);
 
-    this._titleText= '<div class="window-title">'+this._title+'</div>';
+    this._leftTop = $('<div>', {
+      'class': 'window-left-top',
+    });
+    if (options_ && options_['left_top_color'] !== undefined){
+      this._leftTop.css({
+        'background-color': options_['left_top_color']
+      });
+    }
+    this._titleDiv.append(this._leftTop);
+
+    this._titleText = $('<div>', {
+      'class': 'window-title'
+    });
+    this._titleText.append(this._title);
     this._titleDiv.append(this._titleText);
-    this._titleText = $(this._titleDiv.children('.window-title')[0]);
 
     this._titleButton = $('<div>',{
       'class': 'window-title-button'
@@ -66,13 +80,15 @@ var Window = Class.extend({
 
     if (this._options.contentDiv) {
       this._windowContent = $('<div>',{
-        'class':'window-content'
+        'class':'window-content window-div'
       });
       this._window.append(this._windowContent);
     } else if (this._options.iframe) {
       this._windowContent = $('<iframe>',{
-        'class':'window-content'
-      })
+        'class':'window-content window-iframe',
+        'frameborder':'no',
+        'border':'none'
+      });
       this._window.append(this._windowContent);
     };
 
@@ -87,6 +103,13 @@ var Window = Class.extend({
     append(this._window);
     
     this.setOptions();
+    if (options_ && options_['title_align'] !== undefined && options_['title_align'] === 'left'){
+      this._titleText.addClass('window-title-left');
+      this._titleText.css('padding-left', '68px');
+      if (options_['left_top_color']  === undefined){
+        this._titleText.css('padding-left', '16px');
+      }
+    }
     if (this._options.hideWindow === false){
       this.show();
     }else {
@@ -107,37 +130,43 @@ var Window = Class.extend({
    */
   setOptions:function(){
     var _this = this;
+    var _count = 0;
     for(var key in _this._options) {
       switch(key){
         case 'close':
           if (_this._options[key] == true) {
-            _this._titleButton.append("<a id='window-"+_this._id+"-close' class='window-button-close' href='#'><i class='icon-remove'></i></a>");
+            _this._titleButton.append("<a id='window-"+_this._id+"-close' class='window-button-close close' href='#'><i class='icon-remove'></i></a>");
             _this.bindButton($(_this._titleButton.children('.window-button-close')[0]),_this.closeWindow, _this);
-            $('.window-button-'+key).addClass('active');
+            _count++;
           }
           break;
         case 'max':
           if (_this._options[key] == true) {
-            _this._titleButton.append("<a id='window-"+_this._id+"-max' class='window-button-max' href='#'><i class='icon-resize-full'></i></a>");
+            _this._titleButton.append("<a id='window-"+_this._id+"-max' class='window-button-max max' href='#'><i class='icon-plus'></i></a>");
             _this.bindButton($(_this._titleButton.children('.window-button-max')[0]),_this.maxWindow, _this);
-            $('.window-button-'+key).addClass('active');
+            _count++;
           }
           break;
         case 'min':
           if (_this._options[key] == true) {
-            _this._titleButton.append("<a id='window-"+_this._id+"-min' class='window-button-min' href='#'><i class='icon-minus'></i></a>");
-            $('.window-button-'+key).addClass('active');
+            _this._titleButton.append("<a id='window-"+_this._id+"-min' class='window-button-min min' href='#'><i class='icon-minus'></i></a>");
+            _count++;
           }
           break;
         case 'hide':
           if (_this._options[key] == true) {
-            _this._titleButton.append("<a id='window-"+_this._id+"-hide' class='window-button-hide' href='#'><i class='icon-double-angle-up'></i></a>");
+            _this._titleButton.append("<a id='window-"+_this._id+"-hide' class='window-button-hide hide' href='#'><i class='icon-double-angle-up'></i></a>");
             _this.bindButton($(_this._titleButton.children('.window-button-hide')[0]),_this.hideDiv, _this);
-            $('.window-button-'+key).addClass('active');
+            _count++;
           }
           break;
       }
     }
+    var title_btn_width = _count * 24;
+    _this._titleText.css({
+      'padding-left': (title_btn_width + 'px'),
+      'right': (title_btn_width + 'px')
+    })
     this.setWindowPos(this._options);
     this.resizeWindow(this._options);
   },
@@ -155,11 +184,13 @@ var Window = Class.extend({
     }).mouseup(function(ev){
       eventAction_(windowObj_);
       ev.stopPropagation();
-    })
-    .click(function(ev) {
+    }).click(function(ev) {
       ev.preventDefault();
       ev.stopPropagation();
-    });
+    }).dblclick(function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    })
   },
 
   bindCloseButton:function(eventAction_, arg_){
@@ -239,13 +270,24 @@ var Window = Class.extend({
       _this._isMouseOnTitleDown = true;
       _this._offsetX = ev.clientX - _this._window.position().left;
       _this._offsetY = ev.clientY - _this._window.position().top;
-        _this._window.fadeTo(20, 0.8);
+      _this._window.fadeTo(20, 0.8);
+      _this._titleDiv.css('cursor','move');
     }).mouseup(function(ev){
       _this._isMouseOnTitleDown = false;
       _this._window.fadeTo(20, 1);
+      _this._titleDiv.css('cursor','default');
     }).dblclick(function(){
       _this.toggleMaxWindow();
-    })
+    });
+    $(document).mousemove(function(ev){
+      if(_this._isMouseOnTitleDown){ 
+        var x = ev.clientX - _this._offsetX; 
+        var y = ev.clientY - _this._offsetY; 
+        _this.setWindowPos({left:x, top: y});
+        _this._options.top = y;
+        _this._options.left = x;
+      }
+    });
 
     //resize window
     if (typeof this._dragDiv !== 'undefined') {
@@ -255,39 +297,36 @@ var Window = Class.extend({
         };
         _this._isMouseResizeDown = true;
         _this._window.fadeTo(20, 0.9);
-      }).mouseup(function(ev){
+      })
+      $(document).mouseup(function(ev){
         if (!_this._isMouseResizeDown) {
           return ;
         }
         _this._isMouseResizeDown = false;
         _this._options.width = _this._window.width();
         _this._options.height = _this._window.height();
+        _this.resizeWindow(_this._options);
         _this._window.fadeTo(20, 1);
       });
-    }
-    $(document).mousemove(function(ev){
-      if(_this._isMouseOnTitleDown){ 
-        var x = ev.clientX - _this._offsetX; 
-        var y = ev.clientY - _this._offsetY; 
-        _this.setWindowPos({left:x, top: y});
-        _this._options.top = y;
-        _this._options.left = x;
-        _this._titleDiv.css('cursor','move');
-      }else if (_this._isMouseResizeDown && _this._options.resize) {
-        var _width = ev.clientX - _this._window.position().left + 5;
-        var _height = ev.clientY - _this._window.position().top + 5;
-        if (_width < _this._options.minWidth){
-          _width = _this._options.minWidth;
-        } 
-        if (_height < _this._options.minHeight) {
-          _height = _this._options.minHeight;
+      $(document).mousemove(function(ev){
+        ev.stopPropagation();
+        ev.preventDefault();
+        if (_this._isMouseResizeDown){
+          var _width = ev.clientX - _this._window.position().left + 3;
+          var _height = ev.clientY - _this._window.position().top + 3;
+          if (_width < _this._options.minWidth){
+            _width = _this._options.minWidth;
+          } 
+          if (_height < _this._options.minHeight) {
+            _height = _this._options.minHeight;
+          }
+          _this._options.width = _width;
+          _this._options.height = _height;
+          _this.resizeWindow(_this._options);
         }
-        _this._options.width = _width;
-        _this._options.height = _height;
-        _this.resizeWindow(_this._options);
-        _this._dragDiv.css('cursor', 'se-resie');
-      };
-    });
+      })
+    }
+
     if (_this._options.fullscreen) {
       _this._windowContent.dblclick(function(ev){
         _this.togglefullScreen();
@@ -303,7 +342,6 @@ var Window = Class.extend({
       };
       ev.stopPropagation();
     }).mouseup(function(ev){
-      ev.stopPropagation();
     });
   },
   /**
@@ -313,14 +351,9 @@ var Window = Class.extend({
    */
   resizeWindow:function(size_){
     var _this = this;
-    var _tmp = size_.width-2;
-    _this._titleDiv.css({'width': _tmp+'px'});
-    _tmp = size_.width-130;
-    _this._titleText.css({'width': _tmp+'px'});
-    _tmp = size_.width -10;
-    var _tmp1 = size_.height - 50;
+    _this._titleDiv.css({'width': size_.width+'px'});
     if(typeof _this._windowContent !== 'undefined')
-      _this._windowContent.css({'width':_tmp+'px', 'height': _tmp1+'px'});
+      _this._windowContent.css({'width': size_.width + 'px', 'height': (size_.height - 34)+'px'});
   },
   /**
    * [resizeWindowWithAnimate resize window with animate]
@@ -331,14 +364,9 @@ var Window = Class.extend({
   resizeWindowWithAnimate:function(size_, pos_){
     var _this = this;
     _this._window.animate({left: pos_.left + 'px', top: pos_.top + 'px'},_this._options.fadeSpeed);
-    var _tmp = size_.width-2;
-    _this._titleDiv.animate({width: _tmp+'px'},_this._options.fadeSpeed);
-    _tmp = size_.width-130;
-    _this._titleText.animate({width: _tmp+'px'}, _this._options.fadeSpeed);
-    _tmp = size_.width -10;
-    var _tmp1 = size_.height - 50;
+    _this._titleDiv.animate({width: size_.width+'px'},_this._options.fadeSpeed);
     if(typeof _this._windowContent !== 'undefined'){
-      _this._windowContent.animate({width:_tmp+'px', height: _tmp1+'px'},_this._options.fadeSpeed);
+      _this._windowContent.animate({width:size_.width + 'px', height: (size_.height - 34)+'px'},_this._options.fadeSpeed);
     } 
   },
   /**

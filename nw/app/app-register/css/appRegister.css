@@ -16,7 +16,7 @@
   text-align: justify;
 }
 
-.app-container .content-row input {
+.app-container .content-row .right-content {
   width: 60%;
 }
 
