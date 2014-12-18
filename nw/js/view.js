@@ -1681,7 +1681,7 @@ var DeviceListView = View.extend({
         var curDevEditBox = _this._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position);
-        curDevEditBox = _this._imChatWinList['imChatWin_' + dev_._position['txt'][1] + dev_._position['txt'][2]];
+        curDevEditBox = _this._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position);
       },
@@ -1697,18 +1697,20 @@ var DeviceListView = View.extend({
         var curDevEditBox = _this._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
-        curDevEditBox = _this._imChatWinList['imChatWin_' + dev_._position['txt'][1] + dev_._position['txt'][2]];
+        curDevEditBox = _this._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
       },
       'imMsg': function(toAccountInfo_) {
         var toAccount = toAccountInfo_.toAccount;
         var curEditBox;
-        if(toAccountInfo_.group){
-          curEditBox = _this._imChatWinList['imChatWin_' + toAccount];
+        var editBoxID;
+        if(toAccountInfo_.group===''){
+          editBoxID = toAccountInfo_.toUID;
         }else{
-          curEditBox = _this._imChatWinList['imChatWin_' + toAccount + toAccountInfo_.toUID]; 
+          editBoxID =  toAccountInfo_.group;
         }
+        curEditBox = _this._imChatWinList['imChatWin_' + editBoxID];
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
@@ -1728,13 +1730,13 @@ var DeviceListView = View.extend({
                   action: function() {
                     Messenger().hideAll();
                     curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList,_this._parent._c['layout']._selector);
-                    _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+                    _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
                   }
                 }
               }
             });
           } else {
-            if (fileMsg.type === 'file' && fileMsg.option === 0x0000) {
+            if (fileMsg.type === 'file' && fileMsg.option === 0x0000&&fileMsg.state===undefined) {
               var sendMsg = {};
               sendMsg['IP'] = toAccountInfo_.toIP;
               sendMsg['UID'] = toAccountInfo_.toUID;
@@ -1762,7 +1764,7 @@ var DeviceListView = View.extend({
                       _global._imV.SendAppMsg(function(mmm) {
                         delete fileMsg['state'];
                         curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList,_this._parent._c['layout']._selector);
-                        _this._imChatWinList['imChatWin_' + toAccount] = curEditBox;
+                        _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
                       }, sendMsg);
                     }
                   }
@@ -2012,7 +2014,7 @@ var DevEntryView = View.extend({
       },
       'openImChat': function(toAccountInfo_, cb_) {
         var curEditBox = UEditBox.create(toAccountInfo_, _this._parent._parent._imChatWinList, _this._parent._parent._parent._c['layout']._selector);
-        _this._parent._parent._imChatWinList['imChatWin_' + toAccountInfo_.toAccount + toAccountInfo_.toUID] = curEditBox;
+        _this._parent._parent._imChatWinList['imChatWin_' + toAccountInfo_.toUID] = curEditBox;
         cb_(curEditBox);
       }
     };
@@ -2042,7 +2044,7 @@ var DevEntryView = View.extend({
     }).on('drop', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][1] + _this._model._position['txt'][2]];
+      var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
       if (curEditBox === undefined) {
         _this._controller.onDblclick(function(curEditBoxTmp) {
           curEditBox = curEditBoxTmp;
@@ -2057,7 +2059,7 @@ var DevEntryView = View.extend({
       });
     }).dblclick(function(e) {
       e.stopPropagation();
-      var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][1] + _this._model._position['txt'][2]];
+      var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
       if (curEditBox === undefined) {
         _this._controller.onDblclick(function(curEditBox) {});
       }else{
@@ -3322,13 +3324,16 @@ var UEditBox = Class.extend({
   init: function(toAccountInfo_, imChatWinList_, selector_) {
     this._selector = selector_;
     this._fileTransList = {};
-    this._toIdentity = toAccountInfo_.toAccount ;
-    this._title = toAccountInfo_.toAccount;
+    this._toIdentity  ;
+    this._title ;
     this._onLineCount = 0;
     this._group=toAccountInfo_.group;
-    if (!(toAccountInfo_.group)) {
-      this._title += '--' + toAccountInfo_.toUID;
-      this._toIdentity+= toAccountInfo_.toUID;
+    if (toAccountInfo_.group==='') {
+      this._title = toAccountInfo_.toAccount+'--' + toAccountInfo_.toUID;
+      this._toIdentity =  toAccountInfo_.toUID;
+    }else{
+      this._title = toAccountInfo_.group;
+      this._toIdentity = toAccountInfo_.group;
     }
     this._localAccount;
     this._localUID;
@@ -3336,6 +3341,10 @@ var UEditBox = Class.extend({
     var sendTime;
     var msgtime;
     var _this = this;
+    _global._imV.getLocalData(function(localData) {
+      _this._localAccount = localData.account;
+      _this._localUID = localData.UID;
+    });
     this._imWindow = Window.create('imChat_' + _this._toIdentity, _this._title, {
       height: 600,
       width: 640,
@@ -3432,23 +3441,23 @@ var UEditBox = Class.extend({
         img: "img/device.png",
         text: toAccInfo.toAccount + '<br/>UID:' + toAccInfo.toUID,
         clkaction: function() {
-          var devEditBoxItem = imChatWinList_['imChatWin_' + toAccInfo.toAccount + toAccInfo.toUID];
+          var devEditBoxItem = imChatWinList_['imChatWin_' + toAccInfo.toUID];
           if (devEditBoxItem === undefined) {
             var toAccountInfoItem = {};
             toAccountInfoItem['toAccount'] = toAccInfo.toAccount;
             toAccountInfoItem['toIP'] = toAccInfo.toIP;
             toAccountInfoItem['toUID'] = toAccInfo.toUID;
-            toAccountInfoItem['group'] = false;
+            toAccountInfoItem['group'] = '';
             var toAccounts = {};
             var toAccListItem = {};
             toAccListItem['toAccount'] = toAccInfo.toAccount;
             toAccListItem['toIP'] = toAccInfo.toIP;
             toAccListItem['toUID'] = toAccInfo.toUID;
             toAccListItem['onLineFlag'] = toAccInfo.onLineFlag;
-            toAccounts[toAccInfo.toAccount + toAccInfo.toUID] = toAccListItem;
+            toAccounts[toAccInfo.toUID] = toAccListItem;
             toAccountInfoItem['toAccList'] = toAccounts;
             devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_, _this._selector);
-            imChatWinList_['imChatWin_' + toAccInfo.toAccount + toAccInfo.toUID] = devEditBoxItem;
+            imChatWinList_['imChatWin_' + toAccInfo.toUID] = devEditBoxItem;
           } else {
             _global._openingWindows.focusOnAWindow(devEditBoxItem._imWindow._id);
           }
@@ -3544,12 +3553,6 @@ var UEditBox = Class.extend({
           $('#disp_text_' + _this._toIdentity).scrollTop($('#disp_text_' + _this._toIdentity).height());
           _this._um.setContent('');
         }
-        if (_this._localAccount === undefined) {
-          _global._imV.getLocalData(function(localData) {
-            _this._localAccount = localData.account;
-            _this._localUID = localData.UID;
-          });
-        }
         msgtime = new Date();
         sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
         var sendMsg = {};
@@ -3589,6 +3592,7 @@ var UEditBox = Class.extend({
       sendMsg['IP'] = toAccountInfo_.toIP;
       sendMsg['UID'] = toAccountInfo_.toUID;
       sendMsg['toAccList'] = toAccountInfo_.toAccList;
+      sendMsg['group']=curEditBox_.group;
       sendMsg['Account'] = toAccountInfo_.toAccount;
       sendMsg['App'] = 'imChat';
       if (msg.type === 'file') {
@@ -3619,7 +3623,7 @@ var UEditBox = Class.extend({
                   </li>');
               $('#refuseFileItem_' + msg_.key).on('click', function() {
                 curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
-                curEditBox_.refuseFileItemTransfer(msg_, sendMsg_);
+                curEditBox_.refuseFileItemTransfer(curEditBox_,msg_, sendMsg_);
               });
               $('#acceptFileItem_' + msg_.key).on('click', function() {
                 curEditBox_.acceptFileItemTransfer(curEditBox_, msg_, sendMsg_, flag_);
@@ -3678,7 +3682,7 @@ var UEditBox = Class.extend({
 
   fileUpload: function(curEditBox_, filePath_) {
     var toIdentity = curEditBox_._toIdentity;
-    var toAccountInfo_ = curEditBox_._toAccountInfo;
+    var toAccountInfo = curEditBox_._toAccountInfo;
 
     function sendIMFileCb(err, fileTransMsg, val) {
       if (err) {
@@ -3689,50 +3693,70 @@ var UEditBox = Class.extend({
         }
       } else {
         var fileMsg = fileTransMsg.Msg;
-        curEditBox_._fileTransList[fileMsg.key] = {
+        var curFile = curEditBox_._fileTransList[fileMsg.key] = {
           'flag': 2,
           'path': val,
           'fileName': fileMsg.fileName,
           'fileSize': fileMsg.fileSize
         };
-        fileTransMsg.Msg = JSON.stringify(fileMsg);
-        _global._imV.SendApp(function(mmm) {
+        if (curEditBox_._group !== '') {
+          var memList = {};
+          for (var toAccListKey in toAccountInfo.toAccList) {
+            memList[toAccListKey] = 0;
+          }
+          curFile['memList'] = memList;
+        }
+        fileTransMsg.Msg = JSON.stringify({
+          'group': curEditBox_._group,
+          'msg': fileMsg
+        });
+        _global._imV.sendIMMsg(function(mmm) {
           $('#memList_' + toIdentity).hide();
           $('#fileTransShow_' + toIdentity).show();
           $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + fileMsg.key + '">\
-                    <div><img src="img/uploadFile.png"/><span  title="'+fileMsg.fileName+'" class="chatList_name">' + fileMsg.fileName.substr(0,12) + '...<br/>大小：' + fileMsg.fileSize + '</span></div>\
-                    <div><span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_'+fileMsg.key+'"></div></div>\
+                    <div><img src="img/uploadFile.png"/><span  title="' + fileMsg.fileName + '" class="chatList_name">' + fileMsg.fileName.substr(0, 12) + '...<br/>大小：' + fileMsg.fileSize + '</span></div>\
+                    <div><span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_' + fileMsg.key + '"></div></div>\
                     <div><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button></div>\
                     </li>');
           $('#fileRatio_' + fileMsg.key).text('0%');
           var _gauge = Gauge.create();
-          _gauge.add($("#fileGaugeDiv_"+fileMsg.key), {width:170, height:1,name: 'fileGauge_'+fileMsg.key, limit: true, gradient: true, scale: 10, colors:['#ff0000','#00ff00'], values:[0,1]});
+          _gauge.add($("#fileGaugeDiv_" + fileMsg.key), {
+            width: 170,
+            height: 1,
+            name: 'fileGauge_' + fileMsg.key,
+            limit: true,
+            gradient: true,
+            scale: 10,
+            colors: ['#ff0000', '#00ff00'],
+            values: [0, 1]
+          });
           $('#cancelFileItem_' + fileMsg.key).on('click', function() {
-            _global._imV.transferCancelSender(function(rst) {
-              curEditBox_.fileItemTransRemove(curEditBox_, fileMsg.key);
-              var ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
-              var msgtime = new Date();
-              var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-              $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-              $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
-              var sendMsg = {};
-              sendMsg['IP'] = toAccountInfo_.toIP;
-              sendMsg['UID'] = toAccountInfo_.toUID;
-              sendMsg['toAccList'] = toAccountInfo_.toAccList;
-              sendMsg['Account'] = toAccountInfo_.toAccount;
-              sendMsg['group']  = curEditBox_._group;
-              sendMsg['Msg'] = JSON.stringify({'group':curEditBox_._group,'msg':rst});
-              sendMsg['App'] = 'imChat';
-              _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
-            }, fileMsg);
+            var sendMsg = {};
+            sendMsg['IP'] = toAccountInfo.toIP;
+            sendMsg['UID'] = toAccountInfo.toUID;
+            sendMsg['Account'] = toAccountInfo.toAccount;
+            sendMsg['group'] = curEditBox_._group;
+            //sendMsg['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': rst});
+            sendMsg['App'] = 'imChat';
+            curEditBox_.transferCancelSender(fileMsg,true,curEditBox_,sendMsg,curFile,undefined,function(){
+                curEditBox_.fileItemTransRemove(curEditBox_, fileMsg.key);
+                var ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
+                var msgtime = new Date();
+                var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+                $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+                $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+              });
           });
         }, fileTransMsg);
       }
     }
     var sendMsg = {};
-    sendMsg['IP'] = toAccountInfo_.toIP;
-    sendMsg['UID'] = toAccountInfo_.toUID;
-    sendMsg['Account'] = toAccountInfo_.toAccount;
+    sendMsg['IP'] = toAccountInfo.toIP;
+    sendMsg['UID'] = toAccountInfo.toUID;
+    sendMsg['toAccList'] = toAccountInfo.toAccList;
+    sendMsg['Account'] = toAccountInfo.toAccount;
+    sendMsg['group'] = curEditBox_._group;
+    sendMsg['localUID'] = curEditBox_._localUID;
     sendMsg['Msg'] = filePath_;
     sendMsg['App'] = 'imChat';
     //_global._imV.sendIMMsg(sendIMFileCb, ipset, toAccount, JSON.stringify(msgJson));
@@ -3747,14 +3771,18 @@ var UEditBox = Class.extend({
     }
     var toIdentity = curEditBox_._toIdentity;
     if (msg_.state === '1') {
+      var curFile = curEditBox_._fileTransList[msg_.key];
+      if (curEditBox_._group !== '') {
+        curEditBox_.transferCancelSender(msg_,false,curEditBox_,sendMsg_,curFile,sendMsg_.UID,function(){});  
+      }
       _global._imV.sendFileTransferStart(function(err, fileTransMsg) {
-        sendMsg_['Msg'] = JSON.stringify(fileTransMsg);
-        if (err) {
-          _global._imV.SendAppMsg(function(mmm) {
-            curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
-            var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-            var msgtime = new Date();
-            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+          sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': fileTransMsg});
+          if (err) {
+            _global._imV.SendAppMsg(function(mmm) {
+                curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
+                var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+                var msgtime = new Date();
+                var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
             $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
           }, sendMsg_);
@@ -3764,6 +3792,9 @@ var UEditBox = Class.extend({
         }
       }, msg_, curEditBox_._fileTransList[msg_.key].path);
     } else {
+      if (curEditBox_._group !== '') {
+        curEditBox_.transferCancelSender(msg_,true,curEditBox_,sendMsg_,curFile,sendMsg_.UID,function(){});
+      }
       curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
       var ratioLable = '对方拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
       var msgtime = new Date();
@@ -3790,7 +3821,7 @@ var UEditBox = Class.extend({
       } else {
         console.log('===>>>>>'+JSON.stringify(rst));
         if (rst.option === 0x0002) {
-          sendMsg_['Msg'] = JSON.stringify(rst);
+          sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': rst});
           if (msg_.state === 1) {
             $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
             var _gauge = Gauge.create();
@@ -3857,10 +3888,10 @@ var UEditBox = Class.extend({
     }, msg_);
   },
 
-  refuseFileItemTransfer: function(msg_, sendMsg_) {
-    var toIdentity = sendMsg_.Account + sendMsg_.UID;
+  refuseFileItemTransfer: function(curEditBox_,msg_, sendMsg_) {
+    var toIdentity = curEditBox_._toIdentity;
     msg_['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-    sendMsg_['Msg'] = JSON.stringify(msg_);
+    sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': msg_});
     _global._imV.SendAppMsg(function(mmm) {
       var ratioLable = '您拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
       var msgtime = new Date();
@@ -3881,15 +3912,15 @@ var UEditBox = Class.extend({
     if (flag_) {
       $('#fileTransItem_' + msg_.key).remove();
       msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-      sendMsg_['Msg'] = JSON.stringify(msg_);
+      sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': msg_});
       _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
     } else {
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
     }
     $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
-                <div><img src="img/uploadFile.png"/><span title="'+msg_.fileName+'" class="chatList_name">' + msg_.fileName.substr(0,12) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
-                <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_'+msg_.key+'"></div></div>\
+                <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 12) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
+                <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_' + msg_.key + '"></div></div>\
                 <div><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button></div>\
                 </li>');
     $('#cancelFileItem_' + msg_.key).on('click', function() {
@@ -3897,7 +3928,50 @@ var UEditBox = Class.extend({
     });
     $('#fileRatio_' + msg_.key).text('0%');
     var _gauge = Gauge.create();
-    _gauge.add($("#fileGaugeDiv_"+msg_.key), {width:170, height:1,name: 'fileGauge_'+msg_.key, limit: true, gradient: true, scale: 10, colors:['#ff0000','#00ff00'], values:[0,1]});
+    _gauge.add($("#fileGaugeDiv_" + msg_.key), {
+      width: 170,
+      height: 1,
+      name: 'fileGauge_' + msg_.key,
+      limit: true,
+      gradient: true,
+      scale: 10,
+      colors: ['#ff0000', '#00ff00'],
+      values: [0, 1]
+    });
+  },
+
+  transferCancelSender: function(msg_, flag_, curEditBox_, sendMsg_, curFile_, exceptUID_,cb_) {
+    _global._imV.transferCancelSender(function(rst) {
+      sendMsg_['Msg'] = JSON.stringify({
+        'group': curEditBox_._group,
+        'msg': rst
+      });
+      if (curEditBox_._group === '') {
+        _global._imV.SendAppMsg(function(mmm) {
+          cb_();
+        }, sendMsg_);
+      } else {
+        var toAccList = {};
+        for (var toAccListKey in curFile_['memList']) {
+          if (exceptUID_ === undefined || toAccListKey !== exceptUID_){
+            toAccList[toAccListKey] = curEditBox_._toAccountInfo.toAccList[toAccListKey];
+          }
+        }
+        if (Object.keys(toAccList).length !== 0) {
+          sendMsg_['toAccList'] = toAccList;
+          _global._imV.SendAppMsgByGroup(function(mmm) {
+            if(!flag_){
+              for (var toAccListKey in curFile_['memList']) {
+                if (exceptUID_ === undefined || toAccListKey !== exceptUID_){
+                  delete curFile_['memList'][toAccListKey];
+                }
+              }
+            } 
+            cb_();
+          }, sendMsg_);
+        }
+      }
+    }, msg_, flag_);
   },
 
   fileItemTransRemove: function(curEditBox_, key_) {
@@ -3930,6 +4004,8 @@ var UEditBox = Class.extend({
               sendMsg['IP'] = curEditBox_._toAccountInfo.toIP;
               sendMsg['UID'] = curEditBox_._toAccountInfo.toUID;
               sendMsg['Account'] = curEditBox_._toAccountInfo.toAccount;
+              sendMsg['toAccList'] = curEditBox_._toAccountInfo.toAccList;
+              sendMsg['group'] = curEditBox_._group;
               sendMsg['App'] = 'imChat';
               for (var key in curEditBox_._fileTransList) {
                 var detail = curEditBox_._fileTransList[key];
@@ -3940,27 +4016,25 @@ var UEditBox = Class.extend({
                   'fileSize': detail.fileSize
                 };
                 switch (detail.flag) {
-                  case 0:
+                  case 0://refuse
                     {
                       curEditBox_.fileItemTransRemove(curEditBox_, key);
                       fileMsgTmp['option'] = 0x0000;
-                      fileMsgTmp['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
-                      sendMsg['Msg'] = JSON.stringify(fileMsgTmp);
+                      fileMsgTmp['state'] = '0'; 
+                      sendMsg['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': fileMsgTmp});
                       _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
                     }
                     break;
-                  case 1:
+                  case 1://cancel receive
                     {
                       _global._imV.transferCancelReciever(function() {}, key);
                     }
                     break;
-                  case 2:
+                  case 2://cancel send
                     {
-                      _global._imV.transferCancelSender(function(rst) {
+                      curEditBox_.transferCancelSender(fileMsgTmp,true,curEditBox_,sendMsg,detail,undefined,function(){
                         curEditBox_.fileItemTransRemove(curEditBox_, key);
-                        sendMsg['Msg'] = JSON.stringify(rst);
-                        _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
-                      }, fileMsgTmp);
+                      });
                     }
                     break;
                   default:
@@ -3982,7 +4056,7 @@ var UEditBox = Class.extend({
   },
 
   deviceUpFunc: function(curEditBox_, info_) {
-    var memItemId = info_['txt'][1] + info_['txt'][2];
+    var memItemId =  info_['txt'][2];
     curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag = 1;
     curEditBox_._onLineCount += 1;
     var deviceItem = {
@@ -3997,7 +4071,7 @@ var UEditBox = Class.extend({
   },
 
   deviceDownFunc: function(curEditBox_, info_) {
-    var memItemId = info_['txt'][1] + info_['txt'][2];
+    var memItemId = info_['txt'][2];
     curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag = 0;
     curEditBox_._onLineCount -= 1;
     curEditBox_._memListView.remove('memItem_' + memItemId);

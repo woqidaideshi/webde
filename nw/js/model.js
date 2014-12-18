@@ -1672,14 +1672,14 @@ var DeviceListModel = Model.extend({
       try {
         msg = JSON.parse(msg);
       } catch (e) {}
-      if(msg.group){
+      if(msg.group===''){
         _global._device.getDeviceByAccount(function(devs_) {
           for(var j = 0; j < devs_.length; ++j) {
             toAccInfo['toAccount'] = devs_[j].txt[1];
             toAccInfo['toUID'] = devs_[j].txt[2];
             toAccInfo['toIP'] = devs_[j].address;
             toAccInfo['onLineFlag'] = 1;
-            toAccounts[devs_[j].txt[1]+devs_[j].txt[2]] = toAccInfo;
+            toAccounts[devs_[j].txt[2]] = toAccInfo;
           }
         }, toAccount);
       }else{
@@ -1687,7 +1687,7 @@ var DeviceListModel = Model.extend({
         toAccInfo['toUID'] = recMsg.MsgObj.uuid;
         toAccInfo['toIP'] = recMsg.IP;
         toAccInfo['onLineFlag'] = 1;
-        toAccounts[toAccount+recMsg.MsgObj.uuid] = toAccInfo;
+        toAccounts[recMsg.MsgObj.uuid] = toAccInfo;
       }
       toAccountInfo['toAccList'] = toAccounts;
       toAccountInfo['msg'] = msg;
@@ -1749,7 +1749,7 @@ var AccountEntryModel = EntryModel.extend({
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = '';
-    toAccountInfo['group'] = true;
+    toAccountInfo['group'] = toAccount;
     var toAccounts = {};
     var toAccInfo = {};
     var deviceList = this.getAllCOMs();
@@ -1759,7 +1759,7 @@ var AccountEntryModel = EntryModel.extend({
       toAccInfo['toUID'] = accountItem._position['txt'][2];
       toAccInfo['toIP'] = accountItem._position['address'];
       toAccInfo['onLineFlag'] = 1;
-      toAccounts[accountItem._position['txt'][1]+accountItem._position['txt'][2]] = toAccInfo;
+      toAccounts[accountItem._position['txt'][2]] = toAccInfo;
     }
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
@@ -1819,14 +1819,14 @@ var DeviceEntryModel = EntryModel.extend({
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = this._position['txt'][2];
-    toAccountInfo['group'] = false;
+    toAccountInfo['group'] = '';
     var toAccInfo = {};
     toAccInfo['toAccount'] = toAccount;
     toAccInfo['toUID'] = this._position['txt'][2];
     toAccInfo['toIP'] = this._position['address'];
     toAccInfo['onLineFlag'] = 1;
     var toAccounts = {};
-    toAccounts[toAccount+this._position['txt'][2]] = toAccInfo;
+    toAccounts[this._position['txt'][2]] = toAccInfo;
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
   }
