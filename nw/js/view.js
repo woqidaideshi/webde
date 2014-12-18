@@ -3436,7 +3436,7 @@ var UEditBox = Class.extend({
       toAccInfo = toAccountInfo_.toAccList[toAccListKey];
       _this._onLineCount += toAccInfo.onLineFlag;
       deviceItems[i] = {
-        id: 'memItem_' + toAccInfo.toAccount + toAccInfo.toUID,
+        id: 'memItem_' + toAccInfo.toUID,
         type: "item",
         img: "img/device.png",
         text: toAccInfo.toAccount + '<br/>UID:' + toAccInfo.toUID,
@@ -3560,6 +3560,7 @@ var UEditBox = Class.extend({
         sendMsg['UID'] = toAccountInfo_.toUID;
         sendMsg['toAccList'] = toAccountInfo_.toAccList;
         sendMsg['Account'] = toAccountInfo_.toAccount;
+        sendMsg['localUID'] =  _this._localUID;
         sendMsg['group'] =  _this._group;
         sendMsg['Msg'] = JSON.stringify({'group':_this._group,'msg':msg});
         sendMsg['App'] = 'imChat';
@@ -3591,9 +3592,10 @@ var UEditBox = Class.extend({
       var sendMsg = {};
       sendMsg['IP'] = toAccountInfo_.toIP;
       sendMsg['UID'] = toAccountInfo_.toUID;
-      sendMsg['toAccList'] = toAccountInfo_.toAccList;
-      sendMsg['group']=curEditBox_.group;
+      sendMsg['toAccList'] = toAccountInfo_.toAccList;  
       sendMsg['Account'] = toAccountInfo_.toAccount;
+      sendMsg['localUID'] =  curEditBox_._localUID;
+      sendMsg['group']=curEditBox_.group;
       sendMsg['App'] = 'imChat';
       if (msg.type === 'file') {
         curEditBox_.showFileRecDetatil(curEditBox_, msg, sendMsg, flag_);
@@ -3736,7 +3738,7 @@ var UEditBox = Class.extend({
             sendMsg['UID'] = toAccountInfo.toUID;
             sendMsg['Account'] = toAccountInfo.toAccount;
             sendMsg['group'] = curEditBox_._group;
-            //sendMsg['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': rst});
+            sendMsg['localUID'] = curEditBox_._localUID;
             sendMsg['App'] = 'imChat';
             curEditBox_.transferCancelSender(fileMsg,true,curEditBox_,sendMsg,curFile,undefined,function(){
                 curEditBox_.fileItemTransRemove(curEditBox_, fileMsg.key);
@@ -3759,7 +3761,6 @@ var UEditBox = Class.extend({
     sendMsg['localUID'] = curEditBox_._localUID;
     sendMsg['Msg'] = filePath_;
     sendMsg['App'] = 'imChat';
-    //_global._imV.sendIMMsg(sendIMFileCb, ipset, toAccount, JSON.stringify(msgJson));
     _global._imV.sendFileTransferRequest(function(err, fileTransMsg) {
       sendIMFileCb(err, fileTransMsg, filePath_);
     }, sendMsg);
@@ -3770,8 +3771,8 @@ var UEditBox = Class.extend({
       return;
     }
     var toIdentity = curEditBox_._toIdentity;
+    var curFile = curEditBox_._fileTransList[msg_.key];
     if (msg_.state === '1') {
-      var curFile = curEditBox_._fileTransList[msg_.key];
       if (curEditBox_._group !== '') {
         curEditBox_.transferCancelSender(msg_,false,curEditBox_,sendMsg_,curFile,sendMsg_.UID,function(){});  
       }
@@ -3793,7 +3794,8 @@ var UEditBox = Class.extend({
       }, msg_, curEditBox_._fileTransList[msg_.key].path);
     } else {
       if (curEditBox_._group !== '') {
-        curEditBox_.transferCancelSender(msg_,true,curEditBox_,sendMsg_,curFile,sendMsg_.UID,function(){});
+        curEditBox_.transferCancelSender(msg_,true,curEditBox_,sendMsg_,curFile,sendMsg_.UID,function(){
+        });
       }
       curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
       var ratioLable = '对方拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
@@ -3969,6 +3971,8 @@ var UEditBox = Class.extend({
             } 
             cb_();
           }, sendMsg_);
+        }else{
+          cb_();
         }
       }
     }, msg_, flag_);

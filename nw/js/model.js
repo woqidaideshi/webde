@@ -1673,6 +1673,12 @@ var DeviceListModel = Model.extend({
         msg = JSON.parse(msg);
       } catch (e) {}
       if(msg.group===''){
+        toAccInfo['toAccount'] = toAccount;
+        toAccInfo['toUID'] = recMsg.MsgObj.uuid;
+        toAccInfo['toIP'] = recMsg.IP;
+        toAccInfo['onLineFlag'] = 1;
+        toAccounts[recMsg.MsgObj.uuid] = toAccInfo;
+      }else{
         _global._device.getDeviceByAccount(function(devs_) {
           for(var j = 0; j < devs_.length; ++j) {
             toAccInfo['toAccount'] = devs_[j].txt[1];
@@ -1681,13 +1687,7 @@ var DeviceListModel = Model.extend({
             toAccInfo['onLineFlag'] = 1;
             toAccounts[devs_[j].txt[2]] = toAccInfo;
           }
-        }, toAccount);
-      }else{
-        toAccInfo['toAccount'] = toAccount;
-        toAccInfo['toUID'] = recMsg.MsgObj.uuid;
-        toAccInfo['toIP'] = recMsg.IP;
-        toAccInfo['onLineFlag'] = 1;
-        toAccounts[recMsg.MsgObj.uuid] = toAccInfo;
+        }, toAccount);  
       }
       toAccountInfo['toAccList'] = toAccounts;
       toAccountInfo['msg'] = msg;
