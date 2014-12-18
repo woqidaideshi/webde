@@ -2041,27 +2041,36 @@ var DevEntryView = View.extend({
     }).on('drop', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
-      if (curEditBox === undefined) {
-        _this._controller.onDblclick(function(curEditBoxTmp) {
-          curEditBox = curEditBoxTmp;
-        });
-      }else{
-        _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
-      }
-      _this._controller.onDrop(e, _this._parent._parent._parent._c['layout']._selector.getSelectedItems(), function(filePaths) {
-        for (var i = 0; i < filePaths.length; ++i) {
-          curEditBox.fileUpload(curEditBox, filePaths[i]);
+      _global._imV.getLocalData(function(localInfo){
+        if(localInfo.UID!== _this._model._position['txt'][2]){
+          var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
+          if (curEditBox === undefined) {
+            _this._controller.onDblclick(function(curEditBoxTmp) {
+              curEditBox = curEditBoxTmp;
+            });
+          }else{
+            _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
+          }
+          _this._controller.onDrop(e, _this._parent._parent._parent._c['layout']._selector.getSelectedItems(), function(filePaths) {
+            for (var i = 0; i < filePaths.length; ++i) {
+              curEditBox.fileUpload(curEditBox, filePaths[i]);
+            }
+          });
         }
-      });
+      });   
     }).dblclick(function(e) {
       e.stopPropagation();
-      var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
-      if (curEditBox === undefined) {
-        _this._controller.onDblclick(function(curEditBox) {});
-      }else{
-        _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
-      }
+      _global._imV.getLocalData(function(localInfo){
+        if(localInfo.UID!== _this._model._position['txt'][2]){
+          var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
+          if (curEditBox === undefined) {
+            _this._controller.onDblclick(function(curEditBox) {});
+          }else{
+            _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
+          }
+        }
+      });
+      
     });
   },
 
