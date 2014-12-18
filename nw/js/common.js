@@ -269,6 +269,47 @@ var Serialize = Class.extend({
     }
     this.series(fnArr, callback_);
   },
+
+  parallel: function(fnArr_, callback_) {
+    if(!Array.isArray(fnArr_)) {
+      console.log('bad type for series, should be an array');
+      return ;
+    }
+    var cb_ = callback_ || function() {},
+        toComplete = fnArr_.length,
+        rets = [];
+    var doParallel = function(parallellor_) {
+      for(var i = 0; i < fnArr_.length; ++i) {
+        parallellor_(fnArr_[i], i, function(err_) {
+          if(err_) {
+            callback_(err_);
+          } else {
+            toComplete--;
+            if(toComplete == 0) {
+              cb_(null, rets);
+            }
+          }
+        });
+      }
+    };
+    doParallel(function(fn_, num_, callback_) {
+      fn_.fn(fn_.pera, function(err_, ret_) {
+        rets[num_] = ret_;
+        callback_(err_, ret_);
+      });
+    });
+  },
+
+  parallel1: function(peraArr_, fn_, callback_) {
+    var fnArr = [];
+    for(var i = 0; i < peraArr_.length; ++i) {
+      fnArr[i] = {
+        'fn': fn_,
+        'pera': peraArr_[i]
+      };
+    }
+    this.parallel(fnArr, callback_);
+  },
 });
 
 // This class includes all global objects used in this project
@@ -316,21 +357,45 @@ var Global = Class.extend({
           // change the nodejs'API to ourselves
           /* _this._fs = require('fs'); */
           /* _this._exec = require('child_process').exec; */
-          WDC.requireAPI(['device_service', 'IM', 'data', 'app'/* , 'account' */]
-            , function(dev, imV, data, app/* , acc */) {
+          WDC.requireAPI(['device_service', 'IM', 'data', 'app', 'lang'/* , 'account' */]
+            , function(dev, imV, data, app, lang/* , acc */) {
               _this._device = dev;
               _this._imV = imV;
               _this._dataOP = data;
               _this._app = app;
+              _this._lang = lang;
               // _this._account = acc;
 
-              data.initDesktop(function(err_, success_) {
+              _this.Series.parallel([
+                {
+                  fn: function(pera_, cb__) {
+                    data.initDesktop(cb__);
+                  }
+                },
+                {
+                  fn: function(pera_, cb__) {
+                    app.getBasePath(function(err_, basePath_) {
+                      _this._appBase = basePath_;
+                      cb__(null);
+                    });
+                  }
+                },
+                {
+                  fn: function(pera_, cb__) {
+                    lang.getInitInfo(function(err_, info_) {
+                      _this._locale = {
+                        locale: info_[0],
+                        langList: info_[1],
+                        langObj: info_[2]
+                      }
+                      cb__(null);
+                    }, 'desktop');
+                  }
+                }
+              ], function(err_, rets_) {
                 if(err_) return console.log(err_);
-                app.getBasePath(function(err_, basePath_) {
-                  _this._appBase = basePath_;
-                  cb_(null);
-                });
-              })
+                cb_(null);
+              });
             });
         }
       },
