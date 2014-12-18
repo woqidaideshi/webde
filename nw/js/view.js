@@ -3447,6 +3447,9 @@ var UEditBox = Class.extend({
         img: "img/device.png",
         text: toAccInfo.toAccount + '<br/>UID:' + toAccInfo.toUID,
         clkaction: function() {
+          if(toAccInfo.toUID===_this._localUID){
+            return;
+          }
           var devEditBoxItem = imChatWinList_['imChatWin_' + toAccInfo.toUID];
           if (devEditBoxItem === undefined) {
             var toAccountInfoItem = {};
