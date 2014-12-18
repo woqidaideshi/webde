@@ -95,6 +95,7 @@ categories: ui
 <p>动画：<input type='checkbox' id='win-Animate' checked="checked"></p>
 <p>内容Div：<input type='checkbox' id='win-Contentdiv' checked="checked"></p>
 <p>Iframe：<input type='checkbox' id='win-Iframe' checked="checked"></p>
+<p>标题左对齐（默认中间对齐）:<input type='checkbox' id='win-title-align'></p>
 <p>动画速度：<input type='text' id='win-FadeSpeed' value="100"></p>
 <p>窗口宽度<input type='text' id='win-Width' value="600"></p>
 <p>窗口高度：<input type='text' id='win-Height' value="600"></p>
@@ -103,6 +104,7 @@ categories: ui
 <p>最小窗口大小宽：<input type='text' id='win-Minwidth' value="200"></p>
 <p>最小窗口大小高：<input type='text' id='win-Minheight' value="200"></p>
 <p>窗口标题：<input type='text' id='win-Title' value="Test Window"></p>
+<p>标题左角颜色：<input type='text' id='win-left_top_color' value=""></p>
 
 <button class='btn active' onclick="newWin()">New Window</button>
 <button class='btn active' onclick="fullScreen()">fullScreen</button>
@@ -128,6 +130,7 @@ categories: ui
     _options['animate'] = $('#win-Animate')[0].checked;
     _options['contentDiv'] = $('#win-Contentdiv')[0].checked;
     _options['iframe'] = $('#win-Iframe')[0].checked;
+    _options['title_align'] = 'center';
     _options['fadeSpeed'] = parseInt($('#win-FadeSpeed')[0].value);
     _options['width'] = $('#win-Width')[0].value;
     _options['height'] = $('#win-Height')[0].value;
@@ -135,6 +138,14 @@ categories: ui
     _options['top'] = parseInt($('#win-Top')[0].value);
     _options['minWidth'] = $('#win-Minwidth')[0].value;
     _options['minHeight'] = $('#win-Minheight')[0].value;
+
+    if ($('#win-title-align')[0].checked == true){
+      _options['title_align'] = 'left';
+    }
+
+    if ($('#win-left_top_color')[0].value !== ''){
+      _options['left_top_color'] = $('#win-left_top_color')[0].value;
+    }
 
     myNewWin = Window.create('newWin', $('#win-Title')[0].value, _options);
   }

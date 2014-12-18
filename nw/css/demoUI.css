@@ -435,81 +435,189 @@ ul.messenger .messenger-spinner {
   display: none;
   position: absolute;
   z-index: 100;
-  border: 1px solid #cccccc;
   background-color: #cccccc;
-  padding: 0 0 2px 0;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  -ms-border-radius: 6px;
-  -o-border-radius: 6px;
-  border-radius: 6px;
+  padding: 0 0 0 0;
+  -webkit-border-radius: 6px 6px 0px 0px;
+  -moz-border-radius: 6px 6px 0px 0px;
+  -ms-border-radius: 6px 6px 0px 0px;
+  -o-border-radius: 6px 6px 0px 0px;
+  border-radius: 6px 6px 0px 0px;
   -webkit-user-select: none;
   -moz-user-select: none;
   -o-user-select: none;
   user-select: none;
+  -webkit-box-shadow: 0px 0px 10px #000000;
+  -moz-box-shadow: 0px 0px 10px #000000;
+  -o-box-shadow: 0px 0px 10px #000000;
+  box-shadow: 0px 0px 10px #000000;
 }
 .window .window-top {
   height: 34px;
-  background-color: #e3e3e3;
+  background-color: #ffffff;
   position: relative;
-  margin: 0 0 10px 0;
-  cursor: move;
+  margin: 0 0 0 0;
+  -webkit-border-radius: 6px 6px 0px 0px;
+  -moz-border-radius: 6px 6px 0px 0px;
+  -ms-border-radius: 6px 6px 0px 0px;
+  -o-border-radius: 6px 6px 0px 0px;
+  border-radius: 6px 6px 0px 0px;
   clear: both;
+}
+.window .window-top .window-left-top {
+  height: 34px;
+  width: 58.4px;
+  position: absolute;
+  -webkit-border-radius: 6px 0px 0px 0px;
+  -moz-border-radius: 6px 0px 0px 0px;
+  -ms-border-radius: 6px 0px 0px 0px;
+  -o-border-radius: 6px 0px 0px 0px;
+  border-radius: 6px 0px 0px 0px;
 }
 .window .window-top .window-title {
   color: #335533;
   height: auto;
   text-align: center;
-  padding-left: 15px;
+  padding-left: 72px;
   margin: 5px 0px 5px 0px;
   overflow: hidden;
   white-space: nowrap;
   -webkit-text-overflow: ellipsis;
   text-overflow: ellipsis;
-  float: left;
+  position: absolute;
+  left: 0px;
+  right: 72px;
+}
+.window .window-top .window-title.window-title-left {
+  text-align: left;
+}
+.window .window-top .window-title.window-left-title-no-left_top {
+  padding-left: 16px;
 }
 .window .window-top .window-title-button {
   height: auto;
-  width: 100px;
   margin-top: 5px;
   margin-right: 0px;
   margin-left: auto;
   margin-bottom: 5px;
   text-align: right;
+  display: inline;
   float: right;
 }
+.window .window-top .window-title-button div,
 .window .window-top .window-title-button a {
+  cursor: default;
   margin: 5px;
-  font-weight: normal;
-  line-height: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  display: inline-block;
   white-space: pre;
   text-decoration: none;
 }
-.window .window-top .window-title-button a.active {
-  color: #333333;
+.window .window-top .window-title-button div i:before,
+.window .window-top .window-title-button a i:before {
+  margin-left: 0px;
 }
-.window .window-top .window-title-button a.active:hover {
+.window .window-top .window-title-button div.close,
+.window .window-top .window-title-button a.close {
+  background-color: #ff7171;
+  -webkit-border-radius: 100%;
+  -moz-border-radius: 100%;
+  -ms-border-radius: 100%;
+  -o-border-radius: 100%;
+  border-radius: 100%;
+  color: #ff7171;
+  width: 14px;
+  text-align: center;
+  line-height: 14px;
+}
+.window .window-top .window-title-button div.close:hover,
+.window .window-top .window-title-button a.close:hover {
   color: #ffffff;
   text-shadow: 1px 1px 1px #444444;
+  background-color: #ff7171;
 }
+.window .window-top .window-title-button div.max,
+.window .window-top .window-title-button a.max {
+  background-color: #7fceea;
+  -webkit-border-radius: 100%;
+  -moz-border-radius: 100%;
+  -ms-border-radius: 100%;
+  -o-border-radius: 100%;
+  border-radius: 100%;
+  color: #7fceea;
+  width: 14px;
+  text-align: center;
+  line-height: 14px;
+}
+.window .window-top .window-title-button div.max:hover,
+.window .window-top .window-title-button a.max:hover {
+  color: #ffffff;
+  text-shadow: 1px 1px 1px #444444;
+  background-color: #7fceea;
+}
+.window .window-top .window-title-button div.min,
+.window .window-top .window-title-button a.min {
+  background-color: yellow;
+  -webkit-border-radius: 100%;
+  -moz-border-radius: 100%;
+  -ms-border-radius: 100%;
+  -o-border-radius: 100%;
+  border-radius: 100%;
+  color: yellow;
+  width: 14px;
+  text-align: center;
+  line-height: 14px;
+}
+.window .window-top .window-title-button div.min:hover,
+.window .window-top .window-title-button a.min:hover {
+  color: #ffffff;
+  text-shadow: 1px 1px 1px #444444;
+  background-color: yellow;
+}
+.window .window-top .window-title-button div.hide,
+.window .window-top .window-title-button a.hide {
+  background-color: #afafaf;
+  -webkit-border-radius: 100%;
+  -moz-border-radius: 100%;
+  -ms-border-radius: 100%;
+  -o-border-radius: 100%;
+  border-radius: 100%;
+  color: #afafaf;
+  width: 14px;
+  text-align: center;
+  line-height: 14px;
+}
+.window .window-top .window-title-button div.hide:hover,
+.window .window-top .window-title-button a.hide:hover {
+  color: #ffffff;
+  text-shadow: 1px 1px 1px #444444;
+  background-color: #afafaf;
+}
+.window .window-top .window-title-button div.disable,
 .window .window-top .window-title-button a.disable {
   color: #ababab;
 }
 .window .window-content {
   position: relative;
-  margin-top: 0;
-  margin-right: 4px;
-  margin-bottom: 2px;
-  margin-left: 4px;
+  margin-top: 0px;
+  margin-bottom: -7px;
+  margin-right: 0px;
+  margin-left: 0px;
   overflow: auto;
   background-color: #ffffff;
+}
+.window .window-content.window-div {
+  margin-bottom: 0px;
+}
+.window .window-content.window-iframe {
+  margin-botton: -7px;
 }
 .window .rb-drag-div {
   position: absolute;
   bottom: 0px;
   right: 0px;
-  width: 15px;
-  height: 15px;
+  width: 6px;
+  height: 6px;
   cursor: se-resize;
 }
 .fullwindow {
