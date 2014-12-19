@@ -1682,7 +1682,7 @@ var DeviceListView = View.extend({
         _this._c[dev_.getID()].show(_this.$view);
         var curDevEditBox = _this._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
         if (curDevEditBox !== undefined)
-          curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position);
+          curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._imChatWinList);
         curDevEditBox = _this._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position);
@@ -4073,9 +4073,20 @@ var UEditBox = Class.extend({
     }
   },
 
-  deviceUpFunc: function(curEditBox_, info_) {
-    var memItemId =  info_['txt'][2];
-    curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag = 1;
+  deviceUpFunc: function(curEditBox_, info_,imChatWinList_) {
+    var memItemId = info_['txt'][2];
+    var curAcc = curEditBox_._toAccountInfo.toAccList[memItemId];
+    if (curAcc === undefined) {
+      var toAccInfo = {};
+      toAccInfo['toAccount'] = info_.txt[1];
+      toAccInfo['toUID'] = info_.txt[2];
+      toAccInfo['toIP'] = info_.address;
+      toAccInfo['onLineFlag'] = 1;
+      toAccounts[info_.txt[2]] = toAccInfo;
+      curEditBox_._toAccountInfo.toAccList[memItemId] = toAccInfo;
+    } else {
+      curAcc.onLineFlag = 1;
+    }
     curEditBox_._onLineCount += 1;
     var deviceItem = {
       id: 'memItem_' + memItemId,
@@ -4083,15 +4094,43 @@ var UEditBox = Class.extend({
       href: "",
       img: "img/device.png",
       text: info_['txt'][1] + '<br/>UID:' + info_['txt'][2],
-      clkaction: function() {}
+      clkaction: function() {
+        if (info_['txt'][2] === curEditBox_._localUID) {
+          return;
+        }
+        var devEditBoxItem = imChatWinList_['imChatWin_' + info_['txt'][2]];
+        if (devEditBoxItem === undefined) {
+          var toAccountInfoItem = {};
+          toAccountInfoItem['toAccount'] = info_['txt'][1];
+          toAccountInfoItem['toIP'] = info_.address;
+          toAccountInfoItem['toUID'] = info_['txt'][2];
+          toAccountInfoItem['group'] = '';
+          var toAccounts = {};
+          var toAccListItem = {};
+          toAccListItem['toAccount'] = info_['txt'][1];
+          toAccListItem['toIP'] = info_.address;
+          toAccListItem['toUID'] = info_['txt'][2];
+          toAccListItem['onLineFlag'] = 1;
+          toAccounts[info_['txt'][2]] = toAccListItem;
+          toAccountInfoItem['toAccList'] = toAccounts;
+          devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_, curEditBox_._selector);
+          imChatWinList_['imChatWin_' + info_['txt'][2]] = devEditBoxItem;
+        } else {
+          _global._openingWindows.focusOnAWindow(devEditBoxItem._imWindow._id);
+        }
+      }
     };
     curEditBox_._memListView.addItem(deviceItem);
   },
 
   deviceDownFunc: function(curEditBox_, info_) {
     var memItemId = info_['txt'][2];
-    curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag = 0;
-    curEditBox_._onLineCount -= 1;
+    var curAcc = curEditBox_._toAccountInfo.toAccList[memItemId];
+    if(curAcc!==undefined){
+      //curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag = 0;
+      delete curEditBox_._toAccountInfo.toAccList[memItemId];
+      curEditBox_._onLineCount -= 1;
+    }
     curEditBox_._memListView.remove('memItem_' + memItemId);
   },
 
