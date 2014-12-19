@@ -4,53 +4,121 @@
   display:none;
   position:absolute;
   z-index:100;
-  .border;
+
   background-color:@windowBkgColor;
-  padding: 0 0 2px 0;
-  .radius;
+  padding: 0 0 0 0;
+  .radius(6px 6px 0px 0px);
   .select(none);
+  .box-shadow-mine(0px 0px 10px #000);
   
   .window-top{
     height: 34px;
     background-color:@windowTitleBkgColor;
     position:relative;
-    margin: 0 0 10px 0;
-    cursor: move;
+    margin: 0 0 0 0;
+    .radius(6px 6px 0px 0px);
+
+    .window-left-top{
+      height: 34px;
+      width: 58.4px;
+      position: absolute;
+      .radius(6px 0px 0px 0px);
+    }
     .window-title{
       color:@windowTitleTextColor;
       height: auto;
-      text-align: center; 
-      padding-left: 15px;
+      text-align: center;
+      padding-left: 72px;
       margin:5px 0px 5px 0px;
       overflow: hidden;
        white-space: nowrap;
       -webkit-text-overflow:ellipsis;
       text-overflow:ellipsis;
-      float: left;
+      position:absolute;
+      left:0px;
+      right:72px;
+      &.window-title-left{
+        text-align: left;
+      }
+      &.window-left-title-no-left_top{
+        padding-left: 16px;
+      }
     }
     
     .window-title-button{
       height: auto;
-      width: 100px;
       margin-top: 5px;
       margin-right: 0px;
       margin-left: auto;
       margin-bottom: 5px;
       text-align: right; 
+      display:inline;
       float: right;
-      a{
+      div,a{
+        cursor: default;
         margin: 5px;
-        font-weight: normal;
-        line-height: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        display:inline-block;
         white-space: pre;
         text-decoration: none;
-        &.active{
-           color: @windowTitleActiveButtonColor;
-           &:hover{
-             color: @windowTitleHoverButtonColor;
-             text-shadow: 1px 1px 1px @windowTitleShadowButtonColor;
-           }
+        i{
+          &:before{
+            margin-left: 0px;
+          }
+        }
+        &.close{
+          background-color:#ff7171;
+          .radius(100%);
+          color:#ff7171;
+          width:14px;
+          text-align: center;
+          line-height: 14px;
+          &:hover{
+            color:@windowTitleHoverButtonColor;
+            text-shadow: 1px 1px 1px @windowTitleShadowButtonColor;
+            background-color:#ff7171;
          }
+        }
+        &.max{
+          background-color:#7fceea;
+          .radius(100%);
+          color:#7fceea;
+          width:14px;
+          text-align: center;
+          line-height: 14px;
+          &:hover{
+            color:@windowTitleHoverButtonColor;
+            text-shadow: 1px 1px 1px @windowTitleShadowButtonColor;
+            background-color:#7fceea;
+         }
+        }
+        &.min{
+          background-color:yellow;
+          .radius(100%);
+          color:yellow;
+          width:14px;
+          text-align: center;
+          line-height: 14px;
+          &:hover{
+            color:@windowTitleHoverButtonColor;
+            text-shadow: 1px 1px 1px @windowTitleShadowButtonColor;
+            background-color:yellow;
+         }
+        }
+        &.hide{
+          background-color:#afafaf;
+          .radius(100%);
+          color:#afafaf;
+          width:14px;
+          text-align: center;
+          line-height: 14px;
+          &:hover{
+            color:@windowTitleHoverButtonColor;
+            text-shadow: 1px 1px 1px @windowTitleShadowButtonColor;
+            background-color:#afafaf;
+         }
+        }
 
          &.disable{
           color: @windowTitleDisableButtonColor;
@@ -62,20 +130,26 @@
 
   .window-content{
     position: relative;
-    margin-top:  0;
-    margin-right:4px;
-    margin-bottom: 2px;
-    margin-left: 4px;
+    margin-top:  0px;
+    margin-bottom: -7px;
+    margin-right:0px;
+    margin-left: 0px;
     overflow :auto;
-    background-color: @windowContentBkgColor;  
+    background-color: @windowContentBkgColor;
+    &.window-div{
+      margin-bottom: 0px;
+    }
+    &.window-iframe{
+      margin-botton:-7px;
+    }
   }
 
   .rb-drag-div{
     position: absolute;
     bottom: 0px;
     right: 0px;
-    width:15px;
-    height: 15px;
+    width: 6px;
+    height: 6px;
     cursor: se-resize;
   }
 }
