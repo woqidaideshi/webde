@@ -3378,6 +3378,7 @@ var UEditBox = Class.extend({
         ev.stopPropagation();
         _this.closeBtnFunc(_this, imChatWinList_);
       });
+      this._titleDiv.unbind('dblclick');
     });
     this.$view = $('<div class="imChat">').html('<div class="imLeftDiv">\
     <div class ="upLoadFile" >\
