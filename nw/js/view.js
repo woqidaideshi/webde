@@ -1685,7 +1685,7 @@ var DeviceListView = View.extend({
           curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._imChatWinList);
         curDevEditBox = _this._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
         if (curDevEditBox !== undefined)
-          curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position);
+          curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._imChatWinList);
       },
       'remove': function(err_, dev_){
         // TODO: delete the device entry view associated by dev_
@@ -3379,6 +3379,16 @@ var UEditBox = Class.extend({
         _this.closeBtnFunc(_this, imChatWinList_);
       });
       this._titleDiv.unbind('dblclick');
+      this._titleDiv.dblclick(function(){
+        ev.preventDefault();
+        ev.stopPropagation();
+        _global._openingWindows.focusOnAWindow(this._id);
+      });
+      this._titleDiv.click(function(){
+        ev.preventDefault();
+        ev.stopPropagation();
+        _global._openingWindows.focusOnAWindow(this._id);
+      });
     });
     this.$view = $('<div class="imChat">').html('<div class="imLeftDiv">\
     <div class ="upLoadFile" >\
@@ -3520,6 +3530,8 @@ var UEditBox = Class.extend({
     }).on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
+    }).on('click',function (ev) {
+      _global._openingWindows.focusOnAWindow(_this._imWindow._id);
     });
     $('#close_button_' + _this._toIdentity).on('click', function() {
       _this.closeBtnFunc(_this, imChatWinList_);
@@ -4082,7 +4094,6 @@ var UEditBox = Class.extend({
       toAccInfo['toUID'] = info_.txt[2];
       toAccInfo['toIP'] = info_.address;
       toAccInfo['onLineFlag'] = 1;
-      toAccounts[info_.txt[2]] = toAccInfo;
       curEditBox_._toAccountInfo.toAccList[memItemId] = toAccInfo;
     } else {
       curAcc.onLineFlag = 1;
@@ -4130,8 +4141,8 @@ var UEditBox = Class.extend({
       //curEditBox_._toAccountInfo.toAccList[memItemId].onLineFlag = 0;
       delete curEditBox_._toAccountInfo.toAccList[memItemId];
       curEditBox_._onLineCount -= 1;
+      curEditBox_._memListView.remove('memItem_' + memItemId);
     }
-    curEditBox_._memListView.remove('memItem_' + memItemId);
   },
 
   onDropFile: function(curEditBox_, ev_, tArr_) {
