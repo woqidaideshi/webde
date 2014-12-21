@@ -3384,7 +3384,7 @@ var UEditBox = Class.extend({
         ev.stopPropagation();
         _global._openingWindows.focusOnAWindow(this._id);
       });
-      this._titleDiv.click(function(){
+      this._titleDiv.click(function(ev){
         ev.preventDefault();
         ev.stopPropagation();
         _global._openingWindows.focusOnAWindow(this._id);
@@ -3437,7 +3437,6 @@ var UEditBox = Class.extend({
       e.stopPropagation();
       e.preventDefault();
     });
-    var toAccInfo;
     /*    for (var i = 0; i < toAccountInfo_.toAccList.length; i++) {
       toAccInfo = toAccountInfo_.toAccList[i];
       $('#memInfoList_' + toIdentity).append('<li>\
@@ -3450,7 +3449,7 @@ var UEditBox = Class.extend({
     var deviceItems = [];
     var i = 0;
     for (var toAccListKey in toAccountInfo_.toAccList) {
-      toAccInfo = toAccountInfo_.toAccList[toAccListKey];
+      var toAccInfo = toAccountInfo_.toAccList[toAccListKey];
       _this._onLineCount += toAccInfo.onLineFlag;
       deviceItems[i] = {
         id: 'memItem_' + toAccInfo.toUID,

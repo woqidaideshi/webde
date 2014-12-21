@@ -1600,7 +1600,7 @@ var DeviceListModel = Model.extend({
     var _this = _global.get('desktop').getCOMById('device-list'),
         info = pera_.info,
         len = info.txt.length,
-        account_id_ = info.txt[len - 1];
+        account_id_ = info.txt[len - 2];
         dev_id_ = info.address + ':' + info.port;
     switch(pera_.flag) {
       case 'up':
@@ -1687,6 +1687,7 @@ var DeviceListModel = Model.extend({
       }else{
         _global._device.getDeviceByAccount(function(devs_) {
           for(var j = 0; j < devs_.length; ++j) {
+            toAccInfo = {};
             toAccInfo['toAccount'] = devs_[j].txt[1];
             toAccInfo['toUID'] = devs_[j].txt[2];
             toAccInfo['toIP'] = devs_[j].address;
@@ -1757,9 +1758,9 @@ var AccountEntryModel = EntryModel.extend({
     toAccountInfo['toUID'] = '';
     toAccountInfo['group'] = toAccount;
     var toAccounts = {};
-    var toAccInfo = {};
     var deviceList = this.getAllCOMs();
     for (var key in deviceList) {
+      var toAccInfo = {};
       var accountItem = deviceList[key];
       toAccInfo['toAccount'] = accountItem._position['txt'][1];
       toAccInfo['toUID'] = accountItem._position['txt'][2];
