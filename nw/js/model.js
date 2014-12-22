@@ -1755,7 +1755,29 @@ var AccountEntryModel = EntryModel.extend({
     }
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
-  }
+  },
+
+  getInterface: function() {return this._position.interface;},
+
+  getProtocol: function() {return this._position.protocol;},
+
+  getName: function() {return this._position.name;},
+
+  getSType: function() {return this._position.stype;},
+
+  getDomain: function() {return this._position.domain;},
+
+  getHost: function() {return this._position.host;},
+
+  getAProtocol: function() {return this._position.aprotocol;},
+
+  getAddress: function() {return this._position.address;},
+
+  getPort: function() {return this._position.port;},
+
+  getTxt: function() {return this._position.txt;},
+
+  getFlag: function() {return this._position.flag;}
 });
 
 var DeviceEntryModel = EntryModel.extend({
@@ -1805,6 +1827,7 @@ var DeviceEntryModel = EntryModel.extend({
     }
     cb_(filePaths);
   },
+
   initImChatParseFunc: function(cb_) {
     var toAccount = this._position['txt'][1];
     var toAccountInfo = {};
@@ -1820,7 +1843,29 @@ var DeviceEntryModel = EntryModel.extend({
     toAccounts[toAccount+this._position['txt'][2]] = toAccInfo;
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
-  }
+  },
+
+  getInterface: function() {return this._position.interface;},
+
+  getProtocol: function() {return this._position.protocol;},
+
+  getName: function() {return this._position.name;},
+
+  getSType: function() {return this._position.stype;},
+
+  getDomain: function() {return this._position.domain;},
+
+  getHost: function() {return this._position.host;},
+
+  getAProtocol: function() {return this._position.aprotocol;},
+
+  getAddress: function() {return this._position.address;},
+
+  getPort: function() {return this._position.port;},
+
+  getTxt: function() {return this._position.txt;},
+
+  getFlag: function() {return this._position.flag;}
 });
 
 // The model class of Layout
