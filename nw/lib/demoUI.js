@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-12-16
+/*! ui-lib - v0.0.1 - 2014-12-22
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -1411,7 +1411,12 @@ var ListView = Class.extend({
         actionID = 'event' + actiond.getTime() * Math.floor(Math.random() * 100000),
         eventAction = data.clkaction;
         $item.find('a').attr('id', actionID);
-        $(document).on('click', '#' + actionID, data.clkaction);
+        if (typeof data.clkaction_p !== 'undefined'){
+          $(document).on('click', '#' + actionID, data.clkaction_p, data.clkaction);
+        }
+        else{
+          $(document).on('click', '#' + actionID, data.clkaction);
+        }
     }
 
     if (typeof data.dblclkaction !== 'undefined'){
@@ -1419,7 +1424,12 @@ var ListView = Class.extend({
         actionID = 'event' + actiond.getTime() * Math.floor(Math.random() * 100000),
         eventAction = data.dblclkaction;
         $item.find('a').attr('id', actionID);
-        $(document).on('dblclick', '#' + actionID, data.dblclkaction);
+        if (typeof data.dblclkaction_p !== 'undefined'){
+          $(document).on('dblclick', '#' + actionID, data.dblclkaction_p, data.dblclkaction);
+        }
+        else {
+          $(document).on('dblclick', '#' + actionID, data.dblclkaction);
+        }
     }
 
     if (typeof $ul_ === 'undefined') {
@@ -3778,13 +3788,11 @@ var Window = Class.extend({
     }
     this._titleDiv.append(this._leftTop);
 
-    //this._titleText= '<div class="window-title">'+this._title+'</div>';
     this._titleText = $('<div>', {
       'class': 'window-title'
     });
     this._titleText.append(this._title);
     this._titleDiv.append(this._titleText);
-    //this._titleText = $(this._titleDiv.children('.window-title')[0]);
 
     this._titleButton = $('<div>',{
       'class': 'window-title-button'
@@ -3851,7 +3859,6 @@ var Window = Class.extend({
             _this._titleButton.append("<a id='window-"+_this._id+"-close' class='window-button-close close' href='#'><i class='icon-remove'></i></a>");
             _this.bindButton($(_this._titleButton.children('.window-button-close')[0]),_this.closeWindow, _this);
             _count++;
-            //$('.window-button-'+key).addClass('active');
           }
           break;
         case 'max':
@@ -3859,14 +3866,12 @@ var Window = Class.extend({
             _this._titleButton.append("<a id='window-"+_this._id+"-max' class='window-button-max max' href='#'><i class='icon-plus'></i></a>");
             _this.bindButton($(_this._titleButton.children('.window-button-max')[0]),_this.maxWindow, _this);
             _count++;
-            //$('.window-button-'+key).addClass('active');
           }
           break;
         case 'min':
           if (_this._options[key] == true) {
             _this._titleButton.append("<a id='window-"+_this._id+"-min' class='window-button-min min' href='#'><i class='icon-minus'></i></a>");
             _count++;
-            //$('.window-button-'+key).addClass('active');
           }
           break;
         case 'hide':
@@ -3874,7 +3879,6 @@ var Window = Class.extend({
             _this._titleButton.append("<a id='window-"+_this._id+"-hide' class='window-button-hide hide' href='#'><i class='icon-double-angle-up'></i></a>");
             _this.bindButton($(_this._titleButton.children('.window-button-hide')[0]),_this.hideDiv, _this);
             _count++;
-            //$('.window-button-'+key).addClass('active');
           }
           break;
       }
@@ -4069,8 +4073,6 @@ var Window = Class.extend({
   resizeWindow:function(size_){
     var _this = this;
     _this._titleDiv.css({'width': size_.width+'px'});
-    //var _tmp = size_.width-130;
-    //_this._titleText.css({'width': _tmp+'px'});
     if(typeof _this._windowContent !== 'undefined')
       _this._windowContent.css({'width': size_.width + 'px', 'height': (size_.height - 34)+'px'});
   },
@@ -4084,8 +4086,6 @@ var Window = Class.extend({
     var _this = this;
     _this._window.animate({left: pos_.left + 'px', top: pos_.top + 'px'},_this._options.fadeSpeed);
     _this._titleDiv.animate({width: size_.width+'px'},_this._options.fadeSpeed);
-    //var _tmp = size_.width-130;
-    //_this._titleText.animate({width: _tmp+'px'}, _this._options.fadeSpeed);
     if(typeof _this._windowContent !== 'undefined'){
       _this._windowContent.animate({width:size_.width + 'px', height: (size_.height - 34)+'px'},_this._options.fadeSpeed);
     } 
