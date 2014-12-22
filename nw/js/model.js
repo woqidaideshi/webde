@@ -1775,7 +1775,9 @@ var AccountEntryModel = EntryModel.extend({
 
   getPort: function() {return this._position.port;},
 
-  getTxt: function() {return this._position.txt;},
+  getAccount: function() {return this._position.txt[1];},
+
+  getUID: function() {return this._position.txt[2];},
 
   getFlag: function() {return this._position.flag;}
 });
@@ -1863,7 +1865,9 @@ var DeviceEntryModel = EntryModel.extend({
 
   getPort: function() {return this._position.port;},
 
-  getTxt: function() {return this._position.txt;},
+  getAccount: function() {return this._position.txt[1];},
+
+  getUID: function() {return this._position.txt[2];},
 
   getFlag: function() {return this._position.flag;}
 });
