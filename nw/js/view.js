@@ -1737,7 +1737,7 @@ var DeviceListView = View.extend({
                       Messenger().hideAll();
                       fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
                       sendMsg['Msg'] = JSON.stringify(msg);
-                      _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
+                      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg);
                     }
                   },
                   open: {
@@ -1746,7 +1746,7 @@ var DeviceListView = View.extend({
                       Messenger().hideAll();
                       fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
                       sendMsg['Msg'] = JSON.stringify(msg);
-                      _global._imV.SendAppMsg(function(mmm) {
+                      _global._imV.sendAppMsgByDevice(function(mmm) {
                         delete fileMsg['state'];
                         curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList,_this._parent._c['layout']._selector);
                         _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
@@ -3803,7 +3803,7 @@ var UEditBox = Class.extend({
       _global._imV.sendFileTransferStart(function(err, fileTransMsg) {
           sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': fileTransMsg});
           if (err) {
-            _global._imV.SendAppMsg(function(mmm) {
+            _global._imV.sendAppMsgByDevice(function(mmm) {
                 curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
                 var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
                 var msgtime = new Date();
@@ -3812,7 +3812,7 @@ var UEditBox = Class.extend({
             $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
           }, sendMsg_);
         } else {
-          _global._imV.SendAppMsg(function(mmm) {
+          _global._imV.sendAppMsgByDevice(function(mmm) {
           }, sendMsg_);
         }
       }, msg_, curEditBox_._fileTransList[msg_.key].path);
@@ -3879,7 +3879,7 @@ var UEditBox = Class.extend({
             $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
           }
-          _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
+          _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_);
         }
       }
     }, msg_);
@@ -3920,7 +3920,7 @@ var UEditBox = Class.extend({
     var toIdentity = curEditBox_._toIdentity;
     msg_['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
     sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': msg_});
-    _global._imV.SendAppMsg(function(mmm) {
+    _global._imV.sendAppMsgByDevice(function(mmm) {
       var ratioLable = '您拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
       var msgtime = new Date();
       var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
@@ -3941,7 +3941,7 @@ var UEditBox = Class.extend({
       $('#fileTransItem_' + msg_.key).remove();
       msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
       sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': msg_});
-      _global._imV.SendAppMsg(function(mmm) {}, sendMsg_);
+      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_);
     } else {
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
@@ -3975,7 +3975,7 @@ var UEditBox = Class.extend({
         'msg': rst
       });
       if (curEditBox_._group === '') {
-        _global._imV.SendAppMsg(function(mmm) {
+        _global._imV.sendAppMsgByDevice(function(mmm) {
           cb_();
         }, sendMsg_);
       } else {
@@ -3987,7 +3987,7 @@ var UEditBox = Class.extend({
         }
         if (Object.keys(toAccList).length !== 0) {
           sendMsg_['toAccList'] = toAccList;
-          _global._imV.SendAppMsgByAccount(function(mmm) {
+          _global._imV.sendAppMsgByAccount(function(mmm) {
             if(!flag_){
               for (var toAccListKey in curFile_['memList']) {
                 if (exceptUID_ === undefined || toAccListKey !== exceptUID_){
@@ -4053,7 +4053,7 @@ var UEditBox = Class.extend({
                       fileMsgTmp['option'] = 0x0000;
                       fileMsgTmp['state'] = '0'; 
                       sendMsg['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': fileMsgTmp});
-                      _global._imV.SendAppMsg(function(mmm) {}, sendMsg);
+                      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg);
                     }
                     break;
                   case 1://cancel receive

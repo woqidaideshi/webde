@@ -1666,7 +1666,7 @@ var DeviceListModel = Model.extend({
       // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     /* }); */
     // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.RegisterApp(function(recMsg) {
+    _global._imV.registerApp(function(recMsg) {
       var toAccount = recMsg.MsgObj.from;
       var msg = recMsg.MsgObj['message'];
       var toAccountInfo = {};
