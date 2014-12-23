@@ -992,16 +992,17 @@ var AppEntryModel = EntryModel.extend({
       /* utilIns.entryUtil.getIconPath(file_['Icon'], 48, function(err_, imgPath_) { */
       /* }); */
       // get name
-      if(typeof file_['Name[zh_CN]'] !== "undefined") {
-        _this.setName(file_['Name[zh_CN]']);
+      var locale = _global._locale.locale;
+      if(typeof file_['Name[' + locale + ']'] !== "undefined") {
+        _this.setName(file_['Name[' + locale + ']']);
       } else {
         _this.setName(file_['Name']);
       }
       // get comment
       _this._comment = file_['Comment'];
       // get genericName
-      if (typeof file_['GenericName[zh_CN]'] != 'undefined') {
-        _this._genericName = file_['GenericName[zh_CN]'];
+      if (typeof file_['GenericName[' + locale + ']'] != 'undefined') {
+        _this._genericName = file_['GenericName[' + locale + ']'];
       } else {
         _this._genericName = file_['GenericName'];
       }
@@ -1075,8 +1076,6 @@ var AppEntryModel = EntryModel.extend({
 
   open: function(pera_) {
     var p_ = pera_ || '';
-    // TODO: replace by API ourselves
-    // _global._exec(this._execCmd + p_, function(err, stdout, stderr) {
     _global._dataOP.shellExec(function(err, stdout, stderr) {
       if(err !== null) {
         console.log(err);
@@ -1086,8 +1085,6 @@ var AppEntryModel = EntryModel.extend({
 
   rename: function(name_) {
     if(name_ != this._name) {
-      // TODO: rename a app entry
-      //    send new name to Data Layer and rename this entry
       this.setName(name_);
     }
   },
@@ -1761,8 +1758,6 @@ var AccountEntryModel = EntryModel.extend({
 
   getProtocol: function() {return this._position.protocol;},
 
-  getName: function() {return this._position.name;},
-
   getSType: function() {return this._position.stype;},
 
   getDomain: function() {return this._position.domain;},
@@ -1850,8 +1845,6 @@ var DeviceEntryModel = EntryModel.extend({
   getInterface: function() {return this._position.interface;},
 
   getProtocol: function() {return this._position.protocol;},
-
-  getName: function() {return this._position.name;},
 
   getSType: function() {return this._position.stype;},
 
