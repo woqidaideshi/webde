@@ -1680,12 +1680,6 @@ var DeviceListView = View.extend({
         }
         _this._c[dev_.getID()] = AccountEntryView.create(dev_.getID(), dev_, _this);
         _this._c[dev_.getID()].show(_this.$view);
-        var curDevEditBox = _this._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
-        if (curDevEditBox !== undefined)
-          curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._imChatWinList);
-        curDevEditBox = _this._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
-        if (curDevEditBox !== undefined)
-          curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._imChatWinList);
       },
       'remove': function(err_, dev_){
         // TODO: delete the device entry view associated by dev_
@@ -1696,12 +1690,6 @@ var DeviceListView = View.extend({
         _this._c[dev_.getID()].destroy();
         _this._c[dev_.getID()] = null;
         delete _this._c[dev_.getID()];
-        var curDevEditBox = _this._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
-        if (curDevEditBox !== undefined)
-          curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
-        curDevEditBox = _this._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
-        if (curDevEditBox !== undefined)
-          curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
       },
       'imMsg': function(toAccountInfo_) {
         var toAccount = toAccountInfo_.toAccount;
@@ -1866,6 +1854,12 @@ var AccountEntryView = View.extend({
         // TODO: add a dev entry under this account
         _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_, _this);
         _this._c[dev_.getID()].show(_this.$view.find('.acc-devlist'));
+        var curDevEditBox = _this._parent._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
+        if (curDevEditBox !== undefined)
+          curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._parent._imChatWinList);
+        curDevEditBox = _this._parent._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
+        if (curDevEditBox !== undefined)
+          curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._parent._imChatWinList);
       },
       'remove': function(err_, dev_) {
         if(err_) return console.log(err_);
@@ -1873,6 +1867,12 @@ var AccountEntryView = View.extend({
         _this._c[dev_.getID()].destroy();
         _this._c[dev_.getID()] = null;
         delete _this._c[dev_.getID()];
+        var curDevEditBox = _this._parent._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
+        if (curDevEditBox !== undefined)
+          curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
+        curDevEditBox = _this._parent._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
+        if (curDevEditBox !== undefined)
+          curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
       },
       'name': function(err_, name_) {
         if(err_) {
@@ -2042,7 +2042,7 @@ var DevEntryView = View.extend({
       e.stopPropagation();
       e.preventDefault();
       _global._imV.getLocalData(function(localInfo){
-        if(localInfo.UID!== _this._model._position['txt'][2]){
+        if(!(_global.get('ws').isLocal())||(localInfo.UID!== _this._model._position['txt'][2])){
           var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
           if (curEditBox === undefined) {
             _this._controller.onDblclick(function(curEditBoxTmp) {
@@ -2061,7 +2061,7 @@ var DevEntryView = View.extend({
     }).dblclick(function(e) {
       e.stopPropagation();
       _global._imV.getLocalData(function(localInfo){
-        if(localInfo.UID!== _this._model._position['txt'][2]){
+        if(!(_global.get('ws').isLocal())||(localInfo.UID!== _this._model._position['txt'][2])){
           var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
           if (curEditBox === undefined) {
             _this._controller.onDblclick(function(curEditBox) {});
@@ -3406,7 +3406,7 @@ var UEditBox = Class.extend({
                         <label class="chatList_mem_t">\
                             成员列表</label>\
                     </div>\
-                    <div class="chatList_content" id="memInfoCtn_' + _this._toIdentity + '">\
+                    <div class="chatListMem_content" id="memInfoCtn_' + _this._toIdentity + '">\
                     </div>\
                 </div>\
              <div class="chatList" id="fileTransShow_' + _this._toIdentity + '"  style="display:none">\
@@ -3414,7 +3414,7 @@ var UEditBox = Class.extend({
                         <label class="chatList_acc_t">\
                             正在传输文件...</label>\
                     </div>\
-                    <div class="chatList_content" id="fileTransCtn_' + _this._toIdentity + '">\
+                    <div class="chatListFile_content" id="fileTransCtn_' + _this._toIdentity + '">\
                         <ul id="fileTransList_' + _this._toIdentity + '">\
                         </ul>\
                     </div>\
@@ -3456,30 +3456,32 @@ var UEditBox = Class.extend({
         type: "item",
         img: "img/device.png",
         text: toAccInfo.toAccount + '<br/>UID:' + toAccInfo.toUID,
-        clkaction: function() {
-          if(toAccInfo.toUID===_this._localUID){
+        dblclkaction_p:{'accInfo':toAccInfo},
+        dblclkaction: function(ev) {
+          if(_global.get('ws').isLocal()&&(ev.data.accInfo.toUID===_this._localUID)){
             return;
-          }
-          var devEditBoxItem = imChatWinList_['imChatWin_' + toAccInfo.toUID];
-          if (devEditBoxItem === undefined) {
-            var toAccountInfoItem = {};
-            toAccountInfoItem['toAccount'] = toAccInfo.toAccount;
-            toAccountInfoItem['toIP'] = toAccInfo.toIP;
-            toAccountInfoItem['toUID'] = toAccInfo.toUID;
-            toAccountInfoItem['group'] = '';
-            var toAccounts = {};
-            var toAccListItem = {};
-            toAccListItem['toAccount'] = toAccInfo.toAccount;
-            toAccListItem['toIP'] = toAccInfo.toIP;
-            toAccListItem['toUID'] = toAccInfo.toUID;
-            toAccListItem['onLineFlag'] = toAccInfo.onLineFlag;
-            toAccounts[toAccInfo.toUID] = toAccListItem;
-            toAccountInfoItem['toAccList'] = toAccounts;
-            devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_, _this._selector);
-            imChatWinList_['imChatWin_' + toAccInfo.toUID] = devEditBoxItem;
-          } else {
-            _global._openingWindows.focusOnAWindow(devEditBoxItem._imWindow._id);
-          }
+          }else{
+            var devEditBoxItem = imChatWinList_['imChatWin_' + ev.data.accInfo.toUID];
+            if (devEditBoxItem === undefined) {
+              var toAccountInfoItem = {};
+              toAccountInfoItem['toAccount'] = ev.data.accInfo.toAccount;
+              toAccountInfoItem['toIP'] = ev.data.accInfo.toIP;
+              toAccountInfoItem['toUID'] = ev.data.accInfo.toUID;
+              toAccountInfoItem['group'] = '';
+              var toAccounts = {};
+              var toAccListItem = {};
+              toAccListItem['toAccount'] = ev.data.accInfo.toAccount;
+              toAccListItem['toIP'] = ev.data.accInfo.toIP;
+              toAccListItem['toUID'] = ev.data.accInfo.toUID;
+              toAccListItem['onLineFlag'] = ev.data.accInfo.onLineFlag;
+              toAccounts[ev.data.accInfo.toUID] = toAccListItem;
+              toAccountInfoItem['toAccList'] = toAccounts;
+              devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_, _this._selector);
+              imChatWinList_['imChatWin_' + ev.data.accInfo.toUID] = devEditBoxItem;
+            } else {
+              _global._openingWindows.focusOnAWindow(devEditBoxItem._imWindow._id);
+            }
+          }        
         }
       };
       i++;
@@ -3985,7 +3987,7 @@ var UEditBox = Class.extend({
         }
         if (Object.keys(toAccList).length !== 0) {
           sendMsg_['toAccList'] = toAccList;
-          _global._imV.SendAppMsgByGroup(function(mmm) {
+          _global._imV.SendAppMsgByAccount(function(mmm) {
             if(!flag_){
               for (var toAccListKey in curFile_['memList']) {
                 if (exceptUID_ === undefined || toAccListKey !== exceptUID_){
@@ -4105,7 +4107,7 @@ var UEditBox = Class.extend({
       img: "img/device.png",
       text: info_['txt'][1] + '<br/>UID:' + info_['txt'][2],
       clkaction: function() {
-        if (info_['txt'][2] === curEditBox_._localUID) {
+        if (_global.get('ws').isLocal()&&(info_['txt'][2] === curEditBox_._localUID)) {
           return;
         }
         var devEditBoxItem = imChatWinList_['imChatWin_' + info_['txt'][2]];
