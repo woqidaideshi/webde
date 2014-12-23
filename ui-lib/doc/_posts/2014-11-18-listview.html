@@ -11,11 +11,11 @@ categories: ui
 <pre>
 <code>
 var _listview = ListView.create("_listview_id", {'width':200});  //创建下拉菜单，指定id和宽度
-var items = [{id:"first_item", type:"item", href:"", img:"img/t1.png", text:"first", clkaction:function(){ alert('first')}}, 
+var items = [{id:"first_item", type:"item", href:"", img:"img/t1.png", text:"first", clkaction_p: {msg:"click hello"}, clkaction:function(e){ alert(e.data.msg)}}, 
                     {id:"second_item", type:"item", href:"http://www.baidu.com", img:"img/t2.png", text:"second"},
                     {id:"third_subitem", type:"subitems", img:"img/t3.png", text:"third", subitems:[
                       {id:"four_item", href:"http://www.baidu.com", img:"img/empty.gif", text:"four"},
-                      {id:"five_item", href:"", img:"img/sunset.jpg", text:"fifth", dblclkaction: function(){alert('why......')}}
+                      {id:"five_item", href:"", img:"img/sunset.jpg", text:"fifth", dblclkaction_p: {info:"dblclick hello.."}, dblclkaction: function(event){alert(event.data.info)}}
                      ]}];  //下拉菜单的内容
 _listview.addItems(items);  //添加到下拉菜单
 _listview.attach('parent_id');  //在某个元素下添加下拉菜单
@@ -25,12 +25,14 @@ _listview.attach('parent_id');  //在某个元素下添加下拉菜单
 <p>item需要指定type为"item"，其他的选项可以包括：</p>
 <pre>
 <code>
-  id                    -------------    该item的id
-  href                -------------    链接地址
-  img                 -------------    图像
-  text                 -------------    文本
-  clkaction        -------------    单击回调函数
-  dblclkaction   -------------    双击回调函数
+  id                        -------------    该item的id
+  href                    -------------    链接地址
+  img                     -------------    图像
+  text                     -------------    文本
+  clkaction            -------------    单击回调函数
+  clkaction_p        -------------    单击回调函数的参数
+  dblclkaction       -------------    双击回调函数
+  dblclkaction_p   -------------    双击回调函数的参数
 </code>
 </pre><br />
 <p>subitems需要指定type为"subitems"，其他的选项可以包括：</p>
@@ -76,11 +78,11 @@ _listview.attach('parent_id');  //在某个元素下添加下拉菜单
 
 <script type="text/javascript">
 var listview = ListView.create("dkk", {'width':200});
-var items = [{id:"first_item", type:"item", href:"", img:"/assets/img/t1.png", text:"first", clkaction:function(){ alert('first')}}, 
+var items = [{id:"first_item", type:"item", href:"", img:"/assets/img/t1.png", text:"first", clkaction_p: {msg:"click hello"}, clkaction:function(e){ alert(e.data.msg)}}, 
                      {id:"second_item", type:"item", href:"http://www.baidu.com", img:"/assets/img/t2.png", text:"second"},
                      {id:"third_subitem", type:"subitems", img:"/assets/img/t3.png", text:"third", subitems:[
                        {id:"four_item", href:"http://www.baidu.com", img:"/assets/img/empty.gif", text:"four"},
-                       {id:"five_item", href:"", img:"/assets/img/sunset.jpg", text:"fifth", dblclkaction: function(){alert('why......')}}
+                       {id:"five_item", href:"", img:"/assets/img/sunset.jpg", text:"fifth", dblclkaction_p: {info:"dblclick hello.."}, dblclkaction: function(event){alert(event.data.info)}}
                      ]}];
 listview.addItems(items);
 

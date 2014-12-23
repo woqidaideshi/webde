@@ -41,7 +41,12 @@ var ListView = Class.extend({
         actionID = 'event' + actiond.getTime() * Math.floor(Math.random() * 100000),
         eventAction = data.clkaction;
         $item.find('a').attr('id', actionID);
-        $(document).on('click', '#' + actionID, data.clkaction);
+        if (typeof data.clkaction_p !== 'undefined'){
+          $(document).on('click', '#' + actionID, data.clkaction_p, data.clkaction);
+        }
+        else{
+          $(document).on('click', '#' + actionID, data.clkaction);
+        }
     }
 
     if (typeof data.dblclkaction !== 'undefined'){
@@ -49,7 +54,12 @@ var ListView = Class.extend({
         actionID = 'event' + actiond.getTime() * Math.floor(Math.random() * 100000),
         eventAction = data.dblclkaction;
         $item.find('a').attr('id', actionID);
-        $(document).on('dblclick', '#' + actionID, data.dblclkaction);
+        if (typeof data.dblclkaction_p !== 'undefined'){
+          $(document).on('dblclick', '#' + actionID, data.dblclkaction_p, data.dblclkaction);
+        }
+        else {
+          $(document).on('dblclick', '#' + actionID, data.dblclkaction);
+        }
     }
 
     if (typeof $ul_ === 'undefined') {
