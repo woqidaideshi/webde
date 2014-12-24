@@ -61,6 +61,7 @@ var DesktopView = View.extend({
   initCtxMenu: function() {
     var desktop = this._model,
         ctxMenu = _global.get('ctxMenu'),
+        lang = _global._locale.langObj,
         _this = this;
     ctxMenu.addCtxMenu([
       {header: 'desktop'},
@@ -77,7 +78,7 @@ var DesktopView = View.extend({
           // break; 
         // }
       /* }}, */
-      {text: 'create Text', icon: 'icon-doc-text', action: function(e){
+      {text: lang['c_txt'], icon: 'icon-doc-text', action: function(e){
         e.preventDefault();
         // change to demo-rio's API
         _global._dataOP.createFileOnDesk(function(err_, ret_) {
@@ -85,18 +86,18 @@ var DesktopView = View.extend({
           _this._c['layout'].getCurView()._controller.onAddFile(ret_[0], ret_[1]);
         });
       }},
-      {text: 'script', subMenu: [
+      {text: lang['script'], subMenu: [
         {header: 'script'}
       ]},
       {divider: true},
-      {text: 'terminal', icon: 'icon-terminal', action: function(e) {
+      {text: lang['terminal'], icon: 'icon-terminal', action: function(e) {
         e.preventDefault();
         _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
           console.log('stderr: ' + stderr);
         }, "gnome-terminal");
       }},
-      {text:'gedit', icon: 'icon-edit', action:function(e){
+      {text: lang['gedit'], icon: 'icon-edit', action:function(e){
         e.preventDefault();
         _global._dataOP.shellExec(function(err, stdout, stderr) {
           console.log('stdout: ' + stdout);
@@ -104,15 +105,15 @@ var DesktopView = View.extend({
         }, "gedit");
       }},
       {divider: true},
-      {text: 'refresh', icon: 'icon-spin3 animate-spin', action: function(e) {
+      {text: lang['refresh'], icon: 'icon-spin3 animate-spin', action: function(e) {
         // TODO: only reload views
         location.reload();
       }},
-      {text: 'refresh (F5)', icon: 'icon-spin3 animate-spin', action: function(e) {
+      {text: lang['refresh'] + ' (F5)', icon: 'icon-spin3 animate-spin', action: function(e) {
         location.reload(true);
       }},
       {divider: true},
-      {text: 'window', action: function() {
+      {text: lang['window'], action: function() {
         Window.create('newWin','Test Window ', {
           left:200,
           top:100,
@@ -131,7 +132,7 @@ var DesktopView = View.extend({
           _global._openingWindows.focusOnAWindow(this._id);
         });
       }},
-      {text: 'window2', action: function() {
+      {text: lang['window'] + '2', action: function() {
         Window.create('newWin2','Test Window2!', {
           left:400,
           top:300,
@@ -150,9 +151,9 @@ var DesktopView = View.extend({
           _global._openingWindows.focusOnAWindow(this._id);
         });
       }},
-      {text: 'app-plugin', icon: 'icon-plus', subMenu: [
+      {text: lang['add-plugin'], icon: 'icon-plus', subMenu: [
         {header: 'add-plugin'},
-        {text: 'clock', icon: 'icon-time', action: function(e) {
+        {text: lang['clock'], icon: 'icon-time', action: function(e) {
           e.preventDefault();
           if (typeof $('#clock')[0] == 'undefined') {
             var layout = desktop.getCOMById('layout').getCurLayout();
@@ -161,61 +162,61 @@ var DesktopView = View.extend({
           }
         }}
       ]},
-      {text:'messenger set',icon: 'icon-cog', subMenu:[
+      {text: lang['messenger_set'], icon: 'icon-cog', subMenu:[
         {header: 'messenger set'},
-        {text:'position',subMenu:[
-          {header:'messenger-pos'},
-          {text:'left-bottom', action:function(e){
+        {text: lang['position'], subMenu:[
+          {header: 'messenger-pos'},
+          {text: lang['left-bottom'], action:function(e){
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-left messenger-on-bottom"
             };
           }},
-          {text:'left-top', action:function(e){
+          {text: lang['left-top'], action:function(e){
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-left messenger-on-top"
             };
           }},
-          {text:'top', action:function(e){
+          {text: lang['top'], action:function(e){
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-top"
             };
           }},
-          {text:'right-top', action:function(e){
+          {text: lang['right-top'], action:function(e){
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-right messenger-on-top"
             };
           }},
-          {text:'right-bottom', action:function(e){
+          {text: lang['right-bottom'], action:function(e){
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-right messenger-on-bottom"
             };
           }},
-          {text:'bottom', action:function(e){
+          {text: lang['bottom'], action:function(e){
             Messenger.options = {
               extraClasses: "messenger-fixed messenger-on-bottom"
             };
           }},
 
         ]},
-        {text:'maxMessages',subMenu:[
-          {text:'one',action:function(){
+        {text: lang['max_messages'], subMenu:[
+          {text: '1', action:function(){
             Messenger.options={
               maxMessages: '1'
             }
           }},
-          {text:'three',action:function(){
+          {text: '3', action:function(){
             Messenger.options={
               maxMessages: '3'
             }
           }},
-          {text:'five',action:function(){
+          {text: '5', action:function(){
             Messenger.options={
               maxMessages: '5'
             }
           }}
         ]}
       ]},
-      {text: 'Layout', subMenu: [
+      {text: lang['switch_motion'], subMenu: [
         {header: 'switch motion'}
       ]}
     ]);
@@ -224,15 +225,15 @@ var DesktopView = View.extend({
         _this = this;
     ctxMenu.addCtxMenu([
       {header: 'plugin'},
-      {text: 'zoom in', action: function(e) {
+      {text: lang['zoom_in'], action: function(e) {
         e.preventDefault();
         desktop.getCOMById('layout').getCurLayout().getWidgetById(ctxMenu._rightObjId).zoomIn();
       }},
-      {text: 'zoom out', action: function(e) {
+      {text: lang['zoom_out'], action: function(e) {
         e.preventDefault();
         desktop.getCOMById('layout').getCurLayout().getWidgetById(ctxMenu._rightObjId).zoomOut();
       }},
-      {text:'remove', action:function(e) {
+      {text: lang['remove'], action:function(e) {
         e.preventDefault();
         var layout = desktop.getCOMById('layout').getCurLayout(),
             _widget = layout.getWidgetById(ctxMenu._rightObjId);
@@ -243,7 +244,7 @@ var DesktopView = View.extend({
         });
         layout.remove(_widget);
       }},
-      {text: 'show clock', action: function() {
+      {text: lang['show_clock'], action: function() {
         $('#clock').modalBox({
           iconImg: 'img/close.png',
           iconClose: true,
@@ -254,22 +255,22 @@ var DesktopView = View.extend({
     ]);
     ctxMenu.addCtxMenu([
       {header: 'app-entry'},
-      {text: 'Open', action: function(e) {
+      {text: lang['run'], action: function(e) {
         e.preventDefault();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
-      {text: 'Rename', action: function(e) {
+      {text: lang['rename'], action: function(e) {
         e.preventDefault();
         e.stopPropagation();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
-      {text: 'delete', icon: 'icon-cancel-circled2', action: function(e) {
+      {text: lang['delete'], icon: 'icon-cancel-circled2', action: function(e) {
         e.preventDefault();
         /* var _path = desktop._widgets[ctxMenu._rightObjId]._path; */
         /* utilIns.entryUtil.removeFile(_path); */
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onEntryDelete();
       }},
-      {text:'property', action: function(e) {
+      {text: lang['property'], action: function(e) {
         e.preventDefault();
         var layout = _global.get('desktop').getCOMById('layout').getCurLayout();
         PropertyView.create(ctxMenu._rightObjId
@@ -279,38 +280,38 @@ var DesktopView = View.extend({
     ]);
     ctxMenu.addCtxMenu([
       {header: 'file-entry'},
-      {text: 'Open', icon: 'icon-folder-open-empty', action: function(e) {
+      {text: lang['open'], icon: 'icon-folder-open-empty', action: function(e) {
         e.preventDefault();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
-      {text:'Open with...',icon: 'icon-folder-open', subMenu: [
+      {text: lang['open_with'], icon: 'icon-folder-open', subMenu: [
         {header: 'Open with'}]
       },
       {divider: true},
-      {text: 'Rename', action: function(e) {
+      {text: lang['rename'], action: function(e) {
         e.preventDefault();
         e.stopPropagation();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
       }},
-      {text:'Move to Trash' ,icon: 'icon-trash', action:function(e){
+      {text: lang['move2trash'], icon: 'icon-trash', action:function(e){
         e.preventDefault();
         utilIns.trashUtil.moveToTrash(ctxMenu._rightObjId);
       }},
-      {text:'Delete' , icon: 'icon-cancel-circled2', action:function(e){
+      {text: lang['delete'], icon: 'icon-cancel-circled2', action:function(e){
         e.preventDefault();
         var _msg;
         _msg = Messenger().post({
-          message: 'If delete it , you can\'t recover it. \n Are you sure delete the file?',
+          message: lang['delete_warnning'],
           type: 'info',
           showCloseButton: true,
           actions:{
             sure:{
-              label: 'sure delete',
+              label: lang['sure'],
               action:function(){
                 var _path = desktop._widgets[ctxMenu._rightObjId]._path;
                 utilIns.entryUtil.removeFile(_path);
                 _msg.update({
-                  message: 'Deleted file!',
+                  message: lang['delete'] + lang['space'] + lang['success'],
                   type: 'success',
                   showCloseButton: true,
                   actions: false
@@ -318,11 +319,11 @@ var DesktopView = View.extend({
               }
             },
             trash:{
-              label:'move to trash',
+              label: lang['move2trash'],
               action:function(){
                 utilIns.trashUtil.moveToTrash(ctxMenu._rightObjId);
                 _msg.update({
-                  message: 'Moved file into trash!',
+                  message: lang['move2trash'] + lang['space'] + lang['success'],
                   type: 'success',
                   showCloseButton: true,
                   actions: false
@@ -330,10 +331,10 @@ var DesktopView = View.extend({
               }
             },
             cancel:{
-              label:'cancel',
+              label: lang['cancel'],
               action:function(){
                 _msg.update({
-                  message: 'Cancel delete file!',
+                  message: lang['cancel'] + lang['space'] + lang['delete'],
                   type: 'error',
                   showCloseButton: true,
                   actions: false
@@ -347,11 +348,11 @@ var DesktopView = View.extend({
     ]);
     ctxMenu.addCtxMenu([
       {header: 'theme-entry'},
-      {text: 'Open', action: function(e) {
+      {text: lang['open'], action: function(e) {
         e.preventDefault();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onDblclick();
       }},
-      {text: 'Rename', action: function(e) {
+      {text: lang['rename'], action: function(e) {
         e.preventDefault();
         e.stopPropagation();
         _this._c['layout'].getCurView()._c[ctxMenu._rightObjId]._controller.onRename();
@@ -1289,7 +1290,7 @@ var LauncherView = View.extend({
     }).attr({
       'type': 'search',
       'results': 5,
-      'placeholder': 'Search...'//,
+      'placeholder': _global._locale.langObj['search'] + '...'//,
       // 'autofocus': 'autofocus'
     }))));
     this.initAction();
@@ -1317,14 +1318,15 @@ var LauncherView = View.extend({
           return ;
         }
         var id_ = app_.getID() + '-launcher',
-            cg_ = app_.getCategory();
+            cg_ = app_.getCategory(),
+            lang = _global._locale.langObj;
         if(typeof _this._views[id_] === 'undefined') return ;
         _this._views[id_].hide();
         _this._views[id_] = null;
         delete _this._views[id_];
-        _this._c['All'].subject.attr('title', 'All' + '(' + --_this._c['All'].length + ')');
+        _this._c['All'].subject.attr('title', lang['All'] + '(' + --_this._c['All'].length + ')');
         if(typeof cg_ != 'undefined' && cg_ != 'All')
-          _this._c[cg_].subject.attr('title', cg_ + '(' + --_this._c[cg_].length + ')');
+          _this._c[cg_].subject.attr('title', lang[cg_] + '(' + --_this._c[cg_].length + ')');
       },
       'show': function(err_) {
         if(err_) {
@@ -1400,20 +1402,21 @@ var LauncherView = View.extend({
 
   initCtxMenu: function() {
     var _this = this,
-        ctxMenu = _global.get('ctxMenu');
+        ctxMenu = _global.get('ctxMenu'),
+        lang = _global._locale.langObj;
     ctxMenu.addCtxMenu([
       {header: 'launcher'},
-      {text: 'Open', action: function(e) {
+      {text: lang['run'], action: function(e) {
         e.preventDefault();
         _this._views[ctxMenu._rightObjId]._controller.onClick();
         _this.toggle();
       }},
-      {text: 'Add to Desktop', action: function(e) {
+      {text: lang['add2desktop'], action: function(e) {
         e.preventDefault();
         _this._views[ctxMenu._rightObjId]._controller.onAddToDesktop();
         _this.toggle();
       }},
-      {text: 'Add to Dock', action: function(e) {
+      {text: lang['add2dock'], action: function(e) {
         e.preventDefault();
         _this._views[ctxMenu._rightObjId]._controller.onAddToDock();
         _this.toggle();
@@ -1495,12 +1498,13 @@ var LauncherView = View.extend({
         break;
     }
     // add entry_ to category_
+    var title = _global._locale.langObj[cg];
     if(typeof this._c[cg] === 'undefined') {
       var _this = this;
       _this._c[cg] = {
         'subject': $('<div>', {
                     'class': icon + ' sub-entry',
-                    'title': cg + '(0)'
+                    'title': title + '(0)'
                   }).on('click', function(e) {
                     e.stopPropagation();
                     _this._c[_this._cur].content.hide();
@@ -1521,7 +1525,7 @@ var LauncherView = View.extend({
     }
     if(typeof entry_ !== 'undefined') {
       entry_.show(this._c[cg].content);
-      this._c[cg].subject.attr('title', cg + '(' + ++this._c[cg].length + ')');
+      this._c[cg].subject.attr('title', title + '(' + ++this._c[cg].length + ')');
     }
   },
 
@@ -1578,37 +1582,46 @@ var LauncherEntryView = View.extend({
 
   registObservers: function() {
     var _this = this;
-    _this._model.on('category', function(err_, cg_) {
-      if(_this.$view2 == null) {
-        _this.$view2 = _this.$view.clone();
-        _this.initAction(_this.$view2);
+    _this.__handlers = {
+      'category': function(err_, cg_) {
+        if(_this.$view2 == null) {
+          _this.$view2 = _this.$view.clone();
+          _this.initAction(_this.$view2);
+        }
+        var cg = _global._App_Cate[cg_],
+            title = _global._locale.langObj[cg];
+        _this._contents[cg].subject.attr('title', title + '(' + ++_this._contents[cg].length + ')');
+        _this._contents[cg].content.append(_this.$view2);
+      },
+      'imgPath': function(err_, imgPath_) {
+        _this.$view.children('img').attr('src', imgPath_);
+        if(_this.$view2 != null) {
+          _this.$view2.children('img').attr('src', imgPath_);
+        }
+      },
+      'name': function(err_, name_) {
+        _this.$view.children('p').text(name_);
+        if(_this.$view2 != null) {
+          _this.$view2.children('p').text(name_);
+        }
+      },
+      'noDisplay': function(err_, noDisplay_) {
+        if(err_) {
+          console.log(err_);
+          return ;
+        }
+        if(noDisplay_) {
+          _this.hide();
+          _this._parent._c['All'].subject.attr('title'
+            , _global._locale.langObj['All'] + '(' + --_this._parent._c['All'].length + ')');
+          _this._parent._views[_this._id] = null;
+          delete _this._parent._views[_this._id];
+        }
       }
-      var cg = _global._App_Cate[cg_];
-      _this._contents[cg].subject.attr('title', cg + '(' + ++_this._contents[cg].length + ')');
-      _this._contents[cg].content.append(_this.$view2);
-    }).on('imgPath', function(err_, imgPath_) {
-      _this.$view.children('img').attr('src', imgPath_);
-      if(_this.$view2 != null) {
-        _this.$view2.children('img').attr('src', imgPath_);
-      }
-    }).on('name', function(err_, name_) {
-      _this.$view.children('p').text(name_);
-      if(_this.$view2 != null) {
-        _this.$view2.children('p').text(name_);
-      }
-    }).on('noDisplay', function(err_, noDisplay_) {
-      if(err_) {
-        console.log(err_);
-        return ;
-      }
-      if(noDisplay_) {
-        _this.hide();
-        _this._parent._c['All'].subject.attr('title'
-          , 'All' + '(' + --_this._parent._c['All'].length + ')');
-        _this._parent._views[_this._id] = null;
-        delete _this._parent._views[_this._id];
-      }
-    });
+    };
+    for(var key in _this.__handlers) {
+      _this._model.on(key, _this.__handlers[key]);
+    }
   },
 
   initAction: function($view) {
@@ -2166,21 +2179,22 @@ var DockView = View.extend({
 
   initCtxMenu: function() {
     var _this = this,
-        ctxMenu = _global.get('ctxMenu');
+        ctxMenu = _global.get('ctxMenu'),
+        lang = _global._locale.langObj;
     ctxMenu.addCtxMenu([
       {header: 'dock'},
-      {text: 'property', action: function(e) {
+      {text: lang['property'], action: function(e) {
         e.preventDefault();
         var id_ = /([\w-_\s\.]+)-dock$/.exec(ctxMenu._rightObjId);
         PropertyView.create(id_[0], _this._model.getCOMById(id_[1]), _this._model).show();
       }},
-      {text: 'add reflect', action: function() {
+      {text: lang['add_reflect'], action: function() {
         _this.addReflect();
       }},
-      {text: 'remove reflect', action: function() {
+      {text: lang['remove_reflect'], action: function() {
         _this.removeReflect();
       }},
-      {text: 'delete', action: function() {
+      {text: lang['delete'], action: function() {
         _this._c[ctxMenu._rightObjId]._controller.onEntryDelete();
       }}
     ]);
@@ -2517,6 +2531,7 @@ var PropertyView = View.extend({
     this._offsetY = 0;            //record mouse-y relate property-div top
     this._imgPath = undefined;
 
+    var lang = _global._locale.langObj;
     // main div
     this.$view = $('<div>', {
       'class': 'property',
@@ -2527,11 +2542,11 @@ var PropertyView = View.extend({
     // title 
     this.$view.append($('<h2>',{
       'id': id_ + '-title',
-      'text': this._model.getName() + ' ' + '属性'
+      'text': this._model.getName() + ' ' + lang['property']
     }));
 
     // content
-    this._tab = Tab.create('property-tab',['basic', 'power']);
+    this._tab = Tab.create('property-tab', ['basic', 'power']);
     this._tab.injectParent(this.$view);
 
     this._tab.addDivByTab($('<div>', {
@@ -2551,7 +2566,7 @@ var PropertyView = View.extend({
     this.$view.append($('<button>',{
       'class': 'btn',
       'id': this._id + '-close',
-      'text': 'CLOSE'
+      'text': lang['close']
     }).addClass('active'));
 
     this.registObservers();
@@ -3326,6 +3341,7 @@ var FlipperView = View.extend({
     return this._c[this._model.getCur()].getSelectableItems();
   }
 });
+
 var UEditBox = Class.extend({
   init: function(toAccountInfo_, imChatWinList_, selector_) {
     this._selector = selector_;
@@ -4184,6 +4200,7 @@ var LoginView = View.extend({
     this.callSuper(id_, model_, parent_);
     this.registObservers();
     // view for login
+    var lang = _global._locale.langObj;
     this.$loginView = $('<div>', {
       'class': 'login'
     }).append($('<div>', {
@@ -4191,12 +4208,12 @@ var LoginView = View.extend({
     }).append($('<div>', {
       'class': 'content-row'
     }).html(
-      '账户： ' +
+      lang['account'] + '： ' +
       '<input type="text" name="account">'
     )).append($('<div>', {
       'class': 'content-row'
     }).html(
-      '密码： ' +
+      lang['passwd'] + '： ' +
       '<input type="password" name="password">'
     )).append($('<div>', {
       'class': 'content-row',
@@ -4204,30 +4221,30 @@ var LoginView = View.extend({
     }))).append($('<div>', {
       'class': 'login-btn-bar'
     }).html(
-      '<button class="btn active" id="btn-regist">注册>>></button>' +
-      '<button class="btn disable" id="btn-login">登陆</button>' +
-      '<button class="btn active hidden" id="btn-cancel">取消</button>'
+      '<button class="btn active" id="btn-regist">' + lang['register'] + '>>></button>' +
+      '<button class="btn disable" id="btn-login">' + lang['login'] + '</button>' +
+      '<button class="btn active hidden" id="btn-cancel">'+ lang['cancel'] + '</button>'
     )).append($('<div>', {
       'class': 'login-waiting hidden'
     }).html(
       '<div class="loading icon-spin5 animate-spin"></div>' +
-      '<p>正在登陆，请稍后...</p>'
+      '<p>'+ lang['logging'] + '</p>'
     )).append($('<div>', {
       'class': 'login-regist hidden'
     }).html(
       '<div class="content-row">' +
-      '<div>账户</div>：<input type="text" name="r-account">' +
+      '<div>' + lang['account'] + '</div>：<input type="text" name="r-account">' +
       '</div>' +
       '<div class="content-row">' +
-      '<div>密码</div>：<input type="password" name="r-password">' +
+      '<div>' + lang['passwd'] + '</div>：<input type="password" name="r-password">' +
       '</div>' +
       '<div class="content-row">' +
-      '<div>确认密码</div>：<input type="password" name="r-password-c">' +
+      '<div>' + lang['sure_passwd'] + '</div>：<input type="password" name="r-password-c">' +
       '</div>' +
       '<div class="content-row" id="msg"></div>' +
       '<div class="content-row">' +
-      '<button class="btn disable" id="btn-commit">提交</button>' +
-      '<button class="btn active" id="btn-r-cancel">关闭</button>' +
+      '<button class="btn disable" id="btn-commit">' + lang['commit'] + '</button>' +
+      '<button class="btn active" id="btn-r-cancel">' + lang['close'] + '</button>' +
       '</div>'
     ));
     // view for logout
@@ -4236,19 +4253,20 @@ var LoginView = View.extend({
     }).append($('<div>', {
       'class': 'logout-content'
     }).html(
-      '确定登出此账户？'
+      lang['logout_warnning']
     )).append($('<div>', {
       'class': 'logout-btn-bar'
     }).html(
-      '<button class="btn active" id="btn-sure">确认</button>' +
-      '<button class="btn active" id="btn-cancel">取消</button>'
+      '<button class="btn active" id="btn-sure">' + lang['sure'] + '</button>' +
+      '<button class="btn active" id="btn-cancel">' + lang['cancel'] + '</button>'
     ));
     this._controller = LoginController.create(this);
     this._r_shown = false;
   },
 
   registObservers: function() {
-    var _this = this;
+    var _this = this,
+        lang = _global._locale.langObj;
     _this.__handlers = {
       'login': function(err_, state_) {
         if(err_) {
@@ -4270,7 +4288,8 @@ var LoginView = View.extend({
             $('#' + _this._id + '-window').remove();
           } else {
             _this.toggleLogin(false);
-            _this.$loginView.find('#msg1').html('登陆失败：' + msg_);
+            _this.$loginView.find('#msg1').html(lang['login'] + lang['space'] + lang['fail']
+                + ': ' + msg_);
           }
         }
         // _this._win.closeWindow(_this._win);
@@ -4278,9 +4297,10 @@ var LoginView = View.extend({
       'regist': function(err_, success_, reason_) {
         _this.$loginView.find('span').remove();
         if(success_) {
-          _this.$loginView.find('#msg').html('注册成功');
+          _this.$loginView.find('#msg').html(lang['register'] + lang['space'] + lang['success']);
         } else {
-          _this.$loginView.find('#msg').html('注册失败：' + reason_);
+          _this.$loginView.find('#msg').html(lang['register'] + lang['space'] + lang['fail']
+              + '：' + reason_);
         }
       }
     };
@@ -4328,15 +4348,16 @@ var LoginView = View.extend({
 
   show: function(toLogin_) {
     if($('#' + this._id + '-window').length != 0) return ;
-    var $view, title, height, width;
+    var $view, title, height, width,
+        lang = _global._locale.langObj;
     if(toLogin_) {
       $view = this.$loginView;
-      title = '登陆';
+      title = lang['login'];
       height = 300;
       width = 500;
     } else {
       $view = this.$logoffView;
-      title = '登出';
+      title = lang['logout'];
       height = 150;
       width = 250;
     }
@@ -4449,7 +4470,7 @@ var LoginView = View.extend({
             view._controller.onRegist($account.val(), p1);
           } else {
             // TODO: show warnning
-            $msg.html('密码确认有误');
+            $msg.html(lang['sure_passwd'] + lang['space'] + lang['fail']);
           }
         });
         $cancel.off().on('click', function(e) {
