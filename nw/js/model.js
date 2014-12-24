@@ -1625,6 +1625,43 @@ var DeviceListModel = Model.extend({
     }
   },
 
+  __handleIMMsg: function(recMsg) {
+    var _this = _global.get('desktop').getCOMById('device-list');
+    var toAccount = recMsg.MsgObj.from;
+    var msg = recMsg.MsgObj['message'];
+    var toAccountInfo = {};
+    toAccountInfo['toAccount'] = toAccount;
+    toAccountInfo['toIP'] = recMsg.IP;
+    toAccountInfo['toUID'] = recMsg.MsgObj.uuid;
+    var toAccInfo = {};
+    var toAccounts = {};
+    try {
+      msg = JSON.parse(msg);
+    } catch (e) {}
+    if (msg.group === '') {
+      toAccInfo['toAccount'] = toAccount;
+      toAccInfo['toUID'] = recMsg.MsgObj.uuid;
+      toAccInfo['toIP'] = recMsg.IP;
+      toAccInfo['onLineFlag'] = 1;
+      toAccounts[recMsg.MsgObj.uuid] = toAccInfo;
+    } else {
+      _global._device.getDeviceByAccount(function(devs_) {
+        for (var j = 0; j < devs_.length; ++j) {
+          toAccInfo = {};
+          toAccInfo['toAccount'] = devs_[j].txt[1];
+          toAccInfo['toUID'] = devs_[j].txt[2];
+          toAccInfo['toIP'] = devs_[j].address;
+          toAccInfo['onLineFlag'] = 1;
+          toAccounts[devs_[j].txt[2]] = toAccInfo;
+        }
+      }, toAccount);
+    }
+    toAccountInfo['toAccList'] = toAccounts;
+    toAccountInfo['msg'] = msg;
+    toAccountInfo['group'] = msg.group;
+    _this.emit('imMsg', toAccountInfo);
+  },
+
   start: function() {
     //load devices
     /* _global._device.showDeviceList(function(devs_) {   */
@@ -1649,9 +1686,6 @@ var DeviceListModel = Model.extend({
       }
       _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
     });
-    if(!ws.isLocal()) {
-      ws.on('device', this.__handler);
-    }
     /* _global._device.startMdnsService(function(state_) { */
       // if(state_) {
         // console.log('start MDNS Service success');
@@ -1663,41 +1697,11 @@ var DeviceListModel = Model.extend({
       // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     /* }); */
     // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.registerApp(function(recMsg) {
-      var toAccount = recMsg.MsgObj.from;
-      var msg = recMsg.MsgObj['message'];
-      var toAccountInfo = {};
-      toAccountInfo['toAccount'] = toAccount;
-      toAccountInfo['toIP'] = recMsg.IP;
-      toAccountInfo['toUID'] = recMsg.MsgObj.uuid;
-      var toAccInfo = {};
-      var toAccounts = {};
-      try {
-        msg = JSON.parse(msg);
-      } catch (e) {}
-      if(msg.group===''){
-        toAccInfo['toAccount'] = toAccount;
-        toAccInfo['toUID'] = recMsg.MsgObj.uuid;
-        toAccInfo['toIP'] = recMsg.IP;
-        toAccInfo['onLineFlag'] = 1;
-        toAccounts[recMsg.MsgObj.uuid] = toAccInfo;
-      }else{
-        _global._device.getDeviceByAccount(function(devs_) {
-          for(var j = 0; j < devs_.length; ++j) {
-            toAccInfo = {};
-            toAccInfo['toAccount'] = devs_[j].txt[1];
-            toAccInfo['toUID'] = devs_[j].txt[2];
-            toAccInfo['toIP'] = devs_[j].address;
-            toAccInfo['onLineFlag'] = 1;
-            toAccounts[devs_[j].txt[2]] = toAccInfo;
-          }
-        }, toAccount);  
-      }
-      toAccountInfo['toAccList'] = toAccounts;
-      toAccountInfo['msg'] = msg;
-      toAccountInfo['group'] = msg.group;
-      _this.emit('imMsg', toAccountInfo);
-    }, 'imChat');
+    _global._imV.registerApp(_this.__handleIMMsg, 'imChat',ws.getConnection());
+    if(!ws.isLocal()) {
+      ws.on('device', this.__handler);
+      ws.on('imChat', this.__handleIMMsg);
+    }
   }
 });
 
