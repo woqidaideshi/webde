@@ -3605,7 +3605,7 @@ var UEditBox = Class.extend({
         sendMsg['App'] = 'imChat';
         _global._imV.sendIMMsg(function(mmm) {
           sendIMMsgCb();
-        }, sendMsg,_global.get('ws').isLocal(),_global.get('ws').getConnection());
+        }, sendMsg,_global.get('ws').getSessionID());
       } else {
         Messenger().post('发送信息不能为空！');
       }
