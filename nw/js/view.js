@@ -1750,7 +1750,7 @@ var DeviceListView = View.extend({
                       Messenger().hideAll();
                       fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
                       sendMsg['Msg'] = JSON.stringify(msg);
-                      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg);
+                      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg,_global.get('ws').getSessionID());
                     }
                   },
                   open: {
@@ -1763,7 +1763,7 @@ var DeviceListView = View.extend({
                         delete fileMsg['state'];
                         curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList,_this._parent._c['layout']._selector);
                         _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
-                      }, sendMsg);
+                      }, sendMsg,_global.get('ws').getSessionID());
                     }
                   }
                 }
@@ -3789,7 +3789,7 @@ var UEditBox = Class.extend({
                 $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
               });
           });
-        }, fileTransMsg);
+        }, fileTransMsg,_global.get('ws').getSessionID());
       }
     }
     var sendMsg = {};
@@ -3826,10 +3826,10 @@ var UEditBox = Class.extend({
                 var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
             $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
-          }, sendMsg_);
+          }, sendMsg_,_global.get('ws').getSessionID());
         } else {
           _global._imV.sendAppMsgByDevice(function(mmm) {
-          }, sendMsg_);
+          }, sendMsg_,_global.get('ws').getSessionID());
         }
       }, msg_, curEditBox_._fileTransList[msg_.key].path);
     } else {
@@ -3895,7 +3895,7 @@ var UEditBox = Class.extend({
             $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
           }
-          _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_);
+          _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_,_global.get('ws').getSessionID());
         }
       }
     }, msg_);
@@ -3942,7 +3942,7 @@ var UEditBox = Class.extend({
       var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
       $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
       $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
-    }, sendMsg_);
+    }, sendMsg_,_global.get('ws').getSessionID());
   },
 
   acceptFileItemTransfer: function(curEditBox_, msg_, sendMsg_, flag_) {
@@ -3957,7 +3957,7 @@ var UEditBox = Class.extend({
       $('#fileTransItem_' + msg_.key).remove();
       msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
       sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': msg_});
-      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_);
+      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_,_global.get('ws').getSessionID());
     } else {
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
@@ -3993,7 +3993,7 @@ var UEditBox = Class.extend({
       if (curEditBox_._group === '') {
         _global._imV.sendAppMsgByDevice(function(mmm) {
           cb_();
-        }, sendMsg_);
+        }, sendMsg_,_global.get('ws').getSessionID());
       } else {
         var toAccList = {};
         for (var toAccListKey in curFile_['memList']) {
@@ -4012,7 +4012,7 @@ var UEditBox = Class.extend({
               }
             } 
             cb_();
-          }, sendMsg_);
+          }, sendMsg_,_global.get('ws').getSessionID());
         }else{
           cb_();
         }
@@ -4069,7 +4069,7 @@ var UEditBox = Class.extend({
                       fileMsgTmp['option'] = 0x0000;
                       fileMsgTmp['state'] = '0'; 
                       sendMsg['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': fileMsgTmp});
-                      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg);
+                      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg,_global.get('ws').getSessionID());
                     }
                     break;
                   case 1://cancel receive
