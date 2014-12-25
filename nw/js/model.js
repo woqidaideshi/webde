@@ -1627,12 +1627,25 @@ var DeviceListModel = Model.extend({
 
   __handleIMMsg: function(recMsg) {
     var _this = _global.get('desktop').getCOMById('device-list');
-    var toAccount = recMsg.MsgObj.from;
-    var msg = recMsg.MsgObj['message'];
+    var toAccount,toUID,toIP;
     var toAccountInfo = {};
+    if(recMsg.destInfo===undefined){
+      toAccount = recMsg.MsgObj.from;
+      toAccountInfo['fromAccount'] = toAccount;
+      toUID = recMsg.MsgObj.uuid;
+      toAccountInfo['fromUID'] = toUID;
+      toIP = recMsg.IP;
+    }else{
+      toAccountInfo['fromAccount'] = recMsg.MsgObj.from;
+      toAccountInfo['fromUID'] = recMsg.MsgObj.uuid;
+      toAccount = recMsg.destInfo.Account;
+      toUID = recMsg.destInfo.UID;
+      toIP = recMsg.destInfo.IP;  
+    }
+    var msg = recMsg.MsgObj['message'];
     toAccountInfo['toAccount'] = toAccount;
-    toAccountInfo['toIP'] = recMsg.IP;
-    toAccountInfo['toUID'] = recMsg.MsgObj.uuid;
+    toAccountInfo['toIP'] = toIP;
+    toAccountInfo['toUID'] = toUID;
     var toAccInfo = {};
     var toAccounts = {};
     try {
@@ -1640,10 +1653,10 @@ var DeviceListModel = Model.extend({
     } catch (e) {}
     if (msg.group === '') {
       toAccInfo['toAccount'] = toAccount;
-      toAccInfo['toUID'] = recMsg.MsgObj.uuid;
-      toAccInfo['toIP'] = recMsg.IP;
+      toAccInfo['toUID'] = toUID;
+      toAccInfo['toIP'] = toIP;
       toAccInfo['onLineFlag'] = 1;
-      toAccounts[recMsg.MsgObj.uuid] = toAccInfo;
+      toAccounts[toUID] = toAccInfo;
     } else {
       _global._device.getDeviceByAccount(function(devs_) {
         for (var j = 0; j < devs_.length; ++j) {
@@ -1698,9 +1711,9 @@ var DeviceListModel = Model.extend({
     /* }); */
     // TODO: for IM, emit 'message' event when recive a message
     _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
+    ws.on('imChat', this.__handleIMMsg);
     if(!ws.isLocal()) {
       ws.on('device', this.__handler);
-      ws.on('imChat', this.__handleIMMsg);
     }
   }
 });

@@ -2055,7 +2055,7 @@ var DevEntryView = View.extend({
       e.stopPropagation();
       e.preventDefault();
       _global._imV.getLocalData(function(localInfo){
-        if(!(_global.get('ws').isLocal())||(localInfo.UID!== _this._model._position['txt'][2])){
+        if(localInfo.UID!== _this._model._position['txt'][2]){
           var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
           if (curEditBox === undefined) {
             _this._controller.onDblclick(function(curEditBoxTmp) {
@@ -2074,7 +2074,7 @@ var DevEntryView = View.extend({
     }).dblclick(function(e) {
       e.stopPropagation();
       _global._imV.getLocalData(function(localInfo){
-        if(!(_global.get('ws').isLocal())||(localInfo.UID!== _this._model._position['txt'][2])){
+        if(localInfo.UID!== _this._model._position['txt'][2]){
           var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
           if (curEditBox === undefined) {
             _this._controller.onDblclick(function(curEditBox) {});
@@ -3395,7 +3395,7 @@ var UEditBox = Class.extend({
         _this.closeBtnFunc(_this, imChatWinList_);
       });
       this._titleDiv.unbind('dblclick');
-      this._titleDiv.dblclick(function(){
+      this._titleDiv.dblclick(function(ev){
         ev.preventDefault();
         ev.stopPropagation();
         _global._openingWindows.focusOnAWindow(this._id);
@@ -3474,7 +3474,7 @@ var UEditBox = Class.extend({
         text: toAccInfo.toAccount + '<br/>UID:' + toAccInfo.toUID,
         dblclkaction_p:{'accInfo':toAccInfo},
         dblclkaction: function(ev) {
-          if(_global.get('ws').isLocal()&&(ev.data.accInfo.toUID===_this._localUID)){
+          if(ev.data.accInfo.toUID===_this._localUID){
             return;
           }else{
             var devEditBoxItem = imChatWinList_['imChatWin_' + ev.data.accInfo.toUID];
@@ -3605,7 +3605,7 @@ var UEditBox = Class.extend({
         sendMsg['App'] = 'imChat';
         _global._imV.sendIMMsg(function(mmm) {
           sendIMMsgCb();
-        }, sendMsg);
+        }, sendMsg,_global.get('ws').isLocal(),_global.get('ws').getConnection());
       } else {
         Messenger().post('发送信息不能为空！');
       }
@@ -3625,7 +3625,7 @@ var UEditBox = Class.extend({
     if (msg.type === undefined) {
       var msgtime = new Date();
       var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-      $('#disp_text_' + toIdentity).append('<span  class="accountFont">' + toAccountInfo_.toAccount + '('+toAccountInfo_.toUID+')&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
+      $('#disp_text_' + toIdentity).append('<span  class="accountFont">' + toAccountInfo_.fromAccount + '('+toAccountInfo_.fromUID+')&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
       $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
     } else {
       var sendMsg = {};
@@ -4123,7 +4123,7 @@ var UEditBox = Class.extend({
       img: "img/device.png",
       text: info_['txt'][1] + '<br/>UID:' + info_['txt'][2],
       clkaction: function() {
-        if (_global.get('ws').isLocal()&&(info_['txt'][2] === curEditBox_._localUID)) {
+        if (info_['txt'][2] === curEditBox_._localUID) {
           return;
         }
         var devEditBoxItem = imChatWinList_['imChatWin_' + info_['txt'][2]];
