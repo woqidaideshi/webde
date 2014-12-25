@@ -1126,9 +1126,15 @@ var RemoteObserver = Model.extend({
   },
 
   __dispacher: function(msg) {
+    if(typeof msg.sessionID !== 'undefined') {
+      this._sessionID = msg.sessionID;
+      return ;
+    }
     if(msg.Status == 'error') return console.log(msg.Data);
     this.emit(msg.Event, msg.Data);
   },
+
+  getSessionID: function() {return this._sessionID;},
 
   isLocal: function() {return this._local;},
 
