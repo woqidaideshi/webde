@@ -3628,9 +3628,6 @@ var UEditBox = Class.extend({
       $('#disp_text_' + toIdentity).append('<span  class="accountFont">' + toAccountInfo_.fromAccount + '('+toAccountInfo_.fromUID+')&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
       $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
     } else {
-      if(toAccountInfo_.fromUID===curEditBox_.localUID){
-        return;
-      }
       var sendMsg = {};
       sendMsg['IP'] = toAccountInfo_.toIP;
       sendMsg['UID'] = toAccountInfo_.toUID;
@@ -3646,6 +3643,13 @@ var UEditBox = Class.extend({
   },
 
   showFileRecDetatil: function(curEditBox_, msg_, sendMsg_, flag_) {
+   /* if (curEditBox_._toAccountInfo.fromUID === curEditBox_._localUID) {
+      var curFile = curEditBox_._fileTransList[msg_.key];
+      if (curFile !== undefined) {
+        curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
+      }
+      return;
+    }*/
     var toIdentity = curEditBox_._toIdentity;
     switch (msg_.option) {
       case 0x0000:
@@ -3810,11 +3814,16 @@ var UEditBox = Class.extend({
   },
 
   recieverAcceptOrRefuce: function(curEditBox_, msg_, sendMsg_) {
-    if (curEditBox_._fileTransList[msg_.key] === undefined) {
+    var curFile = curEditBox_._fileTransList[msg_.key];
+    if (curFile === undefined) {
       return;
+    }else{
+      if(curFile.flag!==1){
+        curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
+        return;
+      }
     }
     var toIdentity = curEditBox_._toIdentity;
-    var curFile = curEditBox_._fileTransList[msg_.key];
     if (msg_.state === '1') {
       if (curEditBox_._group !== '') {
         curEditBox_.transferCancelSender(msg_,false,curEditBox_,sendMsg_,curFile,sendMsg_.UID,function(){});  

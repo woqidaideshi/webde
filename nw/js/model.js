@@ -1631,18 +1631,16 @@ var DeviceListModel = Model.extend({
     var toAccountInfo = {};
     if(recMsg.destInfo===undefined){
       toAccount = recMsg.MsgObj.from;
-      toAccountInfo['fromAccount'] = toAccount;
       toUID = recMsg.MsgObj.uuid;
-      toAccountInfo['fromUID'] = toUID;
       toIP = recMsg.IP;
     }else{
-      toAccountInfo['fromAccount'] = recMsg.MsgObj.from;
-      toAccountInfo['fromUID'] = recMsg.MsgObj.uuid;
       toAccount = recMsg.destInfo.Account;
       toUID = recMsg.destInfo.UID;
       toIP = recMsg.destInfo.IP;  
     }
     var msg = recMsg.MsgObj['message'];
+    toAccountInfo['fromAccount'] = recMsg.MsgObj.from;
+    toAccountInfo['fromUID'] = recMsg.MsgObj.uuid;
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = toIP;
     toAccountInfo['toUID'] = toUID;
