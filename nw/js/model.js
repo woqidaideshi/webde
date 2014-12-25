@@ -1697,7 +1697,7 @@ var DeviceListModel = Model.extend({
       // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     /* }); */
     // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.registerApp(_this.__handleIMMsg, 'imChat',ws.getConnection());
+    _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
     if(!ws.isLocal()) {
       ws.on('device', this.__handler);
       ws.on('imChat', this.__handleIMMsg);
