@@ -3628,6 +3628,9 @@ var UEditBox = Class.extend({
       $('#disp_text_' + toIdentity).append('<span  class="accountFont">' + toAccountInfo_.fromAccount + '('+toAccountInfo_.fromUID+')&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
       $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
     } else {
+      if(toAccountInfo_.fromUID===curEditBox_.localUID){
+        return;
+      }
       var sendMsg = {};
       sendMsg['IP'] = toAccountInfo_.toIP;
       sendMsg['UID'] = toAccountInfo_.toUID;
@@ -3957,7 +3960,9 @@ var UEditBox = Class.extend({
       $('#fileTransItem_' + msg_.key).remove();
       msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
       sendMsg_['Msg'] = JSON.stringify({'group': curEditBox_._group,'msg': msg_});
-      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_,_global.get('ws').getSessionID());
+      _global._imV.sendAppMsgByDevice(function(mmm) {
+        console.log('accept====================='+JSON.stringify(sendMsg_))
+      }, sendMsg_,_global.get('ws').getSessionID());
     } else {
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
