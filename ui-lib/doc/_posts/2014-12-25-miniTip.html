@@ -1,0 +1,132 @@
+---
+layout: post
+title:  "MiniTip"
+date:   2014-12-25 11:22:12
+categories: ui
+---
+
+<h2>MiniTip</h2>
+<p>MiniTip是悬浮提示框，可在任意元素上添加使用</p>
+<h3>使用方法</h3>
+<pre>
+<code>
+var tip = MiniTip.create('anyElementId', {
+  content: 'hello, miniTip', 
+  event: 'hover'
+});
+其中第一个参数是欲添加MiniTip的元素的id（注意不是MiniTip的id），
+第二个是指定的选项，更多请参考下面内容
+</code>
+</pre><br />
+<h3>可以指定的选项</h3>
+<pre>
+<code>
+      title                -------------        标题，不指定则没有标题栏
+      content          -------------        内容
+      delay             -------------        提示框出现前和隐藏前的延迟（单位ms）
+      anchor           -------------       位置，n (top), s (bottom), e (right), w (left)
+      event             -------------        呈现提示框的触发事件，可以为'hover' , 'click' 或者 'custom'（自定义）
+      fadeIn           -------------        淡入延迟（单位ms）
+      fadeOut         -------------        淡出延迟（单位ms）
+      aHide            -------------         将鼠标移至提示框，提示框是否消失（默认消失，欲设置不消失将此值设为false）
+      maxW           -------------         提示框的最大宽度
+      offset            -------------         离添加提示框的元素距离（默认5px）
+</code>
+</pre><br />
+<h3>提供的接口</h3>
+<p>当event参数指定为'custom'，则提示框的呈现和隐藏由程序员控制，提供两个接口:</p>
+<pre>
+<code>
+  1. show    呈现
+  2. hide      隐藏
+</code>
+</pre>
+
+<h2>demo</h2>
+<p>示例1. 点击触发<p>
+<span id='tip1' >click on me!</span>
+<pre>
+<code>
+MiniTip.create('tip1', {
+  event: 'click',
+  content: '示例1. 点击触发'
+});
+</code>
+</pre>
+<p>示例2. 停靠触发<p>
+<span id='tip2'>Hover over me!</span>
+<br/>
+<pre>
+<code>
+MiniTip.create('tip2', {
+  title: '示例2',
+  event: 'hover',
+  content: '停靠触发',
+  delay: 1000,
+  anchor: 'e'
+});
+</code>
+</pre>
+<p>示例三. 用户自定义触发<p>
+<textarea id="textid" rows="3" cols="20">
+</textarea>
+<button id='sendid' onclick='clicksend()'>发送</button>
+<pre>
+<code>
+var tip3 = MiniTip.create('sendid', {
+    event: 'custom',
+    content: '发送内容不能为空！'
+});
+
+function clicksend(){
+  if (document.getElementById('textid').value !== ''){
+    document.getElementById('textid').value = '';
+  }
+  else {
+    tip3.show({
+      content: '发送内容不能为空！' + count++  //此处若为tip3.show()，则显示样式和内容不变
+    });
+    setTimeout(function(){
+      tip3.hide();
+    }, 3000);
+  }
+}
+</code>
+</pre>
+<script type="text/javascript">
+
+MiniTip.create('tip1', {
+  event: 'click',
+  content: '示例1. 点击触发'
+});
+
+MiniTip.create('tip2', {
+  title: '示例2',
+  event: 'hover',
+  content: '停靠触发',
+  delay: 1000,
+  anchor: 'e'
+});
+
+var tip3 = MiniTip.create('sendid', {
+    event: 'custom',
+    content: '发送内容不能为空！'
+});
+
+var count = 1;
+
+function clicksend(){
+  if (document.getElementById('textid').value !== ''){
+    document.getElementById('textid').value = '';
+  }
+  else {
+    tip3.show({
+      content: '发送内容不能为空！' + count++  //此处若为tip3.show()，则显示样式和内容不变
+    });
+    setTimeout(function(){
+      tip3.hide();
+    }, 3000);
+  }
+}
+
+</script>
