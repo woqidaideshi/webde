@@ -4208,12 +4208,12 @@ var LoginView = View.extend({
     }).append($('<div>', {
       'class': 'content-row'
     }).html(
-      lang['account'] + '： ' +
+      '<div>' + lang['account'] + '</div>：' +
       '<input type="text" name="account">'
     )).append($('<div>', {
       'class': 'content-row'
     }).html(
-      lang['passwd'] + '： ' +
+      '<div>' + lang['passwd'] + '</div>：' +
       '<input type="password" name="password">'
     )).append($('<div>', {
       'class': 'content-row',
