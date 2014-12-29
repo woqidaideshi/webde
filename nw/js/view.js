@@ -3954,6 +3954,7 @@ var UEditBox = Class.extend({
       setTimeout(function() {
         curEditBox_._fileTip.hide();
       }, 3000);
+      return;
     }
     var toIdentity = curEditBox_._toIdentity;
     var toAccountInfo = curEditBox_._toAccountInfo;
