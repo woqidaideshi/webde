@@ -1713,8 +1713,9 @@ var DeviceListView = View.extend({
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
           if (fileMsg.type === undefined) {
+            var fromAcc=toAccountInfo_.group === '' ? toAccount+'('+toAccountInfo_.toUID+')': toAccountInfo_.group;
             Messenger().post({
-              message: toAccount + '(' + toAccountInfo_.toUID + ')给你发新消息啦！',
+              message: '有来自'+fromAcc+'的新消息！',
               type: 'info',
               actions: {
                 close: {
@@ -1874,7 +1875,7 @@ var DeviceListView = View.extend({
   imFileMsgShow: function(toAccountInfo_, cb_) {
     var abandon = true;
     var fileMsg = toAccountInfo_['msg'].msg;
-    var fromAcc = toAccountInfo_.group === '' ? '您' : toAccountInfo_.fromAccount + '(' + toAccountInfo_.fromUID + ')';
+    //var toAcc = toAccountInfo_.group === '' ? toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')':toAccountInfo_.toAccount;
     var labelTip;
     var fileInfo;
     switch (fileMsg.option) {
@@ -1884,7 +1885,8 @@ var DeviceListView = View.extend({
           switch (fileMsg.state) {
             case undefined:
               {
-                labelTip = fromAcc + '的远端正在给' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
+                var toAcc = toAccountInfo_.group === '' ? toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')':toAccountInfo_.toAccount;
+                labelTip = '您的远端正在给' +toAcc+ '传输文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
                 fileInfo = {
                   'flag': 5, //远端正在给其他设备传输文件
                   'key': fileMsg.key,
@@ -1895,12 +1897,12 @@ var DeviceListView = View.extend({
               break;
             case '0':
               {
-                labelTip = fromAcc + '的远端拒绝了' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
+                labelTip = '您的远端拒绝接收' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输的文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
               }
               break;
             case '1':
               {
-                labelTip = fromAcc + '的远端正在接收' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
+                labelTip = '您的远端正在接收' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输的文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
                 fileInfo = {
                   'flag': 3, //远端正在接收其他设备传输的文件
                   'key': fileMsg.key,
@@ -1918,7 +1920,7 @@ var DeviceListView = View.extend({
         {
           if(msg_.state === '0'){
             abandon = false;
-            labelTip = fromAcc + '的远端传输文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ') 失败。';
+            labelTip =  '您的远端传输文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ') 失败。';
           }else
           abandon = true;
         }
@@ -1929,12 +1931,12 @@ var DeviceListView = View.extend({
             abandon = false;
             var ratioLabel;
             if (fileMsg.ratio === 1) {
-              labelTip = fromAcc + '的远端成功接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
+              labelTip =  '您的远端成功接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
             } else {
               if (fileMsg.state === 0) {
-                labelTip = fromAcc + '接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ') 失败。';
+                labelTip = '您的远端接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ') 失败。';
               } else {
-                labelTip = fromAcc + '的远端取消接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
+                labelTip = '您的远端取消接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
               }
             }
           }
@@ -1943,7 +1945,7 @@ var DeviceListView = View.extend({
       case 0x0003:
         {
           abandon = false;
-          labelTip = fromAcc + '的远端中断传输文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
+          labelTip = '您的远端中断传输文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
         }
         break;
       default:
@@ -3715,7 +3717,7 @@ var UEditBox = Class.extend({
         var msg = _this._um.getContent();
 
         function sendIMMsgCb() {
-          $('#disp_text_' + _this._toIdentity).append('<span class="accountFont"> ' + _this._localAccount + '(' + _this._localUID + ')&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
+          $('#disp_text_' + _this._toIdentity).append('<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
           $('#disp_text_' + _this._toIdentity).scrollTop($('#disp_text_' + _this._toIdentity).height());
           _this._um.setContent('');
         }
@@ -3760,7 +3762,8 @@ var UEditBox = Class.extend({
     if (msg.type === undefined || toAccountInfo_.msgTip !== undefined) {
       var txtShow;
       if (toAccountInfo_.msgTip === undefined) {
-        txtShow = '<span  class="accountFont">' + toAccountInfo_.fromAccount + '(' + toAccountInfo_.fromUID + ')&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
+        var fromAcc=toAccountInfo_.fromUID===curEditBox_._localUID?'您的远端':toAccountInfo_.toAccount+'('+toAccountInfo_.toUID+')';
+        txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
       } else {
         txtShow = '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msgTip + '<br/>';
         if (toAccountInfo_.fileInfo !== undefined) {
@@ -3787,62 +3790,22 @@ var UEditBox = Class.extend({
   },
 
   showFileRecDetatil: function(curEditBox_, msg_, sendMsg_, flag_) {
-    /* if (curEditBox_._toAccountInfo.fromUID === curEditBox_._localUID) {
-      var curFile = curEditBox_._fileTransList[msg_.key];
-      if (curFile !== undefined) {
-        curEditBox_.fileItemTransRemove(curEditBox_, msg_.key);
-      }
-      return;
-    }*/
     console.log('JSON  ====' + JSON.stringify(msg_));
     var toIdentity = curEditBox_._toIdentity;
     switch (msg_.option) {
       case 0x0000:
         { //收到发送端传输文件的请求------------界面显示
           if (curEditBox_._localUID === sendMsg_.fromUID && msg_.state === undefined) {
-            var fromAcc = sendMsg_.group === '' ? '您' : sendMsg_.Account + '(' + sendMsg_.fromUID + ')';
-            // var labelTip;
-            // var fileInfo;
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            var labelTip = fromAcc + '的远端正在给' + sendMsg_.Account + '(' + sendMsg_.UID + ')传输文件\n' + msg_.fileName + '\n大小：' + msg_.fileSize;
+            var sendAcc=sendMsg_.group===''?sendMsg_.Account + '(' + sendMsg_.UID + ')':sendMsg_.Account;
+            var labelTip = '您的远端正在给' + sendAcc+'传输文件\n' + msg_.fileName + '\n大小：' + msg_.fileSize;
             var fileInfo = {
               'flag': 5, //远端正在给其他设备传输文件
               'fileName': msg_.fileName,
               'fileSize': msg_.fileSize
             };
             curEditBox_._fileTransList[msg_.key] = fileInfo;
-            /*    switch (msg_.state) {
-              case undefined:
-                {
-                  labelTip = fromAcc + '的远端正在给' + sendMsg_.Account + '(' + sendMsg_.UID + ')传输文件\n' + msg_.fileName + '\n大小：' + msg_.fileSize;
-                  fileInfo = {
-                    'flag': 5,//远端正在给其他设备传输文件
-                    'fileName': msg_.fileName,
-                    'fileSize': msg_.fileSize
-                  };
-                  curEditBox_._fileTransList[msg_.key]=fileInfo;
-                }
-                break;
-              case '0':
-                {
-                  labelTip = fromAcc + '的远端拒绝了' + sendMsg_.Account + '(' + sendMsg_.UID + ')传输文件\n' + msg_.fileName + '\n大小：' + msg_.fileSize;
-                }
-                break;
-              case '1':
-                {
-                  labelTip = fromAcc + '的远端正在接收' + sendMsg_.Account + '(' + sendMsg_.UID + ')传输文件\n' + msg_.fileName + '\n大小：' + msg_.fileSize;
-                  fileInfo = {
-                    'flag': 3,//远端正在接收其他设备传输的文件
-                    'fileName': msg_.fileName,
-                    'fileSize': msg_.fileSize
-                  };
-                  curEditBox_._fileTransList[msg_.key]=fileInfo;
-                }
-                break;
-              default:
-                ;
-            }*/
             $('#disp_text_' + toIdentity).append( '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + labelTip + '<br/>');
             $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
           } else {
@@ -4054,8 +4017,7 @@ var UEditBox = Class.extend({
       if (curFile.flag === 0) {
         curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, false);
         curFile.flag = 3;
-        var fromAcc = curEditBox_._group === '' ? '您' : sendMsg_.Account + '(' + sendMsg_.UID + ')';
-        var ratioLable = fromAcc + '的远端正在接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
+        var ratioLable =  '您的远端正在接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
         var msgtime = new Date();
         var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
         $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
@@ -4088,8 +4050,7 @@ var UEditBox = Class.extend({
     } else {
       if (curFile.flag === 0) {
         curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-        var fromAcc = curEditBox_._group === '' ? '您' : sendMsg_.Account + '(' + sendMsg_.UID + ')';
-        var ratioLable = fromAcc + '的远端拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
+        var ratioLable =  '您的远端拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
         var msgtime = new Date();
         var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
         $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
@@ -4251,16 +4212,15 @@ var UEditBox = Class.extend({
         break;
       case 3: //远端正在接收文件后显示接收进度
         {
-          var fromAcc = curEditBox_._group === '' ? '您' : sendMsg_.Account + '(' + sendMsg_.UID + ')';
           if (msg_.state !== 1) {
             var ratioLabel;
             if (msg_.ratio === 1) {
-              ratioLable = fromAcc + '的远端成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              ratioLable = '您的远端成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
             } else {
               if (msg_.state === 0) {
                 ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
               } else {
-                ratioLable = fromAcc + '的远端取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                ratioLable =  '您的远端取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
               }
             }
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
@@ -4324,16 +4284,6 @@ var UEditBox = Class.extend({
       default:
         console.log('error show ratio');
     }
-    /*    if(curEditBox_._fileTransList[msg_.key].flag === 2){
-      if(sendMsg_.UID === curEditBox_._localUID){
-        
-        }else{
-          
-        }
-    }else{
-      
-    }*/
-
   },
 
   refuseFileItemTransfer: function(curEditBox_, msg_, sendMsg_) {
