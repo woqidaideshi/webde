@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-12-25
+/*! ui-lib - v0.0.1 - 2014-12-30
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -3984,6 +3984,8 @@ var Window = Class.extend({
       minWidth: 200,            //设置窗口的最小宽度
       minHeight:200,            //设置窗口的最小高度
       fullScreen: false,        //双击内容全屏显示
+      z_index: 100,              //层叠深度
+      fixed_pos: false,          //是否固定位置
       left_top_color: 'grey',    //标题栏左上角的颜色
       title_align: 'center'      //标题对齐方式，left或者center
     };
@@ -4007,7 +4009,6 @@ var Window = Class.extend({
     this._saveWindowCss = '';
     this._saveWinContentCss = '';
     this._focusCallback = undefined;    //获取聚焦时的回调函数
-    this._INDEX = 100;
 
     this._window = $('<div>',{
       'id': this._id,
@@ -4180,11 +4181,11 @@ var Window = Class.extend({
   },
 
   focus:function(){
-    this._window.css('z-index' , this._INDEX +1);
+    this._window.css('z-index' , this._options['z_index'] +1);
   },
 
   blur:function(){
-    this._window.css('z-index' , this._INDEX);
+    this._window.css('z-index' , this._options['z_index']);
   },
 
   onfocus:function(callback_){
@@ -4226,7 +4227,7 @@ var Window = Class.extend({
     //drag window
     this._titleDiv.mousedown(function(ev){
       ev.preventDefault();
-      if (_this._isMax) {
+      if (_this._isMax || _this._options.fixed_pos) {
         return ;
       };
       _this._isMouseOnTitleDown = true;
@@ -4239,7 +4240,9 @@ var Window = Class.extend({
       _this._window.fadeTo(20, 1);
       _this._titleDiv.css('cursor','default');
     }).dblclick(function(){
-      _this.toggleMaxWindow();
+      console.log('_this.resize=' + _this._options.resize);
+      if (_this._options.resize)
+        _this.toggleMaxWindow();
     });
     $(document).mousemove(function(ev){
       if(_this._isMouseOnTitleDown){ 
