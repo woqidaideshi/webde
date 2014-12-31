@@ -84,6 +84,7 @@ categories: ui
 15、focus()  //窗口获得聚焦时（被点击时默认执行的方法）设置z-index,
 16、blur()   //窗口失去聚焦时调用的方法，用于提供外部调用。
 17、fullScreen()   //窗口提供的伪全屏方法，用于nw下提供全屏方法。
+18、setBackGroundImage(path_)设置窗体的背景图片，参数path_为图片路径
 </code>
 </pre>
 
@@ -122,6 +123,7 @@ categories: ui
 <button class='btn active' onclick="appendHtml('/../app/flash-app/index.html')">append shark</button>
 <button class='btn success-btn' onclick="appendHtml('/../app/video/index.html')">append video</button>
 <button class='btn active' onclick="addVideo()">add video</button>
+<button class='btn active' onclick="setBackGroundImage()">setBackGroundImage</button>
 <script type="text/javascript">
   var myNewWin;
   var newWin = function(){
@@ -197,5 +199,9 @@ var addVideo= function(){
   var _video = Video.create();
   _video.setSrc ('http://www.projekktor.com/wp-content/manual/intro.mp4'); 
   myNewWin.append(_video._section);
+}
+
+var setBackGroundImage = function(){
+  myNewWin.setBackGroundImage('/assets/img/cat.jpg');
 }
 </script>

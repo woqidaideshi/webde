@@ -596,6 +596,15 @@ var Window = Class.extend({
 
   togglefullScreen:function(){
     this.fullScreen(!this._fullScreen);
+  },
+
+  setBackGroundImage: function(path_){
+    this._window.css({
+      'background-image': 'url(' + path_ + ')',
+      'background-size': '100% 100%'
+    });
+    this._windowContent.css('background-color', "transparent");
+    this._titleDiv.css('background-color', "transparent");
   }
 
 });
