@@ -3810,7 +3810,7 @@ var UEditBox = Class.extend({
                 $('#memList_' + toIdentity).hide();
                 $('#fileTransShow_' + toIdentity).show();
                 $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
-                    <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 12) + '...<br/>大小：' + msg_.fileSize + '</span><br/><br/></div>\
+                    <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span><br/><br/></div>\
                     <div><button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
                     <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button></div>\
                     </li>');
