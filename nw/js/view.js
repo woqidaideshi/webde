@@ -4113,6 +4113,15 @@ var UEditBox = Class.extend({
           },msg_);
         }
           break;
+        case 5:{
+          var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.Account + '(' + sendMsg_.UID + ')';
+          var ratioLable = fromAcc + '拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+          var msgtime = new Date();
+          var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+          $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+          $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+        }
+          break;
         default:;
       }      
     }
