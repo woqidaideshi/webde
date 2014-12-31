@@ -1713,7 +1713,7 @@ var DeviceListView = View.extend({
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
           if (fileMsg.type === undefined) {
-            var fromAcc=toAccountInfo_.group === '' ? toAccount+'('+toAccountInfo_.toUID+')': toAccountInfo_.group;
+            var fromAcc=toAccountInfo_.group === '' ? toAccount+'('+toAccountInfo_.toUID+')': toAccount;
             Messenger().post({
               message: '有来自'+fromAcc+'的新消息！',
               type: 'info',
@@ -3487,7 +3487,8 @@ var UEditBox = Class.extend({
     this._imWindow = Window.create('imChat_' + _this._toIdentity, _this._title, {
       height: 600,
       width: 640,
-      max: false
+      max: false,
+      resize:false
     }, function() {
       this.getID = function() {
         return this._id;
@@ -3510,17 +3511,6 @@ var UEditBox = Class.extend({
         ev.preventDefault();
         ev.stopPropagation();
         _this.closeBtnFunc(_this, imChatWinList_);
-      });
-      this._titleDiv.unbind('dblclick');
-      this._titleDiv.dblclick(function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        _global._openingWindows.focusOnAWindow(this._id);
-      });
-      this._titleDiv.click(function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        _global._openingWindows.focusOnAWindow(this._id);
       });
     });
     this.$view = $('<div class="imChat">').html('<div class="imLeftDiv">\
