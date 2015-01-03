@@ -1712,33 +1712,33 @@ var DeviceListView = View.extend({
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
           if (fileMsg.type === undefined) {
-            var fromAcc;
             _global._imV.getLocalData(function(localData) {
+              var fromAcc;
               if (localData.UID === toAccountInfo_.fromUID) {
                 fromAcc='您的远端';
               }else{
                 fromAcc=toAccountInfo_.group === '' ? toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')': toAccountInfo_.fromAccount;
               }
-            });
-            Messenger().post({
-              message: '有来自'+fromAcc+'的新消息！',
-              type: 'info',
-              actions: {
-                close: {
-                  label: '取消闪烁',
-                  action: function() {
-                    Messenger().hideAll();
-                  }
-                },
-                open: {
-                  label: '查看',
-                  action: function() {
-                    Messenger().hideAll();
-                    curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
-                    _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+              Messenger().post({
+                message: '有来自'+fromAcc+'的新消息！',
+                type: 'info',
+                actions: {
+                  close: {
+                    label: '取消闪烁',
+                    action: function() {
+                      Messenger().hideAll();
+                    }
+                  },
+                  open: {
+                    label: '查看',
+                    action: function() {
+                      Messenger().hideAll();
+                      curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
+                      _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+                    }
                   }
                 }
-              }
+              });
             });
           } else {
             if (fileMsg.type === 'file') {
