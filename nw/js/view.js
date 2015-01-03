@@ -3755,7 +3755,7 @@ var UEditBox = Class.extend({
     if (msg.type === undefined || toAccountInfo_.msgTip !== undefined) {
       var txtShow;
       if (toAccountInfo_.msgTip === undefined) {
-        var fromAcc=toAccountInfo_.fromUID===curEditBox_.localUID?toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')':'您的远端';
+        var fromAcc=toAccountInfo_.fromUID===curEditBox_.localUID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
         txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
       } else {
         txtShow = '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msgTip + '<br/>';
