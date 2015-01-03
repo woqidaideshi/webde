@@ -1712,7 +1712,14 @@ var DeviceListView = View.extend({
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
           if (fileMsg.type === undefined) {
-            var fromAcc=toAccountInfo_.group === '' ? toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')': toAccountInfo_.fromAccount;
+            var fromAcc;
+            _global._imV.getLocalData(function(localData) {
+              if (localData.UID === toAccountInfo_.fromUID) {
+                fromAcc='您的远端';
+              }else{
+                fromAcc=toAccountInfo_.group === '' ? toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')': toAccountInfo_.fromAccount;
+              }
+            }
             Messenger().post({
               message: '有来自'+fromAcc+'的新消息！',
               type: 'info',
