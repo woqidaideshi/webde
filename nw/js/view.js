@@ -3857,18 +3857,28 @@ var UEditBox = Class.extend({
     var msgtime = new Date();
     var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
     if (msg.type === undefined || toAccountInfo_.msgTip !== undefined) {
-      var txtShow;
       if (toAccountInfo_.msgTip === undefined) {
-        var fromAcc=toAccountInfo_.fromUID===curEditBox_._localUID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
-        txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
+        if(curEditBox_._localUID===undefined){
+          _global._imV.getLocalData(function(localData) {
+            var fromAcc=toAccountInfo_.fromUID===localData.UID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
+            var txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
+            $('#disp_text_' + toIdentity).append(txtShow);
+            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+          });
+        }else{
+          var fromAcc=toAccountInfo_.fromUID===curEditBox_._localUID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
+          var txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
+          $('#disp_text_' + toIdentity).append(txtShow);
+          $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+        }   
       } else {
-        txtShow = '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msgTip + '<br/>';
+        var txtShow = '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msgTip + '<br/>';
+        $('#disp_text_' + toIdentity).append(txtShow);
+        $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
         if (toAccountInfo_.fileInfo !== undefined) {
           curEditBox_._fileTransList[toAccountInfo_.fileInfo.key] = toAccountInfo_.fileInfo;
         }
       }
-      $('#disp_text_' + toIdentity).append(txtShow);
-      $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
     } else {
       var sendMsg = {};
       sendMsg['IP'] = toAccountInfo_.toIP;
