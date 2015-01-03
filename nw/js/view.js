@@ -1711,7 +1711,104 @@ var DeviceListView = View.extend({
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
-          if (fileMsg.type === undefined) {
+          _global._imV.getLocalData(function(localData) {
+            if (fileMsg.type === undefined) {
+              var fromAcc;
+              if (localData.UID === toAccountInfo_.fromUID) {
+                fromAcc='您的远端';
+              }else{
+                fromAcc=toAccountInfo_.group === '' ? toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')': toAccountInfo_.fromAccount;
+              }
+              Messenger().post({
+                message: '有来自'+fromAcc+'的新消息！',
+                type: 'info',
+                actions: {
+                  close: {
+                    label: '取消闪烁',
+                    action: function() {
+                      Messenger().hideAll();
+                    }
+                  },
+                  open: {
+                    label: '查看',
+                    action: function() {
+                      Messenger().hideAll();
+                      curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
+                      _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+                    }
+                  }
+                }
+              });
+            }else{
+              if (fileMsg.type === 'file') {
+                if (localData.UID === toAccountInfo_.fromUID) {
+                  _this.imFileMsgShow(toAccountInfo_, function(abandon, labelTip, fileInfo) {
+                    if (abandon)
+                      return;
+                    toAccountInfo_['msgTip'] = labelTip;
+                    toAccountInfo_['fileInfo'] = fileInfo;
+                    Messenger().post({
+                      message: labelTip,
+                      type: 'info',
+                      actions: {
+                        close: {
+                          label: '取消闪烁',
+                          action: function() {
+                            Messenger().hideAll();
+                          }
+                        },
+                        open: {
+                          label: '查看',
+                          action: function() {
+                            Messenger().hideAll();
+                            curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
+                            _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+                          }
+                        }
+                      }
+                    });
+                  });
+                } else {
+                  if (fileMsg.option === 0x0000 && fileMsg.state === undefined) {
+                    var sendMsg = {};
+                    sendMsg['IP'] = toAccountInfo_.toIP;
+                    sendMsg['UID'] = toAccountInfo_.toUID;
+                    sendMsg['Account'] = toAccountInfo_.toAccount;
+                    sendMsg['App'] = 'imChat';
+                    Messenger().post({
+                      message: toAccountInfo_.fromAccount + '(' + toAccountInfo_.fromUID + ')给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
+                      type: 'info',
+                      actions: {
+                        close: {
+                          label: '拒绝',
+                          action: function() {
+                            Messenger().hideAll();
+                            fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
+                            sendMsg['Msg'] = JSON.stringify(msg);
+                            _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg, _global.get('ws').getSessionID(), true);
+                          }
+                        },
+                        open: {
+                          label: '接收',
+                          action: function() {
+                            Messenger().hideAll();
+                            fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
+                            sendMsg['Msg'] = JSON.stringify(msg);
+                            _global._imV.sendAppMsgByDevice(function(mmm) {
+                              delete fileMsg['state'];
+                              curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
+                              _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+                            }, sendMsg, _global.get('ws').getSessionID(), true);
+                          }
+                        }
+                      }
+                    });
+                  }
+                }
+              }
+            }     
+          });
+          /*if (fileMsg.type === undefined) {
             _global._imV.getLocalData(function(localData) {
               var fromAcc;
               if (localData.UID === toAccountInfo_.fromUID) {
@@ -1809,7 +1906,7 @@ var DeviceListView = View.extend({
                 }
               });
             }
-          }
+          }*/
         } else {
           _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
           curEditBox.showRec(toAccountInfo_, curEditBox);
@@ -3762,7 +3859,7 @@ var UEditBox = Class.extend({
     if (msg.type === undefined || toAccountInfo_.msgTip !== undefined) {
       var txtShow;
       if (toAccountInfo_.msgTip === undefined) {
-        var fromAcc=toAccountInfo_.fromUID===curEditBox_.localUID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
+        var fromAcc=toAccountInfo_.fromUID===curEditBox_._localUID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
         txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
       } else {
         txtShow = '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msgTip + '<br/>';
