@@ -1719,7 +1719,7 @@ var DeviceListView = View.extend({
               }else{
                 fromAcc=toAccountInfo_.group === '' ? toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')': toAccountInfo_.fromAccount;
               }
-            }
+            });
             Messenger().post({
               message: '有来自'+fromAcc+'的新消息！',
               type: 'info',
