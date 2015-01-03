@@ -4452,6 +4452,8 @@ var UEditBox = Class.extend({
     var uidDetail = curEditBox_._toAccountInfo.toUID === '' ? '' : '(' + curEditBox_._toAccountInfo.toUID + ')';
     curEditBox_.fileTransferSize(curEditBox_._fileTransList, function(size) {
       if (size === 0) {
+        curEditBox_._fileTip.hide();
+        curEditBox_._contentTip.hide();
         curEditBox_._um.destroy();
         curEditBox_._imWindow.closeWindow(curEditBox_._imWindow);
         delete imChatWinList_['imChatWin_' + toIdentity];
@@ -4519,6 +4521,8 @@ var UEditBox = Class.extend({
                     default:;
                   }
                 }
+                curEditBox_._fileTip.hide();
+                curEditBox_._contentTip.hide();
                 curEditBox_._um.destroy();
                 curEditBox_._imWindow.closeWindow(curEditBox_._imWindow);
                 delete imChatWinList_['imChatWin_' + toIdentity];
