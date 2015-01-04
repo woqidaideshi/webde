@@ -1,4 +1,4 @@
-/*! ui-lib - v0.0.1 - 2014-12-30
+/*! ui-lib - v0.0.1 - 2014-12-31
 * Copyright (c) 2014 */
 function Class() {}
 
@@ -4240,7 +4240,6 @@ var Window = Class.extend({
       _this._window.fadeTo(20, 1);
       _this._titleDiv.css('cursor','default');
     }).dblclick(function(){
-      console.log('_this.resize=' + _this._options.resize);
       if (_this._options.resize)
         _this.toggleMaxWindow();
     });
@@ -4559,6 +4558,15 @@ var Window = Class.extend({
 
   togglefullScreen:function(){
     this.fullScreen(!this._fullScreen);
+  },
+
+  setBackGroundImage: function(path_){
+    this._window.css({
+      'background-image': 'url(' + path_ + ')',
+      'background-size': '100% 100%'
+    });
+    this._windowContent.css('background-color', "transparent");
+    this._titleDiv.css('background-color', "transparent");
   }
 
 });
