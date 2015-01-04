@@ -48,7 +48,7 @@ var MiniTip = Class.extend({
   show: function(options_) {
     var $attach = $('#' + this._id);
     if (options_ !== undefined) {
-      $attach.change(options_);
+      $attach.changes(options_);
     }
     $attach.hello();
   },
@@ -233,7 +233,7 @@ var MiniTip = Class.extend({
     tt_w.stop(true, true).fadeOut(o.fadeOut);
   }
 
-  $.fn.change = function(o) {
+  $.fn.changes = function(o) {
     for (var key in o) {
       this.data('o')[key] = o[key];
     }
