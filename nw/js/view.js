@@ -1706,7 +1706,14 @@ var DeviceListView = View.extend({
       },
       'imMsg': function(toAccountInfo_) {
         var curEditBox;
-        var editBoxID = toAccountInfo_.group === toAccountInfo_.toAccount ? toAccountInfo_.group : toAccountInfo_.toUID;
+        var editBoxID;
+        if(toAccountInfo_.group=== toAccountInfo_.toAccount ){
+          editBoxID = toAccountInfo_.group;
+        }else{
+          editBoxID = toAccountInfo_.toUID;
+          toAccountInfo_.group='';
+        }
+        //var editBoxID = toAccountInfo_.group === toAccountInfo_.toAccount ? toAccountInfo_.group : toAccountInfo_.toUID;
         curEditBox = _this._imChatWinList['imChatWin_' + editBoxID];
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
