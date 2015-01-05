@@ -4338,13 +4338,14 @@ var UEditBox = Class.extend({
           if (msg_.state !== 1) {
             var ratioLabel;
             var filePath = curEditBox_._fileTransList[msg_.key].path;
+            var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
             if (msg_.ratio === 1) {
-              ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileName + '"(大小：' + msg_.fileSize + ')。';
+              ratioLable = fromAcc+ '已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileName + '"(大小：' + msg_.fileSize + ')。';
             } else {
               if (msg_.state === 0) {
-                ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+                ratioLable = fromAcc + '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
               } else {
-                ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
               }
             }
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
