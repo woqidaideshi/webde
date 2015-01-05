@@ -1706,7 +1706,7 @@ var DeviceListView = View.extend({
       },
       'imMsg': function(toAccountInfo_) {
         var curEditBox;
-        var editBoxID = toAccountInfo_.group === '' ? toAccountInfo_.toUID : toAccountInfo_.group;
+        var editBoxID = toAccountInfo_.group === toAccountInfo_.toAccount ? toAccountInfo_.group : toAccountInfo_.toUID;
         curEditBox = _this._imChatWinList['imChatWin_' + editBoxID];
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
@@ -1717,7 +1717,7 @@ var DeviceListView = View.extend({
               if (localData.UID === toAccountInfo_.fromUID) {
                 fromAcc='您的远端';
               }else{
-                fromAcc=toAccountInfo_.group === '' ? toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')': toAccountInfo_.fromAccount;
+                fromAcc=toAccountInfo_.group === toAccountInfo_.toAccount ?toAccountInfo_.fromAccount : toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
               }
               Messenger().post({
                 message: '有来自'+fromAcc+'的新消息！',
@@ -3470,12 +3470,12 @@ var UEditBox = Class.extend({
     this._title;
     this._onLineCount = 0;
     this._group = toAccountInfo_.group;
-    if (toAccountInfo_.group === '') {
-      this._title = toAccountInfo_.toAccount + '--' + toAccountInfo_.toUID;
-      this._toIdentity = toAccountInfo_.toUID;
-    } else {
+    if (toAccountInfo_.group === toAccountInfo_.toAccount) {
       this._title = toAccountInfo_.group;
       this._toIdentity = toAccountInfo_.group;
+    } else {
+      this._title = toAccountInfo_.toAccount + '--' + toAccountInfo_.toUID;
+      this._toIdentity = toAccountInfo_.toUID;
     }
     this._localAccount;
     this._localUID;
