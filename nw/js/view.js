@@ -4160,7 +4160,7 @@ var UEditBox = Class.extend({
           'flag': 1,
           'path': rst.filePath,
           'fileName': msg_.fileName,
-          'fileNameLocal': rst.fileName,
+          'fileNameLocal': rst.fileNameLocal,
           'fileSize': msg_.fileSize
         };
       } else {
@@ -4244,47 +4244,55 @@ var UEditBox = Class.extend({
         break;
       case 1: //浏览器正在接收文件后显示接收进度
         {
-          if (msg_.state === 1) {
-            $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
-            var _gauge = Gauge.create();
-            _gauge.modify($('#fileGauge_' + msg_.key)[0], {
-              values: [msg_.ratio.toFixed(4), 1]
-            });
+          if (msg_.initFile === 1) {
+            curEditBox_._fileTransList[msg_.key] = {
+              'flag': 1,
+              'path': msg_.filePath,
+              'fileNameLocal': msg_.fileNameLocal,
+            };
           } else {
-            var ratioLabel;
-            var filePath = curEditBox_._fileTransList[msg_.key].path;
-            if (msg_.ratio === 1) {
-              ratioLable = '您已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
+            if (msg_.state === 1) {
+              $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
+              var _gauge = Gauge.create();
+              _gauge.modify($('#fileGauge_' + msg_.key)[0], {
+                values: [msg_.ratio.toFixed(4), 1]
+              });
             } else {
-              if (msg_.state === 0) {
-                ratioLable = '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+              var ratioLabel;
+              var filePath = curEditBox_._fileTransList[msg_.key].path;
+              if (msg_.ratio === 1) {
+                ratioLable = '您已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
               } else {
-                ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                if (msg_.state === 0) {
+                  ratioLable = '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+                } else {
+                  ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                }
               }
+              _global._dataOP.loadFile(function(err, result) {
+                if (err) {
+                  //Messenger().post('err' + result);
+                } else {
+                  _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
+                }
+              }, filePath);
+              setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
+              var msgtime = new Date();
+              var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+              $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+              $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
             }
-            _global._dataOP.loadFile(function(err, result) {
-              if (err) {
-                //Messenger().post('err' + result);
-              } else {
-                _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
-              }
-            }, filePath);
-            setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
-            var msgtime = new Date();
-            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
-          }
-          sendMsg_['Msg'] = JSON.stringify({
-            'group': curEditBox_._group,
-            'msg': msg_
-          });
-          _global._imV.sendIMMsg(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), false);
+            sendMsg_['Msg'] = JSON.stringify({
+              'group': curEditBox_._group,
+              'msg': msg_
+            });
+            _global._imV.sendIMMsg(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), false);
+          }     
         }
         break;
       case 3: //远端正在接收文件后显示接收进度
         {
-          if (msg_.state !== 1) {
+          if (msg_.initFile===undefined&&msg_.state !== 1) {
             var ratioLabel;
             if (msg_.ratio === 1) {
               ratioLable = '您的远端成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
@@ -4309,7 +4317,7 @@ var UEditBox = Class.extend({
             var ratioLabel;
             var filePath = curEditBox_._fileTransList[msg_.key].path;
             if (msg_.ratio === 1) {
-              ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
+              ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileName + '"(大小：' + msg_.fileSize + ')。';
             } else {
               if (msg_.state === 0) {
                 ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
@@ -4331,7 +4339,7 @@ var UEditBox = Class.extend({
             var ratioLabel;
             var filePath = curEditBox_._fileTransList[msg_.key].path;
             if (msg_.ratio === 1) {
-              ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
+              ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileName + '"(大小：' + msg_.fileSize + ')。';
             } else {
               if (msg_.state === 0) {
                 ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
