@@ -1648,7 +1648,7 @@ var DeviceListModel = Model.extend({
     var toAccounts = {};
     try {
       msg = JSON.parse(msg);
-    } catch (e) {}
+    } catch (e) {}/*
     if (msg.group === '') {
       toAccInfo['toAccount'] = toAccount;
       toAccInfo['toUID'] = toUID;
@@ -1666,8 +1666,16 @@ var DeviceListModel = Model.extend({
           toAccounts[devs_[j].txt[2]] = toAccInfo;
         }
       }, toAccount);
+      if(msg.group!==toAccount){
+        var toAccInfo = {};
+        toAccInfo['toAccount'] = localData.account;
+        toAccInfo['toUID'] = localData.UID;
+        toAccInfo['toIP'] = localData.IP;
+        toAccInfo['onLineFlag'] = 1;
+        toAccounts[localData.account] = toAccInfo;
+      }
     }
-    toAccountInfo['toAccList'] = toAccounts;
+    toAccountInfo['toAccList'] = toAccounts;*/
     toAccountInfo['msg'] = msg;
     toAccountInfo['group'] = msg.group;
     _this.emit('imMsg', toAccountInfo);
@@ -1712,6 +1720,65 @@ var DeviceListModel = Model.extend({
     ws.on('imChat', this.__handleIMMsg);
     if(!ws.isLocal()) {
       ws.on('device', this.__handler);
+    }
+  },
+
+  getToAccountInfo: function(toAccountInfo_, cb_) {
+    var toAccInfo = {};
+    var toAccounts = {};
+    if (toAccountInfo_.group === '') {
+      toAccInfo['toAccount'] = toAccountInfo_.toAccount;
+      toAccInfo['toUID'] = toAccountInfo_.toUID;
+      toAccInfo['toIP'] = toAccountInfo_.toIP;
+      toAccInfo['onLineFlag'] = 1;
+      toAccounts[toUID] = toAccInfo;
+      toAccountInfo['toAccList'] = toAccounts;
+      cb_();
+    } else {
+      if (toAccountInfo_.group === toAccountInfo_.toAccount) {
+        _global._device.getDeviceByAccount(function(devs_) {
+          for (var j = 0; j < devs_.length; ++j) {
+            toAccInfo = {};
+            toAccInfo['toAccount'] = devs_[j].txt[1];
+            toAccInfo['toUID'] = devs_[j].txt[2];
+            toAccInfo['toIP'] = devs_[j].address;
+            toAccInfo['onLineFlag'] = 1;
+            toAccounts[devs_[j].txt[2]] = toAccInfo;
+          }
+        }, toAccountInfo_.toAccount);
+        toAccountInfo['toAccList'] = toAccounts;
+        cb_();
+      } else {
+        _global._device.getDeviceByAccount(function(devs_) {
+          for (var j = 0; j < devs_.length; ++j) {
+            toAccInfo = {};
+            toAccInfo['toAccount'] = devs_[j].txt[1];
+            toAccInfo['toUID'] = devs_[j].txt[2];
+            toAccInfo['toIP'] = devs_[j].address;
+            toAccInfo['onLineFlag'] = 1;
+            toAccounts[devs_[j].txt[2]] = toAccInfo;
+          }
+        }, toAccountInfo_.group[0]);
+        if (toAccountInfo_.group[0] === toAccountInfo_.toAccount) {
+          _global._imV.getLocalData(function(localData) {
+            toAccInfo = {};
+            toAccInfo['toAccount'] = localData.account;
+            toAccInfo['toUID'] = localData.UID;
+            toAccInfo['toIP'] = localData.IP;
+            toAccInfo['onLineFlag'] = 1;
+            toAccounts[localData.account] = toAccInfo;
+          });
+        } else {
+          toAccInfo = {};
+          toAccInfo['toAccount'] = toAccountInfo_.toAccount;
+          toAccInfo['toUID'] = toAccountInfo_.toUID;
+          toAccInfo['toIP'] = toAccountInfo_.toIP;
+          toAccInfo['onLineFlag'] = 1;
+          toAccounts[toAccountInfo_.toUID] = toAccInfo;
+        }
+        toAccountInfo['toAccList'] = toAccounts;
+        cb_();
+      }
     }
   }
 });
@@ -1780,6 +1847,20 @@ var AccountEntryModel = EntryModel.extend({
       toAccInfo['onLineFlag'] = 1;
       toAccounts[accountItem._position['txt'][2]] = toAccInfo;
     }
+    _global._imV.getLocalData(function(localData){
+      if(localData.account===toAccount){
+        toAccountInfo['identity'] = toAccount;
+      }else{
+        toAccountInfo['identity'] = localData.account+'('+localData.UID+')'+'---'+toAccount;
+        var toAccInfo = {};
+        toAccInfo['toAccount'] = localData.account;
+        toAccInfo['toUID'] = localData.UID;
+        toAccInfo['toIP'] = localData.IP;
+        toAccInfo['onLineFlag'] = 1;
+        toAccounts[localData.account] = toAccInfo;
+        toAccountInfo['group'] = [toAccount,[localData.account,localData.UID]];
+      }
+    });
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
   },
@@ -1856,14 +1937,14 @@ var DeviceEntryModel = EntryModel.extend({
   },
 
   initImChatParseFunc: function(cb_) {
-    var toAccount = this._position['txt'][1];
     var toAccountInfo = {};
-    toAccountInfo['toAccount'] = toAccount;
+    toAccountInfo['identity'] = this._position['txt'][2];
+    toAccountInfo['toAccount'] = this._position['txt'][1];
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = this._position['txt'][2];
     toAccountInfo['group'] = '';
     var toAccInfo = {};
-    toAccInfo['toAccount'] = toAccount;
+    toAccInfo['toAccount'] = this._position['txt'][1];
     toAccInfo['toUID'] = this._position['txt'][2];
     toAccInfo['toIP'] = this._position['address'];
     toAccInfo['onLineFlag'] = 1;

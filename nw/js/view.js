@@ -1713,108 +1713,120 @@ var DeviceListView = View.extend({
           editBoxID = toAccountInfo_.toUID;
           toAccountInfo_.group='';
         }*/
-        var editBoxID = toAccountInfo_.group === toAccountInfo_.toAccount ? toAccountInfo_.group : toAccountInfo_.toUID;
+        if(toAccountInfo_.group=== ''){
+          editBoxID = toAccountInfo_.toUID;
+        }else{
+          if(toAccountInfo_.group=== toAccountInfo_.toAccount){
+            editBoxID = toAccountInfo_.group;
+          }else{
+            editBoxID = toAccountInfo_.group[0]===toAccountInfo_.toAccount?toAccountInfo_.group[0]+'---'+toAccountInfo_.group[1][0]+'('+toAccountInfo_.group[1][1]+')':toAccountInfo_.group[1][0]+'('+toAccountInfo_.group[1][1]+')'+'---'+toAccountInfo_.group[0];
+          }
+        }
+        toAccountInfo_['identity']=editBoxID;
+        //var editBoxID = toAccountInfo_.group === toAccountInfo_.toAccount ? toAccountInfo_.group : toAccountInfo_.toUID;
         curEditBox = _this._imChatWinList['imChatWin_' + editBoxID];
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
-          _global._imV.getLocalData(function(localData) {
-            if (fileMsg.type === undefined) {
-              var fromAcc;
-              if (localData.UID === toAccountInfo_.fromUID) {
-                fromAcc='您的远端';
-              }else{
-                fromAcc=toAccountInfo_.group === toAccountInfo_.toAccount ?toAccountInfo_.fromAccount : toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
-              }
-              Messenger().post({
-                message: '有来自'+fromAcc+'的新消息！',
-                type: 'info',
-                actions: {
-                  close: {
-                    label: '取消闪烁',
-                    action: function() {
-                      Messenger().hideAll();
-                    }
-                  },
-                  open: {
-                    label: '查看',
-                    action: function() {
-                      Messenger().hideAll();
-                      curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
-                      _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
-                    }
-                  }
-                }
-              });
-            }else{
-              if (fileMsg.type === 'file') {
-                if (localData.UID === toAccountInfo_.fromUID) {
-                  _this.imFileMsgShow(toAccountInfo_, function(abandon, labelTip, fileInfo) {
-                    if (abandon)
-                      return;
-                    toAccountInfo_['msgTip'] = labelTip;
-                    toAccountInfo_['fileInfo'] = fileInfo;
-                    Messenger().post({
-                      message: labelTip,
-                      type: 'info',
-                      actions: {
-                        close: {
-                          label: '取消闪烁',
-                          action: function() {
-                            Messenger().hideAll();
-                          }
-                        },
-                        open: {
-                          label: '查看',
-                          action: function() {
-                            Messenger().hideAll();
-                            curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
-                            _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
-                          }
-                        }
-                      }
-                    });
-                  });
-                } else {
-                  if (fileMsg.option === 0x0000 && fileMsg.state === undefined) {
-                    var sendMsg = {};
-                    sendMsg['IP'] = toAccountInfo_.toIP;
-                    sendMsg['UID'] = toAccountInfo_.toUID;
-                    sendMsg['Account'] = toAccountInfo_.toAccount;
-                    sendMsg['App'] = 'imChat';
-                    Messenger().post({
-                      message: toAccountInfo_.fromAccount + '(' + toAccountInfo_.fromUID + ')给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
-                      type: 'info',
-                      actions: {
-                        close: {
-                          label: '拒绝',
-                          action: function() {
-                            Messenger().hideAll();
-                            fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
-                            sendMsg['Msg'] = JSON.stringify(msg);
-                            _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg, _global.get('ws').getSessionID(), true);
-                          }
-                        },
-                        open: {
-                          label: '接收',
-                          action: function() {
-                            Messenger().hideAll();
-                            fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-                            sendMsg['Msg'] = JSON.stringify(msg);
-                            _global._imV.sendAppMsgByDevice(function(mmm) {
-                              delete fileMsg['state'];
-                              curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
-                              _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
-                            }, sendMsg, _global.get('ws').getSessionID(), true);
-                          }
-                        }
-                      }
-                    });
-                  }
-                }
-              }
-            }     
-          });
+          _this._model.getToAccountInfo(toAccountInfo_,function(){
+            _global._imV.getLocalData(function(localData) {
+	      if (fileMsg.type === undefined) {
+		var fromAcc;
+		if (localData.UID === toAccountInfo_.fromUID) {
+		  fromAcc='您的远端';
+		}else{
+		  fromAcc=toAccountInfo_.group === toAccountInfo_.toAccount ?toAccountInfo_.fromAccount : toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
+		}
+		Messenger().post({
+		  message: '有来自'+fromAcc+'的新消息！',
+		  type: 'info',
+		  actions: {
+		    close: {
+		      label: '取消闪烁',
+		      action: function() {
+			Messenger().hideAll();
+		      }
+		    },
+		    open: {
+		      label: '查看',
+		      action: function() {
+			Messenger().hideAll();
+			curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
+			_this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+		      }
+		    }
+		  }
+		});
+	      }else{
+		if (fileMsg.type === 'file') {
+		  if (localData.UID === toAccountInfo_.fromUID) {
+		    _this.imFileMsgShow(toAccountInfo_, function(abandon, labelTip, fileInfo) {
+		      if (abandon)
+			return;
+		      toAccountInfo_['msgTip'] = labelTip;
+		      toAccountInfo_['fileInfo'] = fileInfo;
+		      Messenger().post({
+			message: labelTip,
+			type: 'info',
+			actions: {
+			  close: {
+			    label: '取消闪烁',
+			    action: function() {
+			      Messenger().hideAll();
+			    }
+			  },
+			  open: {
+			    label: '查看',
+			    action: function() {
+			      Messenger().hideAll();
+			      curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
+			      _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+			    }
+			  }
+			}
+		      });
+		    });
+		  } else {
+		    if (fileMsg.option === 0x0000 && fileMsg.state === undefined) {
+		      var sendMsg = {};
+		      sendMsg['IP'] = toAccountInfo_.toIP;
+		      sendMsg['UID'] = toAccountInfo_.toUID;
+		      sendMsg['Account'] = toAccountInfo_.toAccount;
+		      sendMsg['App'] = 'imChat';
+		      Messenger().post({
+			message: toAccountInfo_.fromAccount + '(' + toAccountInfo_.fromUID + ')给你发文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize,
+			type: 'info',
+			actions: {
+			  close: {
+			    label: '拒绝',
+			    action: function() {
+			      Messenger().hideAll();
+			      fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
+			      sendMsg['Msg'] = JSON.stringify(msg);
+			      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg, _global.get('ws').getSessionID(), true);
+			    }
+			  },
+			  open: {
+			    label: '接收',
+			    action: function() {
+			      Messenger().hideAll();
+			      fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
+			      sendMsg['Msg'] = JSON.stringify(msg);
+			      _global._imV.sendAppMsgByDevice(function(mmm) {
+				delete fileMsg['state'];
+				curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
+				_this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+			      }, sendMsg, _global.get('ws').getSessionID(), true);
+			    }
+			  }
+			}
+		      });
+		    }
+		  }
+		}
+	      }     
+	    });
+          });       
         } else {
           _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
           curEditBox.showRec(toAccountInfo_, curEditBox);
@@ -1895,7 +1907,7 @@ var DeviceListView = View.extend({
           switch (fileMsg.state) {
             case undefined:
               {
-                var toAcc = toAccountInfo_.group === '' ? toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')':toAccountInfo_.toAccount;
+                var toAcc = toAccountInfo_.group === '' ? toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')':toAccountInfo_.identity;
                 labelTip = '您的远端正在给' +toAcc+ '传输文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
                 fileInfo = {
                   'flag': 5, //远端正在给其他设备传输文件
@@ -3473,16 +3485,14 @@ var UEditBox = Class.extend({
   init: function(toAccountInfo_, imChatWinList_, selector_) {
     this._selector = selector_;
     this._fileTransList = {};
-    this._toIdentity;
+    this._toIdentity=toAccountInfo_.identity;
     this._title;
     this._onLineCount = 0;
     this._group = toAccountInfo_.group;
-    if (toAccountInfo_.group === toAccountInfo_.toAccount) {
-      this._title = toAccountInfo_.group;
-      this._toIdentity = toAccountInfo_.group;
-    } else {
+    if (toAccountInfo_.group === '') {
       this._title = toAccountInfo_.toAccount + '--' + toAccountInfo_.toUID;
-      this._toIdentity = toAccountInfo_.toUID;
+    } else {
+      this._title = toAccountInfo_.identity;
     }
     this._localAccount;
     this._localUID;
