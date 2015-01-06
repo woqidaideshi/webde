@@ -1,5 +1,9 @@
 var MessageBox = Class.extend({
   init: function(id_, options_) {
+    if ($('#win' + this._id)[0]) {
+      return;
+    }
+    var _this = this;
     this._options = {
       width: 400,
       height: 250,
@@ -10,7 +14,19 @@ var MessageBox = Class.extend({
       resize: false,
       fixed_pos: true,
       z_index: 9999,
-      title: 'title'
+      title: 'title',
+      hideWindow: true,
+      buttons: [{
+        text: '确  定',
+        clkaction: function() {
+          _this.hide();
+        }
+      }, {
+        text: '取  消',
+        clkaction: function() {
+          _this.hide();
+        }
+      }]
     };
     //set options
     if (options_) {
@@ -27,7 +43,6 @@ var MessageBox = Class.extend({
       top: '50%',
       left: '50%',
       position: 'fixed',
-      display: 'block',
       'margin-left': -marginLeft,
       'margin-top': -marginTop,
       'z-index': '99999'
@@ -38,8 +53,8 @@ var MessageBox = Class.extend({
       'class': "iw-modalOverlay"
     });
     $('body').append(this._overlay);
+    this._overlay.hide();
     this._overlay.css({
-      display: 'block',
       width: '100%',
       height: '100%',
       position: 'fixed',
@@ -54,12 +69,12 @@ var MessageBox = Class.extend({
     });
 
     if (this._options['close']) {
-      var _this = this;
       var $closeBtn = $('#window-win' + this._id + '-close');
       $closeBtn.unbind().bind('click', function() {
-        _this.close();
+        _this.hide();
       });
     }
+    this.setButton(this._options['buttons']);
   },
 
   setButton: function(btns_) {
@@ -92,8 +107,29 @@ var MessageBox = Class.extend({
     }
   },
 
-  append: function(content_){
-    this._win.append(content_);
+  post: function(content_) {
+    if (typeof content_ === 'string'){
+      this._content = $('<p>', {
+        class: 'messageBox-content'
+      });
+      this._content.append(content_);
+      this._win.append(this._content);
+    }else{
+      this._win.append(content_);
+      this._content = content_;
+    }
+    this.show();
+  },
+
+  hide: function() {
+    this._win.hide();
+    this._overlay.hide();
+    this._content.remove();
+  },
+
+  show: function() {
+    this._win.show();
+    this._overlay.show();
   },
 
   close: function() {
