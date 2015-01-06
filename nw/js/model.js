@@ -1851,7 +1851,7 @@ var AccountEntryModel = EntryModel.extend({
       if(localData.account===toAccount){
         toAccountInfo['identity'] = toAccount;
       }else{
-        toAccountInfo['identity'] = localData.account+'('+localData.UID+')'+'---'+toAccount;
+        toAccountInfo['identity'] = localData.account+'('+localData.UID+')'+':'+toAccount;
         var toAccInfo = {};
         toAccInfo['toAccount'] = localData.account;
         toAccInfo['toUID'] = localData.UID;

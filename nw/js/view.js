@@ -1719,7 +1719,7 @@ var DeviceListView = View.extend({
           if(toAccountInfo_.group=== toAccountInfo_.toAccount){
             editBoxID = toAccountInfo_.group;
           }else{
-            editBoxID = toAccountInfo_.group[0]===toAccountInfo_.toAccount?toAccountInfo_.group[0]+'---'+toAccountInfo_.group[1][0]+'('+toAccountInfo_.group[1][1]+')':toAccountInfo_.group[1][0]+'('+toAccountInfo_.group[1][1]+')'+'---'+toAccountInfo_.group[0];
+            editBoxID = toAccountInfo_.group[0]===toAccountInfo_.toAccount?toAccountInfo_.group[0]+':'+toAccountInfo_.group[1][0]+'('+toAccountInfo_.group[1][1]+')':toAccountInfo_.group[1][0]+'('+toAccountInfo_.group[1][1]+')'+':'+toAccountInfo_.group[0];
           }
         }
         toAccountInfo_['identity']=editBoxID;
