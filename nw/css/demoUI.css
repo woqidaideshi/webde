@@ -902,3 +902,36 @@ ul.messenger .messenger-spinner {
   border-left: 8px solid #eae4b4;
   border-right: 0;
 }
+.messageBox-btn {
+  display: inline;
+  position: absolute;
+  bottom: 20px;
+  text-align: center;
+  width: 100%;
+}
+.messageBox-btn.two-btns {
+  width: 40%;
+}
+.messageBox-btn.two-btns.first {
+  left: 10%;
+}
+.messageBox-btn.two-btns.second {
+  left: 50%;
+}
+.messageBox-btn.three-btns {
+  width: 28%;
+}
+.messageBox-btn.three-btns.first {
+  left: 8%;
+}
+.messageBox-btn.three-btns.second {
+  left: 36%;
+}
+.messageBox-btn.three-btns.third {
+  left: 64%;
+}
+.messageBox-content {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+}
