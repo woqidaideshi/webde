@@ -1,0 +1,74 @@
+---
+layout: post
+title:  "MessageBox"
+date:   2015-1-5 16:22:12
+categories: ui
+---
+
+<h2>MessageBox</h2>
+<p>MessageBox是消息对话框，屏蔽其他元素，让用户必须进行当前对话</p>
+<h3>使用方法</h3>
+<pre>
+<code>
+var msgBox = MessageBox.create('testid', {
+  title: '',
+  width: 350,
+  height: 200,
+  close: true,
+  buttons: [{
+    text: '确  定',
+    clkaction: function() {
+      alert('hello1');
+      msgBox.hide();
+    }
+  }, {
+    text: '取  消',
+    clkaction: function() {
+      alert('hello2');
+    }
+  }]
+});
+
+function clickDemo() {
+  msgBox.post('确定删除改文件吗?');
+}
+</code>
+</pre><br />
+<h3>提供的接口</h3>
+<pre>
+<code>
+  1. post              在对话框中添加内容
+  2. close             关闭
+  3. hide              隐藏
+</code>
+</pre>
+
+<h2>demo</h2>
+<p>示例<p>
+<button class='btn active' onclick="clickDemo()">点击看示例</button>
+<script type="text/javascript">
+
+var msgBox = MessageBox.create('testid', {
+  title: '',
+  width: 350,
+  height: 200,
+  close: true,
+  buttons: [{
+    text: '确  定',
+    clkaction: function() {
+      alert('hello1');
+      msgBox.hide();
+    }
+  }, {
+    text: '取  消',
+    clkaction: function() {
+      alert('hello2');
+    }
+  }]
+});
+
+function clickDemo() {
+  msgBox.post('确定删除改文件吗?');
+}
+
+</script>
