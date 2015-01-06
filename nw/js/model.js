@@ -1625,7 +1625,7 @@ var DeviceListModel = Model.extend({
     }
   },
 
-  __handleIMMsg: function(recMsg) {
+  __handleIMMsg: function(recMsg) {//封装得到的消息
     var _this = _global.get('desktop').getCOMById('device-list');
     var toAccount,toUID,toIP;
     var toAccountInfo = {};
@@ -1723,10 +1723,10 @@ var DeviceListModel = Model.extend({
     }
   },
 
-  getToAccountInfo: function(toAccountInfo_, cb_) {
+  getToAccountInfo: function(toAccountInfo_, cb_) {//封装设备列表
     var toAccInfo = {};
     var toAccounts = {};
-    if (toAccountInfo_.group === '') {
+    if (toAccountInfo_.group === '') {//针对某设备通信
       toAccInfo['toAccount'] = toAccountInfo_.toAccount;
       toAccInfo['toUID'] = toAccountInfo_.toUID;
       toAccInfo['toIP'] = toAccountInfo_.toIP;
@@ -1734,8 +1734,8 @@ var DeviceListModel = Model.extend({
       toAccounts[toUID] = toAccInfo;
       toAccountInfo['toAccList'] = toAccounts;
       cb_();
-    } else {
-      if (toAccountInfo_.group === toAccountInfo_.toAccount) {
+    } else {//针对群组通信
+      if (toAccountInfo_.group === toAccountInfo_.toAccount) {//群组是对应的接收方用户
         _global._device.getDeviceByAccount(function(devs_) {
           for (var j = 0; j < devs_.length; ++j) {
             toAccInfo = {};
@@ -1748,7 +1748,7 @@ var DeviceListModel = Model.extend({
         }, toAccountInfo_.toAccount);
         toAccountInfo['toAccList'] = toAccounts;
         cb_();
-      } else {
+      } else {//群组是某设备发起的针对某用户的通信
         _global._device.getDeviceByAccount(function(devs_) {
           for (var j = 0; j < devs_.length; ++j) {
             toAccInfo = {};
@@ -1759,7 +1759,7 @@ var DeviceListModel = Model.extend({
             toAccounts[devs_[j].txt[2]] = toAccInfo;
           }
         }, toAccountInfo_.group[0]);
-        if (toAccountInfo_.group[0] === toAccountInfo_.toAccount) {
+        if (toAccountInfo_.group[0] === toAccountInfo_.toAccount) {//本地设备是发起群组通话端，与对方用户通信
           _global._imV.getLocalData(function(localData) {
             toAccInfo = {};
             toAccInfo['toAccount'] = localData.account;
@@ -1768,7 +1768,7 @@ var DeviceListModel = Model.extend({
             toAccInfo['onLineFlag'] = 1;
             toAccounts[localData.account] = toAccInfo;
           });
-        } else {
+        } else {//本设备是接收其他用户设备发起的群组通话端，本设备作为本用户下的一个设备与发起通话设备通信
           toAccInfo = {};
           toAccInfo['toAccount'] = toAccountInfo_.toAccount;
           toAccInfo['toUID'] = toAccountInfo_.toUID;
@@ -1848,16 +1848,16 @@ var AccountEntryModel = EntryModel.extend({
       toAccounts[accountItem._position['txt'][2]] = toAccInfo;
     }
     _global._imV.getLocalData(function(localData){
-      if(localData.account===toAccount){
+      if(localData.account===toAccount){//打开的是设备自身对应的用户通信窗口
         toAccountInfo['identity'] = toAccount;
-      }else{
-        toAccountInfo['identity'] = localData.account+'--'+localData.UID+' : '+toAccount;
+      }else{//打开的是其他用户的窗口
+        toAccountInfo['identity'] = localData.account+'['+localData.UID+']---'+toAccount;
         var toAccInfo = {};
         toAccInfo['toAccount'] = localData.account;
         toAccInfo['toUID'] = localData.UID;
         toAccInfo['toIP'] = localData.IP;
         toAccInfo['onLineFlag'] = 1;
-        toAccounts[localData.account] = toAccInfo;
+        toAccounts[localData.UID] = toAccInfo;
         toAccountInfo['group'] = [toAccount,[localData.account,localData.UID]];
       }
     });

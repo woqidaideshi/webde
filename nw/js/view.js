@@ -1719,7 +1719,7 @@ var DeviceListView = View.extend({
           if(toAccountInfo_.group=== toAccountInfo_.toAccount){
             editBoxID = toAccountInfo_.group;
           }else{
-            editBoxID = toAccountInfo_.group[0]===toAccountInfo_.toAccount?toAccountInfo_.group[0]+' : '+toAccountInfo_.group[1][0]+'--'+toAccountInfo_.group[1][1]:toAccountInfo_.group[1][0]+'--'+toAccountInfo_.group[1][1]+' : '+toAccountInfo_.group[0];
+            editBoxID = toAccountInfo_.group[0]===toAccountInfo_.toAccount?toAccountInfo_.group[0]+'---'+toAccountInfo_.group[1][0]+'['+toAccountInfo_.group[1][1]+']':toAccountInfo_.group[1][0]+'['+toAccountInfo_.group[1][1]+']---'+toAccountInfo_.group[0];
           }
         }
         toAccountInfo_['identity']=editBoxID;
@@ -2014,7 +2014,7 @@ var AccountEntryView = View.extend({
           curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._parent._imChatWinList);
         for(var key in _this._parent._imChatWinList) {
           var curWin = _this._parent._imChatWinList[key];
-          if((key.indexOf(' : ')>-1)&&(curWin._group[0]===dev_._position['txt'][1]||dev_._position['txt'][2]===curWin._group[1][1]))
+          if((key.indexOf('&')>-1)&&(curWin._group[0]===dev_._position['txt'][1]||dev_._position['txt'][2]===curWin._group[1][1]))
             curWin.deviceUpFunc(curWin, dev_._position,_this._parent._imChatWinList);
         }
       },
@@ -2032,7 +2032,7 @@ var AccountEntryView = View.extend({
           curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
         for(var key in _this._parent._imChatWinList) {
           var curWin = _this._parent._imChatWinList[key];
-          if((key.indexOf(' : ')>-1)&&(curWin._group[0]===dev_._position['txt'][1]||dev_._position['txt'][2]===curWin._group[1][1]))
+          if((key.indexOf('&')>-1)&&(curWin._group[0]===dev_._position['txt'][1]||dev_._position['txt'][2]===curWin._group[1][1]))
             curWin.deviceDownFunc(curWin, dev_._position);
         }
       },
@@ -2053,7 +2053,7 @@ var AccountEntryView = View.extend({
       },
       'openImChat':function(toAccountInfo_,cb_){
         var curEditBox = UEditBox.create(toAccountInfo_, _this._parent._imChatWinList,_this._parent._parent._c['layout']._selector);
-        _this._parent._imChatWinList['imChatWin_' + toAccountInfo_.toAccount] = curEditBox;
+        _this._parent._imChatWinList['imChatWin_' + toAccountInfo_.identity] = curEditBox;
         cb_(curEditBox);
       }
     };
