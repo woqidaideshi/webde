@@ -1802,14 +1802,14 @@ var AccountEntryModel = EntryModel.extend({
     cb(null);
   },
 
-  open: function(cb_) {
+  open: function(cb_,param_) {
     var _this = this;
     _this.initImChatParseFunc(function(toAccountInfo) {
       _this.emit('openImChat', toAccountInfo, cb_);
-    });
+    },param_);
   },
 
-  copyTo: function(dataTransfer, entryIds_, cb_) {
+  copyTo: function(cb_,dataTransfer, entryIds_) {
     var filePaths = [];
     if (dataTransfer.files.length != 0) {
       for (var i = 0; i < dataTransfer.files.length; ++i) {
@@ -1829,7 +1829,7 @@ var AccountEntryModel = EntryModel.extend({
     cb_(filePaths);
   },
 
-  initImChatParseFunc: function(cb_) {
+  initImChatParseFunc: function(cb_, param_) {
     var toAccount = this._position['txt'][1];
     var toAccountInfo = {};
     toAccountInfo['toAccount'] = toAccount;
@@ -1847,7 +1847,16 @@ var AccountEntryModel = EntryModel.extend({
       toAccInfo['onLineFlag'] = 1;
       toAccounts[accountItem._position['txt'][2]] = toAccInfo;
     }
-    _global._imV.getLocalData(function(localData){
+    if (param_.account!==toAccount) { //打开的是其他用户的窗口,设备自身对应的用户通信窗口
+      var toAccInfo = {};
+      toAccInfo['toAccount'] = param_.account;
+      toAccInfo['toUID'] = param_.UID;
+      toAccInfo['toIP'] = param_.IP;
+      toAccInfo['onLineFlag'] = 1;
+      toAccounts[param_.UID] = toAccInfo;
+      toAccountInfo['group'] = [toAccount, [param_.account, param_.UID]];
+    }
+    /*_global._imV.getLocalData(function(localData){
       if(localData.account===toAccount){//打开的是设备自身对应的用户通信窗口
         toAccountInfo['identity'] = toAccount;
       }else{//打开的是其他用户的窗口
@@ -1860,7 +1869,8 @@ var AccountEntryModel = EntryModel.extend({
         toAccounts[localData.UID] = toAccInfo;
         toAccountInfo['group'] = [toAccount,[localData.account,localData.UID]];
       }
-    });
+    });*/
+    toAccountInfo['identity'] = param_.identity;
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
   },
@@ -1916,7 +1926,7 @@ var DeviceEntryModel = EntryModel.extend({
   },
 
   // send a file to remote device
-  copyTo: function(dataTransfer, entryIds_, cb_) {
+  copyTo: function(cb_,dataTransfer, entryIds_) {
     var filePaths = [];
     if (dataTransfer.files.length != 0) {
       for (var i = 0; i < dataTransfer.files.length; ++i) {

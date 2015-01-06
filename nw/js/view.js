@@ -1724,7 +1724,7 @@ var DeviceListView = View.extend({
         }
         toAccountInfo_['identity']=editBoxID;
         //var editBoxID = toAccountInfo_.group === toAccountInfo_.toAccount ? toAccountInfo_.group : toAccountInfo_.toUID;
-        curEditBox = _this._imChatWinList['imChatWin_' + editBoxID];
+        curEditBox = _this._imChatWinList[editBoxID];
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
@@ -1752,7 +1752,7 @@ var DeviceListView = View.extend({
 		      action: function() {
 			Messenger().hideAll();
 			curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
-			_this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+			_this._imChatWinList[ editBoxID] = curEditBox;
 		      }
 		    }
 		  }
@@ -1780,7 +1780,7 @@ var DeviceListView = View.extend({
 			    action: function() {
 			      Messenger().hideAll();
 			      curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
-			      _this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+			      _this._imChatWinList[editBoxID] = curEditBox;
 			    }
 			  }
 			}
@@ -1815,7 +1815,7 @@ var DeviceListView = View.extend({
 			      _global._imV.sendAppMsgByDevice(function(mmm) {
 				delete fileMsg['state'];
 				curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
-				_this._imChatWinList['imChatWin_' + editBoxID] = curEditBox;
+				_this._imChatWinList[editBoxID] = curEditBox;
 			      }, sendMsg, _global.get('ws').getSessionID(), true);
 			    }
 			  }
@@ -2006,10 +2006,10 @@ var AccountEntryView = View.extend({
         // TODO: add a dev entry under this account
         _this._c[dev_.getID()] = DevEntryView.create(dev_.getID(), dev_, _this);
         _this._c[dev_.getID()].show(_this.$view.find('.acc-devlist'));
-        var curDevEditBox = _this._parent._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
+        var curDevEditBox = _this._parent._imChatWinList[dev_._position['txt'][1]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._parent._imChatWinList);
-        curDevEditBox = _this._parent._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
+        curDevEditBox = _this._parent._imChatWinList[dev_._position['txt'][2]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._parent._imChatWinList);
         for(var key in _this._parent._imChatWinList) {
@@ -2024,10 +2024,10 @@ var AccountEntryView = View.extend({
         _this._c[dev_.getID()].destroy();
         _this._c[dev_.getID()] = null;
         delete _this._c[dev_.getID()];
-        var curDevEditBox = _this._parent._imChatWinList['imChatWin_' + dev_._position['txt'][1]];
+        var curDevEditBox = _this._parent._imChatWinList[dev_._position['txt'][1]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
-        curDevEditBox = _this._parent._imChatWinList['imChatWin_'  + dev_._position['txt'][2]];
+        curDevEditBox = _this._parent._imChatWinList[dev_._position['txt'][2]];
         if (curDevEditBox !== undefined)
           curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
         for(var key in _this._parent._imChatWinList) {
@@ -2053,7 +2053,7 @@ var AccountEntryView = View.extend({
       },
       'openImChat':function(toAccountInfo_,cb_){
         var curEditBox = UEditBox.create(toAccountInfo_, _this._parent._imChatWinList,_this._parent._parent._c['layout']._selector);
-        _this._parent._imChatWinList['imChatWin_' + toAccountInfo_.identity] = curEditBox;
+        _this._parent._imChatWinList[toAccountInfo_.identity] = curEditBox;
         cb_(curEditBox);
       }
     };
@@ -2089,28 +2089,49 @@ var AccountEntryView = View.extend({
     }).on('drop', function(e) {
       e.stopPropagation();
       e.preventDefault();
-      var curEditBox = _this._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][1]];
-      if (curEditBox === undefined) {
-        _this._controller.onDblclick(function(curEditBoxTmp){
-          curEditBox=curEditBoxTmp;
-        });
-      }else{
-        _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
-      }
-      _this._controller.onDrop(e, _this._parent._parent._c['layout']._selector.getSelectedItems(),function(filePaths){
-        for (var i = 0; i < filePaths.length; ++i) {
-          curEditBox.fileUpload(curEditBox,filePaths[i]);
+      _global._imV.getLocalData(function(localData){
+        var curEditBox;
+        var identity;
+        if(localData.account===_this._model._position['txt'][1]){
+          identity=_this._model._position['txt'][1];
+          curEditBox = _this._parent._imChatWinList[identity];
+        }else{
+          identity=localData.account+'['+localData.UID+']---'+ _this._model._position['txt'][1];
+          curEditBox = _this._parent._imChatWinList[identity];
         }
+        if (curEditBox === undefined) {
+          localData['identity']=identity;
+          _this._controller.onDblclick(function(curEditBox){
+          },localData);
+        }else{
+          _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
+        }
+        _this._controller.onDrop(function(filePaths){
+          for (var i = 0; i < filePaths.length; ++i) {
+            curEditBox.fileUpload(curEditBox,filePaths[i]);
+          }
+        },e, _this._parent._parent._c['layout']._selector.getSelectedItems());
       });
     }).dblclick(function(e) {
       e.stopPropagation();
-      var curEditBox = _this._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][1]];
-      if (curEditBox === undefined) {
-        _this._controller.onDblclick(function(curEditBox){
-        });
-      }else{
-        _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
-      }
+      _global._imV.getLocalData(function(localData){
+        var curEditBox;
+        var identity;
+        if(localData.account===_this._model._position['txt'][1]){
+          identity= _this._model._position['txt'][1];
+          curEditBox = _this._parent._imChatWinList[identity];
+        }else{
+          identity=localData.account+'['+localData.UID+']---'+ _this._model._position['txt'][1];
+          curEditBox = _this._parent._imChatWinList[identity];
+        }
+        if (curEditBox === undefined) {
+          localData['identity']=identity;
+          _this._controller.onDblclick(function(curEditBox){
+          },localData);
+        }else{
+          _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
+        }
+      });
     });
   },
 
@@ -2173,7 +2194,7 @@ var DevEntryView = View.extend({
       },
       'openImChat': function(toAccountInfo_, cb_) {
         var curEditBox = UEditBox.create(toAccountInfo_, _this._parent._parent._imChatWinList, _this._parent._parent._parent._c['layout']._selector);
-        _this._parent._parent._imChatWinList['imChatWin_' + toAccountInfo_.toUID] = curEditBox;
+        _this._parent._parent._imChatWinList[ toAccountInfo_.identity] = curEditBox;
         cb_(curEditBox);
       }
     };
@@ -2205,7 +2226,7 @@ var DevEntryView = View.extend({
       e.preventDefault();
       _global._imV.getLocalData(function(localInfo){
         if(localInfo.UID!== _this._model._position['txt'][2]){
-          var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
+          var curEditBox = _this._parent._parent._imChatWinList[ _this._model._position['txt'][2]];
           if (curEditBox === undefined) {
             _this._controller.onDblclick(function(curEditBoxTmp) {
               curEditBox = curEditBoxTmp;
@@ -2213,18 +2234,18 @@ var DevEntryView = View.extend({
           }else{
             _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);
           }
-          _this._controller.onDrop(e, _this._parent._parent._parent._c['layout']._selector.getSelectedItems(), function(filePaths) {
+          _this._controller.onDrop( function(filePaths) {
             for (var i = 0; i < filePaths.length; ++i) {
               curEditBox.fileUpload(curEditBox, filePaths[i]);
             }
-          });
+          },e, _this._parent._parent._parent._c['layout']._selector.getSelectedItems());
         }
       });   
     }).dblclick(function(e) {
       e.stopPropagation();
       _global._imV.getLocalData(function(localInfo){
         if(localInfo.UID!== _this._model._position['txt'][2]){
-          var curEditBox = _this._parent._parent._imChatWinList['imChatWin_' + _this._model._position['txt'][2]];
+          var curEditBox = _this._parent._parent._imChatWinList[_this._model._position['txt'][2]];
           if (curEditBox === undefined) {
             _this._controller.onDblclick(function(curEditBox) {});
           }else{
@@ -3614,12 +3635,13 @@ var UEditBox = Class.extend({
           if (ev.data.accInfo.toUID === _this._localUID) {
             return;
           } else {
-            var devEditBoxItem = imChatWinList_['imChatWin_' + ev.data.accInfo.toUID];
+            var devEditBoxItem = imChatWinList_[ev.data.accInfo.toUID];
             if (devEditBoxItem === undefined) {
               var toAccountInfoItem = {};
               toAccountInfoItem['toAccount'] = ev.data.accInfo.toAccount;
               toAccountInfoItem['toIP'] = ev.data.accInfo.toIP;
               toAccountInfoItem['toUID'] = ev.data.accInfo.toUID;
+              toAccountInfoItem['identity'] = ev.data.accInfo.toUID;
               toAccountInfoItem['group'] = '';
               var toAccounts = {};
               var toAccListItem = {};
@@ -3630,7 +3652,7 @@ var UEditBox = Class.extend({
               toAccounts[ev.data.accInfo.toUID] = toAccListItem;
               toAccountInfoItem['toAccList'] = toAccounts;
               devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_, _this._selector);
-              imChatWinList_['imChatWin_' + ev.data.accInfo.toUID] = devEditBoxItem;
+              imChatWinList_[ev.data.accInfo.toUID] = devEditBoxItem;
             } else {
               _global._openingWindows.focusOnAWindow(devEditBoxItem._imWindow._id);
             }
@@ -4507,7 +4529,7 @@ var UEditBox = Class.extend({
         curEditBox_._contentTip.hide();
         curEditBox_._um.destroy();
         curEditBox_._imWindow.closeWindow(curEditBox_._imWindow);
-        delete imChatWinList_['imChatWin_' + toIdentity];
+        delete imChatWinList_[toIdentity];
       } else {
         Messenger().post({
           message: '如果关闭窗口，将中断与' + curEditBox_._toAccountInfo.toAccount + uidDetail + '之间的文件传输。！是否关闭窗口？',
@@ -4576,7 +4598,7 @@ var UEditBox = Class.extend({
                 curEditBox_._contentTip.hide();
                 curEditBox_._um.destroy();
                 curEditBox_._imWindow.closeWindow(curEditBox_._imWindow);
-                delete imChatWinList_['imChatWin_' + toIdentity];
+                delete imChatWinList_[toIdentity];
               }
             }
           }
@@ -4619,12 +4641,13 @@ var UEditBox = Class.extend({
           if (info_['txt'][2] === curEditBox_._localUID) {
             return;
           }
-          var devEditBoxItem = imChatWinList_['imChatWin_' + info_['txt'][2]];
+          var devEditBoxItem = imChatWinList_[info_['txt'][2]];
           if (devEditBoxItem === undefined) {
             var toAccountInfoItem = {};
             toAccountInfoItem['toAccount'] = info_['txt'][1];
             toAccountInfoItem['toIP'] = info_.address;
             toAccountInfoItem['toUID'] = info_['txt'][2];
+            toAccountInfoItem['identity'] = info_['txt'][2];
             toAccountInfoItem['group'] = '';
             var toAccounts = {};
             var toAccListItem = {};
@@ -4635,7 +4658,7 @@ var UEditBox = Class.extend({
             toAccounts[info_['txt'][2]] = toAccListItem;
             toAccountInfoItem['toAccList'] = toAccounts;
             devEditBoxItem = UEditBox.create(toAccountInfoItem, imChatWinList_, curEditBox_._selector);
-            imChatWinList_['imChatWin_' + info_['txt'][2]] = devEditBoxItem;
+            imChatWinList_[ info_['txt'][2]] = devEditBoxItem;
           } else {
             _global._openingWindows.focusOnAWindow(devEditBoxItem._imWindow._id);
           }
