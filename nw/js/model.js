@@ -1756,7 +1756,7 @@ var DeviceListModel = Model.extend({
       toAccInfo['toUID'] = toAccountInfo_.toUID;
       toAccInfo['toIP'] = toAccountInfo_.toIP;
       toAccInfo['onLineFlag'] = 1;
-      toAccounts[toUID] = toAccInfo;
+      toAccounts[toAccountInfo_.toUID] = toAccInfo;
       toAccountInfo['toAccList'] = toAccounts;
       cb_();
     } else {//针对群组通信
