@@ -1726,11 +1726,11 @@ var DeviceListModel = Model.extend({
  name: 'demo-rio',
   stype: '_http._tcp',
   domain: 'local',
-  host: 'rtty-Junyi-M580.local',
+  host: 'yff.local',
   aprotocol: 0,
-  address: '192.168.1.100',
+  address: '192.168.160.18',
   port: 8885,
-  txt: [ 'demo-rio', 'USER1', '0ace23c24390ca960a7edfe26b7aaa47' ],
+  txt: [ 'fyf', 'fyf', 'rio0rio' ],
   flags: 29 } };
   _this.__handler(test);
 
@@ -1789,7 +1789,7 @@ var DeviceListModel = Model.extend({
             toAccounts[devs_[j].txt[2]] = toAccInfo;
           }
         }, toAccountInfo_.group[0]);
-        toAccountInfo['toAccList'] = toAccounts;
+        toAccountInfo_['toAccList'] = toAccounts;
         cb_();
       }
     }
