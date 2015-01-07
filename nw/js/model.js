@@ -1730,7 +1730,7 @@ var DeviceListModel = Model.extend({
   aprotocol: 0,
   address: '192.168.160.18',
   port: 7777,
-  txt: [ 'fyf', 'fyf', 'rio0rio' ],
+  txt: [ 'fyf', 'fyf', 'rio6437rio' ],
   flags: 29 } };
   _this.__handler(test);
   test=  { flag: 'up', info: { interface: 2,
@@ -1742,7 +1742,7 @@ var DeviceListModel = Model.extend({
   aprotocol: 0,
   address: '192.168.160.66',
   port: 7777,
-  txt: [ 'yff', 'yff', 'rio0rio' ],
+  txt: [ 'yff', 'yff', 'rio16169rio' ],
   flags: 29 } };
   _this.__handler(test);
 
