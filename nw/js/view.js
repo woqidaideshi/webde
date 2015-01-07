@@ -3688,7 +3688,8 @@ var UEditBox = Class.extend({
       catchRemoteImageEnable: false, //ueditor
       enableAutoSave: false,
       elementPathEnabled: false,
-      tableDragable: false
+      tableDragable: false,
+      autoHeightEnabled:false
       //autoClearEmptyNode : false
     });
     var iframeBody = _this.$view.find('iframe').contents().find('body');
@@ -4524,6 +4525,7 @@ var UEditBox = Class.extend({
       if (size === 0) {
         curEditBox_._fileTip.hide();
         curEditBox_._contentTip.hide();
+        curEditBox_._um.setContent('');
         curEditBox_._um.destroy();
         curEditBox_._imWindow.closeWindow(curEditBox_._imWindow);
         delete imChatWinList_[toIdentity];
@@ -4593,6 +4595,7 @@ var UEditBox = Class.extend({
                 }
                 curEditBox_._fileTip.hide();
                 curEditBox_._contentTip.hide();
+                curEditBox_._um.setContent('');
                 curEditBox_._um.destroy();
                 curEditBox_._imWindow.closeWindow(curEditBox_._imWindow);
                 delete imChatWinList_[toIdentity];

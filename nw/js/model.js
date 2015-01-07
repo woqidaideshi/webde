@@ -1721,7 +1721,7 @@ var DeviceListModel = Model.extend({
     if(!ws.isLocal()) {
       ws.on('device', this.__handler);
     }
- /*   var test=  { flag: 'up', info: { interface: 2,
+    var test=  { flag: 'up', info: { interface: 2,
  protocol: 0,
  name: 'demo-rio',
   stype: '_http._tcp',
@@ -1732,7 +1732,7 @@ var DeviceListModel = Model.extend({
   port: 8885,
   txt: [ 'demo-rio', 'USER1', '0ace23c24390ca960a7edfe26b7aaa47' ],
   flags: 29 } };
-  _this.__handler(test);*/
+  _this.__handler(test);
 
   },
 
