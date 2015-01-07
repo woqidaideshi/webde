@@ -1940,7 +1940,7 @@ var DeviceListView = View.extend({
         break;
       case 0x0001://发送文件初始化失败  传输文件失败
         {
-          if(msg_.state === '0'){
+          if(fileMsg.state === '0'){
             abandon = false;
             labelTip =  '您的远端传输文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ') 失败。';
           }else
