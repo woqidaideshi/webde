@@ -1713,12 +1713,12 @@ var DeviceListView = View.extend({
           editBoxID = toAccountInfo_.toUID;
           toAccountInfo_.group='';
         }*/
-        if(toAccountInfo_.group=== ''){
+        if(toAccountInfo_.group=== ''){//设备对设备通信
           editBoxID = toAccountInfo_.toUID;
-        }else{
-          if(toAccountInfo_.group=== toAccountInfo_.toAccount){
+        }else{//群组通信
+          if(toAccountInfo_.group=== toAccountInfo_.toAccount){//本地设备对应用户群组
             editBoxID = toAccountInfo_.group;
-          }else{
+          }else{//设备对应用户群组通信
             editBoxID = toAccountInfo_.group[0]===toAccountInfo_.toAccount?toAccountInfo_.group[0]+'---'+toAccountInfo_.group[1][0]+'-'+toAccountInfo_.group[1][1]:toAccountInfo_.group[1][0]+'-'+toAccountInfo_.group[1][1]+'---'+toAccountInfo_.group[0];
           }
         }
@@ -1730,7 +1730,7 @@ var DeviceListView = View.extend({
         if (curEditBox === undefined) {
           _this._model.getToAccountInfo(toAccountInfo_,function(){
             _global._imV.getLocalData(function(localData) {
-	      if (fileMsg.type === undefined) {
+	      if (fileMsg.type === undefined) {//聊天信息
 		var fromAcc;
 		if (localData.UID === toAccountInfo_.fromUID) {
 		  fromAcc='您的远端';
@@ -1758,8 +1758,8 @@ var DeviceListView = View.extend({
 		  }
 		});
 	      }else{
-		if (fileMsg.type === 'file') {
-		  if (localData.UID === toAccountInfo_.fromUID) {
+		if (fileMsg.type === 'file') {//文件传输相关信息
+		  if (localData.UID === toAccountInfo_.fromUID) {//自身设备的其他访问终端，如本地设备的浏览器端 或者 相对于浏览器的本地设备
 		    _this.imFileMsgShow(toAccountInfo_, function(abandon, labelTip, fileInfo) {
 		      if (abandon)
 			return;
@@ -1786,8 +1786,8 @@ var DeviceListView = View.extend({
 			}
 		      });
 		    });
-		  } else {
-		    if (fileMsg.option === 0x0000 && fileMsg.state === undefined) {
+		  } else {//其他设备发来的文件传输信息
+		    if (fileMsg.option === 0x0000 && fileMsg.state === undefined) {//文件传输请求，请求设备接收文件
 		      var sendMsg = {};
 		      sendMsg['IP'] = toAccountInfo_.toIP;
 		      sendMsg['UID'] = toAccountInfo_.toUID;
@@ -1901,11 +1901,11 @@ var DeviceListView = View.extend({
     var labelTip;
     var fileInfo;
     switch (fileMsg.option) {
-      case 0x0000:
+      case 0x0000://传输文件请求 / 接收文件响应 / 拒绝接收文件响应
         {
           abandon = false;
           switch (fileMsg.state) {
-            case undefined:
+            case undefined://传输文件请求
               {
                 var toAcc = toAccountInfo_.group === '' ? toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')':toAccountInfo_.identity;
                 labelTip = '您的远端正在给' +toAcc+ '传输文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
@@ -1917,12 +1917,12 @@ var DeviceListView = View.extend({
                 };
               }
               break;
-            case '0':
+            case '0': // 拒绝接收文件响应
               {
                 labelTip = '您的远端拒绝接收' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输的文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
               }
               break;
-            case '1':
+            case '1'://接收文件响应
               {
                 labelTip = '您的远端正在接收' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输的文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
                 fileInfo = {
@@ -1938,7 +1938,7 @@ var DeviceListView = View.extend({
           }
         }
         break;
-      case 0x0001:
+      case 0x0001://发送文件初始化失败  传输文件失败
         {
           if(msg_.state === '0'){
             abandon = false;
@@ -1947,7 +1947,7 @@ var DeviceListView = View.extend({
           abandon = true;
         }
         break;
-      case 0x0002:
+      case 0x0002://文件传输进度
         {
           if (fileMsg.state !== 1) {
             abandon = false;
@@ -1964,7 +1964,7 @@ var DeviceListView = View.extend({
           }
         }
         break;
-      case 0x0003:
+      case 0x0003://取消传输
         {
           abandon = false;
           labelTip = '您的远端中断传输文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
