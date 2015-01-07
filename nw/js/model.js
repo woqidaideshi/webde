@@ -1644,38 +1644,9 @@ var DeviceListModel = Model.extend({
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = toIP;
     toAccountInfo['toUID'] = toUID;
-    //var toAccInfo = {};
-    //var toAccounts = {};
     try {
       msg = JSON.parse(msg);
-    } catch (e) {}/*
-    if (msg.group === '') {
-      toAccInfo['toAccount'] = toAccount;
-      toAccInfo['toUID'] = toUID;
-      toAccInfo['toIP'] = toIP;
-      toAccInfo['onLineFlag'] = 1;
-      toAccounts[toUID] = toAccInfo;
-    } else {
-      _global._device.getDeviceByAccount(function(devs_) {
-        for (var j = 0; j < devs_.length; ++j) {
-          toAccInfo = {};
-          toAccInfo['toAccount'] = devs_[j].txt[1];
-          toAccInfo['toUID'] = devs_[j].txt[2];
-          toAccInfo['toIP'] = devs_[j].address;
-          toAccInfo['onLineFlag'] = 1;
-          toAccounts[devs_[j].txt[2]] = toAccInfo;
-        }
-      }, toAccount);
-      if(msg.group!==toAccount){
-        var toAccInfo = {};
-        toAccInfo['toAccount'] = localData.account;
-        toAccInfo['toUID'] = localData.UID;
-        toAccInfo['toIP'] = localData.IP;
-        toAccInfo['onLineFlag'] = 1;
-        toAccounts[localData.account] = toAccInfo;
-      }
-    }
-    toAccountInfo['toAccList'] = toAccounts;*/
+    } catch (e) {}
     toAccountInfo['msg'] = msg;
     toAccountInfo['group'] = msg.group;
     _this.emit('imMsg', toAccountInfo);
@@ -1721,31 +1692,6 @@ var DeviceListModel = Model.extend({
     if(!ws.isLocal()) {
       ws.on('device', this.__handler);
     }
-    var test=  { flag: 'up', info: { interface: 2,
- protocol: 0,
- name: 'demo-rio',
-  stype: '_http._tcp',
-  domain: 'local',
-  host: 'fyf.local',
-  aprotocol: 0,
-  address: '192.168.160.18',
-  port: 7777,
-  txt: [ 'fyf', 'fyf', 'rio6437rio' ],
-  flags: 29 } };
-  _this.__handler(test);
-  test=  { flag: 'up', info: { interface: 2,
- protocol: 0,
- name: 'demo-rio',
-  stype: '_http._tcp',
-  domain: 'local',
-  host: 'yff.local',
-  aprotocol: 0,
-  address: '192.168.160.66',
-  port: 7777,
-  txt: [ 'yff', 'yff', 'rio16169rio' ],
-  flags: 29 } };
-  _this.__handler(test);
-
   },
 
   getToAccountInfo: function(toAccountInfo_, cb_) {//封装设备列表
@@ -1881,20 +1827,6 @@ var AccountEntryModel = EntryModel.extend({
       toAccounts[param_.UID] = toAccInfo;
       toAccountInfo['group'] = [toAccount, [param_.account, param_.UID]];
     }
-    /*_global._imV.getLocalData(function(localData){
-      if(localData.account===toAccount){//打开的是设备自身对应的用户通信窗口
-        toAccountInfo['identity'] = toAccount;
-      }else{//打开的是其他用户的窗口
-        toAccountInfo['identity'] = localData.account+'['+localData.UID+']---'+toAccount;
-        var toAccInfo = {};
-        toAccInfo['toAccount'] = localData.account;
-        toAccInfo['toUID'] = localData.UID;
-        toAccInfo['toIP'] = localData.IP;
-        toAccInfo['onLineFlag'] = 1;
-        toAccounts[localData.UID] = toAccInfo;
-        toAccountInfo['group'] = [toAccount,[localData.account,localData.UID]];
-      }
-    });*/
     toAccountInfo['identity'] = param_.identity;
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);

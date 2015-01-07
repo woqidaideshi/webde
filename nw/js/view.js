@@ -1707,12 +1707,6 @@ var DeviceListView = View.extend({
       'imMsg': function(toAccountInfo_) {
         var curEditBox;
         var editBoxID;
-        /*if(toAccountInfo_.group=== toAccountInfo_.toAccount ){
-          editBoxID = toAccountInfo_.group;
-        }else{
-          editBoxID = toAccountInfo_.toUID;
-          toAccountInfo_.group='';
-        }*/
         if(toAccountInfo_.group=== ''){//设备对设备通信
           editBoxID = toAccountInfo_.toUID;
         }else{//群组通信
@@ -1723,7 +1717,6 @@ var DeviceListView = View.extend({
           }
         }
         toAccountInfo_['identity']=editBoxID;
-        //var editBoxID = toAccountInfo_.group === toAccountInfo_.toAccount ? toAccountInfo_.group : toAccountInfo_.toUID;
         curEditBox = _this._imChatWinList[editBoxID];
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
@@ -3870,11 +3863,6 @@ var UEditBox = Class.extend({
                 };
                 $('#memList_' + toIdentity).hide();
                 $('#fileTransShow_' + toIdentity).show();
-                /*$('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
-                    <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span><br/><br/></div>\
-                    <div><button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
-                    <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button></div>\
-                    </li>');*/
                 var txt= '<li id="fileTransItem_' + msg_.key + '">\
                     <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span><br/><br/></div>\
                     <div><button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
@@ -4024,11 +4012,6 @@ var UEditBox = Class.extend({
         _global._imV.sendIMMsg(function(mmm) {
           $('#memList_' + toIdentity).hide();
           $('#fileTransShow_' + toIdentity).show();
-          /*$('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + fileMsg.key + '">\
-                    <div><img src="img/uploadFile.png"/><span  title="' + fileMsg.fileName + '" class="chatList_name">' + fileMsg.fileName.substr(0, 8) + '...<br/>大小：' + fileMsg.fileSize + '</span></div>\
-                    <div><span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_' + fileMsg.key + '"></div></div>\
-                    <div><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button></div>\
-                    </li>');*/
           var txt= '<li id="fileTransItem_' + fileMsg.key + '">\
                     <div><img src="img/uploadFile.png"/><span  title="' + fileMsg.fileName + '" class="chatList_name">' + fileMsg.fileName.substr(0, 8) + '...<br/>大小：' + fileMsg.fileSize + '</span></div>\
                     <div><span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_' + fileMsg.key + '"></div></div>\
@@ -4439,11 +4422,6 @@ var UEditBox = Class.extend({
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
     }
-    /*$('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
-                <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
-                <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_' + msg_.key + '"></div></div>\
-                <div><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button></div>\
-                </li>');*/
     var txt= '<li id="fileTransItem_' + msg_.key + '">\
                 <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
                 <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_' + msg_.key + '"></div></div>\
