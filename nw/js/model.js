@@ -1726,11 +1726,23 @@ var DeviceListModel = Model.extend({
  name: 'demo-rio',
   stype: '_http._tcp',
   domain: 'local',
-  host: 'yff.local',
+  host: 'fyf.local',
   aprotocol: 0,
   address: '192.168.160.18',
-  port: 8885,
+  port: 7777,
   txt: [ 'fyf', 'fyf', 'rio0rio' ],
+  flags: 29 } };
+  _this.__handler(test);
+  test=  { flag: 'up', info: { interface: 2,
+ protocol: 0,
+ name: 'demo-rio',
+  stype: '_http._tcp',
+  domain: 'local',
+  host: 'yff.local',
+  aprotocol: 0,
+  address: '192.168.160.66',
+  port: 7777,
+  txt: [ 'yff', 'yff', 'rio0rio' ],
   flags: 29 } };
   _this.__handler(test);
 
