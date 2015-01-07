@@ -3850,7 +3850,7 @@ var UEditBox = Class.extend({
           if (curEditBox_._localUID === sendMsg_.fromUID && msg_.state === undefined) {
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            var sendAcc=sendMsg_.group===''?sendMsg_.Account + '(' + sendMsg_.UID + ')':sendMsg_.Account;
+            var sendAcc=sendMsg_.group===''?sendMsg_.Account + '(' + sendMsg_.UID + ')':curEditBox_._toIdentity;
             var labelTip = '您的远端正在给' + sendAcc+'传输文件\n' + msg_.fileName + '\n大小：' + msg_.fileSize;
             var fileInfo = {
               'flag': 5, //远端正在给其他设备传输文件
