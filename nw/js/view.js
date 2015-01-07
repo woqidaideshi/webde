@@ -1719,7 +1719,7 @@ var DeviceListView = View.extend({
           if(toAccountInfo_.group=== toAccountInfo_.toAccount){
             editBoxID = toAccountInfo_.group;
           }else{
-            editBoxID = toAccountInfo_.group[0]===toAccountInfo_.toAccount?toAccountInfo_.group[0]+'---'+toAccountInfo_.group[1][0]+'['+toAccountInfo_.group[1][1]+']':toAccountInfo_.group[1][0]+'['+toAccountInfo_.group[1][1]+']---'+toAccountInfo_.group[0];
+            editBoxID = toAccountInfo_.group[0]===toAccountInfo_.toAccount?toAccountInfo_.group[0]+'---'+toAccountInfo_.group[1][0]+'-'+toAccountInfo_.group[1][1]:toAccountInfo_.group[1][0]+'-'+toAccountInfo_.group[1][1]+'---'+toAccountInfo_.group[0];
           }
         }
         toAccountInfo_['identity']=editBoxID;
@@ -2014,7 +2014,7 @@ var AccountEntryView = View.extend({
           curDevEditBox.deviceUpFunc(curDevEditBox, dev_._position,_this._parent._imChatWinList);
         for(var key in _this._parent._imChatWinList) {
           var curWin = _this._parent._imChatWinList[key];
-          if((key.indexOf('&')>-1)&&(curWin._group[0]===dev_._position['txt'][1]||dev_._position['txt'][2]===curWin._group[1][1]))
+          if((key.indexOf('---')>-1)&&(curWin._group[0]===dev_._position['txt'][1]||dev_._position['txt'][2]===curWin._group[1][1]))
             curWin.deviceUpFunc(curWin, dev_._position,_this._parent._imChatWinList);
         }
       },
@@ -2032,7 +2032,7 @@ var AccountEntryView = View.extend({
           curDevEditBox.deviceDownFunc(curDevEditBox, dev_._position);
         for(var key in _this._parent._imChatWinList) {
           var curWin = _this._parent._imChatWinList[key];
-          if((key.indexOf('&')>-1)&&(curWin._group[0]===dev_._position['txt'][1]||dev_._position['txt'][2]===curWin._group[1][1]))
+          if((key.indexOf('---')>-1)&&(curWin._group[0]===dev_._position['txt'][1]||dev_._position['txt'][2]===curWin._group[1][1]))
             curWin.deviceDownFunc(curWin, dev_._position);
         }
       },
@@ -2096,7 +2096,7 @@ var AccountEntryView = View.extend({
           identity=_this._model._position['txt'][1];
           curEditBox = _this._parent._imChatWinList[identity];
         }else{
-          identity=localData.account+'['+localData.UID+']---'+ _this._model._position['txt'][1];
+          identity=localData.account+'-'+localData.UID+'---'+ _this._model._position['txt'][1];
           curEditBox = _this._parent._imChatWinList[identity];
         }
         if (curEditBox === undefined) {
@@ -2121,7 +2121,7 @@ var AccountEntryView = View.extend({
           identity= _this._model._position['txt'][1];
           curEditBox = _this._parent._imChatWinList[identity];
         }else{
-          identity=localData.account+'['+localData.UID+']---'+ _this._model._position['txt'][1];
+          identity=localData.account+'-'+localData.UID+'---'+ _this._model._position['txt'][1];
           curEditBox = _this._parent._imChatWinList[identity];
         }
         if (curEditBox === undefined) {
@@ -3521,7 +3521,7 @@ var UEditBox = Class.extend({
     this._onLineCount = 0;
     this._group = toAccountInfo_.group;
     if (toAccountInfo_.group === '') {
-      this._title = toAccountInfo_.toAccount + '--' + toAccountInfo_.toUID;
+      this._title = toAccountInfo_.toAccount + '-' + toAccountInfo_.toUID;
     } else {
       this._title = toAccountInfo_.identity;
     }
@@ -3627,7 +3627,7 @@ var UEditBox = Class.extend({
         id: 'memItem_' + toAccInfo.toUID,
         type: "item",
         img: "img/device.png",
-        text: toAccInfo.toAccount + '<br/>UID:' + toAccInfo.toUID,
+        text: toAccInfo.toAccount + '<br/>UID:' + toAccInfo.toUID.substr(0, 20),
         dblclkaction_p: {
           'accInfo': toAccInfo
         },
@@ -3761,8 +3761,7 @@ var UEditBox = Class.extend({
         var msg = _this._um.getContent();
 
         function sendIMMsgCb() {
-          $('#disp_text_' + _this._toIdentity).append('<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
-          $('#disp_text_' + _this._toIdentity).scrollTop($('#disp_text_' + _this._toIdentity).height());
+          _this.divAppendContent($('#disp_text_' + _this._toIdentity),'<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
           _this._um.setContent('');
         }
         msgtime = new Date();
@@ -3811,19 +3810,16 @@ var UEditBox = Class.extend({
           _global._imV.getLocalData(function(localData) {
             var fromAcc=toAccountInfo_.fromUID===localData.UID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
             var txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
-            $('#disp_text_' + toIdentity).append(txtShow);
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),txtShow);
           });
         }else{
           var fromAcc=toAccountInfo_.fromUID===curEditBox_._localUID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
           var txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
-          $('#disp_text_' + toIdentity).append(txtShow);
-          $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),txtShow);
         }   
       } else {
         var txtShow = '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + toAccountInfo_.msgTip + '<br/>';
-        $('#disp_text_' + toIdentity).append(txtShow);
-        $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+        curEditBox_.divAppendContent($('#disp_text_' + toIdentity),txtShow);
         if (toAccountInfo_.fileInfo !== undefined) {
           curEditBox_._fileTransList[toAccountInfo_.fileInfo.key] = toAccountInfo_.fileInfo;
         }
@@ -3861,8 +3857,7 @@ var UEditBox = Class.extend({
               'fileSize': msg_.fileSize
             };
             curEditBox_._fileTransList[msg_.key] = fileInfo;
-            $('#disp_text_' + toIdentity).append( '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + labelTip + '<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + labelTip + '<br/>');
           } else {
             if (msg_.state === undefined) {
               if (flag_) {
@@ -3874,11 +3869,17 @@ var UEditBox = Class.extend({
                 };
                 $('#memList_' + toIdentity).hide();
                 $('#fileTransShow_' + toIdentity).show();
-                $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
+                /*$('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
                     <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span><br/><br/></div>\
                     <div><button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
                     <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button></div>\
-                    </li>');
+                    </li>');*/
+                var txt= '<li id="fileTransItem_' + msg_.key + '">\
+                    <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span><br/><br/></div>\
+                    <div><button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
+                    <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button></div>\
+                    </li>';
+                curEditBox_.divAppendContent($('#fileTransList_' + toIdentity),txt);
                 $('#refuseFileItem_' + msg_.key).on('click', function() {
                   curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
                   curEditBox_.refuseFileItemTransfer(curEditBox_, msg_, sendMsg_);
@@ -3905,8 +3906,7 @@ var UEditBox = Class.extend({
             var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           } else {
             curEditBox_.recieverFileTransBegin(curEditBox_, msg_, sendMsg_, flag_);
           }
@@ -3955,8 +3955,7 @@ var UEditBox = Class.extend({
             }
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           }, msg_.key);
         }
         break;
@@ -3966,8 +3965,7 @@ var UEditBox = Class.extend({
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>您的传输请求已过期。<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>您的传输请求已过期。<br/>');
           }
         }
         break;
@@ -4025,11 +4023,17 @@ var UEditBox = Class.extend({
         _global._imV.sendIMMsg(function(mmm) {
           $('#memList_' + toIdentity).hide();
           $('#fileTransShow_' + toIdentity).show();
-          $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + fileMsg.key + '">\
+          /*$('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + fileMsg.key + '">\
                     <div><img src="img/uploadFile.png"/><span  title="' + fileMsg.fileName + '" class="chatList_name">' + fileMsg.fileName.substr(0, 8) + '...<br/>大小：' + fileMsg.fileSize + '</span></div>\
                     <div><span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_' + fileMsg.key + '"></div></div>\
                     <div><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button></div>\
-                    </li>');
+                    </li>');*/
+          var txt= '<li id="fileTransItem_' + fileMsg.key + '">\
+                    <div><img src="img/uploadFile.png"/><span  title="' + fileMsg.fileName + '" class="chatList_name">' + fileMsg.fileName.substr(0, 8) + '...<br/>大小：' + fileMsg.fileSize + '</span></div>\
+                    <div><span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_' + fileMsg.key + '"></div></div>\
+                    <div><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button></div>\
+                    </li>';
+          curEditBox_.divAppendContent($('#fileTransList_' + toIdentity),txt);
           $('#fileRatio_' + fileMsg.key).text('0%');
           var _gauge = Gauge.create();
           _gauge.add($("#fileGaugeDiv_" + fileMsg.key), {
@@ -4055,8 +4059,7 @@ var UEditBox = Class.extend({
               var ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
               var msgtime = new Date();
               var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-              $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-              $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+              curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             });
           });
         }, fileTransMsg, _global.get('ws').getSessionID(), true);
@@ -4107,8 +4110,7 @@ var UEditBox = Class.extend({
                 var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
                 var msgtime = new Date();
                 var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-                $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
               }, sendMsg_, _global.get('ws').getSessionID(), true);
             } else {
               _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
@@ -4122,8 +4124,7 @@ var UEditBox = Class.extend({
           var ratioLable =  '您的远端正在接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
           var msgtime = new Date();
           var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-          $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           return;
         }
         break;
@@ -4151,8 +4152,7 @@ var UEditBox = Class.extend({
           var ratioLable =  '您的远端拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
           var msgtime = new Date();
           var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-          $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           return;
         }
         break;
@@ -4166,8 +4166,7 @@ var UEditBox = Class.extend({
           var ratioLable = fromAcc + '拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
           var msgtime = new Date();
           var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-          $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
         }
           break;
         case 6:
@@ -4186,8 +4185,7 @@ var UEditBox = Class.extend({
           var ratioLable = fromAcc + '拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
           var msgtime = new Date();
           var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-          $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
         }
           break;
         default:;
@@ -4246,8 +4244,7 @@ var UEditBox = Class.extend({
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           }
           _global._imV.sendIMMsg(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
         }
@@ -4285,8 +4282,7 @@ var UEditBox = Class.extend({
               curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
               var msgtime = new Date();
               var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-              $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-              $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+              curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             }
           }, msg_);
         }
@@ -4328,8 +4324,7 @@ var UEditBox = Class.extend({
               setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
               var msgtime = new Date();
               var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-              $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-              $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+              curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             }
             sendMsg_['Msg'] = JSON.stringify({
               'group': curEditBox_._group,
@@ -4355,8 +4350,7 @@ var UEditBox = Class.extend({
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           }
         }
         break;
@@ -4377,8 +4371,7 @@ var UEditBox = Class.extend({
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           }
         }
         break;
@@ -4400,8 +4393,7 @@ var UEditBox = Class.extend({
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-            $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           }
         }
         break;
@@ -4421,8 +4413,7 @@ var UEditBox = Class.extend({
       var ratioLable = '您拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
       var msgtime = new Date();
       var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-      $('#disp_text_' + toIdentity).append('<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-      $('#disp_text_' + toIdentity).scrollTop($('#disp_text_' + toIdentity).height());
+      curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
     }, sendMsg_, _global.get('ws').getSessionID(), true);
   },
 
@@ -4447,11 +4438,17 @@ var UEditBox = Class.extend({
       $('#memList_' + toIdentity).hide();
       $('#fileTransShow_' + toIdentity).show();
     }
-    $('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
+    /*$('#fileTransList_' + toIdentity).append('<li id="fileTransItem_' + msg_.key + '">\
                 <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
                 <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_' + msg_.key + '"></div></div>\
                 <div><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button></div>\
-                </li>');
+                </li>');*/
+    var txt= '<li id="fileTransItem_' + msg_.key + '">\
+                <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
+                <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_' + msg_.key + '"></div></div>\
+                <div><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button></div>\
+                </li>';
+    curEditBox_.divAppendContent($('#fileTransList_' + toIdentity),txt);
     $('#cancelFileItem_' + msg_.key).on('click', function() {
       _global._imV.transferCancelReciever(function() {}, msg_.key);
     });
@@ -4636,7 +4633,7 @@ var UEditBox = Class.extend({
         type: "item",
         href: "",
         img: "img/device.png",
-        text: info_['txt'][1] + '<br/>UID:' + info_['txt'][2],
+        text: info_['txt'][1] + '<br/>UID:' + info_['txt'][2].substr(0, 20),
         clkaction: function() {
           if (info_['txt'][2] === curEditBox_._localUID) {
             return;
@@ -4706,6 +4703,11 @@ var UEditBox = Class.extend({
         item = desktop.getCOMById('layout').getCurLayout().getWidgetById(tarIdArr[i]);
       curEditBox_.fileUpload(curEditBox_, item.getPath());
     }
+  },
+
+  divAppendContent:function(div,text){
+    div.append(text);
+    div[0].scrollTop=div[0].scrollHeight;
   }
 });
 

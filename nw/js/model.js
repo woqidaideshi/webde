@@ -1721,6 +1721,19 @@ var DeviceListModel = Model.extend({
     if(!ws.isLocal()) {
       ws.on('device', this.__handler);
     }
+ /*   var test=  { flag: 'up', info: { interface: 2,
+ protocol: 0,
+ name: 'demo-rio',
+  stype: '_http._tcp',
+  domain: 'local',
+  host: 'rtty-Junyi-M580.local',
+  aprotocol: 0,
+  address: '192.168.1.100',
+  port: 8885,
+  txt: [ 'demo-rio', 'USER1', '0ace23c24390ca960a7edfe26b7aaa47' ],
+  flags: 29 } };
+  _this.__handler(test);*/
+
   },
 
   getToAccountInfo: function(toAccountInfo_, cb_) {//封装设备列表
@@ -1749,6 +1762,23 @@ var DeviceListModel = Model.extend({
         toAccountInfo['toAccList'] = toAccounts;
         cb_();
       } else {//群组是某设备发起的针对某用户的通信
+        if (toAccountInfo_.group[0] === toAccountInfo_.toAccount) {//本地设备是发起群组通话端，与对方用户通信
+          _global._imV.getLocalData(function(localData) {
+            toAccInfo = {};
+            toAccInfo['toAccount'] = localData.account;
+            toAccInfo['toUID'] = localData.UID;
+            toAccInfo['toIP'] = localData.IP;
+            toAccInfo['onLineFlag'] = 1;
+            toAccounts[localData.UID] = toAccInfo;
+          });
+        } else {//本设备是接收其他用户设备发起的群组通话端，本设备作为本用户下的一个设备与发起通话设备通信
+          toAccInfo = {};
+          toAccInfo['toAccount'] = toAccountInfo_.toAccount;
+          toAccInfo['toUID'] = toAccountInfo_.toUID;
+          toAccInfo['toIP'] = toAccountInfo_.toIP;
+          toAccInfo['onLineFlag'] = 1;
+          toAccounts[toAccountInfo_.toUID] = toAccInfo;
+        }
         _global._device.getDeviceByAccount(function(devs_) {
           for (var j = 0; j < devs_.length; ++j) {
             toAccInfo = {};
@@ -1759,23 +1789,6 @@ var DeviceListModel = Model.extend({
             toAccounts[devs_[j].txt[2]] = toAccInfo;
           }
         }, toAccountInfo_.group[0]);
-        if (toAccountInfo_.group[0] === toAccountInfo_.toAccount) {//本地设备是发起群组通话端，与对方用户通信
-          _global._imV.getLocalData(function(localData) {
-            toAccInfo = {};
-            toAccInfo['toAccount'] = localData.account;
-            toAccInfo['toUID'] = localData.UID;
-            toAccInfo['toIP'] = localData.IP;
-            toAccInfo['onLineFlag'] = 1;
-            toAccounts[localData.account] = toAccInfo;
-          });
-        } else {//本设备是接收其他用户设备发起的群组通话端，本设备作为本用户下的一个设备与发起通话设备通信
-          toAccInfo = {};
-          toAccInfo['toAccount'] = toAccountInfo_.toAccount;
-          toAccInfo['toUID'] = toAccountInfo_.toUID;
-          toAccInfo['toIP'] = toAccountInfo_.toIP;
-          toAccInfo['onLineFlag'] = 1;
-          toAccounts[toAccountInfo_.toUID] = toAccInfo;
-        }
         toAccountInfo['toAccList'] = toAccounts;
         cb_();
       }
