@@ -1644,8 +1644,8 @@ var DeviceListModel = Model.extend({
     toAccountInfo['toAccount'] = toAccount;
     toAccountInfo['toIP'] = toIP;
     toAccountInfo['toUID'] = toUID;
-    var toAccInfo = {};
-    var toAccounts = {};
+    //var toAccInfo = {};
+    //var toAccounts = {};
     try {
       msg = JSON.parse(msg);
     } catch (e) {}/*
