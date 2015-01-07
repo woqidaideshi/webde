@@ -15,7 +15,7 @@ var ModalBox = Class.extend({
     }
 
     this._forbidClose = false;
-
+    this._keydown = undefined;
     if (options_) {
       for(var key in options_)
       	  this._options[key] = options_[key];
@@ -135,18 +135,20 @@ var ModalBox = Class.extend({
       if ($('.iw-modalBox').length === 0) {
       	  $('.iw-modalOverlay').remove();
       	  $(document).unbind('resize.iw-modalBox');
+         $(document).unbind('keydown',_this._keydown);
       };
     };
   },
 
   keyEvent:function(){
     var _this = this;
-    $(document).keydown(function(e){
+    _this._keydown = function(e){
       var key = e.which;
       if(key === 27){
         _this.close.call(_this);
       }
-    });
+    };
+    $(document).bind('keydown',this._keydown);
   },
   
   addOverlay:function(){
