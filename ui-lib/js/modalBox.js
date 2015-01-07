@@ -10,10 +10,11 @@ var ModalBox = Class.extend({
       keyClose: true,
       bodyClose: true,
       iconImg: 'img/close.png',
-      //callback function
       onOpen: function () {},
       onClose: function () {}
     }
+
+    this._forbidClose = false;
 
     if (options_) {
       for(var key in options_)
@@ -115,6 +116,9 @@ var ModalBox = Class.extend({
 
   close:function(){
     var _this = this;
+    if(_this._forbidClose){
+      return 0;
+    }
     if (_this._obj.hasClass('iw-modalBox')) {
       var imgId = _this._obj.attr('closeImg');
       if (imgId) {
@@ -140,7 +144,7 @@ var ModalBox = Class.extend({
     $(document).keydown(function(e){
       var key = e.which;
       if(key === 27){
-        _this.close();
+        _this.close.call(_this);
       }
     });
   },
@@ -167,5 +171,9 @@ var ModalBox = Class.extend({
       position: 'fixed',
       'z-index': '99999'
     });
+  },
+
+  forbidClose:function(isForbid_){
+    this._forbidClose = isForbid_;
   }
 });
