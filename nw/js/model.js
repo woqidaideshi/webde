@@ -1757,7 +1757,7 @@ var DeviceListModel = Model.extend({
       toAccInfo['toIP'] = toAccountInfo_.toIP;
       toAccInfo['onLineFlag'] = 1;
       toAccounts[toAccountInfo_.toUID] = toAccInfo;
-      toAccountInfo['toAccList'] = toAccounts;
+      toAccountInfo_['toAccList'] = toAccounts;
       cb_();
     } else {//针对群组通信
       if (toAccountInfo_.group === toAccountInfo_.toAccount) {//群组是对应的接收方用户
@@ -1771,7 +1771,7 @@ var DeviceListModel = Model.extend({
             toAccounts[devs_[j].txt[2]] = toAccInfo;
           }
         }, toAccountInfo_.toAccount);
-        toAccountInfo['toAccList'] = toAccounts;
+        toAccountInfo_['toAccList'] = toAccounts;
         cb_();
       } else {//群组是某设备发起的针对某用户的通信
         if (toAccountInfo_.group[0] === toAccountInfo_.toAccount) {//本地设备是发起群组通话端，与对方用户通信
