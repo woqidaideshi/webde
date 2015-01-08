@@ -2988,6 +2988,7 @@ var Selector = Class.extend({
             left_e: _off.left + _this.$view.width(),
             top_e: _off.top + _this.$view.height()
           }, _items[i].getView())) {
+          // TODO: may hasn't focus function!!
           _items[i].focus();
         }
       }
