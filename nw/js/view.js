@@ -1408,7 +1408,7 @@ var LauncherView = View.extend({
         _this._cur_views[i].view.toShow(_this._cur);
       var inName = c_input.val();
       if(inName == '') return ;
-      var regName = new RegExp('^' + inName);
+      var regName = new RegExp('.*' + inName + '.*', 'i');
       for(var i = 0; i < _this._cur_views.length; ++i) {
         if(_this._cur_views[i].name.match(regName) == null)
           _this._cur_views[i].view.toHide(_this._cur);
