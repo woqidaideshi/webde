@@ -15,7 +15,7 @@ categories: ui
     iconClose:true,                     //是否使用图片关闭
     keyClose:true,                      //是否使用键盘关闭
     bodyClose:true                    //是否使用点击空白处关闭
-  });
+  }).forbidClose(false);            //设置禁止关闭，true为禁止关闭，false为可以关闭
 </code>
 </pre>  <br />
 <h2>配置选项</h2>
@@ -44,13 +44,16 @@ categories: ui
 
 <h2>demo</h2>
 <button class="btn active" onclick="modal()">ModalBox</button>
+<button class="btn active" onclick="forbid()">forbid</button>
 <img  id='modalBox-pic' src="/assets/img/cat.jpg"/>
 <script type="text/javascript">
+var modalBox = undefined;
+var isForbidClose = false;
   var modal = function(){
     var pic_ = $('#modalBox-pic');
     var parent = pic_.parent('div');
    pic_.show();
-   ModalBox.create(pic_, {
+   modalBox = ModalBox.create(pic_, {
      iconImg: '/assets/img/close.png',
      iconClose: true,
      keyClose: true,
@@ -61,5 +64,9 @@ categories: ui
         pic_.show();
      }
    });
+   modalBox.forbidClose(isForbidClose);
+  }
+  var forbid = function(){
+    isForbidClose = true;
   }
 </script>
