@@ -23864,6 +23864,9 @@ UE.plugin.register('autosave', function (){
             },
 
             'contentchange': function () {
+                if (!me.getOpt('enableAutoSave')) {//add by fangyafen 20150107
+                    return;
+                }
 
                 if ( !saveKey ) {
                     return;
