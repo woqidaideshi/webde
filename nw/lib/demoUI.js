@@ -1,5 +1,5 @@
-/*! ui-lib - v0.0.1 - 2014-12-22
-* Copyright (c) 2014 */
+/*! ui-lib - v0.0.1 - 2015-01-06
+* Copyright (c) 2015 */
 function Class() {}
 
 //Use extend to realize inhrietion
@@ -1501,6 +1501,145 @@ var ListView = Class.extend({
   }
 });
 
+var MessageBox = Class.extend({
+  init: function(id_, options_) {
+    if ($('#win' + this._id)[0]) {
+      return;
+    }
+    var _this = this;
+    this._options = {
+      width: 400,
+      height: 250,
+      close: true,
+      max: false,
+      min: false,
+      hide: false,
+      resize: false,
+      fixed_pos: true,
+      z_index: 9999,
+      title: 'title',
+      hideWindow: true,
+      buttons: [{
+        text: '确  定',
+        clkaction: function() {
+          _this.hide();
+        }
+      }, {
+        text: '取  消',
+        clkaction: function() {
+          _this.hide();
+        }
+      }]
+    };
+    //set options
+    if (options_) {
+      for (var key in options_) {
+        this._options[key] = options_[key];
+      }
+    };
+    this._id = id_; // record id
+
+    this._win = Window.create('win' + this._id, this._options['title'], this._options);
+    var marginLeft = $('#win' + this._id).outerWidth() / 2;
+    var marginTop = $('#win' + this._id).outerHeight() / 2;
+    $('#win' + this._id).css({
+      top: '50%',
+      left: '50%',
+      position: 'fixed',
+      'margin-left': -marginLeft,
+      'margin-top': -marginTop,
+      'z-index': '99999'
+    });
+
+    this._overlay = $('<div>', {
+      'id': 'overlay_' + this._id,
+      'class': "iw-modalOverlay"
+    });
+    $('body').append(this._overlay);
+    this._overlay.hide();
+    this._overlay.css({
+      width: '100%',
+      height: '100%',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      'z-index': '1000'
+    });
+
+    this._overlay.bind('mousedown', function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+    });
+
+    if (this._options['close']) {
+      var $closeBtn = $('#window-win' + this._id + '-close');
+      $closeBtn.unbind().bind('click', function() {
+        _this.hide();
+      });
+    }
+    this.setButton(this._options['buttons']);
+  },
+
+  setButton: function(btns_) {
+    if (btns_ === undefined || btns_.length === 0 || btns_.length > 3) {
+      console.log('Error: parameters of function setButton are illegal.');
+      return;
+    }
+
+    if (btns_.length === 1) {
+      this._win.append('<div class="messageBox-btn"><button class="btn active" id="' + this._id + '_firstBtn">' + btns_[0].text + '</button></div>');
+      $(document).on('click', '#' + this._id + '_firstBtn', btns_[0].clkaction);
+    } else if (btns_.length === 2) {
+      this._win.append('<div class="messageBox-btn two-btns first"><button class="btn active" id="' + this._id + '_firstBtn">' + btns_[0].text + '</button></div>');
+      $(document).on('click', '#' + this._id + '_firstBtn', btns_[0].clkaction);
+
+      this._win.append('<div class="messageBox-btn two-btns second"><button class="btn active" id="' + this._id +
+        '_secondBtn">' + btns_[1].text + '</button></div>');
+      $(document).on('click', '#' + this._id + '_secondBtn', btns_[1].clkaction);
+    } else {
+      this._win.append('<div class="messageBox-btn three-btns first"><button class="btn active" id="' + this._id + '_firstBtn">' + btns_[0].text + '</button></div>');
+      $(document).on('click', '#' + this._id + '_firstBtn', btns_[0].clkaction);
+
+      this._win.append('<div class="messageBox-btn three-btns second"><button class="btn active" id="' + this._id +
+        '_secondBtn">' + btns_[1].text + '</button></div>');
+      $(document).on('click', '#' + this._id + '_secondBtn', btns_[1].clkaction);
+
+      this._win.append('<div class="messageBox-btn three-btns third"><button class="btn active" id="' +
+        this._id + '_thirdBtn">' + btns_[2].text + '</button></div>');
+      $(document).on('click', '#' + this._id + '_thirdBtn', btns_[2].clkaction);
+    }
+  },
+
+  post: function(content_) {
+    if (typeof content_ === 'string'){
+      this._content = $('<p>', {
+        class: 'messageBox-content'
+      });
+      this._content.append(content_);
+      this._win.append(this._content);
+    }else{
+      this._win.append(content_);
+      this._content = content_;
+    }
+    this.show();
+  },
+
+  hide: function() {
+    this._win.hide();
+    this._overlay.hide();
+    this._content.remove();
+  },
+
+  show: function() {
+    this._win.show();
+    this._overlay.show();
+  },
+
+  close: function() {
+    this._win.close();
+    this._overlay.remove();
+  }
+});
 /*! messenger 1.4.1 */
 /*
  * This file begins the output concatenated into messenger.js
@@ -2911,6 +3050,247 @@ window.Messenger.Events = (function() {
   };
 
 }).call(this);
+var MiniTip = Class.extend({
+  init: function(id_, options_) {
+    // declare the default option values
+    this._options = {
+      title: '', // if left blank, no title bar will show
+      content: 'blank', // the content of the tooltip
+      delay: 300, // how long to wait before showing and hiding the tooltip (ms)
+      anchor: 'n', // n (top), s (bottom), e (right), w (left)
+      event: 'custom', // can be 'hover' , 'click' or 'custom'
+      fadeIn: 200, // speed of fade in animation (ms)
+      fadeOut: 200, // speed of fade out animation (ms)
+      aHide: true, // set to false to only hide when the mouse moves away from the anchor and tooltip
+      maxW: '250px', // max width of tooltip
+      offset: 5 // offset in pixels of stem from anchor
+    };
+
+    //set options
+    if (options_) {
+      for (var key in options_) {
+        this._options[key] = options_[key];
+      }
+    };
+    
+    this._id = id_; // record id
+    var $attach = $('#' + this._id);
+    $attach.miniTip(this._options);
+
+    if (this._options.event === 'hover') {
+      $attach.hover(function() {
+        $attach.hello();
+      }, function() {
+        $attach.bye();
+      });
+    } else if (this._options.event === 'click') {
+      $attach.click(function() {
+        $attach.hello();
+        var tt_w = $('#miniTip');
+        $('html').unbind('click').click(function(e) {
+          if (tt_w.css('display') == 'block' && !$(e.target).closest('#miniTip').length) {
+            $('html').unbind('click');
+            $attach.bye();
+          }
+        });
+      });
+    } 
+  },
+
+  show: function(options_) {
+    var $attach = $('#' + this._id);
+    if (options_ !== undefined) {
+      $attach.changes(options_);
+    }
+    $attach.hello();
+  },
+
+  hide: function() {
+    var $attach = $('#' + this._id);
+    $attach.bye();
+  }
+});
+
+
+
+(function($) {
+  $.fn.miniTip = function(o) {
+    this.data('o', o);
+
+    // declare the delay variable and make sure it is global
+    window.delay = false;
+
+    // add the tip elements to the DOM
+    if (!$('#miniTip')[0]) {
+      $('body').append('<div id="miniTip"><div id="miniTip_t"></div><div id="miniTip_c"></div><div id="miniTip_a"></div></div>');
+    }
+  }
+
+  $.fn.hello = function() {
+    var o = this.data('o');
+    var el = $(this);
+
+    var tt_w = $('#miniTip');
+    var tt_t = $('#miniTip_t');
+    var tt_c = $('#miniTip_c');
+    var tt_a = $('#miniTip_a');
+
+    // add in the content
+    tt_c.html(o.content);
+
+    // insert the title (or hide if none is set)
+    if (o.title != '')
+      tt_t.html(o.title).show();
+    else
+      tt_t.hide();
+
+    // reset arrow position
+    tt_a.removeAttr('class');
+
+    // make sure the tooltip is the right width even if the anchor is flush to the right of the screen
+    // set the max width
+    tt_w.hide().width('').width(tt_w.width()).css('max-width', o.maxW);
+
+    // add support for image maps
+    var isArea = el.is('area');
+    if (isArea) {
+      // declare variables to determine coordinates
+      var i,
+        x = [],
+        y = [],
+        c = el.attr('coords').split(',');
+
+      // sortin funciton for coordinates
+      function num(a, b) {
+        return a - b;
+      }
+
+      // loop through the coordinates and populate x & y arrays
+      for (i = 0; i < c.length; i++) {
+        x.push(c[i++]);
+        y.push(c[i]);
+      }
+
+      // get the center coordinates of the area
+      var mapImg = el.parent().attr('name'),
+        mapOff = $('img[usemap=\\#' + mapImg + ']').offset(),
+        left = parseInt(mapOff.left, 10) + parseInt((parseInt(x.sort(num)[0], 10) + parseInt(x.sort(num)[x.length - 1], 10)) / 2, 10),
+        top = parseInt(mapOff.top, 10) + parseInt((parseInt(y.sort(num)[0], 10) + parseInt(y.sort(num)[y.length - 1], 10)) / 2, 10);
+    } else {
+      // get the coordinates of the element
+      var top = parseInt(el.offset().top, 10),
+        left = parseInt(el.offset().left, 10);
+    }
+
+    // get width and height of the anchor element
+    var elW = isArea ? 0 : parseInt(el.outerWidth(), 10),
+      elH = isArea ? 0 : parseInt(el.outerHeight(), 10),
+
+      // get width and height of the tooltip
+      tipW = tt_w.outerWidth(),
+      tipH = tt_w.outerHeight(),
+
+      // calculate position for tooltip
+      mLeft = Math.round(left + Math.round((elW - tipW) / 2)),
+      mTop = Math.round(top + elH + o.offset + 8),
+
+      // position of the arrow
+      aLeft = (Math.round(tipW - 16) / 2) - parseInt(tt_w.css('borderLeftWidth'), 10),
+      aTop = 0,
+
+      // figure out if the tooltip will go off of the screen
+      eOut = (left + elW + tipW + o.offset + 8) > parseInt($(window).width(), 10),
+      wOut = (tipW + o.offset + 8) > left,
+      nOut = (tipH + o.offset + 8) > top - $(window).scrollTop(),
+      sOut = (top + elH + tipH + o.offset + 8) > parseInt($(window).height() + $(window).scrollTop(), 10),
+
+      // default anchor position
+      elPos = o.anchor;
+
+    // calculate where the anchor should be (east & west)
+    if (wOut || o.anchor == 'e' && !eOut) {
+      if (o.anchor == 'w' || o.anchor == 'e') {
+        elPos = 'e';
+        aTop = Math.round((tipH / 2) - 8 - parseInt(tt_w.css('borderRightWidth'), 10));
+        aLeft = -8 - parseInt(tt_w.css('borderRightWidth'), 10);
+        mLeft = left + elW + o.offset + 8;
+        mTop = Math.round((top + elH / 2) - (tipH / 2));
+      }
+    } else if (eOut || o.anchor == 'w' && !wOut) {
+      if (o.anchor == 'w' || o.anchor == 'e') {
+        elPos = 'w';
+        aTop = Math.round((tipH / 2) - 8 - parseInt(tt_w.css('borderLeftWidth'), 10));
+        aLeft = tipW - parseInt(tt_w.css('borderLeftWidth'), 10);
+        mLeft = left - tipW - o.offset - 8;
+        mTop = Math.round((top + elH / 2) - (tipH / 2));
+      }
+    }
+
+    // calculate where the anchor should be (north & south)
+    if (sOut || o.anchor == 'n' && !nOut) {
+      if (o.anchor == 'n' || o.anchor == 's') {
+        elPos = 'n';
+        aTop = tipH - parseInt(tt_w.css('borderTopWidth'), 10);
+        mTop = top - (tipH + o.offset + 8);
+      }
+    } else if (nOut || o.anchor == 's' && !sOut) {
+      if (o.anchor == 'n' || o.anchor == 's') {
+        elPos = 's';
+        aTop = -8 - parseInt(tt_w.css('borderBottomWidth'), 10);
+        mTop = top + elH + o.offset + 8;
+      }
+    }
+
+    // if it is going to go off on the sides, use corner
+    if (o.anchor == 'n' || o.anchor == 's') {
+      if ((tipW / 2) > left) {
+        mLeft = mLeft < 0 ? aLeft + mLeft : aLeft;
+        aLeft = 0;
+      } else if ((left + tipW / 2) > parseInt($(window).width(), 10)) {
+        mLeft -= aLeft;
+        aLeft *= 2;
+      }
+    } else {
+      if (nOut) {
+        mTop = mTop + aTop
+        aTop = 0;
+      } else if (sOut) {
+        mTop -= aTop;
+        aTop *= 2;
+      }
+    }
+
+    // position the arrow
+    tt_a.css({
+      'margin-left': aLeft + 'px',
+      'margin-top': aTop + 'px'
+    }).attr('class', elPos);
+
+    // clear delay timer if exists
+    if (delay) clearTimeout(delay);
+
+    // position the tooltip and show it
+    delay = setTimeout(function() {
+      tt_w.css({
+        "margin-left": mLeft + "px",
+        "margin-top": mTop + 'px'
+      }).stop(true, true).fadeIn(o.fadeIn);
+    }, o.delay);
+
+  }
+
+  $.fn.bye = function() {
+    var o = this.data('o');
+    var tt_w = $('#miniTip');
+    tt_w.stop(true, true).fadeOut(o.fadeOut);
+  }
+
+  $.fn.changes = function(o) {
+    for (var key in o) {
+      this.data('o')[key] = o[key];
+    }
+  }
+})(jQuery);
 var ModalBox = Class.extend({
   init:function($obj_, options_){
     this._options = {
@@ -3743,6 +4123,8 @@ var Window = Class.extend({
       minWidth: 200,            //设置窗口的最小宽度
       minHeight:200,            //设置窗口的最小高度
       fullScreen: false,        //双击内容全屏显示
+      z_index: 100,              //层叠深度
+      fixed_pos: false,          //是否固定位置
       left_top_color: 'grey',    //标题栏左上角的颜色
       title_align: 'center'      //标题对齐方式，left或者center
     };
@@ -3766,7 +4148,6 @@ var Window = Class.extend({
     this._saveWindowCss = '';
     this._saveWinContentCss = '';
     this._focusCallback = undefined;    //获取聚焦时的回调函数
-    this._INDEX = 100;
 
     this._window = $('<div>',{
       'id': this._id,
@@ -3939,11 +4320,11 @@ var Window = Class.extend({
   },
 
   focus:function(){
-    this._window.css('z-index' , this._INDEX +1);
+    this._window.css('z-index' , this._options['z_index'] +1);
   },
 
   blur:function(){
-    this._window.css('z-index' , this._INDEX);
+    this._window.css('z-index' , this._options['z_index']);
   },
 
   onfocus:function(callback_){
@@ -3985,7 +4366,7 @@ var Window = Class.extend({
     //drag window
     this._titleDiv.mousedown(function(ev){
       ev.preventDefault();
-      if (_this._isMax) {
+      if (_this._isMax || _this._options.fixed_pos) {
         return ;
       };
       _this._isMouseOnTitleDown = true;
@@ -3998,7 +4379,8 @@ var Window = Class.extend({
       _this._window.fadeTo(20, 1);
       _this._titleDiv.css('cursor','default');
     }).dblclick(function(){
-      _this.toggleMaxWindow();
+      if (_this._options.resize)
+        _this.toggleMaxWindow();
     });
     $(document).mousemove(function(ev){
       if(_this._isMouseOnTitleDown){ 
@@ -4315,6 +4697,15 @@ var Window = Class.extend({
 
   togglefullScreen:function(){
     this.fullScreen(!this._fullScreen);
+  },
+
+  setBackGroundImage: function(path_){
+    this._window.css({
+      'background-image': 'url(' + path_ + ')',
+      'background-size': '100% 100%'
+    });
+    this._windowContent.css('background-color', "transparent");
+    this._titleDiv.css('background-color', "transparent");
   }
 
 });

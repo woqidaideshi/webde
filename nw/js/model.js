@@ -1625,6 +1625,33 @@ var DeviceListModel = Model.extend({
     }
   },
 
+  __handleIMMsg: function(recMsg) {//封装得到的消息
+    var _this = _global.get('desktop').getCOMById('device-list');
+    var toAccount,toUID,toIP;
+    var toAccountInfo = {};
+    if(recMsg.destInfo===undefined){
+      toAccount = recMsg.MsgObj.from;
+      toUID = recMsg.MsgObj.uuid;
+      toIP = recMsg.IP;
+    }else{
+      toAccount = recMsg.destInfo.Account;
+      toUID = recMsg.destInfo.UID;
+      toIP = recMsg.destInfo.IP;  
+    }
+    var msg = recMsg.MsgObj['message'];
+    toAccountInfo['fromAccount'] = recMsg.MsgObj.from;
+    toAccountInfo['fromUID'] = recMsg.MsgObj.uuid;
+    toAccountInfo['toAccount'] = toAccount;
+    toAccountInfo['toIP'] = toIP;
+    toAccountInfo['toUID'] = toUID;
+    try {
+      msg = JSON.parse(msg);
+    } catch (e) {}
+    toAccountInfo['msg'] = msg;
+    toAccountInfo['group'] = msg.group;
+    _this.emit('imMsg', toAccountInfo);
+  },
+
   start: function() {
     //load devices
     /* _global._device.showDeviceList(function(devs_) {   */
@@ -1649,9 +1676,6 @@ var DeviceListModel = Model.extend({
       }
       _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
     });
-    if(!ws.isLocal()) {
-      ws.on('device', this.__handler);
-    }
     /* _global._device.startMdnsService(function(state_) { */
       // if(state_) {
         // console.log('start MDNS Service success');
@@ -1663,27 +1687,28 @@ var DeviceListModel = Model.extend({
       // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     /* }); */
     // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.registerApp(function(recMsg) {
-      var toAccount = recMsg.MsgObj.from;
-      var msg = recMsg.MsgObj['message'];
-      var toAccountInfo = {};
-      toAccountInfo['toAccount'] = toAccount;
-      toAccountInfo['toIP'] = recMsg.IP;
-      toAccountInfo['toUID'] = recMsg.MsgObj.uuid;
-      var toAccInfo = {};
-      var toAccounts = {};
-      try {
-        msg = JSON.parse(msg);
-      } catch (e) {}
-      if(msg.group===''){
-        toAccInfo['toAccount'] = toAccount;
-        toAccInfo['toUID'] = recMsg.MsgObj.uuid;
-        toAccInfo['toIP'] = recMsg.IP;
-        toAccInfo['onLineFlag'] = 1;
-        toAccounts[recMsg.MsgObj.uuid] = toAccInfo;
-      }else{
+    _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
+    ws.on('imChat', this.__handleIMMsg);
+    if(!ws.isLocal()) {
+      ws.on('device', this.__handler);
+    }
+  },
+
+  getToAccountInfo: function(toAccountInfo_, cb_) {//封装设备列表
+    var toAccInfo = {};
+    var toAccounts = {};
+    if (toAccountInfo_.group === '') {//针对某设备通信
+      toAccInfo['toAccount'] = toAccountInfo_.toAccount;
+      toAccInfo['toUID'] = toAccountInfo_.toUID;
+      toAccInfo['toIP'] = toAccountInfo_.toIP;
+      toAccInfo['onLineFlag'] = 1;
+      toAccounts[toAccountInfo_.toUID] = toAccInfo;
+      toAccountInfo_['toAccList'] = toAccounts;
+      cb_();
+    } else {//针对群组通信
+      if (toAccountInfo_.group === toAccountInfo_.toAccount) {//群组是对应的接收方用户
         _global._device.getDeviceByAccount(function(devs_) {
-          for(var j = 0; j < devs_.length; ++j) {
+          for (var j = 0; j < devs_.length; ++j) {
             toAccInfo = {};
             toAccInfo['toAccount'] = devs_[j].txt[1];
             toAccInfo['toUID'] = devs_[j].txt[2];
@@ -1691,13 +1716,41 @@ var DeviceListModel = Model.extend({
             toAccInfo['onLineFlag'] = 1;
             toAccounts[devs_[j].txt[2]] = toAccInfo;
           }
-        }, toAccount);  
+        }, toAccountInfo_.toAccount);
+        toAccountInfo_['toAccList'] = toAccounts;
+        cb_();
+      } else {//群组是某设备发起的针对某用户的通信
+        if (toAccountInfo_.group[0] === toAccountInfo_.toAccount) {//本地设备是发起群组通话端，与对方用户通信
+          _global._imV.getLocalData(function(localData) {
+            toAccInfo = {};
+            toAccInfo['toAccount'] = localData.account;
+            toAccInfo['toUID'] = localData.UID;
+            toAccInfo['toIP'] = localData.IP;
+            toAccInfo['onLineFlag'] = 1;
+            toAccounts[localData.UID] = toAccInfo;
+          });
+        } else {//本设备是接收其他用户设备发起的群组通话端，本设备作为本用户下的一个设备与发起通话设备通信
+          toAccInfo = {};
+          toAccInfo['toAccount'] = toAccountInfo_.toAccount;
+          toAccInfo['toUID'] = toAccountInfo_.toUID;
+          toAccInfo['toIP'] = toAccountInfo_.toIP;
+          toAccInfo['onLineFlag'] = 1;
+          toAccounts[toAccountInfo_.toUID] = toAccInfo;
+        }
+        _global._device.getDeviceByAccount(function(devs_) {
+          for (var j = 0; j < devs_.length; ++j) {
+            toAccInfo = {};
+            toAccInfo['toAccount'] = devs_[j].txt[1];
+            toAccInfo['toUID'] = devs_[j].txt[2];
+            toAccInfo['toIP'] = devs_[j].address;
+            toAccInfo['onLineFlag'] = 1;
+            toAccounts[devs_[j].txt[2]] = toAccInfo;
+          }
+        }, toAccountInfo_.group[0]);
+        toAccountInfo_['toAccList'] = toAccounts;
+        cb_();
       }
-      toAccountInfo['toAccList'] = toAccounts;
-      toAccountInfo['msg'] = msg;
-      toAccountInfo['group'] = msg.group;
-      _this.emit('imMsg', toAccountInfo);
-    }, 'imChat');
+    }
   }
 });
 
@@ -1720,14 +1773,14 @@ var AccountEntryModel = EntryModel.extend({
     cb(null);
   },
 
-  open: function(cb_) {
+  open: function(cb_,param_) {
     var _this = this;
     _this.initImChatParseFunc(function(toAccountInfo) {
       _this.emit('openImChat', toAccountInfo, cb_);
-    });
+    },param_);
   },
 
-  copyTo: function(dataTransfer, entryIds_, cb_) {
+  copyTo: function(cb_,dataTransfer, entryIds_) {
     var filePaths = [];
     if (dataTransfer.files.length != 0) {
       for (var i = 0; i < dataTransfer.files.length; ++i) {
@@ -1747,7 +1800,7 @@ var AccountEntryModel = EntryModel.extend({
     cb_(filePaths);
   },
 
-  initImChatParseFunc: function(cb_) {
+  initImChatParseFunc: function(cb_, param_) {
     var toAccount = this._position['txt'][1];
     var toAccountInfo = {};
     toAccountInfo['toAccount'] = toAccount;
@@ -1765,6 +1818,16 @@ var AccountEntryModel = EntryModel.extend({
       toAccInfo['onLineFlag'] = 1;
       toAccounts[accountItem._position['txt'][2]] = toAccInfo;
     }
+    if (param_.account!==toAccount) { //打开的是其他用户的窗口,设备自身对应的用户通信窗口
+      var toAccInfo = {};
+      toAccInfo['toAccount'] = param_.account;
+      toAccInfo['toUID'] = param_.UID;
+      toAccInfo['toIP'] = param_.IP;
+      toAccInfo['onLineFlag'] = 1;
+      toAccounts[param_.UID] = toAccInfo;
+      toAccountInfo['group'] = [toAccount, [param_.account, param_.UID]];
+    }
+    toAccountInfo['identity'] = param_.identity;
     toAccountInfo['toAccList'] = toAccounts;
     cb_(toAccountInfo);
   },
@@ -1820,7 +1883,7 @@ var DeviceEntryModel = EntryModel.extend({
   },
 
   // send a file to remote device
-  copyTo: function(dataTransfer, entryIds_, cb_) {
+  copyTo: function(cb_,dataTransfer, entryIds_) {
     var filePaths = [];
     if (dataTransfer.files.length != 0) {
       for (var i = 0; i < dataTransfer.files.length; ++i) {
@@ -1841,14 +1904,14 @@ var DeviceEntryModel = EntryModel.extend({
   },
 
   initImChatParseFunc: function(cb_) {
-    var toAccount = this._position['txt'][1];
     var toAccountInfo = {};
-    toAccountInfo['toAccount'] = toAccount;
+    toAccountInfo['identity'] = this._position['txt'][2];
+    toAccountInfo['toAccount'] = this._position['txt'][1];
     toAccountInfo['toIP'] = this._position['address'];
     toAccountInfo['toUID'] = this._position['txt'][2];
     toAccountInfo['group'] = '';
     var toAccInfo = {};
-    toAccInfo['toAccount'] = toAccount;
+    toAccInfo['toAccount'] = this._position['txt'][1];
     toAccInfo['toUID'] = this._position['txt'][2];
     toAccInfo['toIP'] = this._position['address'];
     toAccInfo['onLineFlag'] = 1;

@@ -232,19 +232,19 @@ var DevEntryController = EntryController.extend({
     this.callSuper(view_);
   },
 
-  onDrop: function(ev, tArr, cb_) {
+  onDrop: function(cb_, ev, tArr) {
     var cmd, tarIdArr = [],
       tarArr = tArr || [];
     for (var i = 0; i < tarArr.length; ++i) {
       if (tarArr[i] != null)
         tarIdArr.push(tarArr[i].getID());
     }
-    cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo, ev.originalEvent.dataTransfer, tarIdArr, cb_);
+    cmd = NoUndoCommand.create(this._model, 'exec', this._model.copyTo, cb_,ev.originalEvent.dataTransfer, tarIdArr);
     _global.get('theCP').perform(cmd);
   },
 
-  onDblclick: function(cb_) {
-    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open, cb_);
+  onDblclick: function(cb_,param_) {
+    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open, cb_,param_);
     _global.get('theCP').perform(cmd);
   },
 });

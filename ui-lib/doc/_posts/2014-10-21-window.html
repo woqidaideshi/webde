@@ -42,7 +42,11 @@ categories: ui
   contentDiv: true   //包含放置内容的div
   iframe: true       //iframe内容框，如果contentDiv为false时生效。
   maxWindow: false   //初始最大化窗口
-  fullWindow: false   //双击内容全屏显示。
+  fullScreen: false   //双击内容全屏显示。
+  z_index: 100,              //层叠深度
+  fixed_pos: false,          //是否固定位置
+  left_top_color: 'grey',    //标题栏左上角的颜色
+  title_align: 'center'      //标题对齐方式，left或者center
 </code>
 </pre>
 <p><br /></p>
@@ -80,6 +84,7 @@ categories: ui
 15、focus()  //窗口获得聚焦时（被点击时默认执行的方法）设置z-index,
 16、blur()   //窗口失去聚焦时调用的方法，用于提供外部调用。
 17、fullScreen()   //窗口提供的伪全屏方法，用于nw下提供全屏方法。
+18、setBackGroundImage(path_)设置窗体的背景图片，参数path_为图片路径
 </code>
 </pre>
 
@@ -96,6 +101,7 @@ categories: ui
 <p>内容Div：<input type='checkbox' id='win-Contentdiv' checked="checked"></p>
 <p>Iframe：<input type='checkbox' id='win-Iframe' checked="checked"></p>
 <p>标题左对齐（默认中间对齐）:<input type='checkbox' id='win-title-align'></p>
+<p>固定位置：<input type='checkbox' id='win-fixed-pos'></p>
 <p>动画速度：<input type='text' id='win-FadeSpeed' value="100"></p>
 <p>窗口宽度<input type='text' id='win-Width' value="600"></p>
 <p>窗口高度：<input type='text' id='win-Height' value="600"></p>
@@ -105,6 +111,7 @@ categories: ui
 <p>最小窗口大小高：<input type='text' id='win-Minheight' value="200"></p>
 <p>窗口标题：<input type='text' id='win-Title' value="Test Window"></p>
 <p>标题左角颜色：<input type='text' id='win-left_top_color' value=""></p>
+<p>z-index：<input type='text' id='win-z-index' value="100"></p>
 
 <button class='btn active' onclick="newWin()">New Window</button>
 <button class='btn active' onclick="fullScreen()">fullScreen</button>
@@ -116,6 +123,7 @@ categories: ui
 <button class='btn active' onclick="appendHtml('/../app/flash-app/index.html')">append shark</button>
 <button class='btn success-btn' onclick="appendHtml('/../app/video/index.html')">append video</button>
 <button class='btn active' onclick="addVideo()">add video</button>
+<button class='btn active' onclick="setBackGroundImage()">setBackGroundImage</button>
 <script type="text/javascript">
   var myNewWin;
   var newWin = function(){
@@ -138,9 +146,14 @@ categories: ui
     _options['top'] = parseInt($('#win-Top')[0].value);
     _options['minWidth'] = $('#win-Minwidth')[0].value;
     _options['minHeight'] = $('#win-Minheight')[0].value;
+    _options['z_index'] = $('#win-z-index')[0].value;
 
     if ($('#win-title-align')[0].checked == true){
       _options['title_align'] = 'left';
+    }
+
+    if ($('#win-fixed-pos')[0].checked == true){
+      _options['fixed_pos'] = true;
     }
 
     if ($('#win-left_top_color')[0].value !== ''){
@@ -186,5 +199,9 @@ var addVideo= function(){
   var _video = Video.create();
   _video.setSrc ('http://www.projekktor.com/wp-content/manual/intro.mp4'); 
   myNewWin.append(_video._section);
+}
+
+var setBackGroundImage = function(){
+  myNewWin.setBackGroundImage('/assets/img/cat.jpg');
 }
 </script>
