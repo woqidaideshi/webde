@@ -1721,7 +1721,8 @@ var DeviceListView = View.extend({
         var msg = toAccountInfo_['msg'];
         var fileMsg = msg.msg;
         if (curEditBox === undefined) {
-          _this._model.getToAccountInfo(toAccountInfo_,function(){
+          _this._model.getToAccountInfo(toAccountInfo_,function(toAccInfoTmp){
+            toAccountInfo_=toAccInfoTmp;
             _global._imV.getLocalData(function(localData) {
 	      if (fileMsg.type === undefined) {//聊天信息
 		var fromAcc;
@@ -2094,7 +2095,8 @@ var AccountEntryView = View.extend({
         }
         if (curEditBox === undefined) {
           localData['identity']=identity;
-          _this._controller.onDblclick(function(curEditBox){
+          _this._controller.onDblclick(function(curEditBoxTmp){
+            curEditBox=curEditBoxTmp;
           },localData);
         }else{
           _global._openingWindows.focusOnAWindow(curEditBox._imWindow._id);

@@ -1703,7 +1703,7 @@ var DeviceListModel = Model.extend({
       toAccInfo['onLineFlag'] = 1;
       toAccounts[toAccountInfo_.toUID] = toAccInfo;
       toAccountInfo_['toAccList'] = toAccounts;
-      cb_();
+      cb_(toAccountInfo_);
     } else {//针对群组通信
       if (toAccountInfo_.group === toAccountInfo_.toAccount) {//群组是对应的接收方用户
         _global._device.getDeviceByAccount(function(devs_) {
@@ -1717,7 +1717,7 @@ var DeviceListModel = Model.extend({
           }
         }, toAccountInfo_.toAccount);
         toAccountInfo_['toAccList'] = toAccounts;
-        cb_();
+        cb_(toAccountInfo_);
       } else {//群组是某设备发起的针对某用户的通信
         if (toAccountInfo_.group[0] === toAccountInfo_.toAccount) {//本地设备是发起群组通话端，与对方用户通信
           _global._imV.getLocalData(function(localData) {
@@ -1747,7 +1747,7 @@ var DeviceListModel = Model.extend({
           }
         }, toAccountInfo_.group[0]);
         toAccountInfo_['toAccList'] = toAccounts;
-        cb_();
+        cb_(toAccountInfo_);
       }
     }
   }
