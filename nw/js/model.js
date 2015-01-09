@@ -1614,11 +1614,10 @@ var DeviceListModel = Model.extend({
       case 'down':
         var ac = _this.getCOMById(account_id_);
         if(typeof ac === 'undefined') return;
-        if(ac.size() == 1) {
+        ac.remove(ac.getCOMById(dev_id_));
+        if(ac.size() == 0) {
           _this.remove(ac);
-        } else {
-          ac.remove(ac.getCOMById(dev_id_));
-        }
+        } 
         break;
       default:
         break;

@@ -4526,6 +4526,7 @@ var UEditBox = Class.extend({
                 sendMsg['IP'] = curEditBox_._toAccountInfo.toIP;
                 sendMsg['UID'] = curEditBox_._toAccountInfo.toUID;
                 sendMsg['Account'] = curEditBox_._toAccountInfo.toAccount;
+                sendMsg['localUID'] = curEditBox_._localUID;
                 sendMsg['toAccList'] = curEditBox_._toAccountInfo.toAccList;
                 sendMsg['group'] = curEditBox_._group;
                 sendMsg['App'] = 'imChat';
