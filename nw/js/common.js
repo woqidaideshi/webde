@@ -1078,7 +1078,9 @@ var RemoteObserver = Model.extend({
   //
   init: function() {
     this.callSuper('ws');
-    var addr = '';
+    var addr = '',
+        cb_ = arguments[arguments.length - 1] || function() {};
+    if(typeof cb_ !== 'function') cb_ = function() {};
     if(location.host == '') {
       this._local = true;
       addr = ((arguments.length <= 1) ? ('ws://127.0.0.1:8888/ws') : arguments[0]);
@@ -1090,6 +1092,7 @@ var RemoteObserver = Model.extend({
       this._ws = new WebSocket(addr);
       this._ws.onopen = function() {
         console.log('WebSocket established successfully.');
+        cb_(null);
       };
       this._ws.onclose = function() {
         console.log('The WebSocket connection has been closed.');
@@ -1108,9 +1111,10 @@ var RemoteObserver = Model.extend({
       };
     } catch(e) {
       console.log(e);
+      cb_(e);
     }
-    if(typeof arguments[arguments.length - 1] === 'function')
-      arguments[arguments.length - 1].call(this, null);
+    /* if(typeof arguments[arguments.length - 1] === 'function') */
+      /* arguments[arguments.length - 1].call(this, null); */
   },
 
   getConnection: function() {return this._ws;},
