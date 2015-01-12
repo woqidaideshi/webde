@@ -5,6 +5,10 @@ $(document).ready(function() {
   _global = Global.create(function(err_) {
     if(err_) throw err_;
     _global.addGObjects({
+      'name': 'ws',
+      'class': RemoteObserver,
+      'serialize': true,
+    }, {
       'name': 'theme',
       'class': ThemeModel,
       'serialize': true
@@ -12,10 +16,6 @@ $(document).ready(function() {
       'name': 'utilIns',
       'class': Util,
       'serialize': false 
-    }, {
-      'name': 'ws',
-      'class': RemoteObserver,
-      'serialize': false,
     }, {
       'name': 'desktop',
       'class': DesktopModel,
