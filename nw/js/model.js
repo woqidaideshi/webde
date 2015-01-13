@@ -1547,9 +1547,22 @@ var LauncherModel = Model.extend({
     // this.emit('start-up', null, this.getCOMById(id_));
     _global._app.getRegisteredAppInfo(function(err_, info_) {
       if(err_) return console.log(err_);
-      _global._app.startApp/* ByID */(function(obj) {
-        if(obj) {
-          // TODO: add this window to window manager
+      if(_global._openingWindows.has(info_.id + '-window')) {
+        _global._openingWindows.focusOnAWindow(info_.id + '-window');
+        return;
+      }
+      _global._app.startApp(function(err_, win_) {
+        if(err_) return console.log(err_);
+        if(win_) {
+          // add this window to window manager
+          win_.getID = function() {return win_._id;};
+          _global._openingWindows.add(win_);
+          win_.bindCloseButton(function() {
+            _global._openingWindows.remove(win_);
+          });
+          win_.onfocus(function() {
+            _global._openingWindows.focusOnAWindow(win_._id);
+          });
         }
       }, info_, null);
     }, id_);
