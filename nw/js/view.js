@@ -3803,42 +3803,6 @@ var UEditBox = Class.extend({
     });
     $('#send_button_' + _this._toIdentity).on('click', function() {
       _this.sendMsg(_this,toAccountInfo_);
-      /*if (_this._onLineCount === 0) {
-        Messenger().post('当前没有设备在线，您将不能发送信息！');
-        return;
-      }
-      if (_this._um.hasContents()) {
-        var msg = _this._um.getContent();
-
-        function sendIMMsgCb() {
-          _this.divAppendContent($('#disp_text_' + _this._toIdentity),'<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
-          _this._um.setContent('');
-        }
-        msgtime = new Date();
-        sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-        var sendMsg = {};
-        sendMsg['IP'] = toAccountInfo_.toIP;
-        sendMsg['UID'] = toAccountInfo_.toUID;
-        sendMsg['toAccList'] = toAccountInfo_.toAccList;
-        sendMsg['Account'] = toAccountInfo_.toAccount;
-        sendMsg['localUID'] = _this._localUID;
-        sendMsg['group'] = _this._group;
-        sendMsg['Msg'] = JSON.stringify({
-          'group': _this._group,
-          'msg': msg
-        });
-        sendMsg['App'] = 'imChat';
-        _global._imV.sendIMMsg(function(mmm) {
-          sendIMMsgCb();
-        }, sendMsg, _global.get('ws').getSessionID(), true);
-      } else {
-        _this._contentTip.show({
-          content: '发送内容不能为空！'
-        });
-        setTimeout(function() {
-          _this._contentTip.hide();
-        }, 3000);
-      }*/
     });
     if (toAccountInfo_.msg !== undefined) {
       _this.showRecDetail(toAccountInfo_, _this, false);
