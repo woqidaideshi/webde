@@ -906,7 +906,11 @@ var AppEntryModel = EntryModel.extend({
     this._type = 'app';
     //((typeof position_ === 'undefined') ? -1 : position_.x);
     this._idx = ((typeof idx_ === 'undefined') ? -1 : idx_);
-    this.realInit(cb_);
+    try {
+      this.realInit(cb_);
+    } catch(e) {
+      this.setNoDisplay(true);
+    }
   },
 
   realInit: function(callback_) {
