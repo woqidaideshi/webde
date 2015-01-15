@@ -906,11 +906,7 @@ var AppEntryModel = EntryModel.extend({
     this._type = 'app';
     //((typeof position_ === 'undefined') ? -1 : position_.x);
     this._idx = ((typeof idx_ === 'undefined') ? -1 : idx_);
-    try {
-      this.realInit(cb_);
-    } catch(e) {
-      this.setNoDisplay(true);
-    }
+    this.realInit(cb_);
   },
 
   realInit: function(callback_) {
@@ -959,12 +955,12 @@ var AppEntryModel = EntryModel.extend({
         return _this.setNoDisplay(true);
       }
       // get launch commad
+      if(typeof file_['Exec'] === 'undefined' || typeof file_['Icon'] === 'undefined')
+        return _this.setNoDisplay(true);
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
       // get icon
       // TODO: change to get icon path from cache
-      if(typeof file_['Icon'] === 'undefined')
-        return _this.setNoDisplay(true);
       if(file_['Icon'][0] == '/') {
         // already is full path
         // console.log(file_['Icon'].match(/(\/.+)+/));
