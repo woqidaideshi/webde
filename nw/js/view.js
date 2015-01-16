@@ -8,9 +8,16 @@ var DesktopView = View.extend({
     this.callSuper('desktop-view', model_, parent_);
     this.controller = DesktopController.create(this);
     this.registObservers();
-    this.$view = $('body').append($('<img>', {
+    var $body = $('body');
+    this.$view = $('<div>', {
+      'class': 'dbg',
+      'width': $body.width(),
+      'height': $body.height()
+    }).append($('<img>', {
       'src': 'img/bgp.jpg'
     }));
+    $body.append(this.$view);
+    if(_global.get('ws').isLocal()) $body.css('overflow', 'hidden');
     this._c = [];
     this.initCtxMenu();
     this.initAction();
@@ -1557,7 +1564,7 @@ var LauncherView = View.extend({
       this.$view.find('.c-s-input').val('');
     } else {
       var _this = this;
-      html2canvas($('body'), {
+      html2canvas($('.dbg'), {
         onrendered: function(canvas) {
           _this.$view.append(canvas).children('canvas').attr({
             'class': 'blurcanvas',
@@ -3063,6 +3070,10 @@ var Selector = Class.extend({
         _pos = _view.position(),
         _width = _view.width(),
         _height = _view.height();
+    // _c_SX => _container_StartX
+    // _c_SY => _container_StartY
+    // _c_SX => _container_EndX
+    // _c_SY => _container_EndY
     this._c_SX = _pos.left;
     this._c_SY = _pos.top;
     this._c_EX = _pos.left + _width;
