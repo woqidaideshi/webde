@@ -1,0 +1,10 @@
+{
+  "main": "index.html",
+  "name": "视频播放器",
+  "window": {
+    "title": "视频播放器",
+    "icon": "img/video.png",
+    "toolbar": false,
+    "frame": true
+  }
+}
