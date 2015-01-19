@@ -352,6 +352,10 @@ var DesktopModel = Model.extend({
     return null;
   },
 
+  setSize: function(size_) {
+    this.emit('resize', null, size_);
+  },
+
   initDesktopWatcher: function(watcher_) {
     var _desktop = this;
     // change to API our own
@@ -613,7 +617,8 @@ var WidgetModel = Model.extend({
 
   setPosition: function(position_) {
     this._position = position_;
-    this.emit('position', null, this._position);
+    if(typeof this._position !== 'undefined')
+      this.emit('position', null, this._position);
   },
 
   getID: function() {return this._id;},
@@ -2205,15 +2210,27 @@ var GridModel = LayoutModel.extend({
     var cn = Math.floor(this._width / this._col);
     var rn = Math.floor(this._height / this._row);
     if(cn != this._col_num || rn != this._row_num) {
+      // 'delete' entrys from manager
+      var widgets = this.getAllWidgets();
+      for(var key in widgets) this.emit('remove', null, widgets[key]);
       var _col_diff = cn - this._col_num,
           _row_diff = rn - this._row_num;
       this._col_num = cn;
       this._row_num = rn;
-      this.emit('col_row', {
+      this.emit('col_row', null, {
         'col_diff': _col_diff,
         'row_diff': _row_diff
       });
+      // modify entrys' pos to undefined, and 'add' entrys to manager
+      for(var key in widgets) {
+        widgets[key].setPosition(undefined);
+        this.emit('add', null, widgets[key]);
+      }
     }
+  },
+
+  getContentWidth: function() {
+    return this._col_num * this._col;
   },
 
   findAnIdleGrid: function() {
@@ -2505,6 +2522,10 @@ var FlipperModel = LayoutModel.extend({
 
   setMain: function(main_) {
     this._main = main_;
+  },
+
+  setSize: function(size_) {
+    this.emit('resize', null, size_);
   }
 });
 
