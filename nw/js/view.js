@@ -159,11 +159,6 @@ var DesktopView = View.extend({
           _global._openingWindows.focusOnAWindow(this._id);
         });
       }},
-      {text: 'datamgr', action: function() {
-        WDC.requireAPI(['app'], function(app){
-          app.startAppByName(function(){}, "datamgr", null);
-        });
-      }},
       {text: 'app-plugin', icon: 'icon-plus', subMenu: [
         {header: 'add-plugin'},
         {text: lang['clock'], icon: 'icon-time', action: function(e) {

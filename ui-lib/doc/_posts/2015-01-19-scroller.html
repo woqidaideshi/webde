@@ -1,0 +1,104 @@
+---
+layout: post
+title:  "Scroller"
+date:   2015-01-19 11:22:12
+categories: ui
+---
+
+<h2>Scroller</h2>
+<p>scroller是一个滚动条控件，用以实现跨浏览器的滚动条控件的实现，其使用的控件是nanoScrollerjs，地址为：<a href="http://jamesflorentino.github.io/nanoScrollerJS/">nanoScroller</a></p>
+<p>scroller是对nanoscroller的封装，其使用方式如下：</p>
+<h3>使用方法</h3>
+<pre>
+<code>
+  &lt;div class='nano'&gt;
+  &lt;div class='nano-content'&gt;
+  &lt;/div&gt;
+  &lt;/div&gt;
+  使用封装方法：
+	var scroller = Scroller.create(options);   //options为设置选项，也可以使用scroller.setOptions来进行设置。
+        scroller.attach($('.nano'));
+	或scroller.refresh($('.nano')); 
+  使用原jquery方法
+       $('.nano').nanoScroller();
+详细使用方法参考原网站：<a href="http://jamesflorentino.github.io/nanoScrollerJS/">nanoScroller</a>
+</code>
+</pre>
+<h3>设置选项</h3>
+<pre>
+<code>
+  scroll:top/bottom       //滚动条位置
+  scrollTop/scrollBottom: value      //滚动条偏移位置
+  scrollTo:$(DOM)      //滚动到某一元素位置
+  stop:true         //停止滚动事件
+  destory:true        //恢复浏览器自动滚动事件
+  flash: true            //自动刷新。
+</code>
+</pre><br />
+
+<h3>demo</h3>
+<div class='box'>
+<div class = 'nano'>
+  <div class='nano-content'>
+  </div>
+</div>
+</div>
+<style type="text/css">
+.box{
+  position: relative;
+  width:200px;
+  height:200px;
+  background: #ffffff;
+  border:1px solid #000000;
+}
+.testDiv{
+  float: left;
+  width: 150px;
+  height:800px;
+  background: #038382;
+  margin: 20px;
+}
+</style> 
+<script type="text/javascript">
+  var div = $('<div>',{
+    'class':'testDiv'
+  })
+  $('.nano-content').append(div);
+  var scroller = Scroller.create();
+  scroller.attach($('.nano'));
+</script>
+<p>demo程序</p>
+<pre>
+<code>
+  &lt;div class='box'&gt;
+  &lt;div class='nano'&gt;
+  &lt;div class='nano-content'&gt;
+  &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;style type="text/css"&gt;
+.box{
+  position: relative;
+  width:200px;
+  height:200px;
+  background: #ffffff;
+  border:1px solid #000000;
+}
+.testDiv{
+  float: left;
+  width: 150px;
+  height:800px;
+  background: #038382;
+  margin: 20px;
+}
+&lt;/style&gt;
+
+  var div = $('<div>',{
+    'class':'testDiv'
+  })
+  $('.nano-content').append(div);
+  var scroller = Scroller.create();
+  scroller.attach($('.nano'));
+</code>
+</pre>
