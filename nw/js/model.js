@@ -955,12 +955,12 @@ var AppEntryModel = EntryModel.extend({
         return _this.setNoDisplay(true);
       }
       // get launch commad
+      if(typeof file_['Exec'] === 'undefined' || typeof file_['Icon'] === 'undefined')
+        return _this.setNoDisplay(true);
       _this.setCmd(file_['Exec'].replace(/%(f|F|u|U|d|D|n|N|i|c|k|v|m)/g, '')
         .replace(/\\\\/g, '\\'));
       // get icon
       // TODO: change to get icon path from cache
-      if(typeof file_['Icon'] === 'undefined')
-        return _this.setNoDisplay(true);
       if(file_['Icon'][0] == '/') {
         // already is full path
         // console.log(file_['Icon'].match(/(\/.+)+/));
@@ -1547,9 +1547,22 @@ var LauncherModel = Model.extend({
     // this.emit('start-up', null, this.getCOMById(id_));
     _global._app.getRegisteredAppInfo(function(err_, info_) {
       if(err_) return console.log(err_);
-      _global._app.startApp/* ByID */(function(obj) {
-        if(obj) {
-          // TODO: add this window to window manager
+      if(_global._openingWindows.has(info_.id + '-window')) {
+        _global._openingWindows.focusOnAWindow(info_.id + '-window');
+        return;
+      }
+      _global._app.startApp(function(err_, win_) {
+        if(err_) return console.log(err_);
+        if(win_) {
+          // add this window to window manager
+          win_.getID = function() {return win_._id;};
+          _global._openingWindows.add(win_);
+          win_.bindCloseButton(function() {
+            _global._openingWindows.remove(win_);
+          });
+          win_.onfocus(function() {
+            _global._openingWindows.focusOnAWindow(win_._id);
+          });
         }
       }, info_, null);
     }, id_);

@@ -8,9 +8,17 @@ var DesktopView = View.extend({
     this.callSuper('desktop-view', model_, parent_);
     this.controller = DesktopController.create(this);
     this.registObservers();
-    this.$view = $('body').append($('<img>', {
+    var $body = $('body').attr('onselectstart', 'return false');
+    this._height = $body.height();
+    this._width = $body.width();
+    this.$view = $('<div>', {
+      'class': 'dbg',
+      'width': this._width,
+      'height': this._height
+    }).append($('<img>', {
       'src': 'img/bgp.jpg'
     }));
+    $body.append(this.$view);
     this._c = [];
     this.initCtxMenu();
     this.initAction();
@@ -369,6 +377,19 @@ var DesktopView = View.extend({
     var _this = this;
     $(window).on('beforeunload', function() {
       _this._model.release();
+    }).resize(function() {
+      console.log('resize:', this.innerWidth, this.innerHeight);
+      // TODO: change the property of overflow
+      if(_this._width > this.innerWidth) {
+        $('body').css('overflow-x', 'auto');
+      } else {
+        $('body').css('overflow-x', 'hidden');
+      }
+      if(_this._height > this.innerHeight) {
+        $('body').css('overflow-y', 'auto');
+      } else {
+        $('body').css('overflow-y', 'hidden');
+      }
     });
 
     var ctxMenu = _global.get('ctxMenu'),
@@ -1562,7 +1583,7 @@ var LauncherView = View.extend({
       this.$view.find('.c-s-input').val('');
     } else {
       var _this = this;
-      html2canvas($('body'), {
+      html2canvas($('.dbg'), {
         onrendered: function(canvas) {
           _this.$view.append(canvas).children('canvas').attr({
             'class': 'blurcanvas',
@@ -1720,7 +1741,8 @@ var DeviceListView = View.extend({
     this.registObservers();
     this.$view = $('<div>', {
       'class': 'device-list',
-      'id': this._id
+      'id': this._id,
+      'onselectstart': 'return false'
     }).append($('<p>', {
       'class': 'title'
     }).text('Online Users').on('mouseenter', function(e) {
@@ -3063,15 +3085,7 @@ var Selector = Class.extend({
     this._mouseDown = false;
     this._s_X = 0;
     this._s_Y = 0;
-
-    var _view = container_.getView(),
-        _pos = _view.position(),
-        _width = _view.width(),
-        _height = _view.height();
-    this._c_SX = _pos.left;
-    this._c_SY = _pos.top;
-    this._c_EX = _pos.left + _width;
-    this._c_EY = _pos.top + _height;
+    this.__getArea(); 
 
     var _this = this;
     $(document).on('mousedown', this._selector, function(e) {
@@ -3209,7 +3223,24 @@ var Selector = Class.extend({
           _items[i].focus();
         }
       }
-    })
+    }).resize(function() {
+      _this.__getArea();
+    });
+  },
+
+  __getArea: function() {
+    var _view = this._c.getView(),
+        _pos = _view.position(),
+        _width = _view.width(),
+        _height = _view.height();
+    // _c_SX => _container_StartX
+    // _c_SY => _container_StartY
+    // _c_SX => _container_EndX
+    // _c_SY => _container_EndY
+    this._c_SX = _pos.left;
+    this._c_SY = _pos.top;
+    this._c_EX = _pos.left + _width;
+    this._c_EY = _pos.top + _height;
   },
 
   isOverlap: function(selector_, $entry_) {
@@ -3621,7 +3652,7 @@ var UEditBox = Class.extend({
     <div class="imChat_ueditorDiv" id="myEditor_' + _this._toIdentity + '" ></div>\
     <div class="imChat_btnDiv"> \
     <button type="button" class="imCloseBtn" id="close_button_' + _this._toIdentity + '">关闭</button> \
-    <button type="button" class="imSendBtn" id="send_button_' + _this._toIdentity + '">发送</button></div></div>\
+    <button type="button" class="imSendBtn" id="send_button_' + _this._toIdentity + '" title="按ctrl+enter键发送消息">发送</button></div></div>\
     <div class="imRightDiv">\
     <div class="chatList" id="memList_' + _this._toIdentity + '"  style="display:block">\
                     <div class="chatList_title">\
@@ -3758,6 +3789,11 @@ var UEditBox = Class.extend({
     }).on('click', function(ev) {
       _global._openingWindows.focusOnAWindow(_this._imWindow._id);
     });
+    iframeBody.on('keyup',function(e){
+      if(e.ctrlKey&&e.keyCode===13){
+        _this.sendMsg(_this,toAccountInfo_);
+      }
+    });
     this._contentTip = MiniTip.create('send_button_' + _this._toIdentity, {
       event: 'custom',
       anchor: 'n'
@@ -3802,16 +3838,24 @@ var UEditBox = Class.extend({
       });
     });
     $('#send_button_' + _this._toIdentity).on('click', function() {
-      if (_this._onLineCount === 0) {
+      _this.sendMsg(_this,toAccountInfo_);
+    });
+    if (toAccountInfo_.msg !== undefined) {
+      _this.showRecDetail(toAccountInfo_, _this, false);
+    }
+  },
+
+  sendMsg:function(curEditBox_,toAccountInfo_){
+    if (curEditBox_._onLineCount === 0) {
         Messenger().post('当前没有设备在线，您将不能发送信息！');
         return;
       }
-      if (_this._um.hasContents()) {
-        var msg = _this._um.getContent();
+      if (curEditBox_._um.hasContents()) {
+        var msg = curEditBox_._um.getContent();
 
         function sendIMMsgCb() {
-          _this.divAppendContent($('#disp_text_' + _this._toIdentity),'<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
-          _this._um.setContent('');
+          curEditBox_.divAppendContent($('#disp_text_' + curEditBox_._toIdentity),'<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
+          curEditBox_._um.setContent('');
         }
         msgtime = new Date();
         sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
@@ -3820,10 +3864,10 @@ var UEditBox = Class.extend({
         sendMsg['UID'] = toAccountInfo_.toUID;
         sendMsg['toAccList'] = toAccountInfo_.toAccList;
         sendMsg['Account'] = toAccountInfo_.toAccount;
-        sendMsg['localUID'] = _this._localUID;
-        sendMsg['group'] = _this._group;
+        sendMsg['localUID'] = curEditBox_._localUID;
+        sendMsg['group'] = curEditBox_._group;
         sendMsg['Msg'] = JSON.stringify({
-          'group': _this._group,
+          'group': curEditBox_._group,
           'msg': msg
         });
         sendMsg['App'] = 'imChat';
@@ -3831,17 +3875,13 @@ var UEditBox = Class.extend({
           sendIMMsgCb();
         }, sendMsg, _global.get('ws').getSessionID(), true);
       } else {
-        _this._contentTip.show({
+        curEditBox_._contentTip.show({
           content: '发送内容不能为空！'
         });
         setTimeout(function() {
-          _this._contentTip.hide();
+          curEditBox_._contentTip.hide();
         }, 3000);
       }
-    });
-    if (toAccountInfo_.msg !== undefined) {
-      _this.showRecDetail(toAccountInfo_, _this, false);
-    }
   },
 
   showRec: function(toAccountInfo_, curEditBox_) {
@@ -3923,7 +3963,9 @@ var UEditBox = Class.extend({
                     <div><button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
                     <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button></div>\
                     </li>';
-                curEditBox_.divAppendContent($('#fileTransList_' + toIdentity),txt);
+                $('#fileTransList_' + toIdentity).append(txt);
+                var fileTransCtn=$('#fileTransCtn_'+toIdentity)[0];
+                fileTransCtn.scrollTop=fileTransCtn.scrollHeight;
                 $('#refuseFileItem_' + msg_.key).on('click', function() {
                   curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
                   curEditBox_.refuseFileItemTransfer(curEditBox_, msg_, sendMsg_);
@@ -4047,6 +4089,22 @@ var UEditBox = Class.extend({
         }
       } else {
         var fileMsg = fileTransMsg.Msg;
+        if (curEditBox_._fileTransList[fileMsg.key] !== undefined) {
+          Messenge.create().post({
+            message: '文件暂' + fileMsg.fileName + '不能发送！',
+            type: 'error',
+            showCloseButton: true,
+            actions: {
+              sure: {
+                label: '确定',
+                action: function() {
+                  Messenge.create().hideAll()
+                }
+              }
+            }
+          });
+          return;
+        }
         var curFile = curEditBox_._fileTransList[fileMsg.key] = {
           'flag': 2,
           'path': val,
@@ -4067,16 +4125,18 @@ var UEditBox = Class.extend({
         _global._imV.sendIMMsg(function(mmm) {
           $('#memList_' + toIdentity).hide();
           $('#fileTransShow_' + toIdentity).show();
-          var txt= '<li id="fileTransItem_' + fileMsg.key + '">\
+          var txt = '<li id="fileTransItem_' + fileMsg.key + '">\
                     <div><img src="img/uploadFile.png"/><span  title="' + fileMsg.fileName + '" class="chatList_name">' + fileMsg.fileName.substr(0, 8) + '...<br/>大小：' + fileMsg.fileSize + '</span></div>\
                     <div><span id="fileRatio_' + fileMsg.key + '"></span><br/><div id= "fileGaugeDiv_' + fileMsg.key + '"></div></div>\
                     <div><button type="button"  id="cancelFileItem_' + fileMsg.key + '" class="chatList_btn">取消</button></div>\
                     </li>';
-          curEditBox_.divAppendContent($('#fileTransList_' + toIdentity),txt);
+          $('#fileTransList_' + toIdentity).append(txt);
+          var fileTransCtn = $('#fileTransCtn_' + toIdentity)[0];
+          fileTransCtn.scrollTop = fileTransCtn.scrollHeight;
           $('#fileRatio_' + fileMsg.key).text('0%');
           var _gauge = Gauge.create();
           _gauge.add($("#fileGaugeDiv_" + fileMsg.key), {
-            width: 170,
+            width: 148,
             height: 1,
             name: 'fileGauge_' + fileMsg.key,
             limit: true,
@@ -4098,7 +4158,7 @@ var UEditBox = Class.extend({
               var ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
               var msgtime = new Date();
               var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-              curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+              curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             });
           });
         }, fileTransMsg, _global.get('ws').getSessionID(), true);
@@ -4121,114 +4181,121 @@ var UEditBox = Class.extend({
   recieverAcceptOrRefuce: function(curEditBox_, msg_, sendMsg_) {
     var curFile = curEditBox_._fileTransList[msg_.key];
     if (curFile === undefined) {
-      _global._imV.transferFileOutOfDate(function (rstMsg) {
+      _global._imV.transferFileOutOfDate(function(rstMsg) {
         sendMsg_['Msg'] = JSON.stringify({
           'group': curEditBox_._group,
           'msg': rstMsg
         });
         _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), false);
-      },msg_);
+      }, msg_);
       return;
     }
     var toIdentity = curEditBox_._toIdentity;
     if (msg_.state === '1') {
-      switch(curFile.flag){
-        case 2:{
-          curFile.flag=6;
-          if (curEditBox_._group !== '') {
-            curEditBox_.transferCancelSender(msg_, false, 1, curEditBox_, sendMsg_, curFile, sendMsg_.UID, function() {});
-          }
-          _global._imV.sendFileTransferStart(function(err, fileTransMsg) {
-            sendMsg_['Msg'] = JSON.stringify({
-              'group': curEditBox_._group,
-              'msg': fileTransMsg
-            });
-            if (err) {
-              _global._imV.sendAppMsgByDevice(function(mmm) {
-                curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-                var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-                var msgtime = new Date();
-                var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-              }, sendMsg_, _global.get('ws').getSessionID(), true);
-            } else {
-              _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
+      switch (curFile.flag) {
+        case 2:
+          {
+            curFile.flag = 6;
+            if (curEditBox_._group !== '') {
+              curEditBox_.transferCancelSender(msg_, false, 1, curEditBox_, sendMsg_, curFile, sendMsg_.UID, function() {});
             }
-          }, msg_, curEditBox_._fileTransList[msg_.key].path);
-        }
-        break;
-        case 0:{
-          curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, false);
-          curFile.flag = 3;
-          var ratioLable =  '您的远端正在接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
-          var msgtime = new Date();
-          var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-          return;
-        }
-        break;
-        case 5:{
-          return;
-        }
-        break;
-        case 6:
-        {
-          _global._imV.transferFileOutOfDate(function (rstMsg) {
-            sendMsg_['Msg'] = JSON.stringify({
-              'group': curEditBox_._group,
-              'msg': rstMsg
-            });
-            _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), false);
-          },msg_);
-        }
+            _global._imV.sendFileTransferStart(function(err, fileTransMsg) {
+              sendMsg_['Msg'] = JSON.stringify({
+                'group': curEditBox_._group,
+                'msg': fileTransMsg
+              });
+              if (err) {
+                _global._imV.sendAppMsgByDevice(function(mmm) {
+                  curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+                  var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+                  var msgtime = new Date();
+                  var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+                }, sendMsg_, _global.get('ws').getSessionID(), true);
+              } else {
+                _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
+              }
+            }, msg_, curEditBox_._fileTransList[msg_.key].path);
+          }
           break;
-        default:;
+        case 0:
+          {
+            curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, false);
+            curFile.flag = 3;
+            var ratioLable = '您的远端正在接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+            return;
+          }
+          break;
+        case 5:
+          {
+            return;
+          }
+          break;
+        case 6:
+          {
+            _global._imV.transferFileOutOfDate(function(rstMsg) {
+              sendMsg_['Msg'] = JSON.stringify({
+                'group': curEditBox_._group,
+                'msg': rstMsg
+              });
+              _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), false);
+            }, msg_);
+          }
+          break;
+        default:
+          ;
       }
     } else {
-      switch(curFile.flag){
-        case 0:{
-          curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-          var ratioLable =  '您的远端拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
-          var msgtime = new Date();
-          var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-          return;
-        }
-        break;
-        case 2:
-        {
-          if (curEditBox_._group !== '') {
-            curEditBox_.transferCancelSender(msg_, true, 2, curEditBox_, sendMsg_, curFile, sendMsg_.UID, function() {});
+      switch (curFile.flag) {
+        case 0:
+          {
+            curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+            var ratioLable = '您的远端拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 。';
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+            return;
           }
-          var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
-          curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-          var ratioLable = fromAcc + '拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-          var msgtime = new Date();
-          var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-        }
+          break;
+        case 2:
+          {
+            if (curEditBox_._group !== '') {
+              curEditBox_.transferCancelSender(msg_, true, 2, curEditBox_, sendMsg_, curFile, sendMsg_.UID, function() {});
+            }
+            var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+            curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+            var ratioLable = fromAcc + '拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+          }
           break;
         case 6:
-        {
-          _global._imV.transferFileOutOfDate(function (rstMsg) {
-            sendMsg_['Msg'] = JSON.stringify({
-              'group': curEditBox_._group,
-              'msg': rstMsg
-            });
-            _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), false);
-          },msg_);
-        }
+          {
+            _global._imV.transferFileOutOfDate(function(rstMsg) {
+              sendMsg_['Msg'] = JSON.stringify({
+                'group': curEditBox_._group,
+                'msg': rstMsg
+              });
+              _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), false);
+            }, msg_);
+          }
           break;
-        case 5:{
-          var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
-          var ratioLable = fromAcc + '拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-          var msgtime = new Date();
-          var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-          curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-        }
+        case 5:
+          {
+            var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+            var ratioLable = fromAcc + '拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+          }
           break;
-        default:;
-      }      
+        default:
+          ;
+      }
     }
   },
 
@@ -4489,7 +4556,7 @@ var UEditBox = Class.extend({
     $('#fileRatio_' + msg_.key).text('0%');
     var _gauge = Gauge.create();
     _gauge.add($("#fileGaugeDiv_" + msg_.key), {
-      width: 170,
+      width: 148,
       height: 1,
       name: 'fileGauge_' + msg_.key,
       limit: true,

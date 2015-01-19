@@ -1,0 +1,10 @@
+{
+  "main": "index.html",
+  "name": "音乐播放器",
+  "window": {
+    "title": "音乐播放器",
+    "icon": "images/music.png",
+    "toolbar": false,
+    "frame": true
+  }
+}
