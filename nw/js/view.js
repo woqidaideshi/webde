@@ -8,7 +8,8 @@ var DesktopView = View.extend({
     this.callSuper('desktop-view', model_, parent_);
     this.controller = DesktopController.create(this);
     this.registObservers();
-    var $body = $('body').attr('onselectstart', 'return false');
+    var $body = $('body');
+    $body.attr('onselectstart', 'return false').empty();
     this._height = $body.height();
     this._width = $body.width();
     this.$view = $('<div>', {
