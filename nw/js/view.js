@@ -115,15 +115,7 @@ var DesktopView = View.extend({
       {divider: true},
       {text: lang['resize'], action: function(e) {
         e.preventDefault();
-        var size = {
-          'width': $('body').width(),
-          'height': $('body').height()
-        };
-        _this._width = size.width;
-        _this._height = size.height;
-        _this.$view.css(size);
-        $('body').css('overflow', 'hidden');
-        _this.getModel().setSize(size);
+        _this.__resize();
       }},
       {text: lang['refresh'], icon: 'icon-spin3 animate-spin', action: function(e) {
         // TODO: only reload views
@@ -380,12 +372,27 @@ var DesktopView = View.extend({
     ]);
   },
 
+  __resize: function() {
+    $('body').css('overflow', 'hidden');
+    var w = $('body').width(),
+        h = $('body').height(),
+        size = {
+          'width': w < 800 ? 800 : w,
+          'height': h < 600 ? 600 : h
+        };
+    this._width = size.width;
+    this._height = size.height;
+    this.$view.css(size);
+    this.getModel().setSize(size);
+  },
+
   initAction: function() {
     var _this = this;
     $(window).on('beforeunload', function() {
       _this._model.release();
     }).resize(function() {
       console.log('resize:', this.innerWidth, this.innerHeight);
+      _this.__resize();
       // change the property of overflow
       if(_this._width > this.innerWidth) {
         $('body').css('overflow-x', 'auto');
@@ -592,34 +599,57 @@ var GridView = WidgetView.extend({
       'col_row': function(err_, col_row_diff_) {
         if(err_) return console.log(err_);
         if(!_this._draw) {
-          _this.drawGrids();
+          _this.drawGrids(0, _this._model.getColNum(), 0, _this._model.getRowNum());
         } else {
           // TODO: add or remove colume or row
           console.log(col_row_diff_);
+          var colNum = _this._model.getColNum(),
+              rowNum = _this._model.getRowNum();
           if(col_row_diff_.col_diff < 0) {
             // remove columes
-            for(var i = col_row_diff_.col_diff, cols = _this.$view.children(); i < 0; ++i) {
-              _this.destroyCol($(cols.pop()));
+            for(var i = col_row_diff_.col_diff, cols = _this.$view.children('.gridcol');
+                i < 0; ++i) {
+              var idx = colNum - i - 1;
+              _this.destroyCol($(cols[idx]), idx);
             }
-          } else {
-            // add columes
-            for(var i = 0, colNum = _this._model.getColNum(); i < col_row_diff_.col_diff; ++i) {
-              _this.drawCol(colNum++);
-            }
-          }
-          var rowNum = _this._model.getRowNum();
-          if(col_row_diff_.row_diff < 0) {
-            // remove grids
-            for(var cols = _this.$view.children(), i = cols.length; i > 0; --i) {
-              for(var j = rowNum - col_row_diff_.row_diff; j > rowNum; --j) {
-                _this.destroyGrid($(cols[i - 1]), i, j);
+            if(col_row_diff_.row_diff < 0) { // des col & des row
+              // remove grids
+              for(var cols = _this.$view.children('.gridcol'), i = cols.length - 1; i >= 0; --i) {
+                for(var j = rowNum - col_row_diff_.row_diff - 1; j >= rowNum; --j) {
+                  _this.destroyGrid($(cols[i]), i, j);
+                }
+              }
+            } else { // des col & ins row
+              // add grids
+              for(var cols = _this.$view.children('.gridcol'), i = cols.length - 1; i >= 0; --i) {
+                for(var j = rowNum - col_row_diff_.row_diff; j < rowNum; ++j) {
+                  _this.drawGrid($(cols[i]), i, j);
+                }
               }
             }
           } else {
-            // add grids
-            for(var cols = _this.$view.children(), i = cols.length; i > 0; --i) {
-              for(var j = rowNum - col_row_diff_.row_diff; j < rowNum; ++j) {
-                _this.drawGrid($(cols[i - 1]), i, j);
+            // add columes
+            _this.drawGrids(colNum - col_row_diff_.col_diff, colNum, 0, rowNum);
+            // for(var i = 0, colNum = _this._model.getColNum(); i < col_row_diff_.col_diff; ++i) {
+              // _this.drawCol(colNum++);
+            // }
+            if(col_row_diff_.row_diff < 0) { // ins col & des row
+              // remove grids
+              for(var cols = _this.$view.children('.gridcol')
+                  , i = colNum - col_row_diff_.col_diff - 1;
+                  i >= 0; --i) {
+                for(var j = rowNum - col_row_diff_.row_diff - 1; j >= rowNum; --j) {
+                  _this.destroyGrid($(cols[i]), i, j);
+                }
+              }
+            } else { // ins col & ins row
+              // add grids
+              for(var cols = _this.$view.children('.gridcol')
+                  , i = colNum - col_row_diff_.col_diff - 1;
+                  i >= 0; --i) {
+                for(var j = rowNum - col_row_diff_.row_diff; j < rowNum; ++j) {
+                  _this.drawGrid($(cols[i]), i, j);
+                }
               }
             }
           }
@@ -630,10 +660,12 @@ var GridView = WidgetView.extend({
       this._model.on(key, _this.__handlers[key]);
     }
     // handle parent's resize event
-    _this._parent.__handlers['resize'] = function(err_, size_) {
+    _this.__handlers['resize'] = function(err_, size_) {
       _this._model.setSize(size_);
+      // modify selector's size
+      if(_this._needSelector) _this._selector.__getArea();
     };
-    _this._parent._model.on('resize', _this._parent.__handlers['resize']);
+    _this._parent._model.on('resize', _this.__handlers['resize']);
   },
 
   addAnDEntry: function(entry_) {
@@ -703,21 +735,21 @@ var GridView = WidgetView.extend({
     delete this._c[entry_.getID()];
   },
 
-  drawGrids: function() {
+  drawGrids: function(startCol_, endCol_, startRow_, endRow_) {
     this._draw = true;
-    for(var i = 0; i < this._model._col_num; ++i) {
+    for(var i = startCol_; i < endCol_; ++i) {
       var col = this.drawCol(i);
 
       this._model._grid[i] = new Array();
-      for(var j = 0; j < this._model._row_num; ++j) {
+      for(var j = startRow_; j < endRow_; ++j) {
         this.drawGrid(col, i, j);
       }  
     }
-    var $grid = $('.grid');
-    this._model.setGridSize({
-      'gridWidth': $grid.width(),
-      'gridHeight': $grid.height()
-    })
+    // var $grid = $('.grid');
+    // this._model.setGridSize({
+      // 'gridWidth': $grid.width(),
+      // 'gridHeight': $grid.height()
+    // });
   },
 
   drawCol: function(i) {
@@ -750,7 +782,7 @@ var GridView = WidgetView.extend({
 
   destroyCol: function($col, i) {
     this._model._grid[i] = null;
-    delete this._model._grid;
+    delete this._model._grid[i];
     $col.remove();
   },
 
@@ -807,6 +839,7 @@ var GridView = WidgetView.extend({
   },
 
   hide: function() {
+    this._parent._model.off('resize', this.__handlers['resize']);
     this.$view.remove();
   },
 
@@ -3419,10 +3452,12 @@ var FlipperView = View.extend({
     for(var key in _this.__handlers) {
       this._model.on(key, _this.__handlers[key]);
     }
-    _this._parent.__handlers['resize'] = function(err_, size_) {
+    _this.__handlers['resize'] = function(err_, size_) {
       _this._model.setSize(size_);
+      // modify selector's size
+      if(_this._needSelector) _this._selector.__getArea();
     };
-    _this._parent._model.on('resize', _this._parent.__handlers['resize']);
+    _this._parent._model.on('resize', _this.__handlers['resize']);
   },
 
   initAction: function($selector) {
@@ -3597,6 +3632,11 @@ var FlipperView = View.extend({
     } else {
       this._selector = this._parent._selector;
     }
+  },
+
+  hide: function() {
+    this._parent._model.off('resize', this.__handlers['resize']);
+    this.$view.remove();
   },
 
   addASwitcher: function($view, init_) {
