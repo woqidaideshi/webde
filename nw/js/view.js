@@ -3951,7 +3951,16 @@ var UEditBox = Class.extend({
       if (curEditBox_._um.hasContents()) {
         var msg = curEditBox_._um.getContent();
 
-        function sendIMMsgCb() {
+        function sendIMMsgCb(rstMsg) {
+          if(rstMsg===undefined){
+            curEditBox_._contentTip.show({
+              content: '对方接收不到消息，请稍候重试！'
+            });
+            setTimeout(function() {
+              curEditBox_._contentTip.hide();
+            }, 3000);
+            return;
+          }
           curEditBox_.divAppendContent($('#disp_text_' + curEditBox_._toIdentity),'<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
           curEditBox_._um.setContent('');
         }
@@ -3969,8 +3978,8 @@ var UEditBox = Class.extend({
           'msg': msg
         });
         sendMsg['App'] = 'imChat';
-        _global._imV.sendIMMsg(function(mmm) {
-          sendIMMsgCb();
+        _global._imV.sendIMMsg(function(rstMsg) {
+          sendIMMsgCb(rstMsg);
         }, sendMsg, _global.get('ws').getSessionID(), true);
       } else {
         curEditBox_._contentTip.show({
@@ -4443,12 +4452,16 @@ var UEditBox = Class.extend({
                 //Messenger().post('err' + result);
               } else {
                 _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
+                var msgtime = new Date();
+                var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_"'+msg_.key+' title="'+result['filePath']+'">打开文件所在目录</a>');
+                $('#fileTransRst_'+msg_.key).on('click',function(){
+                  _global._dataOP.loadFile.openDataByUri(function(),result['uri']);
+                });
               }
             }, filePath);
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-            var msgtime = new Date();
-            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+            
           }
           _global._imV.sendIMMsg(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
         }
@@ -4523,12 +4536,15 @@ var UEditBox = Class.extend({
                   //Messenger().post('err' + result);
                 } else {
                   _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
+                  var msgtime = new Date();
+                  var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_"'+msg_.key+' title="'+result['filePath']+'">打开文件所在目录</a>');
+                  $('#fileTransRst_'+msg_.key).on('click',function(){
+                    _global._dataOP.loadFile.openDataByUri(function(),result['uri']);
+                  });
                 }
               }, filePath);
               setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
-              var msgtime = new Date();
-              var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-              curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
             }
             sendMsg_['Msg'] = JSON.stringify({
               'group': curEditBox_._group,
