@@ -55,7 +55,10 @@ var GridController = WidgetController.extend({
   onAddFile: function(path_, inode_) {
     var desktop = _global.get('desktop'),
         entry = FileEntryModel.create('id-' + inode_, this._model, path_, desktop._position);
-    _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
+    entry.__saveLayout(this._model._parent.getCur(), true, function(err_) {
+      if(err_) return console.log(err_);
+      _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
+    });
   },
 
   onAddFolder: function(path_, id_, list_) {
@@ -69,8 +72,8 @@ var GridController = WidgetController.extend({
 
   onDockAppDrop: function(widget_) {
     var CP = _global.get('theCP');
-    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.unlinkFromDock));
-    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.linkToDesktop));
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.unlinkFromDock, false));
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.linkToDesktop, true));
   }
 });
 
@@ -160,12 +163,12 @@ var LauncherEntryController = EntryController.extend({
 
   onAddToDesktop: function() {
     _global.get('theCP').perform(NoUndoCommand.create(this._model
-        , 'exec', this._model.linkToDesktop));
+        , 'exec', this._model.linkToDesktop, true));
   },
 
   onAddToDock: function() {
     _global.get('theCP').perform(NoUndoCommand.create(this._model
-        , 'exec', this._model.linkToDock));
+        , 'exec', this._model.linkToDock, true));
   }
 });
 
@@ -191,8 +194,8 @@ var DockController = Controller.extend({
 
   onAppDrop: function(widget_) {
     var CP = _global.get('theCP');
-    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.unlinkFromDesktop));
-    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.linkToDock));
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.unlinkFromDesktop, false));
+    CP.perform(NoUndoCommand.create(widget_, 'exec', widget_.linkToDock, true));
   }
 })
 
