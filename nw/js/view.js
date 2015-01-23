@@ -4455,13 +4455,11 @@ var UEditBox = Class.extend({
                 var msgtime = new Date();
                 var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
                 curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a>');
-                /*$('#fileTransRst_'+msg_.key).on('click',function(){
+                $('#fileTransRst_'+msg_.key).on('click',function(){
                   var  buf= result['uri'].split('#');
                   var category = buf[buf.length - 1];
-                  _global.get('desktop').get('launcher').get('').open(function(){
-
-                  },category,result['tags']);
-                });*/
+                  _global.get('desktop').getCOMById('launcher').get('dagamgr-app').open();
+                });
               }
             }, filePath);
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
@@ -4543,13 +4541,11 @@ var UEditBox = Class.extend({
                   var msgtime = new Date();
                   var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
                   curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a>');
-                  /*$('#fileTransRst_'+msg_.key).on('click',function(){
+                  $('#fileTransRst_'+msg_.key).on('click',function(){
                     var  buf= result['uri'].split('#');
                     var category = buf[buf.length - 1];
-                    _global.get('desktop').get('launcher').get('').open(function(){
-
-                    },category,result['tags']);
-                  });*/
+                    _global.get('desktop').getCOMById('launcher').get('dagamgr-app').open(category,result['tags']);
+                  });
                 }
               }, filePath);
               setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
