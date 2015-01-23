@@ -4454,10 +4454,14 @@ var UEditBox = Class.extend({
                 _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
                 var msgtime = new Date();
                 var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_"'+msg_.key+' title="'+result['filePath']+'">打开文件所在目录</a>');
-                $('#fileTransRst_'+msg_.key).on('click',function(){
-                  _global._dataOP.loadFile.openDataByUri(function(),result['uri']);
-                });
+                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a>');
+                /*$('#fileTransRst_'+msg_.key).on('click',function(){
+                  var  buf= result['uri'].split('#');
+                  var category = buf[buf.length - 1];
+                  _global.get('desktop').get('launcher').get('').open(function(){
+
+                  },category,result['tags']);
+                });*/
               }
             }, filePath);
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
@@ -4538,10 +4542,14 @@ var UEditBox = Class.extend({
                   _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
                   var msgtime = new Date();
                   var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_"'+msg_.key+' title="'+result['filePath']+'">打开文件所在目录</a>');
-                  $('#fileTransRst_'+msg_.key).on('click',function(){
-                    _global._dataOP.loadFile.openDataByUri(function(),result['uri']);
-                  });
+                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a>');
+                  /*$('#fileTransRst_'+msg_.key).on('click',function(){
+                    var  buf= result['uri'].split('#');
+                    var category = buf[buf.length - 1];
+                    _global.get('desktop').get('launcher').get('').open(function(){
+
+                    },category,result['tags']);
+                  });*/
                 }
               }, filePath);
               setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
