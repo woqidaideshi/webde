@@ -19,7 +19,7 @@ var msgBox = MessageBox.create('testid', {
     text: '确  定',
     clkaction: function() {
       alert('hello1');
-      msgBox.hide();
+      msgBox.close();
     }
   }, {
     text: '取  消',
@@ -39,7 +39,6 @@ function clickDemo() {
 <code>
   1. post              在对话框中添加内容
   2. close             关闭
-  3. hide              隐藏
 </code>
 </pre>
 
@@ -48,7 +47,10 @@ function clickDemo() {
 <button class='btn active' onclick="clickDemo()">点击看示例</button>
 <script type="text/javascript">
 
-var msgBox = MessageBox.create('testid', {
+
+
+function clickDemo() {
+  var msgBox = MessageBox.create('testid', {
   title: '',
   width: 350,
   height: 200,
@@ -57,7 +59,7 @@ var msgBox = MessageBox.create('testid', {
     text: '确  定',
     clkaction: function() {
       alert('hello1');
-      msgBox.hide();
+      msgBox.close();
     }
   }, {
     text: '取  消',
@@ -66,8 +68,6 @@ var msgBox = MessageBox.create('testid', {
     }
   }]
 });
-
-function clickDemo() {
   msgBox.post('确定删除改文件吗?');
 }
 
