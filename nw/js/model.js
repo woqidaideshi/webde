@@ -1659,15 +1659,18 @@ var LauncherModel = Model.extend({
   },
 
   createAModel: function(attr_, type_) {
-    var model = null;
+    var model = null,
+        ws = _global.get('ws');
     if(type_ == 'app') {
-      model = AppEntryModel.create(attr_.id, this, attr_.path, attr_.idx, attr_.position);
+      model = AppEntryModel.create(attr_.id, this, attr_.path, attr_.idx,
+          (ws.isLocal() ? attr_.position : undefined));
       this.set(model);
     } else if(type_ == 'inside-app') {
       switch(attr_.id) {
         case 'launcher-app':
           model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
-              this, this.show, [], attr_.name, attr_.idx, attr_.position);
+              this, this.show, [], attr_.name, attr_.idx, 
+              (ws.isLocal() ? attr_.position : undefined));
           break;
         case 'login-app':
           var login = _global._login;
@@ -1675,13 +1678,15 @@ var LauncherModel = Model.extend({
           var _this = this;
           login.off('login-state', _this.__h).on('login-state', _this.__h);
           model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
-              login, login.login, [], attr_.name, attr_.idx, attr_.position);
+              login, login.login, [], attr_.name, attr_.idx, 
+              (ws.isLocal() ? attr_.position : undefined));
           break; 
         default:
           // new a InsideAppEntryModel for data manager or other inside app which launched by
           //   using window with a iframe.
           model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
-              this, this.startUp, [attr_.id], attr_.name, attr_.idx, attr_.position);
+              this, this.startUp, [attr_.id], attr_.name, attr_.idx, 
+              (ws.isLocal() ? attr_.position : undefined));
           break;
       }
       this.set(model);
@@ -2220,7 +2225,7 @@ var WidgetManager = Model.extend({
             this._parent,
             conf_.plugin[key].path,
             conf_.plugin[key].type,
-            ws.isLocal() ? conf_.plugin[key].position : 'undefined'
+            ws.isLocal() ? conf_.plugin[key].position : undefined
           ));
     }
 
@@ -2247,14 +2252,14 @@ var WidgetManager = Model.extend({
           break;
         case 'dir':
           model = DirEntryModel.create(conf_.dentry[key].id, this, conf_.dentry[key].path
-              , (ws.isLocal() ? conf_.plugin[key].position : 'undefined'), function() {
+              , (ws.isLocal() ? conf_.plugin[key].position : undefined), function() {
                 this.setList(conf_.dentry[key].list);
               });
           break;
         default:
           // handle File entry model
           model = FileEntryModel.create(conf_.dentry[key].id, this, conf_.dentry[key].path
-              , (ws.isLocal() ? conf_.plugin[key].position : 'undefined'));
+              , (ws.isLocal() ? conf_.plugin[key].position : undefined));
           break;
       }
       this.add(model);
