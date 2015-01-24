@@ -4179,6 +4179,15 @@ var UEditBox = Class.extend({
       }, 3000);
       return;
     }
+    if (curEditBox_.invalidFile(filePath_)) {
+      curEditBox_._fileTip.show({
+        content: '不支持格式为desktop、config、list的文件上传!'
+      });
+      setTimeout(function() {
+        curEditBox_._fileTip.hide();
+      }, 3000);
+      return;
+    }
     var toIdentity = curEditBox_._toIdentity;
     var toAccountInfo = curEditBox_._toAccountInfo;
 
@@ -4458,7 +4467,7 @@ var UEditBox = Class.extend({
                 $('#fileTransRst_'+msg_.key).on('click',function(){
                   var  buf= result['uri'].split('#');
                   var category = buf[buf.length - 1];
-                  _global.get('desktop').getCOMById('launcher').get('dagamgr-app').open();
+                  _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:'+category+',tag:'+result['tags']+'}');
                 });
               }
             }, filePath);
@@ -4544,7 +4553,7 @@ var UEditBox = Class.extend({
                   $('#fileTransRst_'+msg_.key).on('click',function(){
                     var  buf= result['uri'].split('#');
                     var category = buf[buf.length - 1];
-                    _global.get('desktop').getCOMById('launcher').get('dagamgr-app').open(category,result['tags']);
+                    _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:'+category+',tag:'+result['tags']+'}');
                   });
                 }
               }, filePath);
@@ -4930,6 +4939,21 @@ var UEditBox = Class.extend({
   divAppendContent:function(div,text){
     div.append(text);
     div[0].scrollTop=div[0].scrollHeight;
+  },
+
+  invalidFile:function(path){
+    var pathBuf = path.split('/');
+    var name = pathBuf[pathBuf.length - 1];
+    var nameBuf=name.split('.');
+    if(nameBuf.length>1){
+      var suffix=nameBuf[nameBuf.length-1];
+      if(suffix==='config'||suffix==='CONFIG'||suffix==='desktop'||suffix==='DESKTOP'||suffix==='list'||suffix==='LIST')
+        return true;
+      else
+        return false;
+    }else{
+      return false;
+    }
   }
 });
 
