@@ -1780,10 +1780,14 @@ var DeviceListModel = Model.extend({
       case 'down':
         var ac = _this.getCOMById(account_id_);
         if(typeof ac === 'undefined') return;
-        ac.remove(ac.getCOMById(dev_id_));
-        if(ac.size() == 0) {
-          _this.remove(ac);
-        } 
+        try {
+          ac.remove(ac.getCOMById(dev_id_));
+          if(ac.size() == 0) {
+            _this.remove(ac);
+          } 
+        } catch(e) {
+          console.log(e);
+        }
         break;
       default:
         break;
