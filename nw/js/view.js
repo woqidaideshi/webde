@@ -4439,10 +4439,11 @@ var UEditBox = Class.extend({
             'msg': rst
           });
           if (msg_.state === 1) {
-            $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
+            var curRatio=(msg_.ratio.toFixed(4) * 100) ;
+            $('#fileRatio_' + msg_.key).text(curRatio + '%');
             var _gauge = Gauge.create();
             _gauge.modify($('#fileGauge_' + msg_.key)[0], {
-              values: [msg_.ratio.toFixed(4), 1]
+              values: [curRatio, 100]
             });
           } else {
             var ratioLabel;
@@ -4463,11 +4464,11 @@ var UEditBox = Class.extend({
                 _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
                 var msgtime = new Date();
                 var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a>');
+                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a><br/>');
                 $('#fileTransRst_'+msg_.key).on('click',function(){
                   var  buf= result['uri'].split('#');
                   var category = buf[buf.length - 1];
-                  _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:'+category+',tag:'+result['tags']+'}');
+                  _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"'+category+'",tag:".download"}');//
                 });
               }
             }, filePath);
@@ -4491,10 +4492,11 @@ var UEditBox = Class.extend({
           var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
           _global._imV.transferProcessing(function() {
             if (msg_.state === 1) {
-              $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
+              var curRatio=(msg_.ratio.toFixed(4) * 100) ;
+              $('#fileRatio_' + msg_.key).text(curRatio+ '%');
               var _gauge = Gauge.create();
               _gauge.modify($('#fileGauge_' + msg_.key)[0], {
-                values: [msg_.ratio.toFixed(4), 1]
+                values: [curRatio, 100]
               });
             } else {
               var ratioLabel;
@@ -4525,10 +4527,11 @@ var UEditBox = Class.extend({
             };
           } else {
             if (msg_.state === 1) {
-              $('#fileRatio_' + msg_.key).text((msg_.ratio.toFixed(4) * 100) + '%');
+              var curRatio=(msg_.ratio.toFixed(4) * 100) ;
+              $('#fileRatio_' + msg_.key).text(curRatio+ '%');
               var _gauge = Gauge.create();
               _gauge.modify($('#fileGauge_' + msg_.key)[0], {
-                values: [msg_.ratio.toFixed(4), 1]
+                values: [curRatio, 100]
               });
             } else {
               var ratioLabel;
@@ -4549,11 +4552,11 @@ var UEditBox = Class.extend({
                   _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
                   var msgtime = new Date();
                   var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a>');
+                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a><br/>');
                   $('#fileTransRst_'+msg_.key).on('click',function(){
                     var  buf= result['uri'].split('#');
                     var category = buf[buf.length - 1];
-                    _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:'+category+',tag:'+result['tags']+'}');
+                    _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"'+category+'",tag:".download"}');//result['tags']
                   });
                 }
               }, filePath);
