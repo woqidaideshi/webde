@@ -1775,6 +1775,8 @@ var DeviceListModel = Model.extend({
           ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
         } catch(e) {
           console.log(e);
+          _this._c[account_id_] = null;
+          delete _this._c[account_id_];
         }
         break;
       case 'down':
