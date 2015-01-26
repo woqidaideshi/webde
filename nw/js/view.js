@@ -662,7 +662,10 @@ var GridView = WidgetView.extend({
     }
     // handle parent's resize event
     _this.__handlers['resize'] = function(err_, size_) {
-      _this._model.setSize(size_);
+      _this._model.setSize({
+        width: _this.$view.width(),
+        height: _this.$view.height()
+      });
       // modify selector's size
       if(_this._needSelector) _this._selector.__getArea();
     };
