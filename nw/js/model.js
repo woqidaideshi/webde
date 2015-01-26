@@ -935,8 +935,10 @@ var InsideAppEntryModel = EntryModel.extend({
     this._cb.call(this);
   },
 
-  open: function() {
+  open: function(pera_) {
+    this._startUpPera[1] = pera_ || null;
     this._startUp.apply(this._startUpCtx, this._startUpPera);
+    this._startUpPera[1] = null;
   },
 
   getCategory: function() {},
@@ -1685,7 +1687,7 @@ var LauncherModel = Model.extend({
           // new a InsideAppEntryModel for data manager or other inside app which launched by
           //   using window with a iframe.
           model = InsideAppEntryModel.create(attr_.id, this, attr_.path, attr_.iconPath,
-              this, this.startUp, [attr_.id], attr_.name, attr_.idx, 
+              this, this.startUp, [attr_.id, null], attr_.name, attr_.idx, 
               (ws.isLocal() ? attr_.position : undefined));
           break;
       }
@@ -1696,7 +1698,7 @@ var LauncherModel = Model.extend({
     return model;
   },
 
-  startUp: function(id_) {
+  startUp: function(id_, pera_) {
     // this.emit('start-up', null, this.getCOMById(id_));
     _global._app.getRegisteredAppInfo(function(err_, info_) {
       if(err_) return console.log(err_);
@@ -1717,7 +1719,7 @@ var LauncherModel = Model.extend({
             _global._openingWindows.focusOnAWindow(win_._id);
           });
         }
-      }, info_, null);
+      }, info_, pera_);
     }, id_);
   }
 });
