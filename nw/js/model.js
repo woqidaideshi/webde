@@ -1777,15 +1777,21 @@ var DeviceListModel = Model.extend({
           ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
         } catch(e) {
           console.log(e);
+          _this._c[account_id_] = null;
+          delete _this._c[account_id_];
         }
         break;
       case 'down':
         var ac = _this.getCOMById(account_id_);
         if(typeof ac === 'undefined') return;
-        ac.remove(ac.getCOMById(dev_id_));
-        if(ac.size() == 0) {
-          _this.remove(ac);
-        } 
+        try {
+          ac.remove(ac.getCOMById(dev_id_));
+          if(ac.size() == 0) {
+            _this.remove(ac);
+          } 
+        } catch(e) {
+          console.log(e);
+        }
         break;
       default:
         break;
