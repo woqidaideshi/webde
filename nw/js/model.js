@@ -1587,6 +1587,7 @@ var LauncherModel = Model.extend({
         } catch(e) {
           _global._app.getRegisteredAppInfo(function(err_, info_) {
             if(err_) return console.log(err_);
+            if(info_.notShow) return ;
             _this.createAModel(info_, 'inside-app');
           }, list_[i]);
         }
@@ -1777,15 +1778,21 @@ var DeviceListModel = Model.extend({
           ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
         } catch(e) {
           console.log(e);
+          _this._c[account_id_] = null;
+          delete _this._c[account_id_];
         }
         break;
       case 'down':
         var ac = _this.getCOMById(account_id_);
         if(typeof ac === 'undefined') return;
-        ac.remove(ac.getCOMById(dev_id_));
-        if(ac.size() == 0) {
-          _this.remove(ac);
-        } 
+        try {
+          ac.remove(ac.getCOMById(dev_id_));
+          if(ac.size() == 0) {
+            _this.remove(ac);
+          } 
+        } catch(e) {
+          console.log(e);
+        }
         break;
       default:
         break;
@@ -2254,14 +2261,14 @@ var WidgetManager = Model.extend({
           break;
         case 'dir':
           model = DirEntryModel.create(conf_.dentry[key].id, this, conf_.dentry[key].path
-              , (ws.isLocal() ? conf_.plugin[key].position : undefined), function() {
+              , (ws.isLocal() ? conf_.dentry[key].position : undefined), function() {
                 this.setList(conf_.dentry[key].list);
               });
           break;
         default:
           // handle File entry model
           model = FileEntryModel.create(conf_.dentry[key].id, this, conf_.dentry[key].path
-              , (ws.isLocal() ? conf_.plugin[key].position : undefined));
+              , (ws.isLocal() ? conf_.dentry[key].position : undefined));
           break;
       }
       this.add(model);
