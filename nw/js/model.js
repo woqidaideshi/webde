@@ -1587,6 +1587,7 @@ var LauncherModel = Model.extend({
         } catch(e) {
           _global._app.getRegisteredAppInfo(function(err_, info_) {
             if(err_) return console.log(err_);
+            if(info_.notShow) return ;
             _this.createAModel(info_, 'inside-app');
           }, list_[i]);
         }
@@ -2260,14 +2261,14 @@ var WidgetManager = Model.extend({
           break;
         case 'dir':
           model = DirEntryModel.create(conf_.dentry[key].id, this, conf_.dentry[key].path
-              , (ws.isLocal() ? conf_.plugin[key].position : undefined), function() {
+              , (ws.isLocal() ? conf_.dentry[key].position : undefined), function() {
                 this.setList(conf_.dentry[key].list);
               });
           break;
         default:
           // handle File entry model
           model = FileEntryModel.create(conf_.dentry[key].id, this, conf_.dentry[key].path
-              , (ws.isLocal() ? conf_.plugin[key].position : undefined));
+              , (ws.isLocal() ? conf_.dentry[key].position : undefined));
           break;
       }
       this.add(model);
