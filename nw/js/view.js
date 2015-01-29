@@ -4461,17 +4461,17 @@ var UEditBox = Class.extend({
               }
             }
             _global._dataOP.loadFile(function(err, result) {
+              var msgtime = new Date();
+              var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
               if (err) {
-                //Messenger().post('err' + result);
+                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
               } else {
                 _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
-                var msgtime = new Date();
-                var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
                 curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a><br/>');
                 $('#fileTransRst_'+msg_.key).on('click',function(){
                   var  buf= result['uri'].split('#');
                   var category = buf[buf.length - 1];
-                  _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"'+category+'",tag:".download"}');//
+                  _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"'+category+'",tag:".download"}');
                 });
               }
             }, filePath);
@@ -4549,12 +4549,12 @@ var UEditBox = Class.extend({
                 }
               }
               _global._dataOP.loadFile(function(err, result) {
+                var msgtime = new Date();
+                var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
                 if (err) {
-                  //Messenger().post('err' + result);
+                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
                 } else {
                   _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
-                  var msgtime = new Date();
-                  var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
                   curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a><br/>');
                   $('#fileTransRst_'+msg_.key).on('click',function(){
                     var  buf= result['uri'].split('#');
