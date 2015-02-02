@@ -61,6 +61,14 @@
   // return SubClass;
 /* } */
 
+Array.prototype.extend = function(props) {
+  var obj = Class.extend(props);
+  for(var i = 0; i < this.length; ++i) {
+    obj = this[i].extend(obj.prototype);
+  }
+  return obj;
+}
+
 //Event base Class
 //Inherited from Node.js' EventEmitter
 //require('events').EventEmitter.prototype
