@@ -54,10 +54,11 @@ var GridController = WidgetController.extend({
 
   onAddFile: function(path_, inode_) {
     var desktop = _global.get('desktop'),
-        entry = FileEntryModel.create('id-' + inode_, this._model, path_, desktop._position);
-    entry.__saveLayout(this._model._parent.getCur(), true, function(err_) {
+        entry = FileEntryModel.create('id-' + inode_, this._model, path_, desktop._position),
+        _this = this;
+    entry.__saveLayout(_this._model._parent.getCur(), true, function(err_) {
       if(err_) return console.log(err_);
-      _global.get('theCP').perform(NoUndoCommand.create(this._model, 'exec', this._model.add, entry));
+      _global.get('theCP').perform(NoUndoCommand.create(_this._model, 'exec', _this._model.add, entry));
     });
   },
 

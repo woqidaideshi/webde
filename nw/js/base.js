@@ -61,14 +61,6 @@
   // return SubClass;
 /* } */
 
-Array.prototype.extend = function(props) {
-  var obj = Class.extend(props);
-  for(var i = 0; i < this.length; ++i) {
-    obj = this[i].extend(obj.prototype);
-  }
-  return obj;
-}
-
 //Event base Class
 //Inherited from Node.js' EventEmitter
 //require('events').EventEmitter.prototype
@@ -119,15 +111,67 @@ var Event = Class.extend({
   }
 });
 
+var TrNode = Class.extend({
+  init: function(id_, val_, parent_) {
+    this._val = val_;
+    this._parent = parent_;
+    this._c = [];
+    this._size = 0;
+    this._id = id_;
+  },
+
+  ID: function() {
+    return this._id;
+  },
+
+  add: function(node_) {
+    if(typeof node_ === 'undefined' || node_ == null) return 'Illegal node!!';
+    if(typeof this._c[node_.ID()] !== "undefined") {
+      return 'This component[id: ' + node_.ID() + '] has already existed!!';
+    }
+    this._c[node_.ID()] = node_;
+    ++this._size;
+    return null;
+  },
+
+  remove: function(node_) {
+    if(typeof node_ === 'undefined' || node_ == null) return 'Illegal node!!';
+    if(typeof this._c[node_.ID()] === 'undefined') {
+      return 'This component[id: ' + node_.ID() + '] is not existed!!';
+    }
+    this._c[node_.ID()] = null;
+    delete this._c[node_.ID()];
+    --this._size;
+    return null;
+  },
+
+  getParent: function() {
+    return this._parent;
+  },
+
+  getChildren: function() {
+    return this._c;
+  },
+
+  getChild: function(id_) {
+    return this._c[id_];
+  },
+
+  hasChild: function(cID_) {
+    return ((typeof this._c[cID_] === 'undefined') ? false : true);
+  },
+
+  size: function() {return this._size;}
+});
+
 //The base Class for Model classes
 //
 var Model = Event.extend({
   init: function(id_, parent_) {
     this.callSuper();
     this._id = id_;
-    this._parent = parent_;
-    this._c = []; // model container
-    this._size = 0;
+    var p = parent_ || {_node: null};
+    this._node = TrNode.create(id_, this, p._node); // model container
     // this._obList = [];
   },
 
@@ -135,56 +179,58 @@ var Model = Event.extend({
 
   getID: function() {return this._id;},
 
-  getParent: function() {return this._parent;},
+  getParent: function() {
+    var ret = this._node.getParent();
+    if(ret != null) return ret._val;
+    return null;
+  },
 
   add: function(component_) {
-    if(typeof component_ === 'undefined' || component_ == null) return false;
-    if(typeof this._c[component_.getID()] !== "undefined") {
-      this.emit('add', 'This component[id: ' + component_.getID() + '] has already existed!!');
-      return false;
+    var ret = this._node.add(component_._node);
+    if(ret == null) {
+      this.emit('add', null, component_);
+      return true;
     }
-    this._c[component_.getID()] = component_;
-    this.emit('add', null, component_);
-    ++this._size;
-    return true;
+    this.emit('add', ret);
+    return false;
   },
 
   remove: function(component_) {
-    if(typeof component_ === 'undefined' || component_ == null) return false;
-    if(typeof this._c[component_.getID()] === 'undefined') {
-      this.emit('remove', 'This component[id: ' + component_.getID() + '] is not existed!!');
-      return false;
+    var ret = this._node.remove(component_._node);
+    if(ret == null) {
+      this.emit('remove', null, component_);
+      return true;
     }
-    this.emit('remove', null, component_);
-    this._c[component_.getID()] = null;
-    delete this._c[component_.getID()];
-    --this._size;
-    return true;
+    this.emit('remove', ret);
+    return false;
   },
 
   getCOMById: function(id_) {
-    return this._c[id_];
+    var ret = this._node.getChild(id_);
+    if(ret) return ret._val;
+    return null;
   },
 
   getCOMByAttr: function(attr_, value_) {
-    for(var key1 in this._c) {
-      for(var key2 in this._c[key1]) {
-        if(key2 == attr_ && this._c[key1][key2] == value_)
-          return this._c[key1];
+    var nodes = this._node.getChildren();
+    for(var key1 in nodes) {
+      for(var key2 in nodes) {
+        if(key2 == attr_ && nodes[key1][key2] == value_)
+          return nodes[key1];
       }
     }
     return null;
   },
 
   getAllCOMs: function() {
-    return this._c;
+    return this._node.getChildren();
   },
 
   has: function(cID_) {
-    return ((typeof this.getCOMById(cID_) === 'undefined') ? false : true);
+    return this._node.hasChild(cID_); 
   },
 
-  size: function() {return this._size;}
+  size: function() {return this._node.size();}
 
   // addObserver: function(observer_) {
     // this._obList[observer_._id] = observer_;
