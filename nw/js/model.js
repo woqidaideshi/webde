@@ -721,7 +721,7 @@ var DPluginModel = WidgetModel.extend({
     if(this._size.width == 90) {
       alert('the plugin has been min size!!');
     } else {
-      var _this = this
+      var _this = this,
           parent = _this.getParent();
       if(parent.getType() == 'grid')
         parent.flagGridOccupy(
