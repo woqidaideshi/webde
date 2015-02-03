@@ -186,6 +186,7 @@ var Model = Event.extend({
   },
 
   add: function(component_) {
+    if(typeof component_ === 'undefined' || component_ == null) return false;
     var ret = this._node.add(component_._node);
     if(ret == null) {
       this.emit('add', null, component_);
@@ -196,6 +197,7 @@ var Model = Event.extend({
   },
 
   remove: function(component_) {
+    if(typeof component_ === 'undefined' || component_ == null) return false;
     var ret = this._node.remove(component_._node);
     if(ret == null) {
       this.emit('remove', null, component_);
