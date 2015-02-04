@@ -891,7 +891,7 @@ var GridView = WidgetView.extend({
     // handle event that drag a dockapp to desktop
     //
     if(typeof _id[0] !== 'undefined') {
-      if(typeof s_widget !== 'undefined') {
+      if(s_widget != null) {
         alert("The app has been registed in desktop");
         return ;
       }
@@ -925,7 +925,7 @@ var GridView = WidgetView.extend({
 
     //handle item transfer (not support chinese) 
     var _items = ev.dataTransfer.items;
-    if (_items.length != 0 && typeof s_widget == 'undefined') {
+    if (_items.length != 0 && s_widget == null) {
       _items[0].getAsString(function(data) {
         if(data.match(/^http:\/\/.*/) != null) {
           _global._app.generateAppByURL(function(err_, appID_) {
@@ -951,7 +951,7 @@ var GridView = WidgetView.extend({
       });
     };
 
-    if(typeof s_widget == 'undefined') return ;
+    if(s_widget == null) return ;
     
     //get source occupy number of grids follow x or y 
     var col_num = 1;
@@ -2588,7 +2588,7 @@ var DockView = View.extend({
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]);
 
-    if(typeof dockApp !== 'undefined') {
+    if(dockApp != null) {
       var _divList = $('#dock div');
       for (var i = 0; i < _divList.length; i++) {
         this._c[_divList[i].id]._model.setIdx(i);
@@ -2603,7 +2603,7 @@ var DockView = View.extend({
           break ;
         }
       }
-      if(typeof widget !== 'undefined'
+      if(widget != null
           && (widget.getType() == 'app' || widget.getType() == 'inside-app')) {
         /* if(typeof dockApp !== 'undefined') { */
           // alert("The App has been registed in dock");
@@ -2779,17 +2779,21 @@ var DockEntryView = View.extend({
         dock = desktop.getCOMById('dock'),
         dockApp = dock.getCOMById(_id[1]);
 
-    if(typeof dockApp !== 'undefined') {
+    if(dockApp != null) {
       // drag to change a dockApp entry's position in dock
       _source = ((typeof _id[0] === 'undefined') ? $('#' + __id + '-dock') : $('#' + __id));
-    } else if((typeof widget != 'undefined'
+    } else if((widget != null 
         && (widget.getType() == 'app' || widget.getType() == 'inside-app'))
         /* || ev.dataTransfer.files.length != 0 */) {
       // drag a desktop entry to dock
       if (typeof $('#insert')[0] == 'undefined') {
         _source = $('<div>', {
           'id': 'insert'
-        }).html("<img src='img/insert.gif'/>");
+        }).html("<img src='img/insert.gif'/>").on('dragover', function(ev) {
+          ev.stopPropagation();
+          ev.preventDefault();
+          ev.originalEvent.dataTransfer.dropEffect = 'copy';
+        });
       } else {
          _source = $('#insert');
       }

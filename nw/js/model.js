@@ -678,8 +678,9 @@ var DPluginModel = WidgetModel.extend({
   setSize: function(size_) {
     this._size = size_;
     // TODO: recal col_num and row_num;
-    if(this._parent.getType() == 'grid') {
-      var gridSize = this._parent.getGridSize();
+    var parent = this.getParent();
+    if(parent.getType() == 'grid') {
+      var gridSize = parent.getGridSize();
       this._col_num = parseInt(this._size.width / gridSize.gridWidth - 0.00001) + 1;
       this._row_num = parseInt(this._size.height / gridSize.gridHeight - 0.00001) + 1;
     }
@@ -696,9 +697,10 @@ var DPluginModel = WidgetModel.extend({
       });
 
       var _this = this,
-          ctxMenu = _global.get('ctxMenu');
-      if(_this._parent.getType() == 'grid')
-        _this._parent.flagGridOccupy(
+          ctxMenu = _global.get('ctxMenu'),
+          parent = _this.getParent();
+      if(parent.getType() == 'grid')
+        parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -719,9 +721,10 @@ var DPluginModel = WidgetModel.extend({
     if(this._size.width == 90) {
       alert('the plugin has been min size!!');
     } else {
-      var _this = this;
-      if(_this._parent.getType() == 'grid')
-        _this._parent.flagGridOccupy(
+      var _this = this,
+          parent = _this.getParent();
+      if(parent.getType() == 'grid')
+        parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -732,8 +735,8 @@ var DPluginModel = WidgetModel.extend({
         'height': this._size.width * 1 - 15
       });
 
-      if(_this._parent.getType() == 'grid')
-        _this._parent.flagGridOccupy(
+      if(parent.getType() == 'grid')
+        parent.flagGridOccupy(
             _this._position.x, 
             _this._position.y, 
             _this._col_num, 
@@ -1609,8 +1612,9 @@ var LauncherModel = Model.extend({
         }, data_.appID);
       } else if(data_.event == 'unregister') {
         var model = _this._c[data_.appID],
-            layout = _this._parent.getCOMById('layout').getLayouts(),
-            dock = _this._parent.getCOMById('dock');
+            parent = _this.getParent(),
+            layout = parent.getCOMById('layout').getLayouts(),
+            dock = parent.getCOMById('dock');
         for(var key in layout) {
           layout[key].remove(model);
         }
@@ -1629,7 +1633,7 @@ var LauncherModel = Model.extend({
   get: function(id_) {
     // var ret = this._appCache.get(id_);
     var ret = this.getCOMById(id_);
-    if(typeof ret === 'undefined') {
+    if(ret == null) {
       // catch this exception and get app model from FS
       throw 'Not in cache!';
     }
@@ -1778,8 +1782,8 @@ var DeviceListModel = Model.extend({
           ac.add(DeviceEntryModel.create(dev_id_, ac, info.host, info));
         } catch(e) {
           console.log(e);
-          _this._c[account_id_] = null;
-          delete _this._c[account_id_];
+          _this._node._c[account_id_] = null;
+          delete _this._node._c[account_id_];
         }
         break;
       case 'down':
@@ -2231,7 +2235,7 @@ var WidgetManager = Model.extend({
     for(var key in conf_.plugin) {
       this.add(DPluginModel.create(
             conf_.plugin[key].id,
-            this._parent,
+            this.getParent(),
             conf_.plugin[key].path,
             conf_.plugin[key].type,
             ws.isLocal() ? conf_.plugin[key].position : undefined
@@ -2557,6 +2561,7 @@ var GridModel = LayoutModel.extend({
 var LayoutManager = Model.extend({
   init: function(parent_) {
     this.callSuper('layout-manager', parent_);
+    this._c = [];
   },
 
   load: function(conf_) {
@@ -2566,13 +2571,14 @@ var LayoutManager = Model.extend({
       case 'grid':
         desktop.setLayoutType('grid');
         for(var i = 0; i < conf_.num; ++i) {
-          var grid = GridModel.create('grid-' + i, this._parent, WidgetManager);
+          var grid = GridModel.create('grid-' + i, this.getParent(), WidgetManager);
           this.add(grid, true);
           grid.load(conf_.widget[i]);
         }
         // var layout = desktop.getCOMById('layout');
-        this._parent.setMain(conf_.main);
-        this._parent.setCur(conf_.main);
+        var p = this.getParent();
+        p.setMain(conf_.main);
+        p.setCur(conf_.main);
         
         // load theme entry
         _global.get('theme').loadThemeEntry(this);
@@ -2620,12 +2626,12 @@ var LayoutManager = Model.extend({
         this._c.splice(i, 1);
         if(this._c.length != 0) {
           if(i < this._c.length) {
-            this._parent.setCur(i);
+            this.getParent().setCur(i);
           } else {
-            this._parent.setCur(i - 1);
+            this.getParent().setCur(i - 1);
           }
         } else {
-          this._parent.setCur(-1);
+          this.getParent().setCur(-1);
         }
         break;
       }
