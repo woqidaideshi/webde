@@ -317,8 +317,9 @@ var DesktopModel = Model.extend({
   },
 
   logout: function() {
-    for(var key in this._c) {
-      this._c[key].release();
+    var c = this._node.getChildren();
+    for(var key in c) {
+      c[key]._val.release();
     }
     this.login();
   },
@@ -542,8 +543,9 @@ var DockModel = Model.extend({
 
   release: function() {
     // this._dockWatch.close();
-    for(var key in this._c) {
-      this.remove(this._c[key]);
+    var c = this._node.getChildren();
+    for(var key in c) {
+      this.remove(c[key]._val);
     }
     // TODO: unwatch on app's unregister event
   },
