@@ -2059,28 +2059,28 @@ var DeviceListView = View.extend({
     var labelTip;
     var fileInfo;
     switch (fileMsg.option) {
-      case 0x0000://传输文件请求 / 接收文件响应 / 拒绝接收文件响应
+      case 0x0000: //传输文件请求 
         {
           abandon = false;
+          var toAcc = toAccountInfo_.group === '' ? toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')' : toAccountInfo_.identity;
+          labelTip = '您的远端正在给' + toAcc + '传输文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
+          fileInfo = {
+            'flag': 5, //远端正在给其他设备传输文件
+            'key': fileMsg.key,
+            'fileName': fileMsg.fileName,
+            'fileSize': fileMsg.fileSize
+          };
+        }
+        break;
+      case 0x0010:
+        {
           switch (fileMsg.state) {
-            case undefined://传输文件请求
-              {
-                var toAcc = toAccountInfo_.group === '' ? toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')':toAccountInfo_.identity;
-                labelTip = '您的远端正在给' +toAcc+ '传输文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
-                fileInfo = {
-                  'flag': 5, //远端正在给其他设备传输文件
-                  'key': fileMsg.key,
-                  'fileName': fileMsg.fileName,
-                  'fileSize': fileMsg.fileSize
-                };
-              }
-              break;
-            case '0': // 拒绝接收文件响应
+            case 0: // 拒绝接收文件响应
               {
                 labelTip = '您的远端拒绝接收' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输的文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
               }
               break;
-            case '1'://接收文件响应
+            case 1: //接收文件响应
               {
                 labelTip = '您的远端正在接收' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输的文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize;
                 fileInfo = {
@@ -2091,41 +2091,39 @@ var DeviceListView = View.extend({
                 };
               }
               break;
+            case 2: //接收文件响应
+              {
+                labelTip = '您的远端接收' + toAccountInfo_.toAccount + '(' + toAccountInfo_.toUID + ')传输的文件\n' + fileMsg.fileName + '\n大小：' + fileMsg.fileSize + '失败';
+              }
+              break;
             default:
               ;
           }
         }
         break;
-      case 0x0001://发送文件初始化失败  传输文件失败
-        {
-          if(fileMsg.state === '0'){
-            abandon = false;
-            labelTip =  '您的远端传输文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ') 失败。';
-          }else
-          abandon = true;
-        }
-        break;
-      case 0x0002://文件传输进度
+      case 0x0030: //文件传输进度
         {
           if (fileMsg.state !== 1) {
             abandon = false;
             var ratioLabel;
-            if (fileMsg.ratio === 1) {
-              labelTip =  '您的远端成功接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
-            } else {
-              if (fileMsg.state === 0) {
-                labelTip = '您的远端接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ') 失败。';
-              } else {
-                labelTip = '您的远端取消接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
-              }
+            if (fileMsg.state === 3) {
+              labelTip = '您的远端成功接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
+            } else if (fileMsg.state === 2) {
+              labelTip = '您的远端接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ') 失败。';
             }
           }
         }
         break;
-      case 0x0003://取消传输
+      case 0x0001: //取消传输
         {
           abandon = false;
           labelTip = '您的远端中断传输文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
+        }
+        break;
+      case 0x0011: //取消传输
+        {
+          abandon = false;
+          labelTip = '您的远端取消接收文件：' + fileMsg.fileName + '(大小：' + fileMsg.fileSize + ')。';
         }
         break;
       default:
@@ -4006,6 +4004,7 @@ var UEditBox = Class.extend({
     curEditBox_.showRecDetail(toAccountInfo_, curEditBox_, true);
   },
 
+  //flag_：ture表示已经有聊天窗口，false表示初始化聊天窗口的同时显示这条消息
   showRecDetail: function(toAccountInfo_, curEditBox_, flag_) {
     var msg = toAccountInfo_.msg.msg;
     var toIdentity = curEditBox_._toIdentity;
@@ -4015,6 +4014,8 @@ var UEditBox = Class.extend({
       if (toAccountInfo_.msgTip === undefined) {
         if(curEditBox_._localUID===undefined){
           _global._imV.getLocalData(function(localData) {
+            curEditBox_._localAccount = localData.account;
+            curEditBox_._localUID = localData.UID;
             var fromAcc=toAccountInfo_.fromUID===localData.UID?'您的远端':toAccountInfo_.fromAccount+'('+toAccountInfo_.fromUID+')';
             var txtShow = '<span  class="accountFont">' +  fromAcc+ '&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg;
             curEditBox_.divAppendContent($('#disp_text_' + toIdentity),txtShow);
@@ -4053,123 +4054,168 @@ var UEditBox = Class.extend({
     switch (msg_.option) {
       case 0x0000:
         { //收到发送端传输文件的请求------------界面显示
-          if (curEditBox_._localUID === sendMsg_.fromUID && msg_.state === undefined) {
+          if (curEditBox_._localUID === sendMsg_.fromUID) {
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            var sendAcc=sendMsg_.group===''?sendMsg_.Account + '(' + sendMsg_.UID + ')':curEditBox_._toIdentity;
-            var labelTip = '您的远端正在给' + sendAcc+'传输文件\n' + msg_.fileName + '\n大小：' + msg_.fileSize;
+            var sendAcc = sendMsg_.group === '' ? sendMsg_.Account + '(' + sendMsg_.UID + ')' : curEditBox_._toIdentity;
+            var labelTip = '您的远端正在给' + sendAcc + '传输文件\n' + msg_.fileName + '\n大小：' + msg_.fileSize;
             var fileInfo = {
               'flag': 5, //远端正在给其他设备传输文件
               'fileName': msg_.fileName,
               'fileSize': msg_.fileSize
             };
             curEditBox_._fileTransList[msg_.key] = fileInfo;
-            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + labelTip + '<br/>');
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + labelTip + '<br/>');
           } else {
-            if (msg_.state === undefined) {
-              if (flag_) {
-                curEditBox_._fileTransList[msg_.key] = {
-                  'flag': 0,
-                  'path': '',
-                  'fileName': msg_.fileName,
-                  'fileSize': msg_.fileSize
-                };
-                $('#memList_' + toIdentity).hide();
-                $('#fileTransShow_' + toIdentity).show();
-                var txt= '<li id="fileTransItem_' + msg_.key + '">\
+            if (flag_) {
+              curEditBox_._fileTransList[msg_.key] = {
+                'flag': 0,
+                'path': '',
+                'fileName': msg_.fileName,
+                'fileSize': msg_.fileSize
+              };
+              $('#memList_' + toIdentity).hide();
+              $('#fileTransShow_' + toIdentity).show();
+              var txt = '<li id="fileTransItem_' + msg_.key + '">\
                     <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span><br/><br/></div>\
                     <div><button type="button"  id="refuseFileItem_' + msg_.key + '" class="chatList_btn">拒绝</button>\
                     <button type="button"  id="acceptFileItem_' + msg_.key + '" class="chatList_btn">接收</button></div>\
                     </li>';
-                $('#fileTransList_' + toIdentity).append(txt);
-                var fileTransCtn=$('#fileTransCtn_'+toIdentity)[0];
-                fileTransCtn.scrollTop=fileTransCtn.scrollHeight;
-                $('#refuseFileItem_' + msg_.key).on('click', function() {
-                  curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-                  curEditBox_.refuseFileItemTransfer(curEditBox_, msg_, sendMsg_);
-                });
-                $('#acceptFileItem_' + msg_.key).on('click', function() {
-                  curEditBox_.acceptFileItemTransfer(curEditBox_, msg_, sendMsg_, flag_);
-                });
-              } else {
+              $('#fileTransList_' + toIdentity).append(txt);
+              var fileTransCtn = $('#fileTransCtn_' + toIdentity)[0];
+              fileTransCtn.scrollTop = fileTransCtn.scrollHeight;
+              $('#refuseFileItem_' + msg_.key).on('click', function() {
+                curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+                curEditBox_.refuseFileItemTransfer(curEditBox_, msg_, sendMsg_);
+              });
+              $('#acceptFileItem_' + msg_.key).on('click', function() {
                 curEditBox_.acceptFileItemTransfer(curEditBox_, msg_, sendMsg_, flag_);
-              }
+              });
             } else {
-              curEditBox_.recieverAcceptOrRefuce(curEditBox_, msg_, sendMsg_);
+              curEditBox_.acceptFileItemTransfer(curEditBox_, msg_, sendMsg_, flag_);
             }
+          }
+        }
+        break;
+      case 0x0010:
+        { //收到接收端接受或拒绝接收文件请求   
+          curEditBox_.recieverAcceptOrRefuce(curEditBox_, msg_, sendMsg_);
+        }
+        break;
+      case 0x0011:
+        { //收到接收端取消传输文件请求      
+          if (curEditBox_._fileTransList[msg_.key] === undefined) {
+            return;
+            var ratioLable = '';
+            switch (curFile.flag) {
+              case 1:
+                {
+                  var filePath = curFile.path;
+                  ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                  _global._dataOP.loadFile(function(err, result) {
+                    var msgtime = new Date();
+                    var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+                    if (err) {
+                      curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
+                    } else {
+                      _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
+                      curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
+                      $('#fileTransRst_' + msg_.key).on('click', function() {
+                        var buf = result['uri'].split('#');
+                        var category = buf[buf.length - 1];
+                        _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}'); //result['tags']
+                      });
+                    }
+                  }, filePath);
+                  setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
+                }
+                break;
+              case 3:
+                {
+                  ratioLable = '您的远端取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                }
+                break;
+              case 4:
+                {
+                  ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                }
+                break;
+              case 5:
+                {
+                  var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+                  ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                }
+                break;
+              case 6:
+                {
+                  var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+                  ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                }
+                break;
+              default:
+                {
+                  return;
+                }
+            }
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
           }
         }
         break;
       case 0x0001:
-        { //收到发送端可以进行传输文件的响应      
-          if (curEditBox_._fileTransList[msg_.key] === undefined) {
-            return;
-          }
-          if (msg_.state === '0') { //不可以传输了------------界面显示 
-            curEditBox_.fileItemTransRemove(curEditBox_, msg._key, true);
-            var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-            var msgtime = new Date();
-            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-          } else {
-            curEditBox_.recieverFileTransBegin(curEditBox_, msg_, sendMsg_, flag_);
-          }
-        }
-        break;
-      case 0x0002:
-        { //收到接收文件端的传输文件进度      
-          curEditBox_.showFileItemRatio(curEditBox_, msg_, sendMsg_);
-        }
-        break;
-      case 0x0003:
         { //收到发送端取消传输文件的请求 
           if (curEditBox_._fileTransList[msg_.key] === undefined) {
             return;
           }
-          _global._imV.transferCancelReciever(function() {
-            var fromAcc;
-            var ratioLable;
-            switch (msg_.state) {
-              case 0:
-                {
-                  curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-                  if(sendMsg_.fromUID===curEditBox_._localUID){
-                    fromAcc='您的远端';
-                  }else{
-                    fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
-                  }
-                  ratioLable = fromAcc + '中止了传输文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+          var fromAcc;
+          var ratioLable;
+          switch (msg_.state) {
+            case 0:
+              {
+                curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+                if (sendMsg_.fromUID === curEditBox_._localUID) {
+                  fromAcc = '您的远端';
+                } else {
+                  fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+                  //_global._imV.transferCancelReciever(function() {}, msg_.key);
                 }
-                break;
-              case 1:
-                {
-                  curEditBox_._fileTransList[msg_.key].flag = 4;
-                  curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, false);
-                  ratioLable = msg_.Account + '(' + msg_.UID + ')正在接收文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                }
-                break;
-              case 2:
-                {
-                  curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-                  ratioLable = msg_.Account + '(' + msg_.UID + ')拒绝接收文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                }
-                break;
-              default:
-                console.log('transferCancelReciever  undefined');
-            }
-            var msgtime = new Date();
-            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-          }, msg_.key);
+                ratioLable = fromAcc + '中止了传输文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              }
+              break;
+            case 1:
+              {
+                curEditBox_._fileTransList[msg_.key].flag = 4;
+                curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, false);
+                ratioLable = msg_.Account + '(' + msg_.UID + ')正在接收文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              }
+              break;
+            case 2:
+              {
+                curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+                ratioLable = msg_.Account + '(' + msg_.UID + ')拒绝接收文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              }
+              break;
+            default:
+              console.log('transferCancelReciever  undefined');
+          }
+          var msgtime = new Date();
+          var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+          curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+        }
+        break;
+      case 0x0030:
+        { //浏览器 显示文件传输进度
+          curEditBox_.showFileItemRatio(curEditBox_, msg_, sendMsg_);
         }
         break;
       case 0x0004:
         {
-          if(curEditBox_._fileTransList[msg_.key]!== undefined){
+          if (curEditBox_._fileTransList[msg_.key] !== undefined) {
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
             var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>您的传输请求已过期。<br/>');
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>您的传输请求已过期。<br/>');
           }
         }
         break;
@@ -4218,7 +4264,7 @@ var UEditBox = Class.extend({
         var fileMsg = fileTransMsg.Msg;
         if (curEditBox_._fileTransList[fileMsg.key] !== undefined) {
           Messenge.create().post({
-            message: '文件暂' + fileMsg.fileName + '不能发送！',
+            message: '文件' + fileMsg.fileName + '不能发送！',
             type: 'error',
             showCloseButton: true,
             actions: {
@@ -4318,31 +4364,35 @@ var UEditBox = Class.extend({
       return;
     }
     var toIdentity = curEditBox_._toIdentity;
-    if (msg_.state === '1') {
+    if (msg_.state === 1) {
       switch (curFile.flag) {
         case 2:
           {
+            curFile['fileID']=msg_['fileID'];
             curFile.flag = 6;
             if (curEditBox_._group !== '') {
               curEditBox_.transferCancelSender(msg_, false, 1, curEditBox_, sendMsg_, curFile, sendMsg_.UID, function() {});
             }
-            _global._imV.sendFileTransferStart(function(err, fileTransMsg) {
-              sendMsg_['Msg'] = JSON.stringify({
-                'group': curEditBox_._group,
-                'msg': fileTransMsg
-              });
-              if (err) {
-                _global._imV.sendAppMsgByDevice(function(mmm) {
-                  curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-                  var ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-                  var msgtime = new Date();
-                  var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-                }, sendMsg_, _global.get('ws').getSessionID(), true);
+            _global._imV.sendFileProcess(function(err, rst) {
+              if (rst['state'] === 1) {
+                $('#fileRatio_' + msg_.key).text(rst['ratio'] + '%');
+                var _gauge = Gauge.create();
+                _gauge.modify($('#fileGauge_' + msg_.key)[0], {
+                  values: [rst['ratio'], 100]
+                });
               } else {
-                _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
+                var ratioLabel;
+                if (rst['state'] === 3) {
+                  ratioLable = fromAcc + '成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                } else {
+                  ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+                }
+                curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+                var msgtime = new Date();
+                var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
               }
-            }, msg_, curEditBox_._fileTransList[msg_.key].path);
+            }, msg_,sendMsg_);
           }
           break;
         case 0:
@@ -4375,7 +4425,7 @@ var UEditBox = Class.extend({
         default:
           ;
       }
-    } else {
+    } else if(state===0){
       switch (curFile.flag) {
         case 0:
           {
@@ -4423,73 +4473,53 @@ var UEditBox = Class.extend({
         default:
           ;
       }
-    }
-  },
-
-  recieverFileTransBegin: function(curEditBox_, msg_, sendMsg_, flag_) {
-    if (curEditBox_._fileTransList[msg_.key] === undefined || (curEditBox_._fileTransList[msg_.key] !== undefined && curEditBox_._fileTransList[msg_.key].flag !== 1)) {
-      return;
-    }
-    var toIdentity = curEditBox_._toIdentity;
-    _global._imV.transferFileProcess(function(err, rst) { //传输文件
-      if (curEditBox_._fileTransList[msg_.key] === undefined || (curEditBox_._fileTransList[msg_.key] !== undefined && curEditBox_._fileTransList[msg_.key].flag !== 1)) {
-        return;
-      }
-      if (rst.initFile === 1) {
-        curEditBox_._fileTransList[msg_.key] = {
-          'flag': 1,
-          'path': rst.filePath,
-          'fileName': msg_.fileName,
-          'fileNameLocal': rst.fileNameLocal,
-          'fileSize': msg_.fileSize
-        };
-      } else {
-        if (rst.option === 0x0002) {
-          sendMsg_['Msg'] = JSON.stringify({
-            'group': curEditBox_._group,
-            'msg': rst
-          });
-          if (msg_.state === 1) {
-            var curRatio=((msg_.ratio)* 100).toFixed(2) ;
-            $('#fileRatio_' + msg_.key).text(curRatio + '%');
-            var _gauge = Gauge.create();
-            _gauge.modify($('#fileGauge_' + msg_.key)[0], {
-              values: [curRatio, 100]
-            });
-          } else {
-            var ratioLabel;
-            var filePath = curEditBox_._fileTransList[msg_.key].path;
-            if (msg_.ratio === 1) {
-              ratioLable = '您已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
-            } else {
-              if (msg_.state === 0) {
-                ratioLable = '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-              } else {
-                ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-              }
-            }
-            _global._dataOP.loadFile(function(err, result) {
-              var msgtime = new Date();
-              var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-              if (err) {
-                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
-              } else {
-                _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
-                curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a><br/>');
-                $('#fileTransRst_'+msg_.key).on('click',function(){
-                  var  buf= result['uri'].split('#');
-                  var category = buf[buf.length - 1];
-                  _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"'+category+'",tag:".download"}');
-                });
-              }
-            }, filePath);
+    }else{
+      switch (curFile.flag) {
+        case 0:
+          {
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-            
+            var ratioLable = '您的远端接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+            return;
           }
-          _global._imV.sendIMMsg(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
-        }
+          break;
+        case 2:
+          {
+            if (curEditBox_._group !== '') {
+              curEditBox_.transferCancelSender(msg_, true, 2, curEditBox_, sendMsg_, curFile, sendMsg_.UID, function() {});
+            }
+            var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+            curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+            var ratioLable = fromAcc + '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')失败。';
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+          }
+          break;
+        case 6:
+          {
+            var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+            var ratioLable = fromAcc + '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')失败。';
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+          }
+          break;
+        case 5:
+          {
+            var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+            var ratioLable = fromAcc + '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')失败。';
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+          }
+          break;
+        default:
+          ;
       }
-    }, msg_, sendMsg_, _global.get('ws').isLocal());
+    }
   },
 
   showFileItemRatio: function(curEditBox_, msg_, sendMsg_) {
@@ -4500,99 +4530,50 @@ var UEditBox = Class.extend({
     switch (curEditBox_._fileTransList[msg_.key].flag) {
       case 6: //发送端显示接收进度
         {
-          var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
-          _global._imV.transferProcessing(function() {
-            if (msg_.state === 1) {
-              var curRatio=((msg_.ratio)* 100).toFixed(2) ;
-              $('#fileRatio_' + msg_.key).text(curRatio+ '%');
-              var _gauge = Gauge.create();
-              _gauge.modify($('#fileGauge_' + msg_.key)[0], {
-                values: [curRatio, 100]
-              });
-            } else {
-              var ratioLabel;
-              if (msg_.ratio === 1) {
-                ratioLable = fromAcc + '成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-              } else {
-                if (msg_.state === 0) {
-                  ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-                } else {
-                  ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                }
-              }
-              curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-              var msgtime = new Date();
-              var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-              curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-            }
-          }, msg_);
         }
         break;
       case 1: //浏览器正在接收文件后显示接收进度
         {
-          if (msg_.initFile === 1) {
-            curEditBox_._fileTransList[msg_.key] = {
-              'flag': 1,
-              'path': msg_.filePath,
-              'fileNameLocal': msg_.fileNameLocal,
-            };
-          } else {
-            if (msg_.state === 1) {
-              var curRatio=((msg_.ratio)* 100).toFixed(2) ;
-              $('#fileRatio_' + msg_.key).text(curRatio+ '%');
-              var _gauge = Gauge.create();
-              _gauge.modify($('#fileGauge_' + msg_.key)[0], {
-                values: [curRatio, 100]
-              });
-            } else {
-              var ratioLabel;
-              var filePath = curEditBox_._fileTransList[msg_.key].path;
-              if (msg_.ratio === 1) {
-                ratioLable = '您已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
-              } else {
-                if (msg_.state === 0) {
-                  ratioLable = '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-                } else {
-                  ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                }
-              }
-              _global._dataOP.loadFile(function(err, result) {
-                var msgtime = new Date();
-                var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                if (err) {
-                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
-                } else {
-                  _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
-                  curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_'+msg_.key+'">找文件</a><br/>');
-                  $('#fileTransRst_'+msg_.key).on('click',function(){
-                    var  buf= result['uri'].split('#');
-                    var category = buf[buf.length - 1];
-                    _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"'+category+'",tag:".download"}');//result['tags']
-                  });
-                }
-              }, filePath);
-              setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
-            }
-            sendMsg_['Msg'] = JSON.stringify({
-              'group': curEditBox_._group,
-              'msg': msg_
+          if (msg_['state']  === 1) {
+            $('#fileRatio_' + msg_.key).text(msg_['ratio'] + '%');
+            var _gauge = Gauge.create();
+            _gauge.modify($('#fileGauge_' + msg_.key)[0], {
+              values: [msg_['ratio'] , 100]
             });
-            _global._imV.sendIMMsg(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), false);
-          }     
+          } else {
+            var ratioLabel;
+            var filePath = curEditBox_._fileTransList[msg_.key].path;
+            if (msg_['state']  === 3)
+              ratioLable = '您已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
+            else
+              ratioLable = '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+            _global._dataOP.loadFile(function(err, result) {
+              var msgtime = new Date();
+              var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+              if (err) {
+                curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
+              } else {
+                _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
+                curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
+                $('#fileTransRst_' + msg_.key).on('click', function() {
+                  var buf = result['uri'].split('#');
+                  var category = buf[buf.length - 1];
+                  _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}');
+                });
+              }
+            }, filePath);
+            setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
+          }
         }
         break;
       case 3: //远端正在接收文件后显示接收进度
         {
-          if (msg_.initFile===undefined&&msg_.state !== 1) {
+          if (msg_.state !== 1) {
             var ratioLabel;
-            if (msg_.ratio === 1) {
+            if (msg_.state === 3) {
               ratioLable = '您的远端成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-            } else {
-              if (msg_.state === 0) {
-                ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-              } else {
-                ratioLable =  '您的远端取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-              }
+            } else if (msg_.state === 2){
+              ratioLable = '传输文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
             }
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
@@ -4606,14 +4587,10 @@ var UEditBox = Class.extend({
           if (msg_.state !== 1) {
             var ratioLabel;
             var filePath = curEditBox_._fileTransList[msg_.key].path;
-            if (msg_.ratio === 1) {
+            if (msg_.state === 3) {
               ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileName + '"(大小：' + msg_.fileSize + ')。';
-            } else {
-              if (msg_.state === 0) {
-                ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-              } else {
-                ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-              }
+            } else if(msg_.state === 2){
+              ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
             }
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
@@ -4626,16 +4603,11 @@ var UEditBox = Class.extend({
         {
           if (msg_.state !== 1) {
             var ratioLabel;
-            var filePath = curEditBox_._fileTransList[msg_.key].path;
             var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
-            if (msg_.ratio === 1) {
+            if (msg_.state === 3) {
               ratioLable = fromAcc+ '已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileName + '"(大小：' + msg_.fileSize + ')。';
-            } else {
-              if (msg_.state === 0) {
+            } else if(msg_.state === 2){
                 ratioLable = fromAcc + '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
-              } else {
-                ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-              }
             }
             curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
             var msgtime = new Date();
@@ -4651,67 +4623,114 @@ var UEditBox = Class.extend({
 
   refuseFileItemTransfer: function(curEditBox_, msg_, sendMsg_) {
     var toIdentity = curEditBox_._toIdentity;
-    msg_['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-    sendMsg_['Msg'] = JSON.stringify({
-      'group': curEditBox_._group,
-      'msg': msg_
+    _global._imV.refuseFileItemTransfer(function(rstMsg){
+      sendMsg_['Msg'] = JSON.stringify({
+        'group': curEditBox_._group,
+        'msg': rstMsg
+      });
+      _global._imV.sendAppMsgByDevice(function(mmm) {
+        var ratioLable = '您拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+        var msgtime = new Date();
+        var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+        curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+      }, sendMsg_, _global.get('ws').getSessionID(), true);
     });
-    _global._imV.sendAppMsgByDevice(function(mmm) {
-      var ratioLable = '您拒绝接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-      var msgtime = new Date();
-      var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-      curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-    }, sendMsg_, _global.get('ws').getSessionID(), true);
   },
 
   acceptFileItemTransfer: function(curEditBox_, msg_, sendMsg_, flag_) {
     var toIdentity = curEditBox_._toIdentity;
-    curEditBox_._fileTransList[msg_.key] = {
-      'flag': 1,
-      'path': '',
-      'fileName': msg_.fileName,
-      'fileSize': msg_.fileSize
-    };
-    if (flag_) {
-      $('#fileTransItem_' + msg_.key).remove();
-      msg_['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
+    _global._imV.acceptAndreceiveFileProcess(function(err, rst) { //传输文件
       sendMsg_['Msg'] = JSON.stringify({
         'group': curEditBox_._group,
-        'msg': msg_
+        'msg': rst
       });
-      _global._imV.sendAppMsgByDevice(function(mmm) {
-      }, sendMsg_, _global.get('ws').getSessionID(), true);
-    } else {
-      $('#memList_' + toIdentity).hide();
-      $('#fileTransShow_' + toIdentity).show();
-    }
-    var txt= '<li id="fileTransItem_' + msg_.key + '">\
-                <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
-                <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_' + msg_.key + '"></div></div>\
-                <div><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button></div>\
-                </li>';
-    curEditBox_.divAppendContent($('#fileTransList_' + toIdentity),txt);
-    $('#cancelFileItem_' + msg_.key).on('click', function() {
-      _global._imV.transferCancelReciever(function() {
-        var ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-        var msgtime = new Date();
-        var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-        curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
-      }, msg_.key);
-      curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-    });
-    $('#fileRatio_' + msg_.key).text('0%');
-    var _gauge = Gauge.create();
-    _gauge.add($("#fileGaugeDiv_" + msg_.key), {
-      width: 148,
-      height: 1,
-      name: 'fileGauge_' + msg_.key,
-      limit: true,
-      gradient: true,
-      scale: 10,
-      colors: ['#ff0000', '#00ff00'],
-      values: [0, 1]
-    });
+      if (err) {
+        if (flag_)
+          $('#fileTransItem_' + msg_.key).remove();
+        _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
+      } else {
+        if (rst['option'] === 0x0010) {
+          if (flag_) {
+            $('#fileTransItem_' + msg_.key).remove();
+          } else {
+            $('#memList_' + toIdentity).hide();
+            $('#fileTransShow_' + toIdentity).show();
+          }
+          var curFile = {
+            'flag': 1,
+            'path': rst.filePath,
+            'fileName': msg_.fileName,
+            'fileNameLocal': rst.fileNameLocal,
+            'fileSize': msg_.fileSize
+          };
+          curEditBox_._fileTransList[msg_.key] = curFile;
+          delete rst['fileNameLocal'];
+          _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
+          var txt = '<li id="fileTransItem_' + msg_.key + '">\
+                        <div><img src="img/uploadFile.png"/><span title="' + msg_.fileName + '" class="chatList_name">' + msg_.fileName.substr(0, 8) + '...<br/>大小：' + msg_.fileSize + '</span></div>\
+                        <div><span id="fileRatio_' + msg_.key + '"></span><br/><div id= "fileGaugeDiv_' + msg_.key + '"></div></div>\
+                        <div><button type="button"  id="cancelFileItem_' + msg_.key + '" class="chatList_btn">取消</button></div>\
+                        </li>';
+          curEditBox_.divAppendContent($('#fileTransList_' + toIdentity), txt);
+          $('#cancelFileItem_' + msg_.key).on('click', function() {
+            var fileID = curFile['curFile'];
+            _global._imV.transferCancelReciever(function(rstObj) {
+              sendMsg_['Msg'] = JSON.stringify({
+                'group': curEditBox_._group,
+                'msg': rst
+              });
+              _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
+              var ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              var msgtime = new Date();
+              var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+              curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+            }, msg_, fileID);
+            curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+          });
+          $('#fileRatio_' + msg_.key).text('0%');
+          var _gauge = Gauge.create();
+          _gauge.add($("#fileGaugeDiv_" + msg_.key), {
+            width: 148,
+            height: 1,
+            name: 'fileGauge_' + msg_.key,
+            limit: true,
+            gradient: true,
+            scale: 10,
+            colors: ['#ff0000', '#00ff00'],
+            values: [0, 1]
+          });
+        } else if (rst['state'] === 1) {
+          $('#fileRatio_' + msg_.key).text(rst['ratio'] + '%');
+          var _gauge = Gauge.create();
+          _gauge.modify($('#fileGauge_' + msg_.key)[0], {
+            values: [rst['ratio'], 100]
+          });
+        } else {
+          var ratioLabel;
+          var filePath = curEditBox_._fileTransList[msg_.key].path;
+          if (rst['state'] === 3)
+            ratioLable = '您已成功接收文件："' + curEditBox_._fileTransList[msg_.key].fileNameLocal + '"(大小：' + msg_.fileSize + ')。';
+          else
+            ratioLable = '接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ') 失败。';
+          _global._dataOP.loadFile(function(err, result) {
+            var msgtime = new Date();
+            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+            if (err) {
+              curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
+            } else {
+              _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
+              curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
+              $('#fileTransRst_' + msg_.key).on('click', function() {
+                var buf = result['uri'].split('#');
+                var category = buf[buf.length - 1];
+                _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}');
+              });
+            }
+          }, filePath);
+          curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
+        }
+      }
+    }, msg_, sendMsg_, _global.get('ws').isLocal());
   },
 
   transferCancelSender: function(msg_, flag_, state_, curEditBox_, sendMsg_, curFile_, exceptUID_, cb_) {
@@ -4749,7 +4768,7 @@ var UEditBox = Class.extend({
           cb_();
         }
       }
-    }, msg_, flag_, state_);
+    }, msg_, curFile_['fileID'],state_);
   },
 
   fileItemTransRemove: function(curEditBox_, key_, flag_) {
@@ -4811,18 +4830,24 @@ var UEditBox = Class.extend({
                     case 0: //refuse
                       {
                         curEditBox_.fileItemTransRemove(curEditBox_, key, true);
-                        fileMsgTmp['option'] = 0x0000;
-                        fileMsgTmp['state'] = '0';
-                        sendMsg['Msg'] = JSON.stringify({
-                          'group': curEditBox_._group,
-                          'msg': fileMsgTmp
-                        });
-                        _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg, _global.get('ws').getSessionID(), true);
+                        _global._imV.refuseFileItemTransfer(function(rstMsg){
+                          sendMsg['Msg'] = JSON.stringify({
+                            'group': curEditBox_._group,
+                            'msg': rstMsg
+                          });
+                          _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg, _global.get('ws').getSessionID(), true);
+                        },fileMsgTmp);
                       }
                       break;
                     case 1: //cancel receive
                       {
-                        _global._imV.transferCancelReciever(function() {}, key);
+                        _global._imV.transferCancelReciever(function(rstObj) {
+                          sendMsg['Msg'] = JSON.stringify({
+                          'group': curEditBox_._group,
+                          'msg': rstObj
+                        });
+                        _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg, _global.get('ws').getSessionID(), true);
+                        }, fileMsgTmp,key);
                       }
                       break;
                     case 2: //cancel send
