@@ -6,13 +6,12 @@
   "nodejs": true,
   "window": {
     "title": "test",
-    "toolbar": false,
-    "show_in_taskbar": false,
+    "toolbar": true,
+    "show_in_taskbar": true,
     "as_desktop": true,
     "frame": true
   },
   "dependencies": { 
-    "demo-rio": "~0.0.1"
   }, 
   "devDependencies": {
     "grunt": "~0.4.5",
