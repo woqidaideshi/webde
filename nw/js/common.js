@@ -357,7 +357,7 @@ var Global = Class.extend({
           // change the nodejs'API to ourselves
           /* _this._fs = require('fs'); */
           /* _this._exec = require('child_process').exec; */
-          WDC.requireAPI(['device_service', 'IM', 'data', 'app', 'lang'/* , 'account' */]
+          WDC.requireAPI(['devDetect', 'im', 'data', 'app', 'lang'/* , 'account' */]
             , function(dev, imV, data, app, lang/* , acc */) {
               _this._device = dev;
               _this._imV = imV;
@@ -382,7 +382,7 @@ var Global = Class.extend({
                 },
                 {
                   fn: function(pera_, cb__) {
-                    lang.getInitInfo(function(err_, info_) {
+                    lang.getInitInfo(function(info_) {
                       _this._locale = {
                         locale: info_[0],
                         langList: info_[1],
