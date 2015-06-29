@@ -5,9 +5,10 @@
   "version": "0.0.1",
   "nodejs": true,
   "window": {
-    "title": "test",
-    "toolbar": true,
-    "show_in_taskbar": true,
+    "title": "桌面管理器",
+    "icon": "img/device.png",
+    "toolbar": false,
+    "show_in_taskbar": false,
     "as_desktop": true,
     "frame": true
   },
