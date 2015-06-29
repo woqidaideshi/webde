@@ -2133,11 +2133,11 @@ var DeviceListView = View.extend({
             }
             break;
             case 2:{
-              labelTip = fileMsg.Account + '(' + msg_.UID + ')拒绝接收文件 ："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
+              labelTip = fileMsg.Account + '(' + fileMsg.UID + ')拒绝接收文件 ："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
             }
             break;
             case 3:{
-              labelTip = fileMsg.Account + '(' + msg_.UID + ')接收文件 ："' + fileMsg.fileName + '"(大小：' + 'fileSize': fileMsg.fileSize + ')。失败';
+              //labelTip = fileMsg.Account + '(' + fileMsg.UID + ')接收文件 ："' + fileMsg.fileName + '"(大小：' + 'fileSize': fileMsg.fileSize + ')。失败';
             }
             break;
             default:{}
