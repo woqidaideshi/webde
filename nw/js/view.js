@@ -3919,6 +3919,37 @@ var UEditBox = Class.extend({
       e.preventDefault();
     }).on('click', function(ev) {
       _global._openingWindows.focusOnAWindow(_this._imWindow._id);
+    }).on('paste',function(ev){
+      //_global._imV_clipboard.getTxt();
+      console.log('innnnnnn------------'+ev.keyCode+'  '+ev.ctrlKey);
+      if(ev.keyCode=='22'){
+        console.log('okkkkk---------')
+      }
+    }).on('copy',function(ev){
+      var txt='';
+      if (iframeBody.getSelection) { //chrome,firefox,opera
+        var range=window.getSelection().getRangeAt(0);
+        var container = document_createElement_x_x_x_x('div');
+        container.a(range.cloneContents());
+        txt= container.innerHTML;
+        //return window.getSelection(); //只复制文本
+      }
+      else if (document.getSelection) { //其他
+          var range=window.getSelection().getRangeAt(0);
+          var container = document_createElement_x_x_x_x('div');
+          container.a(range.cloneContents());
+          txt= container.innerHTML;
+          //return document.getSelection(); //只复制文本
+      }
+      else if (document.selection) { //IE特有的
+          txt= document.selection.createRange().htmlText;
+          //return document.selection.createRange().text; //只复制文本
+      }
+      //_global._imV_clipboard.getTxt();
+      console.log('innnnnnn------------'+ev.keyCode+'  '+ev.ctrlKey+txt);
+      if(ev.keyCode=='22'){
+        console.log('okkkkk---------')
+      }
     });
     iframeBody.on('keyup',function(e){
       if(e.ctrlKey&&e.keyCode===13){
@@ -3985,7 +4016,7 @@ var UEditBox = Class.extend({
         var msg = curEditBox_._um.getContent();
 
         function sendIMMsgCb(rstMsg) {
-          if(rstMsg===undefined){
+          /*if(rstMsg===undefined){
             curEditBox_._contentTip.show({
               content: '对方接收不到消息，请稍候重试！'
             });
@@ -3993,7 +4024,7 @@ var UEditBox = Class.extend({
               curEditBox_._contentTip.hide();
             }, 3000);
             return;
-          }
+          }*/
           curEditBox_.divAppendContent($('#disp_text_' + curEditBox_._toIdentity),'<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
           curEditBox_._um.setContent('');
         }
