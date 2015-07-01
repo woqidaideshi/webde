@@ -3902,6 +3902,7 @@ var UEditBox = Class.extend({
       autoHeightEnabled:false
       //autoClearEmptyNode : false
     });
+
     var iframeBody = _this.$view.find('iframe').contents().find('body');
     iframeBody.on('dragleave', function(e) {
       e.stopPropagation();
@@ -3921,40 +3922,10 @@ var UEditBox = Class.extend({
       _global._openingWindows.focusOnAWindow(_this._imWindow._id);
     }).on('paste',function(ev){
       //_global._imV_clipboard.getTxt();
-      console.log('innnnnnn------------'+ev.keyCode+'  '+ev.ctrlKey);
-      if(ev.keyCode=='22'){
-        console.log('okkkkk---------')
-      }
+      var txt=ev.clipboardData.getData('text/plain');
     }).on('copy',function(ev){
-      var txt='';
-      if (iframeBody.getSelection) { //chrome,firefox,opera
-        var range=window.getSelection().getRangeAt(0);
-        var container = document_createElement_x_x_x_x('div');
-        container.a(range.cloneContents());
-        txt= container.innerHTML;
-        //return window.getSelection(); //只复制文本
-      }
-      else if (document.getSelection) { //其他
-          var range=window.getSelection().getRangeAt(0);
-          var container = document_createElement_x_x_x_x('div');
-          container.a(range.cloneContents());
-          txt= container.innerHTML;
-          //return document.getSelection(); //只复制文本
-      }
-      else if (document.selection) { //IE特有的
-          txt= document.selection.createRange().htmlText;
-          //return document.selection.createRange().text; //只复制文本
-      }
-      //_global._imV_clipboard.getTxt();
+      var txt=window.getSelection().toString();
       console.log('innnnnnn------------'+ev.keyCode+'  '+ev.ctrlKey+txt);
-      if(ev.keyCode=='22'){
-        console.log('okkkkk---------')
-      }
-    });
-    iframeBody.on('keyup',function(e){
-      if(e.ctrlKey&&e.keyCode===13){
-        _this.sendMsg(_this,toAccountInfo_);
-      }
     });
     this._contentTip = MiniTip.create('send_button_' + _this._toIdentity, {
       event: 'custom',

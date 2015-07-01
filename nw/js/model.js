@@ -1806,6 +1806,7 @@ var DeviceListModel = Model.extend({
   },
 
   __handleIMMsg: function(recMsg) {//封装得到的消息
+    console.log('get--->'+recMsg)
     var _this = _global.get('desktop').getCOMById('device-list');
     var toAccount,toUID,toIP;
     var toAccountInfo = {};
