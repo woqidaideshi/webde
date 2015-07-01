@@ -14,7 +14,7 @@ var ThemeModel = Model.extend({
   getCurThemeConfig: function(callback_) {
     var theme = this;
 
-    _global._dataOP.readDesktopConfig(function(ret_, err_) {
+    _global._dataOP.readDesktopConfig(function(err_, ret_) {
       if(err_) return console.log(err_);
       theme._theme = ret_;
       callback_.call(this, null);
@@ -266,7 +266,7 @@ var DesktopModel = Model.extend({
     // TODO: read a default conf, then create a temp layout model,
     // and delete it after login successfully
     var _this = this;
-    _global._dataOP.readDesktopConfig(function(ret_, err_) {
+    _global._dataOP.readDesktopConfig(function(err_, ret_) {
       if(err_) return console.log(err_);
       _this.getCOMById('layout').load(ret_.layout);
       if(typeof cb_ === 'function') cb_.call(_this, null);
@@ -287,13 +287,13 @@ var DesktopModel = Model.extend({
     console.log('starting');
     this._DESKTOP_DIR = '/data/desktop';
     var _this = this;
-    _global._dataOP.readDesktopConfig(function(ret_, err_) {
+    _global._dataOP.readDesktopConfig(function(err_, ret_) {
       if(err_) return console.log(err_);
       _this._USER_CONFIG = ret_;
       // Load contents to all components EXCEPT Launcher and DeciceList
       _this.getCOMById('layout').load(_this._USER_CONFIG.layout);
       _this.getCOMById('dock').load(_this._USER_CONFIG.dock);
-      _global._dataOP.readDesktopConfig(function(ret_, err_) {
+      _global._dataOP.readDesktopConfig(function(err_, ret_) {
         if(err_) return console.log(err_);
         _this._DEFAULT_APP = ret_;
         _global._login.setCurState(true);
@@ -1042,7 +1042,7 @@ var AppEntryModel = EntryModel.extend({
     var _this = this,
         utilIns = _global.get('utilIns');
     // utilIns.entryUtil.parseDesktopFile(_this._path, function(err_, file_) {
-    _global._dataOP.readDesktopConfig(function(appFile_, err_) {
+    _global._dataOP.readDesktopConfig(function(err_, appFile_) {
       if(err_) {
         console.log(err_);
         return callback_.call(this, err_);
@@ -1867,8 +1867,10 @@ var DeviceListModel = Model.extend({
     // _global._device.createServer(function() {
       // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
     /* }); */
+    
     // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
+    // _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
+    
     ws.on('imChat', this.__handleIMMsg);
     if(!ws.isLocal()) {
       ws.on('device', this.__handler);
