@@ -1837,41 +1837,30 @@ var DeviceListModel = Model.extend({
 
   start: function() {
     //load devices
-    /* _global._device.showDeviceList(function(devs_) {   */
-      // for(var addr in devs_) {
-        // var id_ = addr + ':' + devs_[addr].port;
-        // var device = DeviceEntryModel.create(id_, devs_[addr].name);
-        // _this.add(device);
-      // }
-    /* }); */
     var _this = this,
         ws = _global.get('ws');
-    _global._device.getUserList(function(list_) {
-      for(var i = 0; i < list_.length; ++i) {
-        _global._device.getDeviceByAccount(function(devs_) {
-          for(var j = 0; j < devs_.length; ++j) {
-            _this.__handler({
-              flag: 'up',
-              info: devs_[j]
-            });
-          }
-        }, list_[i]);
-      }
-      _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
-    });
-    /* _global._device.startMdnsService(function(state_) { */
-      // if(state_) {
-        // console.log('start MDNS Service success');
+    // TODO: rm when not needed
+    /* _global._device.getUserList(function(list_) { */
+      // for(var i = 0; i < list_.length; ++i) {
+        // _global._device.getDeviceByAccount(function(devs_) {
+          // for(var j = 0; j < devs_.length; ++j) {
+            // _this.__handler({
+              // flag: 'up',
+              // info: devs_[j]
+            // });
+          // }
+        // }, list_[i]);
       // }
     /* }); */
-    // replace with new API
-    /* _global._device.addDeviceListener(this.__handler); */
-    // _global._device.createServer(function() {
-      // _global._device.entryGroupCommit('demo-webde', '80', ['demo-webde:', 'hello!']);
-    /* }); */
+    _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
+    _global._device.startMdnsService(function(state_) { 
+      if(state_) {
+        console.log('start Device Detect Service success');
+      }
+    }); 
     
     // TODO: for IM, emit 'message' event when recive a message
-    // _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
+    _global._imV.registerIMApp(_this.__handleIMMsg, ws.getConnection());
     
     ws.on('imChat', this.__handleIMMsg);
     if(!ws.isLocal()) {

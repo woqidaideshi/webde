@@ -7,7 +7,7 @@
   "window": {
     "title": "桌面管理器",
     "icon": "img/device.png",
-    "toolbar": false,
+    "toolbar": true,
     "show_in_taskbar": false,
     "as_desktop": true,
     "frame": true
