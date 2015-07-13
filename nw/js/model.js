@@ -1049,6 +1049,9 @@ var AppEntryModel = EntryModel.extend({
       }
       var file_ = appFile_['[Desktop Entry]'],
           mustShow = null;
+      if (file_ == undefined) {
+        return _this.setNoDisplay(true);//temporary fix of running webde with datamgr service
+      }
       // check if need to show
       if(file_===undefined)return;
       if(typeof file_['OnlyShowIn'] !== 'undefined') {
