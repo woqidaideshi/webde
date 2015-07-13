@@ -1050,6 +1050,7 @@ var AppEntryModel = EntryModel.extend({
       var file_ = appFile_['[Desktop Entry]'],
           mustShow = null;
       // check if need to show
+      if(file_===undefined)return;
       if(typeof file_['OnlyShowIn'] !== 'undefined') {
         var tmp = file_['OnlyShowIn'].split(';');
         mustShow = false;
@@ -1869,7 +1870,7 @@ var DeviceListModel = Model.extend({
     /* }); */
     
     // TODO: for IM, emit 'message' event when recive a message
-    // _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
+    _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
     
     ws.on('imChat', this.__handleIMMsg);
     if(!ws.isLocal()) {

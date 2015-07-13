@@ -3779,7 +3779,7 @@ var UEditBox = Class.extend({
     <input type="file" id="file_' + _this._toIdentity + '" style="display:none"/>\
     <img id="file_button_' + _this._toIdentity + '"  src="img/uploadFile.png"  width=25px  height=25px title="发送文件" />\
     </div>\
-    <div  id="disp_text_' + _this._toIdentity + '" class="imChat_dataDiv"></div>\
+    <div  id="disp_text_' + _this._toIdentity + '" class="imChat_dataDiv"   style="-moz-user-select: -moz-all;"></div>\
     <div class="imChat_ueditorDiv" id="myEditor_' + _this._toIdentity + '" ></div>\
     <div class="imChat_btnDiv"> \
     <button type="button" class="imCloseBtn" id="close_button_' + _this._toIdentity + '">关闭</button> \
@@ -3902,7 +3902,6 @@ var UEditBox = Class.extend({
       autoHeightEnabled:false
       //autoClearEmptyNode : false
     });
-
     var iframeBody = _this.$view.find('iframe').contents().find('body');
     iframeBody.on('dragleave', function(e) {
       e.stopPropagation();
@@ -3920,13 +3919,11 @@ var UEditBox = Class.extend({
       e.preventDefault();
     }).on('click', function(ev) {
       _global._openingWindows.focusOnAWindow(_this._imWindow._id);
-    }).on('paste',function(ev){
-      //_global._imV_clipboard.getTxt();
-      var txt=ev.clipboardData.getData('text/plain');
-    }).on('copy',function(ev){
-      var txt=window.getSelection().toString();
-      console.log('innnnnnn------------'+ev.keyCode+'  '+ev.ctrlKey+txt);
+      console.log('pokokk')
+      var evt = $.Event("keydown", {keyCode: 86, ctrlKey: true});
+      $(document).trigger(evt);
     });
+
     this._contentTip = MiniTip.create('send_button_' + _this._toIdentity, {
       event: 'custom',
       anchor: 'n'
