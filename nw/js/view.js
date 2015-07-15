@@ -3984,7 +3984,7 @@ var UEditBox = Class.extend({
         var msg = curEditBox_._um.getContent();
 
         function sendIMMsgCb(rstMsg) {
-          /*if(rstMsg===undefined){
+          if(rstMsg===undefined){
             curEditBox_._contentTip.show({
               content: '对方接收不到消息，请稍候重试！'
             });
@@ -3992,7 +3992,7 @@ var UEditBox = Class.extend({
               curEditBox_._contentTip.hide();
             }, 3000);
             return;
-          }*/
+          }
           curEditBox_.divAppendContent($('#disp_text_' + curEditBox_._toIdentity),'<span class="accountFont"> 您&nbsp;&nbsp;&nbsp;</span><span class="timeFont"> ' + sendTime + '  :</span><br/>' + msg);
           curEditBox_._um.setContent('');
         }
