@@ -758,10 +758,10 @@ var DPluginModel = WidgetModel.extend({
 
   toJSON: function() {
     return {
-      'id': this._id,
-      'path': this._path,
-      'type': this._type,
-      'position': this._position,
+      'id': this._id || '',
+      'path': this._path || '',
+      'type': this._type || '',
+      'position': this._position || {x: 0, y: 0},
     };
   },
 
@@ -872,13 +872,13 @@ var EntryModel = WidgetModel.extend({
 
   toJSON: function() {
     return {
-      'id': this._id,
-      'path': this._path,
-      'type': this._type,
-      'position': this._position,
-      'idx': this._idx,
-      'name': this._name,
-      'iconPath': this._imgPath
+      'id': this._id || '',
+      'path': this._path || '',
+      'type': this._type || '',
+      'position': this._position || {x: 0, y: 0},
+      'idx': this._idx || -1,
+      'name': this._name || '',
+      'iconPath': this._imgPath || ''
     };
   },
 
@@ -1743,9 +1743,10 @@ var DeviceListModel = Model.extend({
     // TODO: release device monitor server
     // _global._device.removeDeviceListener(this.__handler);
     var ws = _global.get('ws');
-    _global._device.removeListener(this._hID, ws.getConnection());
     if(!ws.isLocal()) {
       ws.off('device', this.__handler);
+    } else {
+      _global._device.removeListener(this._hID, ws.getConnection());
     }
     for(var key in this._c) {
       this.remove(this._c[key]);
@@ -1839,33 +1840,34 @@ var DeviceListModel = Model.extend({
     //load devices
     var _this = this,
         ws = _global.get('ws');
-    // TODO: rm when not needed
-    /* _global._device.getUserList(function(list_) { */
-      // for(var i = 0; i < list_.length; ++i) {
-        // _global._device.getDeviceByAccount(function(devs_) {
-          // for(var j = 0; j < devs_.length; ++j) {
-            // _this.__handler({
-              // flag: 'up',
-              // info: devs_[j]
-            // });
-          // }
-        // }, list_[i]);
-      // }
-    /* }); */
-    _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
-    _global._device.startMdnsService(function(state_) { 
-      if(state_) {
-        console.log('start Device Detect Service success');
-      }
-    }); 
+    if(!ws.isLocal()) {
+      _global._device.getUserList(function(list_) { 
+        for(var i = 0; i < list_.length; ++i) {
+          _global._device.getDeviceByAccount(function(devs_) {
+            for(var j = 0; j < devs_.length; ++j) {
+              _this.__handler({
+                flag: 'up',
+                info: devs_[j]
+              });
+            }
+          }, list_[i]);
+        }
+        // _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
+      }); 
+      ws.on('device', this.__handler);
+    } else {
+      _this._hID = _global._device.addListener(_this.__handler, ws.getConnection());
+      _global._device.startMdnsService(function(state_) { 
+        if(state_) {
+          console.log('start Device Detect Service success');
+        }
+      }); 
+    }
     
     // TODO: for IM, emit 'message' event when recive a message
     _global._imV.registerIMApp(_this.__handleIMMsg, ws.getConnection());
     
     ws.on('imChat', this.__handleIMMsg);
-    if(!ws.isLocal()) {
-      ws.on('device', this.__handler);
-    }
   },
 
   getToAccountInfo: function(toAccountInfo_, cb_) {//封装设备列表
