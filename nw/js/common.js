@@ -382,7 +382,7 @@ var Global = Class.extend({
                 },
                 {
                   fn: function(pera_, cb__) {
-                    lang.getInitInfo(function(info_) {
+                    lang.getInitInfo(function(err_, info_) {
                       _this._locale = {
                         locale: info_[0],
                         langList: info_[1],
