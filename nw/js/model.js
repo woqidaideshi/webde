@@ -1105,19 +1105,27 @@ var AppEntryModel = EntryModel.extend({
           iconName = iconName[1];
         }
         _global._dataOP.getIconPath(function(err_, imgPath_) {
-          if(err_) {
+          if (err_) {
             _global._dataOP.getIconPath(function(err_, imgPath_) {
-              if(err_) {
+              if (err_) {
                 console.log(err_);
                 return callback_.call(this, err_);
               } else {
-                _this.setImgPath(imgPath_[0]);
-                callback_.call(this, null);
+                if (imgPath_) {
+                  _this.setImgPath(imgPath_[0]);
+                  callback_.call(this, null);
+                } else {
+                  return callback_.call(this, "NOT FOUND...");
+                }
               }
             }, iconName, '(24|128)');
           } else {
-            _this.setImgPath(imgPath_[0]);
-            callback_.call(this, null);
+            if (imgPath_) {
+              _this.setImgPath(imgPath_[0]);
+              callback_.call(this, null);
+            } else {
+              return callback_.call(this, "NOT FOUND...");
+            }
           }
         }, iconName, '(48|64|scalable)');
       }
