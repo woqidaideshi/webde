@@ -911,14 +911,11 @@ var GridView = WidgetView.extend({
         _this = this;
     if(_files.length != 0) {
       for(var i = 0; i < _files.length; ++i) {
-        // TODO: remove these code when not needed
-        // var dst = desktop._desktopWatch.getBaseDir() + '/' + _files[i].name;
-        // if(_files[i].path == dst) continue;
-        // _global._fs.rename(_files[i].path, dst, function() {});
+        var __path = _files[i].path;
         _global._dataOP.moveToDesktopSingle(function(err_, ret_) {
           if(err_) return console.log(err_);
           _this._controller.onAddFile(ret_[0], ret_[1]);
-        }, _files[i].path);
+        }, __path);
       }
       return ;
     }
