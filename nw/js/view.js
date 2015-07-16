@@ -1959,22 +1959,23 @@ var DeviceListView = View.extend({
 			    label: '拒绝',
 			    action: function() {
 			      Messenger().hideAll();
-			      fileMsg['state'] = '0'; //state=1：同意接受;state=0 ：不同意接受------------界面显示 
-			      sendMsg['Msg'] = JSON.stringify(msg);
-			      _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg, _global.get('ws').getSessionID(), true);
+                           _global._imV.refuseFileItemTransfer(function(rstMsg){
+                             fileMsg=rstMsg;
+                             sendMsg['Msg'] = JSON.stringify(msg);
+                             _global._imV.sendAppMsgByDevice(function(mmm) {
+                             }, sendMsg, _global.get('ws').getSessionID(), true);
+                           },fileMsg);
 			    }
 			  },
 			  open: {
 			    label: '接收',
 			    action: function() {
 			      Messenger().hideAll();
-			      fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
-			      sendMsg['Msg'] = JSON.stringify(msg);
-			      _global._imV.sendAppMsgByDevice(function(mmm) {
-				delete fileMsg['state'];
-				curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
-				_this._imChatWinList[editBoxID] = curEditBox;
-			      }, sendMsg, _global.get('ws').getSessionID(), true);
+                           curEditBox = UEditBox.create(toAccountInfo_, _this._imChatWinList, _this._parent._c['layout']._selector);
+                           _this._imChatWinList[editBoxID] = curEditBox;
+			      // fileMsg['state'] = '1'; //state=1：同意接受;state=0 ：不同意接受------------界面显示
+			      // sendMsg['Msg'] = JSON.stringify(msg);
+                           //curEditBox.acceptFileItemTransfer(curEditBox,fileMsg,sendMsg,true);
 			    }
 			  }
 			}
@@ -4027,7 +4028,7 @@ var UEditBox = Class.extend({
     curEditBox_.showRecDetail(toAccountInfo_, curEditBox_, true);
   },
 
-  //flag_：ture表示已经有聊天窗口，false表示初始化聊天窗口的同时显示这条消息
+  //flag_：true表示已经有聊天窗口，false表示初始化聊天窗口的同时显示这条消息
   showRecDetail: function(toAccountInfo_, curEditBox_, flag_) {
     var msg = toAccountInfo_.msg.msg;
     var toIdentity = curEditBox_._toIdentity;
@@ -4668,7 +4669,7 @@ var UEditBox = Class.extend({
         var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
         curEditBox_.divAppendContent($('#disp_text_' + toIdentity),'<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
       }, sendMsg_, _global.get('ws').getSessionID(), true);
-    });
+    },msg_);
   },
 
   acceptFileItemTransfer: function(curEditBox_, msg_, sendMsg_, flag_) {

@@ -1817,7 +1817,7 @@ var DeviceListModel = Model.extend({
     if(recMsg.destInfo===undefined){
       toAccount = recMsg.MsgObj.from;
       toUID = recMsg.MsgObj.uuid;
-      toIP = recMsg.IP;
+      toIP = recMsg.MsgObj.fromip;
     }else{
       toAccount = recMsg.destInfo.Account;
       toUID = recMsg.destInfo.UID;
