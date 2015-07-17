@@ -1047,6 +1047,9 @@ var AppEntryModel = EntryModel.extend({
         console.log(err_);
         return callback_.call(this, err_);
       }
+      if (appFile_ == undefined) {
+        return _this.setNoDisplay(true);
+      }
       var file_ = appFile_['[Desktop Entry]'],
           mustShow = null;
       if (file_ == undefined) {
