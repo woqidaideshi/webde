@@ -375,6 +375,7 @@ var Global = Class.extend({
                 {
                   fn: function(pera_, cb__) {
                     app.getBasePath(function(err_, basePath_) {
+                      if(err_) return cb__(err_);
                       _this._appBase = basePath_;
                       cb__(null);
                     });
@@ -382,7 +383,8 @@ var Global = Class.extend({
                 },
                 {
                   fn: function(pera_, cb__) {
-                    lang.getInitInfo(function(info_) {
+                    lang.getInitInfo(function(err_, info_) {
+                      if(err_) return cb__(err_);
                       _this._locale = {
                         locale: info_[0],
                         langList: info_[1],
