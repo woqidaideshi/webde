@@ -4409,6 +4409,7 @@ var UEditBox = Class.extend({
                 });
               } else {
                 var ratioLabel;
+                var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
                 if (rst['state'] === 3) {
                   ratioLable = fromAcc + '成功接受文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
                 } else {
