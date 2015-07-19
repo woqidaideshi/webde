@@ -4452,7 +4452,7 @@ var UEditBox = Class.extend({
         default:
           ;
       }
-    } else if(state===0){
+    } else if(msg_.state===0){
       switch (curFile.flag) {
         case 0:
           {
