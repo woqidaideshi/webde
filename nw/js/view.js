@@ -4676,21 +4676,24 @@ var UEditBox = Class.extend({
           $('#fileTransItem_' + msg_.key).remove();
         _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
       } else {
+        var curFile;
         if (rst['option'] === 0x0010) {
           if (flag_) {
             $('#fileTransItem_' + msg_.key).remove();
+            curFile= curEditBox_._fileTransList[msg_.key] ;
           } else {
             $('#memList_' + toIdentity).hide();
             $('#fileTransShow_' + toIdentity).show();
+            curFile = {
+              'flag': 1,
+              'path': rst.filePath,
+              'fileName': msg_.fileName,
+              'fileNameLocal': rst.fileNameLocal,
+              'fileSize': msg_.fileSize
+            };
+            curEditBox_._fileTransList[msg_.key] = curFile;
           }
-          var curFile = {
-            'flag': 1,
-            'path': rst.filePath,
-            'fileName': msg_.fileName,
-            'fileNameLocal': rst.fileNameLocal,
-            'fileSize': msg_.fileSize
-          };
-          curEditBox_._fileTransList[msg_.key] = curFile;
+          curFile['fileID']=rst['fileID'];
           delete rst['fileNameLocal'];
           _global._imV.sendAppMsgByDevice(function(mmm) {}, sendMsg_, _global.get('ws').getSessionID(), true);
           var txt = '<li id="fileTransItem_' + msg_.key + '">\
@@ -4704,7 +4707,7 @@ var UEditBox = Class.extend({
             _global._imV.transferCancelReciever(function(err,rstObj) {
               var ratioLable;
               if(err){
-                ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。失败';
+                ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
               }else{
                 sendMsg_['Msg'] = JSON.stringify({
                   'group': curEditBox_._group,
