@@ -4120,63 +4120,63 @@ var UEditBox = Class.extend({
         break;
       case 0x0011:
         { //收到接收端取消传输文件请求      
-          if (curEditBox_._fileTransList[msg_.key] === undefined) {
+          if (curEditBox_._fileTransList[msg_.key] === undefined)
             return;
-            var ratioLable = '';
-            switch (curFile.flag) {
-              case 1:
-                {
-                  var filePath = curFile.path;
-                  ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                  _global._dataOP.loadFile(function(err, result) {
-                    var msgtime = new Date();
-                    var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-                    if (err) {
-                      curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
-                    } else {
-                      _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
-                      curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
-                      $('#fileTransRst_' + msg_.key).on('click', function() {
-                        var buf = result['uri'].split('#');
-                        var category = buf[buf.length - 1];
-                        _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}'); //result['tags']
-                      });
-                    }
-                  }, filePath);
-                  setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
-                }
-                break;
-              case 3:
-                {
-                  ratioLable = '您的远端取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                }
-                break;
-              case 4:
-                {
-                  ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                }
-                break;
-              case 5:
-                {
-                  var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
-                  ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                }
-                break;
-              case 6:
-                {
-                  var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
-                  ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
-                }
-                break;
-              default:
-                {
-                  return;
-                }
-            }
-            var msgtime = new Date();
-            var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
-            curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+          var ratioLable = '';
+          switch (curFile.flag) {
+            case 1:
+              {
+                var filePath = curFile.path;
+                ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                _global._dataOP.loadFile(function(err, result) {
+                  var msgtime = new Date();
+                  var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+                  if (err) {
+                    curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '（导入文件失败）<br/>');
+                  } else {
+                    _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
+                    curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
+                    $('#fileTransRst_' + msg_.key).on('click', function() {
+                      var buf = result['uri'].split('#');
+                      var category = buf[buf.length - 1];
+                      _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}'); //result['tags']
+                    });
+                  }
+                }, filePath);
+                setTimeout(curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true), 1000);
+              }
+              break;
+            case 3:
+              {
+                ratioLable = '您的远端取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              }
+              break;
+            case 4:
+              {
+                ratioLable = sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              }
+              break;
+            case 5:
+              {
+                var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+                ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              }
+              break;
+            case 6:
+              {
+                var fromAcc = curEditBox_._group === '' ? '对方' : sendMsg_.fromAccount + '(' + sendMsg_.fromUID + ')';
+                ratioLable = fromAcc + '取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+              }
+              break;
+            default:
+              {
+                return;
+              }
           }
+          var msgtime = new Date();
+          var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
+          curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
+
         }
         break;
       case 0x0001:
@@ -4212,7 +4212,7 @@ var UEditBox = Class.extend({
                 ratioLable = msg_.Account + '(' + msg_.UID + ')拒绝接收文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
               }
               break;
-              case 3:
+            case 3:
               {
                 curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
                 ratioLable = msg_.Account + '(' + msg_.UID + ')接收文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。失败';
@@ -4247,7 +4247,6 @@ var UEditBox = Class.extend({
         }
     }
   },
-
   fileUpload: function(curEditBox_, filePath_) {
     if (!(_global.get('ws').isLocal())) {
       curEditBox_._contentTip.show({
