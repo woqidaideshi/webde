@@ -1056,7 +1056,6 @@ var AppEntryModel = EntryModel.extend({
         return _this.setNoDisplay(true);//temporary fix of running webde with datamgr service
       }
       // check if need to show
-      if(file_===undefined)return;
       if(typeof file_['OnlyShowIn'] !== 'undefined') {
         var tmp = file_['OnlyShowIn'].split(';');
         mustShow = false;
@@ -1822,7 +1821,6 @@ var DeviceListModel = Model.extend({
   },
 
   __handleIMMsg: function(recMsg) {//封装得到的消息
-    console.log('get--->'+recMsg)
     var _this = _global.get('desktop').getCOMById('device-list');
     var toAccount,toUID,toIP;
     var toAccountInfo = {};
