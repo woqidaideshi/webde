@@ -3915,11 +3915,6 @@ var UEditBox = Class.extend({
     }).on('dragleave', function(e) {
       e.stopPropagation();
       e.preventDefault();
-    }).on('click', function(ev) {
-      _global._openingWindows.focusOnAWindow(_this._imWindow._id);
-      console.log('pokokk')
-      var evt = $.Event("keydown", {keyCode: 86, ctrlKey: true});
-      $(document).trigger(evt);
     });
 
     this._contentTip = MiniTip.create('send_button_' + _this._toIdentity, {
