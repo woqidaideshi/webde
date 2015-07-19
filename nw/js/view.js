@@ -4120,7 +4120,8 @@ var UEditBox = Class.extend({
         break;
       case 0x0011:
         { //收到接收端取消传输文件请求      
-          if (curEditBox_._fileTransList[msg_.key] === undefined)
+           curFile=curEditBox_._fileTransList[msg_.key] ;
+          if (curFile=== undefined)
             return;
           var ratioLable = '';
           switch (curFile.flag) {
