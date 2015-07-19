@@ -4174,7 +4174,7 @@ var UEditBox = Class.extend({
                 return;
               }
           }
-          curEditBox_.fileItemTransRemove(curEditBox_, curFile.key, true);
+          curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
           var msgtime = new Date();
           var sendTime = msgtime.getHours() + ':' + msgtime.getMinutes() + ':' + msgtime.getSeconds();
           curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<br/>');
