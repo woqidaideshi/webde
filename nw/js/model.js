@@ -2383,7 +2383,7 @@ var GridModel = LayoutModel.extend({
     if(cn != this._col_num || rn != this._row_num) {
       // 'delete' entrys from manager
       var widgets = this.getAllWidgets();
-      for(var key in widgets) this.emit('remove', null, widgets[key]);
+      for(var key in widgets) this.emit('remove', null, widgets[key]._val);
       var _col_diff = cn - this._col_num,
           _row_diff = rn - this._row_num;
       this._col_num = cn;
@@ -2394,8 +2394,8 @@ var GridModel = LayoutModel.extend({
       });
       // modify entrys' pos to undefined, and 'add' entrys to manager
       for(var key in widgets) {
-        widgets[key].setPosition(undefined);
-        this.emit('add', null, widgets[key]);
+        widgets[key]._val.setPosition(undefined);
+        this.emit('add', null, widgets[key]._val);
       }
     }
   },
