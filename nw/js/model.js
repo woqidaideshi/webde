@@ -1827,7 +1827,7 @@ var DeviceListModel = Model.extend({
     if(recMsg.destInfo===undefined){
       toAccount = recMsg.MsgObj.from;
       toUID = recMsg.MsgObj.uuid;
-      toIP = recMsg.IP;
+      toIP = recMsg.MsgObj.fromip;
     }else{
       toAccount = recMsg.destInfo.Account;
       toUID = recMsg.destInfo.UID;
@@ -1876,7 +1876,7 @@ var DeviceListModel = Model.extend({
     }
     
     // TODO: for IM, emit 'message' event when recive a message
-    _global._imV.registerIMApp(_this.__handleIMMsg, ws.getConnection());
+    _global._imV.registerIMApp(_this.__handleIMMsg,ws.getConnection());
     
     ws.on('imChat', this.__handleIMMsg);
   },
@@ -1998,14 +1998,14 @@ var AccountEntryModel = EntryModel.extend({
     var deviceList = this.getAllCOMs();
     for (var key in deviceList) {
       var toAccInfo = {};
-      var accountItem = deviceList[key];
+      var accountItem = deviceList[key]._val;
       toAccInfo['toAccount'] = accountItem._position['txt'][1];
       toAccInfo['toUID'] = accountItem._position['txt'][2];
       toAccInfo['toIP'] = accountItem._position['address'];
       toAccInfo['onLineFlag'] = 1;
       toAccounts[accountItem._position['txt'][2]] = toAccInfo;
     }
-    if (param_.account!==toAccount) { //打开的是其他用户的窗口,设备自身对应的用户通信窗口
+    if (param_.account&&param_.account!==toAccount) { //打开的是其他用户的窗口,设备自身对应的用户通信窗口
       var toAccInfo = {};
       toAccInfo['toAccount'] = param_.account;
       toAccInfo['toUID'] = param_.UID;
