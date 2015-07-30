@@ -1732,6 +1732,7 @@ var LauncherModel = Model.extend({
         if(win_) {
           // add this window to window manager
           win_.getID = function() {return win_._id;};
+          win_._node = TrNode.create(win_._id, win_, _global._openingWindows._node);
           _global._openingWindows.add(win_);
           win_.bindCloseButton(function() {
             _global._openingWindows.remove(win_);
