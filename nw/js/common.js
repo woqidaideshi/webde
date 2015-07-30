@@ -1060,12 +1060,13 @@ var WindowManager = Model.extend({
   },
 
   focusOnAWindow: function(wID_) {
-    for(var key in this._c) {
+    var windows = this.getAllCOMs();
+    for(var key in windows) {
       if(wID_ == key) {
-        this._c[key].focus();
+        windows[key]._val.focus();
         // TODO: change the sequence of windows in _s
       } else {
-        this._c[key].blur();
+        windows[key]._val.blur();
       }
     }
   }
