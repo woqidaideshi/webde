@@ -349,6 +349,7 @@ var Global = Class.extend({
     this._openingWindows = WindowManager.create();
     this._login = LoginModel.create();
     this.objects = [];
+    this.objects['ws'] = WDC.ws;
     
     var _this = this;
     this.Series.series([
@@ -1072,85 +1073,3 @@ var WindowManager = Model.extend({
   }
 });
 
-// A remote observer based on web socket
-//
-var RemoteObserver = Model.extend({
-  // param:
-  //  [address_]: websocket server's address 
-  //  callback_: callback function
-  //
-  init: function() {
-    this.callSuper('ws');
-    var addr = '',
-        cb_ = arguments[arguments.length - 1] || function() {};
-    if(typeof cb_ !== 'function') cb_ = function() {};
-    if(location.host == '') {
-      this._local = true;
-      addr = ((arguments.length <= 1) ? ('ws://127.0.0.1:8888/ws') : arguments[0]);
-    } else {
-      this._local = false;
-      addr = ((arguments.length <= 1) ? ('ws://' + location.host + '/ws') : arguments[0]);
-    }
-    try {
-      this._ws = new WebSocket(addr);
-      this._ws.onopen = function() {
-        console.log('WebSocket established successfully.');
-        cb_(null);
-      };
-      this._ws.onclose = function() {
-        console.log('The WebSocket connection has been closed.');
-      };
-      var _this = this;
-      this._ws.onmessage = function(ev) {
-        console.log(ev.data);
-        try {
-          _this.__dispacher(JSON.parse(ev.data));
-        } catch(e) {
-          return console.log(e);
-        }
-      };
-      this._ws.onerror = function(e) {
-        console.log('Error: ', e);
-      };
-    } catch(e) {
-      console.log(e);
-      cb_(e);
-    }
-    /* if(typeof arguments[arguments.length - 1] === 'function') */
-      /* arguments[arguments.length - 1].call(this, null); */
-  },
-
-  getConnection: function() {return this._ws;},
-
-  // msg is a JSON object
-  send: function(msg) {
-    try {
-      this._ws.send(JSON.stringify(msg));
-    } catch(e) {
-      console.log('Send WebSocket Message Error:', e);
-    }
-    return this;
-  },
-
-  __dispacher: function(msg) {
-    if(typeof msg.sessionID !== 'undefined') {
-      this._sessionID = msg.sessionID;
-      return ;
-    }
-    if(msg.Status == 'error') return console.log(msg.Data);
-    this.emit(msg.Event, msg.Data);
-  },
-
-  getSessionID: function() {return this._sessionID;},
-
-  isLocal: function() {return this._local;},
-
-  close: function() {
-    try {
-      this._ws.close();
-    } catch(e) {
-      console.log(e);
-    }
-    return this;
-  }
-});
