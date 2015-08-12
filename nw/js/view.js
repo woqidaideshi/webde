@@ -3777,7 +3777,7 @@ var UEditBox = Class.extend({
     <input type="file" id="file_' + _this._toIdentity + '" style="display:none"/>\
     <img id="file_button_' + _this._toIdentity + '"  src="img/uploadFile.png"  width=25px  height=25px title="发送文件" />\
     </div>\
-    <div  id="disp_text_' + _this._toIdentity + '" class="imChat_dataDiv"   style="-moz-user-select: -moz-all;"></div>\
+    <div  id="disp_text_' + _this._toIdentity + '" class="imChat_dataDiv" ></div>\
     <div class="imChat_ueditorDiv" id="myEditor_' + _this._toIdentity + '" ></div>\
     <div class="imChat_btnDiv"> \
     <button type="button" class="imCloseBtn" id="close_button_' + _this._toIdentity + '">关闭</button> \
@@ -4138,7 +4138,7 @@ var UEditBox = Class.extend({
                     _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
                     curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
                     $('#fileTransRst_' + msg_.key).on('click', function() {
-                      var buf = result['uri'].split('#');
+                      var buf = result[0]['base']['URI'].split('#');
                       var category = buf[buf.length - 1];
                       _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}'); //result['tags']
                     });
@@ -4216,7 +4216,7 @@ var UEditBox = Class.extend({
             case 3:
               {
                 curEditBox_.fileItemTransRemove(curEditBox_, msg_.key, true);
-                ratioLable = msg_.Account + '(' + msg_.UID + ')接收文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。失败';
+                ratioLable = msg_.Account + '(' + msg_.UID + ')接收文件 ："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')失败。';
               }
               break;
             default:
@@ -4351,7 +4351,7 @@ var UEditBox = Class.extend({
             curEditBox_.transferCancelSender(fileMsg, true, 0, curEditBox_, sendMsg, curFile, undefined, function(err) {
               var ratioLable;
               if(err){
-                ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。失败';
+                ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')失败。';
               }else{
                 curEditBox_.fileItemTransRemove(curEditBox_, fileMsg.key, true);
                 ratioLable = '您中止了传输文件："' + fileMsg.fileName + '"(大小：' + fileMsg.fileSize + ')。';
@@ -4584,7 +4584,7 @@ var UEditBox = Class.extend({
                 _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
                 curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
                 $('#fileTransRst_' + msg_.key).on('click', function() {
-                  var buf = result['uri'].split('#');
+                  var buf = result[0]['base']['URI'].split('#');
                   var category = buf[buf.length - 1];
                   _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}');
                 });
@@ -4711,7 +4711,7 @@ var UEditBox = Class.extend({
             _global._imV.transferCancelReciever(function(err,rstObj) {
               var ratioLable;
               if(err){
-                ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')。';
+                ratioLable = '您取消接收文件："' + msg_.fileName + '"(大小：' + msg_.fileSize + ')失败。';
               }else{
                 sendMsg_['Msg'] = JSON.stringify({
                   'group': curEditBox_._group,
@@ -4760,7 +4760,7 @@ var UEditBox = Class.extend({
               _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
               curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
               $('#fileTransRst_' + msg_.key).on('click', function() {
-                var buf = result['uri'].split('#');
+                var buf = result[0]['base']['URI'].split('#');
                 var category = buf[buf.length - 1];
                 _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}');
               });
