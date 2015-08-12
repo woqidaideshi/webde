@@ -4682,6 +4682,9 @@ var UEditBox = Class.extend({
           if (flag_) {
             $('#fileTransItem_' + msg_.key).remove();
             curFile= curEditBox_._fileTransList[msg_.key] ;
+            curFile['flag']=1;
+            curFile['path']=rst.filePath;
+            curFile['fileNameLocal']= rst.fileNameLocal;
           } else {
             $('#memList_' + toIdentity).hide();
             $('#fileTransShow_' + toIdentity).show();
