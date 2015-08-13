@@ -4138,7 +4138,7 @@ var UEditBox = Class.extend({
                     _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
                     curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
                     $('#fileTransRst_' + msg_.key).on('click', function() {
-                      var buf = result[0]['base']['URI'].split('#');
+                      var buf = result[0]['URI'].split('#');
                       var category = buf[buf.length - 1];
                       _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}'); //result['tags']
                     });
@@ -4584,7 +4584,7 @@ var UEditBox = Class.extend({
                 _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
                 curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
                 $('#fileTransRst_' + msg_.key).on('click', function() {
-                  var buf = result[0]['base']['URI'].split('#');
+                  var buf = result[0]['URI'].split('#');
                   var category = buf[buf.length - 1];
                   _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}');
                 });
@@ -4760,7 +4760,7 @@ var UEditBox = Class.extend({
               _global._imV.deleteTmpFile(function(err, deleteRst) {}, filePath);
               curEditBox_.divAppendContent($('#disp_text_' + toIdentity), '<span class="timeFont"> ' + sendTime + '  :</span><br/>' + ratioLable + '<a id ="fileTransRst_' + msg_.key + '">找文件</a><br/>');
               $('#fileTransRst_' + msg_.key).on('click', function() {
-                var buf = result[0]['base']['URI'].split('#');
+                var buf = result[0]['URI'].split('#');
                 var category = buf[buf.length - 1];
                 _global.get('desktop').getCOMById('launcher').get('datamgr-app').open('{category:"' + category + '",tag:".download"}');
               });
