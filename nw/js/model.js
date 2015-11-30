@@ -1749,6 +1749,12 @@ var LauncherModel = Model.extend({
 var DeviceListModel = Model.extend({
   init: function(parent_) {
     this.callSuper('device-list', parent_);
+    _global._res.initResourceMgr();
+    _global._res.getResourceList(function(err_, ret_) {
+      console.log('error:' + err_ + '  ' + JSON.stringify(ret_));
+      if(err_)console.log('get local hard resource error');
+      else this.resource=ret_;
+    }, '127.0.0.1', ['hardResource']);
   },
 
   release: function() {
@@ -2053,6 +2059,7 @@ var DeviceEntryModel = EntryModel.extend({
     this._offline = false;
     this._type = 'dev';
     this._imgPath = 'img/pc.svg';
+    this._resource = null;
     this.realInit(callback_);
   },
 
@@ -2089,6 +2096,18 @@ var DeviceEntryModel = EntryModel.extend({
       filePaths.push(item.getPath());
     }
     cb_(filePaths);
+  },
+
+  showDetail: function(ip) {
+    if (this._resource == null) {
+      _global._res.getResourceList(function(err_, ret_) {
+        console.log('error:' + err_ + '  ' + JSON.stringify(ret_));
+        if (err_) console.log('get  hard resource error on ' + ip);
+        else this.resource = ret_;
+      }, ip, ['hardResource']);
+    }
+    //cb_(undefined, this._resource);
+    _this.emit('showDetail', this._resources);
   },
 
   initImChatParseFunc: function(cb_) {

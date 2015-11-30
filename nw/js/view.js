@@ -2375,6 +2375,9 @@ var DevEntryView = View.extend({
         var curEditBox = UEditBox.create(toAccountInfo_, _this._parent._parent._imChatWinList, _this._parent._parent._parent._c['layout']._selector);
         _this._parent._parent._imChatWinList[ toAccountInfo_.identity] = curEditBox;
         cb_(curEditBox);
+      },
+      'showDetail':function(resource_){
+        ResourceWindow.create(resource_);
       }
     };
     for(var key in _this.__handlers) {
@@ -5343,5 +5346,29 @@ var LoginView = View.extend({
         });
       });
     }
+  }
+});
+
+var ResourceWindow = Class.extend({
+  init: function(resource_) {
+    console.log(resource_)
+    this._resourceWindow = Window.create('resource' , 'resource', {
+      height: 600,
+      width: 640,
+      max: false,
+      left:leftX,
+      top:topY,
+      resize: false
+    }, function() {
+      this.getID = function() {
+        return this._id;
+      };
+      _global._openingWindows.add(this);
+      this.onfocus(function() {
+        _global._openingWindows.focusOnAWindow(this._id);
+      });
+    });
+    this.$view = $('<div >').html('<div >hi</div>');
+    this._resourceWindow.append(this.$view);
   }
 });

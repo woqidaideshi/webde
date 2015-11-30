@@ -358,13 +358,14 @@ var Global = Class.extend({
           // change the nodejs'API to ourselves
           /* _this._fs = require('fs'); */
           /* _this._exec = require('child_process').exec; */
-          WDC.requireAPI(['devDetect', 'im', 'data', 'app', 'lang'/* , 'account' */]
-            , function(dev, imV, data, app, lang/* , acc */) {
+          WDC.requireAPI(['devDetect', 'im', 'data', 'app', 'lang','resourceMgr'/* , 'account' */]
+            , function(dev, imV, data, app, lang, resourceMgr/* , acc */) {
               _this._device = dev;
               _this._imV = imV;
               _this._dataOP = data;
               _this._app = app;
               _this._lang = lang;
+              _this._res = resourceMgr;
               // _this._account = acc;
 
               _this.Series.parallel([

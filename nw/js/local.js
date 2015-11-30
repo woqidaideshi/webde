@@ -251,4 +251,9 @@ var DevEntryController = EntryController.extend({
     var cmd = NoUndoCommand.create(this._model, 'exec', this._model.open, cb_,param_);
     _global.get('theCP').perform(cmd);
   },
+
+  onClick: function(cb_,param_) {
+    var cmd = NoUndoCommand.create(this._model, 'exec', this._model.showDetail, param_);
+    _global.get('theCP').perform(cmd);
+  }
 });
