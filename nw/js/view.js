@@ -2375,10 +2375,11 @@ var DevEntryView = View.extend({
         var curEditBox = UEditBox.create(toAccountInfo_, _this._parent._parent._imChatWinList, _this._parent._parent._parent._c['layout']._selector);
         _this._parent._parent._imChatWinList[ toAccountInfo_.identity] = curEditBox;
         cb_(curEditBox);
-      },
-      'showDetail':function(resource_){
-        ResourceWindow.create(resource_);
       }
+      //,
+      // 'showDetail':function(resource_){
+      //   ResourceWindow.create(resource_);
+      // }
     };
     for(var key in _this.__handlers) {
       this._model.on(key, _this.__handlers[key]);
@@ -2435,7 +2436,12 @@ var DevEntryView = View.extend({
           }
         }
       });
-      
+    }).click(function(e) {
+      e.stopPropagation();
+      _this._controller.onClick(function(err_,resource_,IP,UID) {
+        console.log(err_+' view: '+resource_)
+        ResourceWindow.create(err_,resource_,IP,UID);
+      });
     });
   },
 
@@ -5350,9 +5356,14 @@ var LoginView = View.extend({
 });
 
 var ResourceWindow = Class.extend({
-  init: function(resource_) {
-    console.log(resource_)
-    this._resourceWindow = Window.create('resource' , 'resource', {
+  init: function(err_,resource_,ip_,uid_) {
+    var leftX = parseInt(document.body.clientWidth)/2-320;
+    var topY = parseInt(document.body.clientHeight)/2-300;
+    this._resource=resource_;
+    this._IP=ip_;
+    this.UID=uid_;
+    this._identity=this._IP+'('+this._UID+')'
+    this._resourceWindow = Window.create('resource' +this._identity, '资源', {
       height: 600,
       width: 640,
       max: false,
@@ -5368,7 +5379,8 @@ var ResourceWindow = Class.extend({
         _global._openingWindows.focusOnAWindow(this._id);
       });
     });
-    this.$view = $('<div >').html('<div >hi</div>');
+    txt=err_===undefined?JSON.stringify(this._resource):'获取失败，请重新获取';
+    this.$view = $('<div >').html('<div >'+txt+'</div>');
     this._resourceWindow.append(this.$view);
   }
 });

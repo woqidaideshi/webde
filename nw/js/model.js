@@ -1750,11 +1750,6 @@ var DeviceListModel = Model.extend({
   init: function(parent_) {
     this.callSuper('device-list', parent_);
     _global._res.initResourceMgr();
-    _global._res.getResourceList(function(err_, ret_) {
-      console.log('error:' + err_ + '  ' + JSON.stringify(ret_));
-      if(err_)console.log('get local hard resource error');
-      else this.resource=ret_;
-    }, '127.0.0.1', ['hardResource']);
   },
 
   release: function() {
@@ -2098,16 +2093,24 @@ var DeviceEntryModel = EntryModel.extend({
     cb_(filePaths);
   },
 
-  showDetail: function(ip) {
-    if (this._resource == null) {
-      _global._res.getResourceList(function(err_, ret_) {
-        console.log('error:' + err_ + '  ' + JSON.stringify(ret_));
-        if (err_) console.log('get  hard resource error on ' + ip);
-        else this.resource = ret_;
-      }, ip, ['hardResource']);
-    }
-    //cb_(undefined, this._resource);
-    _this.emit('showDetail', this._resources);
+  showDetail: function(cb_) {
+    var _this = this;
+    if (_this._resource === null) {
+      _global._imV.getLocalData(function(localData) {
+        ip = undefined;
+        if (localData.UID !== _this._position['txt'][2]) {
+          ip = _this._position['address'];
+        }
+        _global._res.getResourceList(function(err_, ret_) {
+          if (err_) return cb_(err_,ret_,_this._position['address'],_this._position['txt'][2]);
+          else {
+            _this._resource = ret_;
+            cb_(undefined, _this._resource,_this._position['address'],_this._position['txt'][2]);
+          }
+        }, ip, ['hardResource']);
+      });
+    }else cb_(undefined, _this._resource,_this._position['address'],_this._position['txt'][2]);
+    //_this.emit('showDetail', this._resources);
   },
 
   initImChatParseFunc: function(cb_) {
