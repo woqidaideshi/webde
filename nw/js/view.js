@@ -5361,9 +5361,10 @@ var ResourceWindow = Class.extend({
     var topY = parseInt(document.body.clientHeight)/2-300;
     this._resource=resource_;
     this._IP=ip_;
-    this.UID=uid_;
-    this._identity=this._IP+'('+this._UID+')'
-    this._resourceWindow = Window.create('resource' +this._identity, '资源', {
+    this._UID=uid_;
+    this._identity=this._IP+'('+this._UID+')';
+    console.log(this._identity)
+    this._resourceWindow = Window.create('resource' +this._identity, '资源-'+ this._identity, {
       height: 600,
       width: 640,
       max: false,
