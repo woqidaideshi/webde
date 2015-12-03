@@ -5356,20 +5356,20 @@ var LoginView = View.extend({
 });
 
 var ResourceWindow = Class.extend({
-  init: function(err_,resource_,ip_,uid_) {
-    var leftX = parseInt(document.body.clientWidth)/2-320;
-    var topY = parseInt(document.body.clientHeight)/2-300;
-    this._resource=resource_;
-    this._IP=ip_;
-    this._UID=uid_;
-    this._identity=this._IP+'('+this._UID+')';
+  init: function(err_, resource_, ip_, uid_) {
+    var leftX = parseInt(document.body.clientWidth) / 2 - 320;
+    var topY = parseInt(document.body.clientHeight) / 2 - 300;
+    this._resource = resource_;
+    this._IP = ip_;
+    this._UID = uid_;
+    this._identity = this._IP + '(' + this._UID + ')';
     console.log(this._identity)
-    this._resourceWindow = Window.create('resource' +this._identity, '资源-'+ this._identity, {
+    this._resourceWindow = Window.create('resource' + this._identity, '资源-' + this._identity, {
       height: 600,
       width: 640,
       max: false,
-      left:leftX,
-      top:topY,
+      left: leftX,
+      top: topY,
       resize: false
     }, function() {
       this.getID = function() {
@@ -5380,8 +5380,34 @@ var ResourceWindow = Class.extend({
         _global._openingWindows.focusOnAWindow(this._id);
       });
     });
-    txt=err_===undefined?JSON.stringify(this._resource):'获取失败，请重新获取';
-    this.$view = $('<div >').html('<div >'+txt+'</div>');
-    this._resourceWindow.append(this.$view);
+    _this = this;
+    if (err_) {
+      _this.$view = $('<div >').html('<div >获取失败，请重新获取</div>');
+    } else {
+      _this.getDivContent(_this._resource, _this, function(rst_) {
+        _this.$view = rst_;
+        //_this.$view = $('<div >').html('<div >获取失败，请重新获取</div>');
+        console.log('----' + rst_)
+      });
+    }
+    _this._resourceWindow.append(_this.$view);
+    //this.$view = $('<div >').html('<div >' + txt + '</div>');
+  },
+  getDivContent: function(detail_, resWin_, cb_) {
+    var content = $('<div>', {
+      'id': detail_['type']
+    }).html(detail_['name']);
+    var de=$('<div>');
+    if (detail_['state'] == undefined) {
+      for (var key in detail_['detail']) {
+        resWin_.getDivContent(detail_['detail'][key], resWin_, function(rst_) {
+          de.append(rst_);
+        });
+      }
+      return cb_(content.append(de));
+    } else {
+      de.html(JSON.stringify(detail_['detail']) + '</div></div>');
+      return cb_(content.append(de));
+    }
   }
 });
