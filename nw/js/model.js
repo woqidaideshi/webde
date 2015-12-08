@@ -2097,7 +2097,7 @@ var DeviceEntryModel = EntryModel.extend({
     var _this = this;
     if (_this._resource === null) {
       _global._imV.getLocalData(function(localData) {
-        ip = undefined;
+        var ip = undefined;
         if (localData.UID !== _this._position['txt'][2]) {
           ip = _this._position['address'];
         }
@@ -2116,6 +2116,7 @@ var DeviceEntryModel = EntryModel.extend({
     refreshDetail: function(cb_, type_) {
     var _this = this;
     _global._imV.getLocalData(function(localData) {
+      var ip=undefined;
       if (localData.UID !== _this._position['txt'][2]) {
         ip = _this._position['address'];
       }
