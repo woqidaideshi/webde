@@ -2439,8 +2439,7 @@ var DevEntryView = View.extend({
     }).click(function(e) {
       e.stopPropagation();
       _this._controller.onClick(function(err_,resource_,IP,UID) {
-        console.log(err_+' view: '+resource_)
-        ResourceWindow.create(err_,resource_,IP,UID);
+        ResourceWindow.create(err_,resource_,IP,UID,_this._model);
       });
     });
   },
@@ -5356,13 +5355,14 @@ var LoginView = View.extend({
 });
 
 var ResourceWindow = Class.extend({
-  init: function(err_, resource_, ip_, uid_) {
+  init: function(err_, resource_, ip_, uid_, model_) {
     var leftX = parseInt(document.body.clientWidth) / 2 - 320;
     var topY = parseInt(document.body.clientHeight) / 2 - 300;
     this._resource = resource_;
     this._IP = ip_;
     this._UID = uid_;
-    this._lang=_global._locale.langObj;
+    this._lang = _global._locale.langObj;
+    this._model = model_;
     this._resourceWindow = Window.create('resource' + this._UID, '资源-' + this._IP + '(' + this._UID + ')', {
       height: 700,
       width: 660,
@@ -5381,63 +5381,80 @@ var ResourceWindow = Class.extend({
     });
     _this = this;
     if (err_) {
-      _this.$view = $('<div >').html('<div >获取失败，请重新获取</div>');
+      _this.$view = $('<div >').html('<div >获取失败，请重新获取！</div>');
     } else {
-      _this.getDivContent(_this._resource, 0,_this, function(rst_) {
+      _this.getDivContent(_this._resource, 0, _this, undefined, function(rst_) {
         _this.$view = $('<div>', {
-          'class':'resDiv',
-          'height':'680px',
-          'width':'640px',
-          'margin':'0px 0px 0px 0px'//,
+          'class': 'resDiv',
+          'height': '680px',
+          'width': '640px',
+          'margin': '0px 0px 0px 0px' //,
           //'style':'background-color:#CDCBCB;'//background-image: url("img/res/back.jpg")',
         }).append(rst_);
         //_this.$view = rst_;
-
       });
     }
     _this._resourceWindow.append(_this.$view);
 
-    //this.$view = $('<div >').html('<div >' + txt + '</div>');
   },
-getDivContent: function(detail_, level_, resWin_, cb_) {
-
+  getDivContent: function(detail_, level_, resWin_, content_, cb_) {
+    var content;
     if (detail_['state'] == undefined) {
-      var content = $('<div>', {
-        'class': 'resContentDiv',
-        'id': resWin_._UID + detail_['type'],
-        //'style':'background-color:#E1EFE8',
-        // 'height':'50px',
-
-        'width': '630px'
-      }).html('<div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');margin-left:' + 10 * level_ + 'px;" >' + resWin_._lang[detail_['name']] + '<img id="refresh_' + resWin_._UID + detail_['type'] + '" src="img/res/refresh.jpg"  width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/>');
-      setTimeout(function() {
-        $('#refresh_' + resWin_._UID + detail_['type']).click( function() {
-          console.log('type:============'  );
-          resWin_.refreshInfo(resWin_, detail_['type'], level_);
+      var  de;
+      if (content_ === undefined) {
+        content = $('<div>', {
+          'class': 'resContentDiv',
+          'id': resWin_._UID + detail_['type'],
+          //'style':'background-color:#E1EFE8',
+          // 'height':'50px',
+          'width': '630px'
+        }).html('<div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');margin-left:' + 10 * level_ + 'px;" >' + resWin_._lang[detail_['name']] + '<img id="refresh_' + resWin_._UID + detail_['type'] + '" src="img/res/refresh.jpg"  width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/>');
+        setTimeout(function() {
+          $('#refresh_' + resWin_._UID + detail_['type']).click(function() {
+            resWin_.refreshInfo(resWin_, detail_['type'], level_);
+          });
+        }, 400);
+        de = $('<div>', {
+          'class': 'resContentDiv',
+          'height': '50px',
+          'width': '630px',
+          'id': 'detail_' + resWin_._UID + detail_['type']
         });
-      }, 400);
-
-      var de = $('<div>', {
-        'class': 'resContentDiv',
-        'height': '50px',
-        'width': '630px',
-        'id': 'detail_' + resWin_._UID + detail_['type']
-      });
+        content.append(de);
+        // for (var key in detail_['detail']) {
+        //   resWin_.getDivContent(detail_['detail'][key], level_ + 1, resWin_, undefined,function(rst_) {
+        //     de.append(rst_);
+        //   });
+        // }
+        // return cb_(content.append(de));
+      } else {
+        de = content_;
+        // for (var key in detail_['detail']) {
+        //   resWin_.getDivContent(detail_['detail'][key], level_ + 1, resWin_, undefined,function(rst_) {
+        //     de.append(rst_);
+        //   });
+        // }
+        // return cb_();
+      }
       for (var key in detail_['detail']) {
-        resWin_.getDivContent(detail_['detail'][key], level_ + 1, resWin_, function(rst_) {
+        resWin_.getDivContent(detail_['detail'][key], level_ + 1, resWin_, undefined, function(rst_) {
           de.append(rst_);
         });
       }
-      return cb_(content.append(de));
+      return cb_(content);
     } else {
-      var content = $('<div>', {
-        'class': 'resContentDiv',
-        'id': 'detail_' + resWin_._UID + detail_['type'],
-        'style': 'float:left;' //,
-        //'style':'background-color:#E1EFE8;float:left;'//,
-        //'height':'50px',
-        //'width':'630px'
-      });
+      if(content_===undefined){
+        content = $('<div>', {
+          'class': 'resContentDiv',
+          'id': 'detail_' + resWin_._UID + detail_['type'],
+          'style': 'float:left;' //,
+          //'style':'background-color:#E1EFE8;float:left;'//,
+          //'height':'50px',
+          //'width':'630px'
+        });
+      }else{
+        content=content_;
+      }
       switch (detail_['type']) {
         case 'mouse':
           {
@@ -5519,11 +5536,16 @@ getDivContent: function(detail_, level_, resWin_, cb_) {
               // de.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+'名称: '+'&nbsp;&nbsp;'+curDetail['isDefault']?'默认':''+'<br/>状态: '+curDetail['status']=='IDLE'?'空闲':'被占用<br/>'+'设备链接: '+curDetail['device-uri']+'<br/>上次修改时间: '+curDetail['printer-state-change-time']+'</div>');
               //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">名称: '+curDetail['name']+'       '+(curDetail['isDefault']?'默认':'')+'  状态: '+(curDetail['status']=='IDLE'?'空闲':'被占用')+'<br/>'+'设备链接: '+curDetail['device-uri']+'<br/>上次修改时间: '+curDetail['printer-state-change-time']+'</div>');
             }
+            setTimeout(function() {
+              $('#refresh_' + resWin_._UID + 'printer').click(function() {
+                resWin_.refreshInfo(resWin_, 'printer', level_);
+              });
+            }, 400);
             break;
           }
         case 'disk':
           {
-            content.html('<br/><div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;" >硬盘信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'disk" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/><div id="container" style="min-width: 400px; height: 400px; margin: 0 auto"></div>');
+            content.html('<br/><div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;" >硬盘信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'disk" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/>');
             var txt = '<table><tr>';
             for (var keys in detail_['detail'][0]) {
               txt += '<td width="50">' + resWin_._lang[keys] + '</td>';
@@ -5537,7 +5559,6 @@ getDivContent: function(detail_, level_, resWin_, cb_) {
               txt += '</tr>';
             }
             txt += '</table>';
-
             // var diskInfo=detail_['detail'].split('\n');
             // var txt='<table>';
             // for(var i=0;i<diskInfo.length;i++){
@@ -5550,6 +5571,11 @@ getDivContent: function(detail_, level_, resWin_, cb_) {
             // }
             // txt+='</table>';
             content.append('<div style="font-size:' + 5 * (4 - level_) + 'px;color:rgb(0, ' + (0X00 + 0X10 * (10 - level_)) + ',0);margin-left:' + 15 * (level_ + 1) + 'px;white-space:pre;">' + txt + '</div>');
+            setTimeout(function() {
+              $('#refresh_' + resWin_._UID + 'disk').click(function() {
+                resWin_.refreshInfo(resWin_, 'disk', level_);
+              });
+            }, 400);
             break;
           }
         default:
@@ -5558,15 +5584,32 @@ getDivContent: function(detail_, level_, resWin_, cb_) {
       return cb_(content);
     }
   },
-  charts:function(){
+  charts: function() {
 
   },
   refreshInfo: function(resWin_, type_, level_) {
-    if (level_ === 0) {
-      console.log('type:' + type_ + ' ' + level_);
-    } else {
-      $('#detail_' + resWin_._UID + type_).empty();
-      //$('#printer').title ="项目信息";;
-    }
+    var typeParam = [];
+    if (level_ === 1) typeParam.push('hardResource');
+    typeParam.push(type_);
+    resWin_._model.refreshDetail(function(err_, rst_) {
+      if (err_) {
+        Messenger().post({
+          message: '刷新失败，请重新获取！',
+          type: 'info',
+          actions: {
+            close: {
+              label: '取消闪烁',
+              action: function() {
+                Messenger().hideAll();
+              }
+            }
+          }
+        });
+      } else {
+        var content = $('#detail_' + resWin_._UID + type_);
+        content.empty();
+        resWin_.getDivContent(rst_, level_, resWin_, content, function() {})
+      }
+    }, typeParam);
   }
 });

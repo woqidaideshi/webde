@@ -2113,6 +2113,31 @@ var DeviceEntryModel = EntryModel.extend({
     //_this.emit('showDetail', this._resources);
   },
 
+    refreshDetail: function(cb_, type_) {
+    var _this = this;
+    _global._imV.getLocalData(function(localData) {
+      if (localData.UID !== _this._position['txt'][2]) {
+        ip = _this._position['address'];
+      }
+      _global._res.getResourceList(function(err_, ret_) {
+        if (err_) return cb_(err_, ret_);
+        else {
+          if(type_.length==1&&type_[0]==='hardResource'){
+            _this._resource = ret_;
+          }else{
+            tmpRes=_this._resource;
+            for(var level=1;level<type_.length;level++){
+              tmpRes=tmpRes['detail'][type_[level]];
+            }
+            tmpRes = ret_;
+          }
+          cb_(err_,ret_);
+        }
+      }, ip, type_);
+    });
+    //_this.emit('showDetail', this._resources);
+  },
+
   initImChatParseFunc: function(cb_) {
     var toAccountInfo = {};
     toAccountInfo['identity'] = this._position['txt'][2];
