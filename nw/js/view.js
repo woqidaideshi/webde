@@ -5362,11 +5362,10 @@ var ResourceWindow = Class.extend({
     this._resource = resource_;
     this._IP = ip_;
     this._UID = uid_;
-    this._identity = this._IP + '(' + this._UID + ')';
-    console.log(this._identity)
-    this._resourceWindow = Window.create('resource' + this._identity, '资源-' + this._identity, {
-      height: 600,
-      width: 640,
+    this._lang=_global._locale.langObj;
+    this._resourceWindow = Window.create('resource' + this._UID, '资源-' + this._IP + '(' + this._UID + ')', {
+      height: 700,
+      width: 660,
       max: false,
       left: leftX,
       top: topY,
@@ -5384,30 +5383,190 @@ var ResourceWindow = Class.extend({
     if (err_) {
       _this.$view = $('<div >').html('<div >获取失败，请重新获取</div>');
     } else {
-      _this.getDivContent(_this._resource, _this, function(rst_) {
-        _this.$view = rst_;
-        //_this.$view = $('<div >').html('<div >获取失败，请重新获取</div>');
-        console.log('----' + rst_)
+      _this.getDivContent(_this._resource, 0,_this, function(rst_) {
+        _this.$view = $('<div>', {
+          'class':'resDiv',
+          'height':'680px',
+          'width':'640px',
+          'margin':'0px 0px 0px 0px'//,
+          //'style':'background-color:#CDCBCB;'//background-image: url("img/res/back.jpg")',
+        }).append(rst_);
+        //_this.$view = rst_;
+
       });
     }
     _this._resourceWindow.append(_this.$view);
+
     //this.$view = $('<div >').html('<div >' + txt + '</div>');
   },
-  getDivContent: function(detail_, resWin_, cb_) {
-    var content = $('<div>', {
-      'id': detail_['type']
-    }).html(detail_['name']);
-    var de=$('<div>');
+getDivContent: function(detail_, level_, resWin_, cb_) {
+
     if (detail_['state'] == undefined) {
+      var content = $('<div>', {
+        'class': 'resContentDiv',
+        'id': resWin_._UID + detail_['type'],
+        //'style':'background-color:#E1EFE8',
+        // 'height':'50px',
+
+        'width': '630px'
+      }).html('<div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');margin-left:' + 10 * level_ + 'px;" >' + resWin_._lang[detail_['name']] + '<img id="refresh_' + resWin_._UID + detail_['type'] + '" src="img/res/refresh.jpg"  width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/>');
+      setTimeout(function() {
+        $('#refresh_' + resWin_._UID + detail_['type']).click( function() {
+          console.log('type:============'  );
+          resWin_.refreshInfo(resWin_, detail_['type'], level_);
+        });
+      }, 400);
+
+      var de = $('<div>', {
+        'class': 'resContentDiv',
+        'height': '50px',
+        'width': '630px',
+        'id': 'detail_' + resWin_._UID + detail_['type']
+      });
       for (var key in detail_['detail']) {
-        resWin_.getDivContent(detail_['detail'][key], resWin_, function(rst_) {
+        resWin_.getDivContent(detail_['detail'][key], level_ + 1, resWin_, function(rst_) {
           de.append(rst_);
         });
       }
       return cb_(content.append(de));
     } else {
-      de.html(JSON.stringify(detail_['detail']) + '</div></div>');
-      return cb_(content.append(de));
+      var content = $('<div>', {
+        'class': 'resContentDiv',
+        'id': 'detail_' + resWin_._UID + detail_['type'],
+        'style': 'float:left;' //,
+        //'style':'background-color:#E1EFE8;float:left;'//,
+        //'height':'50px',
+        //'width':'630px'
+      });
+      switch (detail_['type']) {
+        case 'mouse':
+          {
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div  width="70" height="50" style="float:left;"><img src="img/res/mouse0.jpg" width="30" height="30" style="margin-left:' + 15 * level_ + 'px;margin-right:20px;" title="' + resWin_._lang[detail_['name']] + '\n名称: ' + curDetail['N']['Name'].substr(1, curDetail['N']['Name'].length - 2) + '\nUSB接口: ' + curDetail['usbContent'] + '"/> </div>');
+              //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+'名称: '+curDetail['N']['Name'].substr(1,curDetail['N']['Name'].length-2) + '<br/>USB接口: '+curDetail['usbContent'] +'</div>');
+            }
+            break;
+          }
+        case 'keyboard':
+          {
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div  width="70" height="50" style="float:left;"><img src="img/res/keyboard.jpg" width="40" height="40"  style="margin-left:' + 15 * level_ + 'px;margin-right:20px;" title="' + resWin_._lang[detail_['name']] + '\n名称: ' + curDetail['N']['Name'].substr(1, curDetail['N']['Name'].length - 2) + '"/></div>');
+              //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+'名称: '+curDetail['N']['Name'].substr(1,curDetail['N']['Name'].length-2)+'</div>');
+            }
+            break;
+          }
+        case 'camera':
+          {
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div  width="70" height="50" style="float:left;"><img src="img/res/camera.png" width="30" height="30"  style="margin-left:' + 15 * level_ + 'px;margin-right:20px;" title="' + resWin_._lang[detail_['name']] + '\n' + JSON.stringify(curDetail) + '"/></div>');
+              //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+JSON.stringify(curDetail)+'</div>');
+            }
+            break;
+          }
+        case 'vga':
+          {
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div  width="70" height="50" style="float:left;"><img src="img/res/show.jpg" width="45" height="45" style="margin-left:' + 15 * level_ + 'px;margin-right:20px;"  title="' + resWin_._lang[detail_['name']] + '\n' + curDetail['content'] + '\n' + curDetail['desc'] + '"/></div>');
+              //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)"  title=\"'+curDetail['desc']+'\"">'+curDetail['content']+'</div>');
+            }
+            break;
+          }
+        case 'audio':
+          {
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div  width="70" height="50" style="float:left;"><img src="img/res/audio.jpg" width="30" height="30" style="margin-left:' + 15 * level_ + 'px;margin-right:20px;"  title="' + resWin_._lang[detail_['name']] + '\n' + curDetail['content'] + '"/></div>');
+              //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+curDetail['content']+'</div>');
+            }
+            break;
+          }
+        case 'video':
+          {
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div style="font-size:' + 5 * (4 - level_) + 'px;color:rgb(0, ' + (0X00 + 0X10 * (10 - level_)) + ',0)">' + resWin_._lang[detail_['name']] + '\n' + curDetail['content'] + '</div>');
+            }
+            break;
+          }
+        case 'ethernet':
+          {
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div  width="70" height="50" style="float:left;"><img src="img/res/ethernet.png" width="30" height="30" style="margin-left:' + 15 * level_ + 'px;margin-right:20px;"  title="' + resWin_._lang[detail_['name']] + '\n' + curDetail['content'] + '"/></div>');
+              //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+curDetail['content']+'</div>');
+            }
+            break;
+          }
+        case 'WiFi':
+          {
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div  width="70" height="50" style="float:left;"><img src="img/res/wifi.jpg" width="30" height="30" style="margin-left:' + 15 * level_ + 'px;margin-right:20px;"  title="' + resWin_._lang[detail_['name']] + '\n' + JSON.stringify(curDetail) + '"/></div>');
+              //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+JSON.stringify(curDetail)+'</div>');
+            }
+            break;
+          }
+        case 'printer':
+          {
+            content.html('<br/><div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;">打印机信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'printer" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/>');
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              var curDetail = detail_['detail'][i];
+              content.append('<div id="printer"  width="50" height="50" style="float:left;"><img src="img/res/printer.jpg" width="30" height="30" style="margin-left:' + 30 * level_ + 'px;margin-right:20px;"  title="' + resWin_._lang[detail_['name']] + '\n' + '名称: ' + curDetail['name'] + '       ' + (curDetail['isDefault'] ? '默认' : '') + '  状态: ' + (curDetail['status'] == 'IDLE' ? '空闲' : '被占用') + '\n' + '设备链接: ' + curDetail['device-uri'] + '\n上次修改时间: ' + curDetail['printer-state-change-time'] + '"\/></div>');
+              // de.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+'名称: '+'&nbsp;&nbsp;'+curDetail['isDefault']?'默认':''+'<br/>状态: '+curDetail['status']=='IDLE'?'空闲':'被占用<br/>'+'设备链接: '+curDetail['device-uri']+'<br/>上次修改时间: '+curDetail['printer-state-change-time']+'</div>');
+              //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">名称: '+curDetail['name']+'       '+(curDetail['isDefault']?'默认':'')+'  状态: '+(curDetail['status']=='IDLE'?'空闲':'被占用')+'<br/>'+'设备链接: '+curDetail['device-uri']+'<br/>上次修改时间: '+curDetail['printer-state-change-time']+'</div>');
+            }
+            break;
+          }
+        case 'disk':
+          {
+            content.html('<br/><div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;" >硬盘信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'disk" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/><div id="container" style="min-width: 400px; height: 400px; margin: 0 auto"></div>');
+            var txt = '<table><tr>';
+            for (var keys in detail_['detail'][0]) {
+              txt += '<td width="50">' + resWin_._lang[keys] + '</td>';
+            }
+            txt += '</tr>';
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              txt += '<tr>';
+              for (var key in detail_['detail'][i]) {
+                txt += '<td width="50">' + detail_['detail'][i][key] + '</td>';
+              }
+              txt += '</tr>';
+            }
+            txt += '</table>';
+
+            // var diskInfo=detail_['detail'].split('\n');
+            // var txt='<table>';
+            // for(var i=0;i<diskInfo.length;i++){
+            //   txt+='<tr>';
+            //   var info=diskInfo[i].split('\\s');
+            //   for(var j=0;j<info.length;j++){
+            //     txt+='<td width="40">'+info[j]+'</td>';
+            //   }
+            //   txt+='</tr>';
+            // }
+            // txt+='</table>';
+            content.append('<div style="font-size:' + 5 * (4 - level_) + 'px;color:rgb(0, ' + (0X00 + 0X10 * (10 - level_)) + ',0);margin-left:' + 15 * (level_ + 1) + 'px;white-space:pre;">' + txt + '</div>');
+            break;
+          }
+        default:
+          {}
+      }
+      return cb_(content);
+    }
+  },
+  charts:function(){
+
+  },
+  refreshInfo: function(resWin_, type_, level_) {
+    if (level_ === 0) {
+      console.log('type:' + type_ + ' ' + level_);
+    } else {
+      $('#detail_' + resWin_._UID + type_).empty();
+      //$('#printer').title ="项目信息";;
     }
   }
 });
