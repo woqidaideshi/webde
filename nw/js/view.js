@@ -5592,7 +5592,7 @@ var ResourceWindow = Class.extend({
             //content.append('<div style="font-size:' + 5 * (4 - level_) + 'px;color:rgb(0, ' + (0X00 + 0X10 * (10 - level_)) + ',0);margin-left:' + 15 * (level_ + 1) + 'px;white-space:pre;">' + txt + '</div>');
             content.append('<div id="pie_'+resWin_._UID+'" style="min-width: 630px; height: 300px; float:left;"></div>');            
             setTimeout(function() {
-              resWin_.drawPie(pieData);
+              resWin_.drawPie(resWin_,pieData);
               $('#refresh_' + resWin_._UID + 'disk').click(function() {
                 resWin_.refreshInfo(resWin_, 'disk', level_);
               });
@@ -5678,7 +5678,7 @@ var ResourceWindow = Class.extend({
       return num + ' ' + type;
     else return num.toFixed(1) + ' ' + type;
   },
-  drawPie: function(data) {
+  drawPie: function(resWin_,data) {
     $('#pie_'+resWin_._UID).highcharts({
         chart: {
             plotBackgroundColor: null,
