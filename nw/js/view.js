@@ -5529,7 +5529,7 @@ var ResourceWindow = Class.extend({
           }
         case 'printer':
           {
-            content.html('<br/><div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;">打印机信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'printer" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/>');
+            content.html('<div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;">打印机信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'printer" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/>');
             for (var i = 0; i < detail_['detail'].length; i++) {
               var curDetail = detail_['detail'][i];
               content.append('<div id="printer"  width="50" height="50" style="float:left;"><img src="img/res/printer.jpg" width="30" height="30" style="margin-left:' + 30 * level_ + 'px;margin-right:20px;"  title="' + resWin_._lang[detail_['name']] + '\n' + '名称: ' + curDetail['name'] + '       ' + (curDetail['isDefault'] ? '默认' : '') + '  状态: ' + (curDetail['status'] == 'IDLE' ? '空闲' : '被占用') + '\n' + '设备链接: ' + curDetail['device-uri'] + '\n上次修改时间: ' + curDetail['printer-state-change-time'] + '"\/></div>');
@@ -5545,20 +5545,38 @@ var ResourceWindow = Class.extend({
           }
         case 'disk':
           {
-            content.html('<br/><div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;" >硬盘信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'disk" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div><br/>');
-            var txt = '<table><tr>';
-            for (var keys in detail_['detail'][0]) {
-              txt += '<td width="50">' + resWin_._lang[keys] + '</td>';
-            }
-            txt += '</tr>';
+            content.html('<br/><div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;" >硬盘信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'disk" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div>');
+            var totalS=0;
+            var pieData=[];
             for (var i = 0; i < detail_['detail'].length; i++) {
-              txt += '<tr>';
-              for (var key in detail_['detail'][i]) {
-                txt += '<td width="50">' + detail_['detail'][i][key] + '</td>';
-              }
-              txt += '</tr>';
+              var curD=detail_['detail'][i];
+              var curTS=parseInt(curD['totalSize']);
+              curD['totalSize']=curTS;
+              var curAS=parseInt(curD['available']);
+              curD['available']=curAS;
+              totalS+=curTS;
             }
-            txt += '</table>';
+            // var txt = '<table><tr>';
+            // for (var keys in detail_['detail'][0]) {
+            //   txt += '<td width="50">' + resWin_._lang[keys] + '</td>';
+            // }
+            // txt += '</tr>';
+            for (var i = 0; i < detail_['detail'].length; i++) {
+              //txt += '<tr>';
+              var curD=detail_['detail'][i];
+              curD['percent']=curD['totalSize']/totalS;
+              curD['totalSize']=resWin_.getFileSize(curD['totalSize']);
+              curD['available']=resWin_.getFileSize(curD['available']);
+              var pieItem={};
+              pieItem['name']=curD['filesystem']+'('+curD['type']+')'+', 总空间:'+curD['totalSize']+', 剩余:'+curD['available'];
+              pieItem['y']=curD['percent']*100;
+              pieData.push(pieItem);
+              // for (var key in detail_['detail'][i]) {
+              //   txt += '<td width="50">' + curD[key] + '</td>';
+              // }
+              // txt += '</tr>';
+            }
+            //txt += '</table>';
             // var diskInfo=detail_['detail'].split('\n');
             // var txt='<table>';
             // for(var i=0;i<diskInfo.length;i++){
@@ -5570,8 +5588,11 @@ var ResourceWindow = Class.extend({
             //   txt+='</tr>';
             // }
             // txt+='</table>';
-            content.append('<div style="font-size:' + 5 * (4 - level_) + 'px;color:rgb(0, ' + (0X00 + 0X10 * (10 - level_)) + ',0);margin-left:' + 15 * (level_ + 1) + 'px;white-space:pre;">' + txt + '</div>');
+            
+            //content.append('<div style="font-size:' + 5 * (4 - level_) + 'px;color:rgb(0, ' + (0X00 + 0X10 * (10 - level_)) + ',0);margin-left:' + 15 * (level_ + 1) + 'px;white-space:pre;">' + txt + '</div>');
+            content.append('<div id="container" style="min-width: 630px; height: 300px; float:left;"></div>');            
             setTimeout(function() {
+              resWin_.drawPie(pieData);
               $('#refresh_' + resWin_._UID + 'disk').click(function() {
                 resWin_.refreshInfo(resWin_, 'disk', level_);
               });
@@ -5611,5 +5632,148 @@ var ResourceWindow = Class.extend({
         resWin_.getDivContent(rst_, level_, resWin_, content, function() {})
       }
     }, typeParam);
+  },
+  getDiskInfo:function(){
+
+  },
+  getFileSize:function (num) {
+    var type = 'byte';
+    var i = 0;
+    while (num > 1000) {
+      num /= 1000;
+      i++;
+    }
+    switch (i) {
+      case 0:
+        type = 'B';
+        break;
+      case 1:
+        type = 'KB';
+        break;
+      case 2:
+        type = 'MB';
+        break;
+      case 3:
+        type = 'GB';
+        break;
+      case 4:
+        type = 'TB';
+        break;
+      case 5:
+        type = 'PB';
+        break;
+      case 6:
+        type = 'EB';
+        break;
+      case 7:
+        type = 'ZB';
+        break;
+      case 8:
+        type = 'YB';
+        break;
+      default:
+        type = 'byte';
+    }
+    if (num - num.toFixed(2) === 0)
+      return num + ' ' + type;
+    else return num.toFixed(1) + ' ' + type;
+  },
+  drawPie: function(data) {
+    $('#container').highcharts({
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            type: 'pie'
+        },
+        title: {
+            text: ''
+        },
+        tooltip: {
+            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        credits: {
+          enabled:false
+        },
+        legend: {
+          layout: 'vertical', //竖直显示，默认是水平显示的
+          align: 'right', //图例说明在区域的右边，默认在中间
+          verticalAlign: 'middle' //竖直方向居中，默认在底部
+        },
+        plotOptions: {
+            pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: false
+                    },
+                    showInLegend: true
+                // allowPointSelect: true,
+                // cursor: 'pointer',
+                // dataLabels: {
+                //     enabled: true,
+                //     format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                //     style: {
+                //         color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                //     }
+                // }
+            }
+        },
+        series: [{
+            name: "占比",
+            colorByPoint: true,
+            data: data
+        }]
+    });
+    // $('#container').highcharts({
+    //   chart: {
+    //     plotBackgroundColor: null,
+    //     plotBorderWidth: 0,
+    //     plotShadow: false
+    //   },
+    //   title: {
+    //     text: '',
+    //     align: 'left',
+    //     verticalAlign: 'right',
+    //     y: 40
+    //   },
+    //   tooltip: {
+    //     pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+    //   },
+    //   credits: {
+    //     enabled:false
+    //   },
+    //   legend: {
+    //     layout: 'vertical', //竖直显示，默认是水平显示的
+    //     align: 'right', //图例说明在区域的右边，默认在中间
+    //     verticalAlign: 'top' //竖直方向居中，默认在底部
+    //   },
+    //   plotOptions: {
+    //     pie: {
+    //       // dataLabels: {
+    //       //     enabled: true,
+    //       //     distance: -50,
+    //       //     style: {
+    //       //         fontWeight: 'bold',
+    //       //         color: 'white',
+    //       //         textShadow: '0px 1px 2px black'
+    //       //     }
+    //       // },
+    //       dataLabels: {
+    //         enabled: false
+    //       },
+    //       startAngle: 0,
+    //       endAngle: 180,
+    //       center: ['5%', '30%'],
+    //       showInLegend: true
+    //     }
+    //   },
+    //   series: [{
+    //     type: 'pie',
+    //     name: '占比',
+    //     innerSize: '50%',
+    //     data: data
+    //   }]
+    // });
   }
 });
