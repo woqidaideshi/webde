@@ -5590,7 +5590,7 @@ var ResourceWindow = Class.extend({
             // txt+='</table>';
             
             //content.append('<div style="font-size:' + 5 * (4 - level_) + 'px;color:rgb(0, ' + (0X00 + 0X10 * (10 - level_)) + ',0);margin-left:' + 15 * (level_ + 1) + 'px;white-space:pre;">' + txt + '</div>');
-            content.append('<div id="container" style="min-width: 630px; height: 300px; float:left;"></div>');            
+            content.append('<div id="pie_"'+resWin_._UID+' style="min-width: 630px; height: 300px; float:left;"></div>');            
             setTimeout(function() {
               resWin_.drawPie(pieData);
               $('#refresh_' + resWin_._UID + 'disk').click(function() {
@@ -5679,7 +5679,7 @@ var ResourceWindow = Class.extend({
     else return num.toFixed(1) + ' ' + type;
   },
   drawPie: function(data) {
-    $('#container').highcharts({
+    $('#pie_'+resWin_._UID).highcharts({
         chart: {
             plotBackgroundColor: null,
             plotBorderWidth: null,
