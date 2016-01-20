@@ -2351,6 +2351,7 @@ var DevEntryView = View.extend({
     });
     this.initAction();
     this._controller = DevEntryController.create(this);
+    this.resWin=null;
   },
 
   registObservers: function() {
@@ -2439,7 +2440,10 @@ var DevEntryView = View.extend({
     }).click(function(e) {
       e.stopPropagation();
       _this._controller.onClick(function(err_,resource_,IP,UID) {
-        ResourceWindow.create(err_,resource_,IP,UID,_this._model);
+        if(_this.resWin==null)
+          _this.resWin=ResourceWindow.create(err_,_this,resource_,IP,UID,_this._model);
+        else
+          _global._openingWindows.focusOnAWindow(_this.resWin._resourceWindow._id);
       });
     });
   },
@@ -5355,7 +5359,7 @@ var LoginView = View.extend({
 });
 
 var ResourceWindow = Class.extend({
-  init: function(err_, resource_, ip_, uid_, model_) {
+  init: function(err_,parent_, resource_, ip_, uid_, model_) {
     var leftX = parseInt(document.body.clientWidth) / 2 - 320;
     var topY = parseInt(document.body.clientHeight) / 2 - 300;
     this._resource = resource_;
@@ -5363,6 +5367,8 @@ var ResourceWindow = Class.extend({
     this._UID = uid_;
     this._lang = _global._locale.langObj;
     this._model = model_;
+    this._parent=parent_;
+    _this = this;
     this._resourceWindow = Window.create('resource' + this._UID, '资源-' + this._IP + '(' + this._UID + ')', {
       height: 700,
       width: 660,
@@ -5378,8 +5384,25 @@ var ResourceWindow = Class.extend({
       this.onfocus(function() {
         _global._openingWindows.focusOnAWindow(this._id);
       });
+      var idstr = '#' + 'window-' + this._id + '-close';
+      $(idstr).unbind()
+      $(idstr).bind('mousedown', function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      });
+      $(idstr).bind('click', function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      });
+      $(idstr).bind('mouseup', function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        console.log('hihihihihi')
+        _this._resourceWindow.closeWindow(_this._resourceWindow);
+        _this._parent.resWin=null;
+      });
     });
-    _this = this;
+    
     if (err_) {
       _this.$view = $('<div >').html('<div >获取失败，请重新获取！</div>');
     } else {
@@ -5392,10 +5415,96 @@ var ResourceWindow = Class.extend({
           //'style':'background-color:#CDCBCB;'//background-image: url("img/res/back.jpg")',
         }).append(rst_);
         //_this.$view = rst_;
+        
       });
     }
     _this._resourceWindow.append(_this.$view);
 
+    _this.bindEvent(_this);
+  },
+  bindEvent: function(resWin_) {
+    $('#detail_' + resWin_._UID + 'keyboard').on('dblclick', function() {
+      console.log('now the key button.');
+      Messenger().post({
+        message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + '键盘（鼠标）！',
+        type: 'info',
+        actions: {
+          close: {
+            label: '取消',
+            action: function() {
+              Messenger().hideAll();
+            }
+          },
+          open: {
+            label: '查看',
+            action: function() {
+              Messenger().hideAll();
+              _global._res.applyMouseKey(function(err_, ret_) {
+                if (err_) {
+                  Messenge.create().post({
+                    message: '连接失败！',
+                    type: 'error',
+                    showCloseButton: true,
+                    actions: {
+                      sure: {
+                        label: '确定',
+                        action: function() {
+                          Messenger().hideAll();
+                        }
+                      }
+                    }
+                  });
+                }
+              }, {
+                'type': 'keyboard',
+                'IP': resWin_._IP
+              });
+            }
+          }
+        }
+      });
+    });
+    $('#detail_' + resWin_._UID + 'mouse').on('dblclick', function() {
+      console.log('now the key button.');
+      Messenger().post({
+        message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + '鼠标（键盘）！',
+        type: 'info',
+        actions: {
+          close: {
+            label: '取消',
+            action: function() {
+              Messenger().hideAll();
+            }
+          },
+          open: {
+            label: '查看',
+            action: function() {
+              Messenger().hideAll();
+              _global._res.applyMouseKey(function(err_, ret_) {
+                if (err_) {
+                  Messenge.create().post({
+                    message: '连接失败！',
+                    type: 'error',
+                    showCloseButton: true,
+                    actions: {
+                      sure: {
+                        label: '确定',
+                        action: function() {
+                          Messenger().hideAll();
+                        }
+                      }
+                    }
+                  });
+                }
+              }, {
+                'type': 'keyboard',
+                'IP': resWin_._IP
+              });
+            }
+          }
+        }
+      });
+    });
   },
   getDivContent: function(detail_, level_, resWin_, content_, cb_) {
     var content;
@@ -5460,7 +5569,7 @@ var ResourceWindow = Class.extend({
           {
             for (var i = 0; i < detail_['detail'].length; i++) {
               var curDetail = detail_['detail'][i];
-              content.append('<div  width="70" height="50" style="float:left;"><img src="img/res/mouse0.jpg" width="30" height="30" style="margin-left:' + 15 * level_ + 'px;margin-right:20px;" title="' + resWin_._lang[detail_['name']] + '\n名称: ' + curDetail['N']['Name'].substr(1, curDetail['N']['Name'].length - 2) + '\nUSB接口: ' + curDetail['usbContent'] + '"/> </div>');
+              content.append('<div  width="70" height="50" style="float:left;"><img  src="img/res/mouse0.jpg" width="30" height="30" style="margin-left:' + 15 * level_ + 'px;margin-right:20px;" title="' + resWin_._lang[detail_['name']] + '\n名称: ' + curDetail['N']['Name'].substr(1, curDetail['N']['Name'].length - 2) + '\nUSB接口: ' + curDetail['usbContent'] + '"/> </div>');
               //content.append('<div style="font-size:'+5*(4-level_)+'px;color:rgb(0, '+(0X00+0X10*(10-level_))+',0)">'+'名称: '+curDetail['N']['Name'].substr(1,curDetail['N']['Name'].length-2) + '<br/>USB接口: '+curDetail['usbContent'] +'</div>');
             }
             break;
