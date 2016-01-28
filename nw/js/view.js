@@ -5471,13 +5471,13 @@ var ResourceWindow = Class.extend({
       type: 'info',
       actions: {
         close: {
-          label: '连接',
+          label: '取消',
           action: function() {
             Messenger().hideAll();
           }
         },
         open: {
-          label: '查看',
+          label: '连接',
           action: function() {
             Messenger().hideAll();
             _global._res.applyMouseKey(function(err_, ret_) {
