@@ -2441,12 +2441,13 @@ var DevEntryView = View.extend({
       e.stopPropagation();
       _global._imV.getLocalData(function(localInfo){
         _this._controller.onClick(function(err_,resource_,IP,UID) {
-          if(_this._parent._parent._resWinList[UID]===undefined){
+          var resWin=_this._parent._parent._resWinList[UID];
+          if(resWin===undefined){
             resWin=ResourceWindow.create(err_,_this._parent._parent._resWinList,resource_,IP,UID,_this._model,localInfo.UID==UID);
             _this._parent._parent._resWinList[UID]=resWin;
           }
           else
-            _global._openingWindows.focusOnAWindow(_this.resWin._resourceWindow._id);
+            _global._openingWindows.focusOnAWindow(resWin._resourceWindow._id);
         });
       });
     });
@@ -5449,169 +5450,106 @@ var ResourceWindow = Class.extend({
     $('#detail_' + resWin_._UID + 'keyboard').on('dblclick', function() {
       console.log('now the key button.');
       if (resWin_._resource['detail']['input']['detail']['keyboard']['state'] == 1) {
-        Messenge.create().post({
-          message: '键盘资源不可用！',
-          type: 'info',
-          showCloseButton: true,
-          actions: {
-            sure: {
-              label: '确定',
-              action: function() {
-                Messenger().hideAll();
-              }
-            }
-          }
-        });
-        Messenger().post({
-          message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + '键盘（鼠标）！',
-          type: 'info',
-          actions: {
-            close: {
-              label: '取消',
-              action: function() {
-                Messenger().hideAll();
-              }
-            },
-            open: {
-              label: '查看',
-              action: function() {
-                Messenger().hideAll();
-                _global._res.applyMouseKey(function(err_, ret_) {
-                  if (err_) {
-                    Messenge.create().post({
-                      message: '连接失败！',
-                      type: 'error',
-                      showCloseButton: true,
-                      actions: {
-                        sure: {
-                          label: '确定',
-                          action: function() {
-                            Messenger().hideAll();
-                          }
-                        }
-                      }
-                    });
-                  }else{
-                    $('#detail_' + resWin_._UID + 'keyboard').title='不可用';
-                    $('#detail_' + resWin_._UID + 'mouse').title='不可用';
-                    resWin_._resource['detail']['input']['detail']['keyboard']['state']=1;
-                    resWin_._resource['detail']['input']['detail']['mouse']['state']=1;
-                  }
-                }, {
-                  'type': 'keyboard',
-                  'IP': resWin_._IP
-                });
-              }
-            }
-          }
-        });
-        return;
+        resWin_.releaseMouseKey(resWin_,'键盘（鼠标）');
+      }else{
+        resWin_.applyMouseKey(resWin_,'键盘（鼠标）');
       }
-      Messenger().post({
-        message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + '键盘（鼠标）！',
-        type: 'info',
-        actions: {
-          close: {
-            label: '取消',
-            action: function() {
-              Messenger().hideAll();
-            }
-          },
-          open: {
-            label: '查看',
-            action: function() {
-              Messenger().hideAll();
-              _global._res.applyMouseKey(function(err_, ret_) {
-                if (err_) {
-                  Messenge.create().post({
-                    message: '连接失败！',
-                    type: 'error',
-                    showCloseButton: true,
-                    actions: {
-                      sure: {
-                        label: '确定',
-                        action: function() {
-                          Messenger().hideAll();
-                        }
-                      }
-                    }
-                  });
-                }else{
-                  $('#detail_' + resWin_._UID + 'keyboard').title='不可用';
-                  $('#detail_' + resWin_._UID + 'mouse').title='不可用';
-                  resWin_._resource['detail']['input']['detail']['keyboard']['state']=1;
-                  resWin_._resource['detail']['input']['detail']['mouse']['state']=1;
-                }
-              }, {
-                'type': 'keyboard',
-                'IP': resWin_._IP
-              });
-            }
-          }
-        }
-      });
     });
     $('#detail_' + resWin_._UID + 'mouse').on('dblclick', function() {
       console.log('now the mouse button.');
       if (resWin_._resource['detail']['input']['detail']['mouse']['state'] == 1) {
-        Messenge.create().post({
-          message: '鼠标资源不可用！',
-          type: 'info',
-          showCloseButton: true,
-          actions: {
-            sure: {
-              label: '确定',
-              action: function() {
-                Messenger().hideAll();
-              }
-            }
-          }
-        });
-        return;
+        resWin_.releaseMouseKey(resWin_,'鼠标（键盘）');
+      }else{
+        resWin_.applyMouseKey(resWin_,'鼠标（键盘）');
       }
-      Messenger().post({
-        message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + '鼠标（键盘）！',
-        type: 'info',
-        actions: {
-          close: {
-            label: '取消',
-            action: function() {
-              Messenger().hideAll();
-            }
-          },
-          open: {
-            label: '查看',
-            action: function() {
-              Messenger().hideAll();
-              _global._res.applyMouseKey(function(err_, ret_) {
-                if (err_) {
-                  Messenge.create().post({
-                    message: '连接失败！',
-                    type: 'error',
-                    showCloseButton: true,
-                    actions: {
-                      sure: {
-                        label: '确定',
-                        action: function() {
-                          Messenger().hideAll();
-                        }
+    });
+  },
+
+  applyMouseKey: function(resWin_,msg_) {
+    Messenger().post({
+      message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + msg_+'！',
+      type: 'info',
+      actions: {
+        close: {
+          label: '取消',
+          action: function() {
+            Messenger().hideAll();
+          }
+        },
+        open: {
+          label: '查看',
+          action: function() {
+            Messenger().hideAll();
+            _global._res.applyMouseKey(function(err_, ret_) {
+              if (err_) {
+                Messenge.create().post({
+                  message: '连接失败！',
+                  type: 'error',
+                  showCloseButton: true,
+                  actions: {
+                    sure: {
+                      label: '确定',
+                      action: function() {
+                        Messenger().hideAll();
                       }
                     }
-                  });
-                }else{
-                  $('#detail_' + resWin_._UID + 'keyboard').title='不可用';
-                  $('#detail_' + resWin_._UID + 'mouse').title='不可用';
-                  resWin_._resource['detail']['input']['detail']['keyboard']['state']=1;
-                  resWin_._resource['detail']['input']['detail']['mouse']['state']=1;
-                }
-              }, {
-                'type': 'keyboard',
-                'IP': resWin_._IP
-              });
-            }
+                  }
+                });
+              } else {
+                $('#detail_' + resWin_._UID + 'keyboard').title = '不可用';
+                $('#detail_' + resWin_._UID + 'mouse').title = '不可用';
+                resWin_._resource['detail']['input']['detail']['keyboard']['state'] = 1;
+                resWin_._resource['detail']['input']['detail']['mouse']['state'] = 1;
+              }
+            }, {'IP': resWin_._IP});
           }
         }
-      });
+      }
+    });
+  },
+
+  releaseMouseKey: function(resWin_,msg_) {
+    Messenger().post({
+      message: msg_+'键盘（鼠标）资源不可用！\n你想尝试释放吗？',
+      type: 'info',
+      actions: {
+        close: {
+          label: '取消',
+          action: function() {
+            Messenger().hideAll();
+          }
+        },
+        open: {
+          label: '尝试释放',
+          action: function() {
+            Messenger().hideAll();
+            _global._res.releaseMouseKey(function(err_, ret_) {
+              if (err_) {
+                Messenge.create().post({
+                  message: '释放失败！\n' + err_,
+                  type: 'error',
+                  showCloseButton: true,
+                  actions: {
+                    sure: {
+                      label: '确定',
+                      action: function() {
+                        Messenger().hideAll();
+                      }
+                    }
+                  }
+                });
+              } else {
+                $('#detail_' + resWin_._UID + 'keyboard').title = '空闲';
+                $('#detail_' + resWin_._UID + 'mouse').title = '空闲';
+                resWin_._resource['detail']['input']['detail']['keyboard']['state'] = 0;
+                resWin_._resource['detail']['input']['detail']['mouse']['state'] = 0;
+              }
+            }, {
+              'IP': resWin_._IP
+            });
+          }
+        }
+      }
     });
   },
   getDivContent: function(detail_, level_, resWin_, content_, cb_) {
