@@ -5704,13 +5704,18 @@ var ResourceWindow = Class.extend({
             content.html('<br/><div style="font-size:' + 5 * (5 - level_) + 'px;color:rgb(0, 0, ' + (0x00 + 0X01 * (10 - level_)) + ');width:' + (630 - 10 * level_) + 'px;margin-left:' + 10 * level_ + 'px;" >硬盘信息<img src="img/res/refresh.jpg"  id="refresh_' + resWin_._UID + 'disk" width="20" height="20" style="margin-left:20px;margin-right:20px;"  title="刷新"/></div>');
             var totalS=0;
             var pieData=[];
-            for (var i = 0; i < detail_['detail'].length; i++) {
-              var curD=detail_['detail'][i];
-              var curTS=parseInt(curD['totalSize']);
-              curD['totalSize']=curTS;
-              var curAS=parseInt(curD['available']);
-              curD['available']=curAS;
-              totalS+=curTS;
+            var needCal=false;
+            var testObj=detail_['detail'].length>0?detail_['detail'][0]:undefined;
+            if(testObj&&!(testObj['percent']&&testObj['totalSizeTo']&&testObj['availableTo'])){
+              needCal=true;
+              for (var i = 0; i < detail_['detail'].length; i++) {
+                var curD=detail_['detail'][i];
+                var curTS=parseInt(curD['totalSize']);
+                curD['totalSize']=curTS;
+                var curAS=parseInt(curD['available']);
+                curD['available']=curAS;
+                totalS+=curTS;
+              }
             }
             // var txt = '<table><tr>';
             // for (var keys in detail_['detail'][0]) {
@@ -5720,9 +5725,11 @@ var ResourceWindow = Class.extend({
             for (var i = 0; i < detail_['detail'].length; i++) {
               //txt += '<tr>';
               var curD=detail_['detail'][i];
-              curD['percent']=curD['totalSize']/totalS;
-              curD['totalSizeTo']=resWin_.getFileSize(curD['totalSize']);
-              curD['availableTo']=resWin_.getFileSize(curD['available']);
+              if(needCal){
+                curD['percent']=curD['totalSize']/totalS;
+                curD['totalSizeTo']=resWin_.getFileSize(curD['totalSize']);
+                curD['availableTo']=resWin_.getFileSize(curD['available']);
+              }
               var pieItem={};
               pieItem['name']=curD['filesystem']+'('+curD['type']+')'+', 总空间:'+curD['totalSizeTo']+', 剩余:'+curD['availableTo'];
               pieItem['y']=curD['percent']*100;
