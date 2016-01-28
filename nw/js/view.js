@@ -5442,8 +5442,7 @@ var ResourceWindow = Class.extend({
       resWin_._resourceWindow.closeWindow(resWin_._resourceWindow);
       delete  resWin_._resWinList[resWin_._UID];
     });
-    if(!resWin_._isSelf)
-      resWin_.bindExtraEvent(resWin_);
+    resWin_.bindExtraEvent(resWin_);
   },
 
   bindExtraEvent: function(resWin_) {
@@ -5466,6 +5465,7 @@ var ResourceWindow = Class.extend({
   },
 
   applyMouseKey: function(resWin_,msg_) {
+    if(resWin_._isSelf) return;
     Messenger().post({
       message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + msg_+'！',
       type: 'info',
@@ -5545,7 +5545,8 @@ var ResourceWindow = Class.extend({
                 resWin_._resource['detail']['input']['detail']['mouse']['state'] = 0;
               }
             }, {
-              'IP': resWin_._IP
+              'IP': resWin_._IP,
+              'isSelf': resWin_._isSelf
             });
           }
         }
