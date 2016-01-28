@@ -1841,6 +1841,7 @@ var DeviceListView = View.extend({
     this.initAction();
     this._shown = false;
     this._imChatWinList = {}; 
+    this._resWinList = {}; 
   },
   
   registObservers: function() {
@@ -2351,7 +2352,6 @@ var DevEntryView = View.extend({
     });
     this.initAction();
     this._controller = DevEntryController.create(this);
-    this.resWin=null;
   },
 
   registObservers: function() {
@@ -2439,11 +2439,15 @@ var DevEntryView = View.extend({
       });
     }).click(function(e) {
       e.stopPropagation();
-      _this._controller.onClick(function(err_,resource_,IP,UID) {
-        if(_this.resWin==null)
-          _this.resWin=ResourceWindow.create(err_,_this,resource_,IP,UID,_this._model);
-        else
-          _global._openingWindows.focusOnAWindow(_this.resWin._resourceWindow._id);
+      _global._imV.getLocalData(function(localInfo){
+        _this._controller.onClick(function(err_,resource_,IP,UID) {
+          if(_this._parent._parent._resWinList[UID]===undefined){
+            resWin=ResourceWindow.create(err_,_this._parent._parent._resWinList,resource_,IP,UID,_this._model,localInfo.UID==UID);
+            _this._parent._parent._resWinList[UID]=resWin;
+          }
+          else
+            _global._openingWindows.focusOnAWindow(_this.resWin._resourceWindow._id);
+        });
       });
     });
   },
@@ -5359,7 +5363,7 @@ var LoginView = View.extend({
 });
 
 var ResourceWindow = Class.extend({
-  init: function(err_,parent_, resource_, ip_, uid_, model_) {
+  init: function(err_, resWinList_, resource_, ip_, uid_, model_, isSelf_) {
     var leftX = parseInt(document.body.clientWidth) / 2 - 320;
     var topY = parseInt(document.body.clientHeight) / 2 - 300;
     this._resource = resource_;
@@ -5367,9 +5371,10 @@ var ResourceWindow = Class.extend({
     this._UID = uid_;
     this._lang = _global._locale.langObj;
     this._model = model_;
-    this._parent=parent_;
+    this._resWinList = resWinList_;
+    this._isSelf = isSelf_;
     _this = this;
-    this._resourceWindow = Window.create('resource' + this._UID, '资源-' + this._IP + '(' + this._UID + ')', {
+    _this._resourceWindow = Window.create('resource' + _this._UID, '资源-' + _this._IP + '(' + _this._UID + ')', {
       height: 700,
       width: 660,
       max: false,
@@ -5384,25 +5389,23 @@ var ResourceWindow = Class.extend({
       this.onfocus(function() {
         _global._openingWindows.focusOnAWindow(this._id);
       });
-      var idstr = '#' + 'window-' + this._id + '-close';
-      $(idstr).unbind()
-      $(idstr).bind('mousedown', function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-      });
-      $(idstr).bind('click', function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-      });
-      $(idstr).bind('mouseup', function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        console.log('hihihihihi')
-        _this._resourceWindow.closeWindow(_this._resourceWindow);
-        _this._parent.resWin=null;
-      });
+      // var idstr = '#' + 'window-' + 'resource' + _this._UID + '-close';
+      // $(idstr).unbind()
+      // $(idstr).bind('mousedown', function(ev) {
+      //   ev.preventDefault();
+      //   ev.stopPropagation();
+      // });
+      // $(idstr).bind('click', function(ev) {
+      //   ev.preventDefault();
+      //   ev.stopPropagation();
+      // });
+      // $(idstr).bind('mouseup', function(ev) {
+      //   console.log('idstr---'+idstr)
+      //   ev.preventDefault();
+      //   ev.stopPropagation();
+      //   _this.closeBtnFunc(_this);
+      // });
     });
-    
     if (err_) {
       _this.$view = $('<div >').html('<div >获取失败，请重新获取！</div>');
     } else {
@@ -5415,16 +5418,95 @@ var ResourceWindow = Class.extend({
           //'style':'background-color:#CDCBCB;'//background-image: url("img/res/back.jpg")',
         }).append(rst_);
         //_this.$view = rst_;
-        
       });
     }
-    _this._resourceWindow.append(_this.$view);
-
+    this._resourceWindow.append(_this.$view);
     _this.bindEvent(_this);
   },
-  bindEvent: function(resWin_) {
+
+  bindEvent:function(resWin_){
+    var idstr = '#' + 'window-' + 'resource' + resWin_._UID + '-close';
+    $(idstr).unbind();
+    $(idstr).bind('mousedown', function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    });
+    $(idstr).bind('click', function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    });
+    $(idstr).bind('mouseup', function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      resWin_._resourceWindow.closeWindow(resWin_._resourceWindow);
+      delete  resWin_._resWinList[resWin_._UID];
+    });
+    if(!resWin_._isSelf)
+      resWin_.bindExtraEvent(resWin_);
+  },
+
+  bindExtraEvent: function(resWin_) {
     $('#detail_' + resWin_._UID + 'keyboard').on('dblclick', function() {
       console.log('now the key button.');
+      if (resWin_._resource['detail']['input']['detail']['keyboard']['state'] == 1) {
+        Messenge.create().post({
+          message: '键盘资源不可用！',
+          type: 'info',
+          showCloseButton: true,
+          actions: {
+            sure: {
+              label: '确定',
+              action: function() {
+                Messenger().hideAll();
+              }
+            }
+          }
+        });
+        Messenger().post({
+          message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + '键盘（鼠标）！',
+          type: 'info',
+          actions: {
+            close: {
+              label: '取消',
+              action: function() {
+                Messenger().hideAll();
+              }
+            },
+            open: {
+              label: '查看',
+              action: function() {
+                Messenger().hideAll();
+                _global._res.applyMouseKey(function(err_, ret_) {
+                  if (err_) {
+                    Messenge.create().post({
+                      message: '连接失败！',
+                      type: 'error',
+                      showCloseButton: true,
+                      actions: {
+                        sure: {
+                          label: '确定',
+                          action: function() {
+                            Messenger().hideAll();
+                          }
+                        }
+                      }
+                    });
+                  }else{
+                    $('#detail_' + resWin_._UID + 'keyboard').title='不可用';
+                    $('#detail_' + resWin_._UID + 'mouse').title='不可用';
+                    resWin_._resource['detail']['input']['detail']['keyboard']['state']=1;
+                    resWin_._resource['detail']['input']['detail']['mouse']['state']=1;
+                  }
+                }, {
+                  'type': 'keyboard',
+                  'IP': resWin_._IP
+                });
+              }
+            }
+          }
+        });
+        return;
+      }
       Messenger().post({
         message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + '键盘（鼠标）！',
         type: 'info',
@@ -5454,6 +5536,11 @@ var ResourceWindow = Class.extend({
                       }
                     }
                   });
+                }else{
+                  $('#detail_' + resWin_._UID + 'keyboard').title='不可用';
+                  $('#detail_' + resWin_._UID + 'mouse').title='不可用';
+                  resWin_._resource['detail']['input']['detail']['keyboard']['state']=1;
+                  resWin_._resource['detail']['input']['detail']['mouse']['state']=1;
                 }
               }, {
                 'type': 'keyboard',
@@ -5465,7 +5552,23 @@ var ResourceWindow = Class.extend({
       });
     });
     $('#detail_' + resWin_._UID + 'mouse').on('dblclick', function() {
-      console.log('now the key button.');
+      console.log('now the mouse button.');
+      if (resWin_._resource['detail']['input']['detail']['mouse']['state'] == 1) {
+        Messenge.create().post({
+          message: '鼠标资源不可用！',
+          type: 'info',
+          showCloseButton: true,
+          actions: {
+            sure: {
+              label: '确定',
+              action: function() {
+                Messenger().hideAll();
+              }
+            }
+          }
+        });
+        return;
+      }
       Messenger().post({
         message: '你正在连接' + resWin_._IP + '(' + resWin_._UID + ')' + '鼠标（键盘）！',
         type: 'info',
@@ -5495,6 +5598,11 @@ var ResourceWindow = Class.extend({
                       }
                     }
                   });
+                }else{
+                  $('#detail_' + resWin_._UID + 'keyboard').title='不可用';
+                  $('#detail_' + resWin_._UID + 'mouse').title='不可用';
+                  resWin_._resource['detail']['input']['detail']['keyboard']['state']=1;
+                  resWin_._resource['detail']['input']['detail']['mouse']['state']=1;
                 }
               }, {
                 'type': 'keyboard',
@@ -5556,6 +5664,7 @@ var ResourceWindow = Class.extend({
         content = $('<div>', {
           'class': 'resContentDiv',
           'id': 'detail_' + resWin_._UID + detail_['type'],
+          'title':detail_['state']==0?'空闲':'不可用',
           'style': 'float:left;' //,
           //'style':'background-color:#E1EFE8;float:left;'//,
           //'height':'50px',
@@ -5674,10 +5783,10 @@ var ResourceWindow = Class.extend({
               //txt += '<tr>';
               var curD=detail_['detail'][i];
               curD['percent']=curD['totalSize']/totalS;
-              curD['totalSize']=resWin_.getFileSize(curD['totalSize']);
-              curD['available']=resWin_.getFileSize(curD['available']);
+              curD['totalSizeTo']=resWin_.getFileSize(curD['totalSize']);
+              curD['availableTo']=resWin_.getFileSize(curD['available']);
               var pieItem={};
-              pieItem['name']=curD['filesystem']+'('+curD['type']+')'+', 总空间:'+curD['totalSize']+', 剩余:'+curD['available'];
+              pieItem['name']=curD['filesystem']+'('+curD['type']+')'+', 总空间:'+curD['totalSizeTo']+', 剩余:'+curD['availableTo'];
               pieItem['y']=curD['percent']*100;
               pieData.push(pieItem);
               // for (var key in detail_['detail'][i]) {

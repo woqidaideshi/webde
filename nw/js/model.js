@@ -2113,7 +2113,7 @@ var DeviceEntryModel = EntryModel.extend({
     //_this.emit('showDetail', this._resources);
   },
 
-    refreshDetail: function(cb_, type_) {
+  refreshDetail: function(cb_, type_) {
     var _this = this;
     _global._imV.getLocalData(function(localData) {
       var ip=undefined;
