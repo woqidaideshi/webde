@@ -5471,7 +5471,7 @@ var ResourceWindow = Class.extend({
       type: 'info',
       actions: {
         close: {
-          label: '取消',
+          label: '连接',
           action: function() {
             Messenger().hideAll();
           }
