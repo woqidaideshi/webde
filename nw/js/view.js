@@ -5442,10 +5442,10 @@ var ResourceWindow = Class.extend({
       resWin_._resourceWindow.closeWindow(resWin_._resourceWindow);
       delete  resWin_._resWinList[resWin_._UID];
     });
-    resWin_.bindExtraEvent(resWin_);
+    resWin_.bindInputEvent(resWin_);
   },
 
-  bindExtraEvent: function(resWin_) {
+  bindInputEvent: function(resWin_) {
     $('#detail_' + resWin_._UID + 'keyboard').on('dblclick', function() {
       console.log('now the key button.');
       if (resWin_._resource['detail']['input']['detail']['keyboard']['state'] == 1) {
@@ -5496,8 +5496,8 @@ var ResourceWindow = Class.extend({
                   }
                 });
               } else {
-                $('#detail_' + resWin_._UID + 'keyboard').title = '不可用';
-                $('#detail_' + resWin_._UID + 'mouse').title = '不可用';
+                $('#detail_' + resWin_._UID + 'keyboard').attr('title','不可用'); 
+                $('#detail_' + resWin_._UID + 'mouse').attr('title','不可用'); 
                 resWin_._resource['detail']['input']['detail']['keyboard']['state'] = 1;
                 resWin_._resource['detail']['input']['detail']['mouse']['state'] = 1;
               }
@@ -5539,8 +5539,8 @@ var ResourceWindow = Class.extend({
                   }
                 });
               } else {
-                $('#detail_' + resWin_._UID + 'keyboard').title = '空闲';
-                $('#detail_' + resWin_._UID + 'mouse').title = '空闲';
+                $('#detail_' + resWin_._UID + 'keyboard').attr('title','空闲');
+                $('#detail_' + resWin_._UID + 'mouse').attr('title','空闲');
                 resWin_._resource['detail']['input']['detail']['keyboard']['state'] = 0;
                 resWin_._resource['detail']['input']['detail']['mouse']['state'] = 0;
               }
@@ -5794,6 +5794,9 @@ var ResourceWindow = Class.extend({
         var content = $('#detail_' + resWin_._UID + type_);
         content.empty();
         resWin_.getDivContent(rst_, level_, resWin_, content, function() {})
+        setTimeout(function() {
+          if(type_=='input')resWin_.bindInputEvent(resWin_);
+        }, 400);
       }
     }, typeParam);
   },
