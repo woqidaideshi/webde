@@ -2098,7 +2098,7 @@ var DeviceEntryModel = EntryModel.extend({
     if (_this._resource === null) {
       _global._imV.getLocalData(function(localData) {
         var ip = undefined;
-        if (localData.UID !== _this._position['txt'][2]) {
+        if (localData.UID !== _this._position['txt'][2]||(!_global.get('ws').isLocal())) {
           ip = _this._position['address'];
         }
         _global._res.getResourceList(function(err_, ret_) {
